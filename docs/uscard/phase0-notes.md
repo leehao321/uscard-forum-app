@@ -32,7 +32,7 @@
 - 包名：`com.github.lingyan000.fluxdo` → `com.hao.uscardforum`
   （Android `namespace`/`applicationId`、Kotlin 目录与 package、iOS/macOS bundle id、Linux APPLICATION_ID、所有 `MethodChannel` 名）
 - URL scheme：`fluxdo://` → `uscardforum://`（Android intent-filter、iOS Info.plist、Windows 协议注册、Dart 深链解析、扫码登录）；`discourse://` 保留。
-- 更新检查与关于页：指向 `hao/uscard-forum-app`（**GitHub 用户名 `hao` 为占位，建仓库后需替换为真实用户名**）。
+- 更新检查与关于页：指向 `leehao321/uscard-forum-app`（GitHub 用户名 `leehao321`）。
 - README 顶部加中文说明；LICENSE 与原作者版权声明未动。
 - **未改**（后续再处理）：`android/app/google-services.json` 的 package_name、`flatpak/`、`altstore/`、`.github/` 工作流、Dart 包名 `fluxdo`、可执行文件名 `fluxdo.exe`、图标、各处 l10n 文案里的 “FluxDO”。
 
