@@ -1,0 +1,64 @@
+name: iOS Unsigned IPA
+
+# 手动触发：在 macOS runner 上构建未签名的 iOS IPA，作为 Actions 产物下载。
+# IPA 未签名，需要用 AltStore / Sideloadly 等工具用自己的 Apple ID 重新签名后装到真机。
+on:
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: '3.47.4'
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: core/doh_proxy
+          key: ios
+
+      - name: Setup iOS Rust targets
+        run: rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
+
+      - name: Configure Git for CocoaPods
+        run: git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+
+      - name: Build iOS (no codesign)
+        run: |
+          dart tool/flutterw.dart build ios --release --no-codesign
+          nm -gU build/ios/iphoneos/Runner.app/Runner | grep "_doh_proxy_start_with_config_json"
+
+      - name: Package IPA
+        run: |
+          mkdir -p dist
+          cd build/ios/iphoneos
+          rm -rf Payload && mkdir Payload
+          cp -r Runner.app Payload/
+          zip -qr uscard-forum-unsigned.ipa Payload
+          mv uscard-forum-unsigned.ipa ../../../dist/
+          ls -lh ../../../dist/
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: uscard-forum-unsigned-ipa
+          path: dist/uscard-forum-unsigned.ipa
+          retention-days: 14
+          if-no-files-found: error
