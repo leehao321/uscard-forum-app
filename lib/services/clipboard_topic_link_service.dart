@@ -25,7 +25,7 @@ class ClipboardTopicLinkService {
       'pref_clipboard_topic_link_last_prompted_hash';
 
   static final RegExp _linuxDoUrlRegex = RegExp(
-    r'(?:(?:https?:)?//)?(?:www\.)?linux\.do(?::\d+)?/[^\s<>"\]\)）}】》]+',
+    r'(?:(?:https?:)?//)?(?:www\.)?uscardforum\.com(?::\d+)?/[^\s<>"\]\)）}】》]+',
     caseSensitive: false,
   );
 

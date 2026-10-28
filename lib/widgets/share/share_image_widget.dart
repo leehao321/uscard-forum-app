@@ -144,7 +144,7 @@ class ShareImageWidget extends ConsumerWidget {
         ),
         const SizedBox(width: 8),
         Text(
-          'LINUX DO',
+          '美卡论坛',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
