@@ -252,7 +252,6 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
     '5',
     '1',
     'reactions',
-    'boosts',
     'votes',
     'solved',
   ];
@@ -2594,7 +2593,6 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
         Tab(height: 36, text: context.l10n.userProfile_tabReplies),
         Tab(height: 36, text: context.l10n.userProfile_tabLikes),
         Tab(height: 36, text: context.l10n.userProfile_tabReactions),
-        Tab(height: 36, text: context.l10n.userProfile_tabBoosts),
         Tab(height: 36, text: context.l10n.userProfile_tabVotes),
         Tab(height: 36, text: context.l10n.userProfile_tabSolved),
       ],

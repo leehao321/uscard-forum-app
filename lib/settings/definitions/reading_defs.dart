@@ -44,15 +44,6 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
               ref.read(preferencesProvider.notifier).setDisplayPanguSpacing(v),
         ),
         SwitchModel(
-          id: 'boostDanmaku',
-          title: l10n.reading_boostDanmaku,
-          subtitle: l10n.reading_boostDanmakuDesc,
-          icon: Symbols.rocket_launch_rounded,
-          getValue: (ref) => ref.watch(preferencesProvider).boostDanmaku,
-          onChanged: (ref, v) =>
-              ref.read(preferencesProvider.notifier).setBoostDanmaku(v),
-        ),
-        SwitchModel(
           id: 'showSuggestedTopics',
           title: l10n.reading_showSuggestedTopics,
           subtitle: l10n.reading_showSuggestedTopicsDesc,
