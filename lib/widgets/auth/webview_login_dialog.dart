@@ -119,6 +119,7 @@ class _WebViewLoginDialogState extends State<_WebViewLoginDialog> {
   bool _finished = false; // 防止重复 pop / 回调重入
   bool _cookiesPrimed = false; // 方案 A: 是否已从 jar 预灌 cookie
   bool _windowsInlineHtmlInjected = false;
+  bool _autoLoginStarted = false; // 无 hCaptcha 站点：只自动发起一次登录
   bool _cfRetryUsed = false; // CSRF 403 自动重验证只做一次, 避免死循环
   final int _flowGeneration = AuthSession().generation;
   // 最近一次 _runLogin 的参数, CSRF 403 重新过 CF 后用同样参数重跑。
@@ -165,6 +166,21 @@ class _WebViewLoginDialogState extends State<_WebViewLoginDialog> {
     final subColor = hex(scheme.onSurfaceVariant);
     final accent = hex(scheme.primary);
     final endpointsJson = jsonEncode(_hcaptchaCreateEndpoints);
+    final useHcaptcha = AppConstants.siteCustomization.requiresHcaptcha;
+    final tipHtml = useHcaptcha
+        ? '勾选下方方框，<b>确认你不是机器人</b>即可继续登录'
+        : '<b>正在登录…</b>';
+    final captchaHtml = useHcaptcha
+        ? '''<div id="cap" class="h-captcha"
+      data-sitekey="${widget.siteKey}"
+      data-callback="onPass"
+      data-error-callback="onErr"
+      data-expired-callback="onExp"
+      data-size="normal"></div>'''
+        : '';
+    final captchaScript = useHcaptcha
+        ? '<script src="https://js.hcaptcha.com/1/api.js" async defer></script>'
+        : '';
     return '''
 <!DOCTYPE html>
 <html>
@@ -187,13 +203,8 @@ class _WebViewLoginDialogState extends State<_WebViewLoginDialog> {
 <body>
   <div class="wrap">
     <div class="badge">🛡️</div>
-    <p class="tip">勾选下方方框，<b>确认你不是机器人</b>即可继续登录</p>
-    <div id="cap" class="h-captcha"
-      data-sitekey="${widget.siteKey}"
-      data-callback="onPass"
-      data-error-callback="onErr"
-      data-expired-callback="onExp"
-      data-size="normal"></div>
+    <p class="tip">$tipHtml</p>
+    $captchaHtml
   </div>
   <script>
     function call(name, payload) {
@@ -290,7 +301,7 @@ class _WebViewLoginDialogState extends State<_WebViewLoginDialog> {
       }
     };
   </script>
-  <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+  $captchaScript
 </body>
 </html>
 ''';
@@ -302,6 +313,12 @@ class _WebViewLoginDialogState extends State<_WebViewLoginDialog> {
       callback: (args) {
         if (mounted && _loading) {
           setState(() => _loading = false);
+        }
+        // 站点没有 hCaptcha：页面就绪后直接登录（JS 在 token 为空时会跳过 hcaptcha/create）
+        if (!AppConstants.siteCustomization.requiresHcaptcha &&
+            !_autoLoginStarted) {
+          _autoLoginStarted = true;
+          _runLogin(hcaptchaToken: null, secondFactorToken: null);
         }
         return null;
       },
@@ -601,7 +618,7 @@ document.close();
       }
       await BoundarySyncService.instance.syncFromWebView(
         controller: controller,
-        currentUrl: 'https://linux.do/',
+        currentUrl: '${AppConstants.baseUrl}/',
         cookieNames: null,
         allowLowConfidenceSessionCookies: true,
         requestGeneration: _flowGeneration,

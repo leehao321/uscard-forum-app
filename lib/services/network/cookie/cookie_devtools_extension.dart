@@ -1,3 +1,4 @@
+import '../../../constants.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
@@ -302,7 +303,7 @@ class CookieDevtoolsExtension {
   // helpers
   // ---------------------------------------------------------------------------
 
-  String _defaultUrl() => 'https://linux.do';
+  String _defaultUrl() => AppConstants.baseUrl;
 
   developer.ServiceExtensionResponse _okResult(Object data) {
     return developer.ServiceExtensionResponse.result(jsonEncode(data));

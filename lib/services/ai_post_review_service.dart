@@ -1,3 +1,4 @@
+import '../constants.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -80,7 +81,7 @@ class AiPostReviewService {
        _dio = dio,
        _guidelinesFetcher = guidelinesFetcher;
 
-  static const guidelinesUrl = 'https://linux.do/guidelines';
+  static const guidelinesUrl = '${AppConstants.baseUrl}/guidelines';
   static const _guidelinesCacheKey = 'ai_post_review_guidelines_cache';
   static const _guidelinesCacheUpdatedAtKey =
       'ai_post_review_guidelines_cache_updated_at';

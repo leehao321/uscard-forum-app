@@ -146,14 +146,14 @@ class DeepLinkService {
     }
 
     // 邮箱链接登录：/session/email-login/{token}
-    if (uri.host == 'linux.do' &&
+    if (_isSiteHost(uri.host) &&
         uri.path.startsWith('/session/email-login/')) {
       _handleEmailLogin(context, url);
       return;
     }
 
-    // 其他 linux.do 链接：使用内置浏览器
-    if (uri.host == 'linux.do' || uri.host.endsWith('.linux.do')) {
+    // 其他本站链接：使用内置浏览器
+    if (_isSiteHost(uri.host)) {
       WebViewPage.open(context, url);
       return;
     }
@@ -264,13 +264,13 @@ class DeepLinkService {
     // 浏览器授权登录回调(仅 auth_redirect,不接管其他 discourse:// 链接)
     if (uri.scheme == 'discourse' && uri.host == 'auth_redirect') return true;
     if (uri.scheme != 'http' && uri.scheme != 'https') return false;
-    return _isLinuxDoHost(uri.host);
+    return _isSiteHost(uri.host);
   }
 
-  static bool _isLinuxDoHost(String host) {
+  /// 是否为本站域名（含子域名）
+  static bool _isSiteHost(String host) {
     final normalizedHost = host.toLowerCase();
-    return normalizedHost == 'linux.do' ||
-        normalizedHost == 'www.linux.do' ||
-        normalizedHost.endsWith('.linux.do');
+    final siteHost = Uri.parse(AppConstants.baseUrl).host.replaceFirst('www.', '');
+    return normalizedHost == siteHost || normalizedHost.endsWith('.$siteHost');
   }
 }

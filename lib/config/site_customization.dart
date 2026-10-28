@@ -102,11 +102,15 @@ class SiteCustomization {
   /// 由 [PluginRegistry] 在对应钩子处按顺序执行。
   final List<SitePlugin> plugins;
 
+  /// 登录时是否需要先过 hCaptcha 人机验证（站点没启用 hCaptcha 插件时设为 false）
+  final bool requiresHcaptcha;
+
   const SiteCustomization({
     this.avatarGlowRules = const [],
     this.userTitleStyleRules = const [],
     this.linkSecurityConfig,
     this.plugins = const [],
+    this.requiresHcaptcha = true,
   });
 
   /// 匹配头像光晕（返回光晕颜色，null 表示无光晕）

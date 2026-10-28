@@ -1,3 +1,4 @@
+import '../constants.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -167,7 +168,9 @@ class ClipboardTopicLinkService {
 
   static bool _isAllowedHost(String host) {
     final normalizedHost = host.toLowerCase();
-    return normalizedHost == 'linux.do' || normalizedHost == 'www.linux.do';
+    final siteHost = Uri.parse(AppConstants.baseUrl).host;
+    return normalizedHost == siteHost ||
+        normalizedHost == siteHost.replaceFirst('www.', '');
   }
 
   static bool _isSupportedTopicPath(String path) {
