@@ -17,7 +17,6 @@ import '../services/migration_service.dart';
 import '../utils/dialog_utils.dart';
 import '../widgets/common/ambient_background.dart';
 import '../widgets/common/error_view.dart';
-import 'package:m3e_ui/m3e_ui.dart';
 import 'preheat_logo.dart';
 
 class PreheatGate extends StatefulWidget {
@@ -208,7 +207,7 @@ class _PreheatLoadingState extends State<_PreheatLoading> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                PreheatLogo(style: widget.iconStyle, size: 108),
+                PreheatLogo(style: widget.iconStyle, size: 128),
                 const SizedBox(height: 24),
                 Text(
                   'USCard Forum',
@@ -218,8 +217,6 @@ class _PreheatLoadingState extends State<_PreheatLoading> {
                     letterSpacing: 1.5,
                   ),
                 ),
-                const SizedBox(height: 56),
-                const LoadingSpinner(size: 40),
               ],
             ),
           ),
