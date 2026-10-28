@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/s.dart';
 import '../../models/user.dart';
-import '../../pages/chat/channel/chat_channel_page.dart';
 import '../../providers/discourse_providers.dart';
 import '../../providers/selected_topic_provider.dart';
 import '../../services/app_error_handler.dart';
@@ -546,30 +545,6 @@ class _UserCardContentState extends ConsumerState<_UserCardContent> {
     );
   }
 
-  /// 发起私聊(chat 插件 DM):创建/复用 1:1 频道并进入
-  Future<void> _openChat() async {
-    final anchorContext = widget.anchorContext;
-    widget.onClose();
-    try {
-      final channel = await ProviderScope.containerOf(
-        anchorContext,
-        listen: false,
-      ).read(discourseServiceProvider).createDirectMessageChannel(
-        targetUsernames: [widget.username],
-        upsert: true,
-      );
-      if (!anchorContext.mounted) return;
-      await Navigator.push(
-        anchorContext,
-        MaterialPageRoute(
-          builder: (_) => ChatChannelPage(channelId: channel.id),
-        ),
-      );
-    } catch (e) {
-      ToastService.showError(e.toString());
-    }
-  }
-
   Future<void> _toggleFollow() async {
     if (_followLoading) return;
     setState(() => _followLoading = true);
@@ -1047,7 +1022,6 @@ class _UserCardContentState extends ConsumerState<_UserCardContent> {
       currentUserProvider.select((value) => value.value != null),
     );
     final canMessage = isLoggedIn && user?.canSendPrivateMessageToUser == true;
-    final canChat = isLoggedIn && user?.canChatUser == true;
     final canFollow = isLoggedIn && user?.canFollow == true;
     final canMute = isLoggedIn && user?.canMuteUser == true;
     final canIgnore = isLoggedIn && user?.canIgnoreUser == true;
@@ -1059,25 +1033,12 @@ class _UserCardContentState extends ConsumerState<_UserCardContent> {
         widget.topicId != null && (_topicPostCount >= 2 || isFiltering);
 
     final primary = <Widget>[];
-    if (canChat) {
-      primary.add(FilledButton.icon(
-        onPressed: _openChat,
-        icon: const Icon(Symbols.chat_rounded, size: 18),
-        label: Text(S.current.userCard_chat),
-      ));
-    }
     if (canMessage) {
-      primary.add(canChat
-          ? FilledButton.tonalIcon(
-              onPressed: _composeMessage,
-              icon: const Icon(Symbols.mail_rounded, size: 18),
-              label: Text(S.current.userProfile_message),
-            )
-          : FilledButton.icon(
-              onPressed: _composeMessage,
-              icon: const Icon(Symbols.mail_rounded, size: 18),
-              label: Text(S.current.userProfile_message),
-            ));
+      primary.add(FilledButton.icon(
+        onPressed: _composeMessage,
+        icon: const Icon(Symbols.mail_rounded, size: 18),
+        label: Text(S.current.userProfile_message),
+      ));
     }
     if (canFollow) {
       primary.add(_isFollowed

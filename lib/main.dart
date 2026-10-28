@@ -20,7 +20,6 @@ import 'providers/selected_topic_provider.dart';
 import 'providers/locale_provider.dart';
 import 'widgets/ai/builtin_presets_factory.dart';
 import 'providers/message_bus_providers.dart';
-import 'providers/chat/chat_notification_alert_provider.dart';
 import 'services/auth_issue_notice_service.dart';
 import 'services/crash_context_reporter.dart';
 import 'providers/app_state_refresher.dart';
@@ -976,7 +975,6 @@ class _MainPageState extends ConsumerState<MainPage>
   ProviderSubscription<void>? _messageBusSub;
   ProviderSubscription<void>? _notificationChannelSub;
   ProviderSubscription<void>? _notificationAlertChannelSub;
-  ProviderSubscription<void>? _chatAlertChannelSub;
   ProviderSubscription<void>? _logoutChannelSub;
   ProviderSubscription<bool>? _siteReadOnlySub;
   ProviderSubscription<PmIncomingState>? _pmTrackingSub;
@@ -1099,11 +1097,6 @@ class _MainPageState extends ConsumerState<MainPage>
             notificationAlertChannelProvider,
             (_, _) {},
           );
-          _chatAlertChannelSub?.close();
-          _chatAlertChannelSub = ref.listenManual<void>(
-            chatNotificationAlertProvider,
-            (_, _) {},
-          );
           _logoutChannelSub?.close();
           _logoutChannelSub = ref.listenManual<void>(
             logoutChannelProvider,
@@ -1143,8 +1136,6 @@ class _MainPageState extends ConsumerState<MainPage>
         _notificationChannelSub = null;
         _notificationAlertChannelSub?.close();
         _notificationAlertChannelSub = null;
-        _chatAlertChannelSub?.close();
-        _chatAlertChannelSub = null;
         _logoutChannelSub?.close();
         _logoutChannelSub = null;
         _pmTrackingSub?.close();
@@ -1376,7 +1367,6 @@ class _MainPageState extends ConsumerState<MainPage>
     _messageBusSub?.close();
     _notificationChannelSub?.close();
     _notificationAlertChannelSub?.close();
-    _chatAlertChannelSub?.close();
     _logoutChannelSub?.close();
     _siteReadOnlySub?.close();
     _pmTrackingSub?.close();

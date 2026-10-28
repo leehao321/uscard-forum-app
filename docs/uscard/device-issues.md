@@ -10,6 +10,7 @@
 | D-005 | 2026-10-28 | 用户要求重新设计 logo | 已完成，待真机验证（用户提供的罗盘气泡图） | 6e0e8ac0 |
 | D-006 | 2026-10-28 | 日志显示登录后反复请求 `/chat/api/me/channels`，美卡未开聊天，返回 404 并产生错误日志 | 已修复，待真机验证 | d12d08af |
 | D-007 | 2026-10-28 | 开屏（欢迎页）的浮动 logo 动画沿用 linux.do 条纹圆标，没有美卡特色 | 已完成，待真机验证：启动页加载动画改为指针转动 | 6e0e8ac0 |
+| D-008 | 2026-10-28 | 用户要求去掉聊天功能（代码和入口都去掉） | 已完成，待真机验证 | 见 git log |
 | D-003 | 2026-10-27 | 扫码登录尚未测试 | 未测试 | - |
 
 ## D-001 分析
@@ -45,3 +46,11 @@ iOS 上改用 `flutter_web_auth_2`（ASWebAuthenticationSession）发起授权�
 - logo 采用用户提供的罗盘气泡图（`docs/uscard/logo-source.webp`）。`tool/gen_logo_assets.py` 把它矢量化为 `assets/logo.svg`、`logo_base.svg`、`logo_needle.svg`，并生成 iOS / macOS / Android 旧版位图 / Windows 图标与设置页图标预览（奶油底 + 居中 logo）。
 - 新增 `lib/widgets/common/compass_logo.dart`：底图静止，指针绕中心转动。启动页（`PreheatLogo`）指针 2.4 秒一圈并去掉原来的菊花加载圈；欢迎页和登录页（`FloatingLogo`）指针 6 秒一圈。
 - 未处理：Android 自适应图标的矢量前景、macOS 外的桌面端 flatpak / altstore 图标、`logo_modern*.svg`（不再被引用的旧文件）。
+
+## D-008：移除聊天
+
+- 删除 `lib/pages/chat`、`lib/providers/chat`、`lib/models/chat`、`lib/services/discourse/_chat.dart`、`lib/storage/chat_cache_dao.dart` 及聊天分页测试。
+- 去掉入口：底栏聊天项、个人页“聊天”、用户主页和用户卡的“发起聊天”、聊天链接和聊天通知的跳转、启动时的聊天通知监听。D-006 加的 `enableChat` 开关随之撤掉。
+- 保留：AI 助手对话（名字里带 chat 但是另一个功能）、帖子里的聊天记录引用渲染（`chat_transcript`）、通知类型枚举与多语言文案里的 chat 项（无入口，不影响）。
+- 底栏里用户已保存的 `chat` 项会被忽略（找不到对应入口时跳过）。
+- 验证：`flutter analyze lib` 无 error；`test/utils`、`test/models` 的 6 个失败在改动前同样存在。

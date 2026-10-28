@@ -111,9 +111,6 @@ class SiteCustomization {
   /// 是否允许列表卡片为每个话题自动请求首帖做摘要/配图（逐条后台请求，默认开放给用户选择）
   final bool allowAutoExcerptFetch;
 
-  /// 站点是否开启 Discourse 聊天（关闭时不显示聊天入口，也不请求 /chat 接口）
-  final bool enableChat;
-
   const SiteCustomization({
     this.avatarGlowRules = const [],
     this.userTitleStyleRules = const [],
@@ -122,7 +119,6 @@ class SiteCustomization {
     this.requiresHcaptcha = true,
     this.enableLinuxdoServices = true,
     this.allowAutoExcerptFetch = true,
-    this.enableChat = true,
   });
 
   /// 匹配头像光晕（返回光晕颜色，null 表示无光晕）
