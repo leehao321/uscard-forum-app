@@ -47,6 +47,8 @@
 	<key>FlutterDeepLinkingEnabled</key>
 	<false/>
 	<!-- 扫码登录:相机 -->
+	<key>NSFaceIDUsageDescription</key>
+	<string>用于解锁应用锁</string>
 	<key>NSCameraUsageDescription</key>
 	<string>需要使用相机扫描登录二维码</string>
 	<!-- 相册权限声明 -->

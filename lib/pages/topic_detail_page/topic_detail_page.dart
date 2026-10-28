@@ -1,6 +1,7 @@
 import '../../services/ai_translation_service.dart';
 import '../../storage/saved_topic_store.dart';
 import 'package:ai_model_manager/ai_model_manager.dart';
+import '../../widgets/notes/topic_note_sheet.dart';
 import '../../widgets/ai/ai_topic_summary_sheet.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -1836,6 +1837,17 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
           }
           return;
         }
+        if (value == 'notes') {
+          Future<void>.delayed(Duration.zero, () {
+            if (!mounted) return;
+            showTopicNoteSheet(
+              context,
+              topicId: widget.topicId,
+              title: detail.title,
+            );
+          });
+          return;
+        }
         if (value == 'ai_summary') {
           // 同 assign：隔一个 tick 再开新弹层，避开菜单关闭动画的转场重叠
           Future<void>.delayed(Duration.zero, () {
@@ -1970,6 +1982,21 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
               ],
             ),
           ),
+        PopupMenuItem(
+          value: 'notes',
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Symbols.edit_note_rounded,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              const SizedBox(width: 12),
+              const Text('笔记'),
+            ],
+          ),
+        ),
         PopupMenuItem(
           value: 'ai_summary',
           child: Row(

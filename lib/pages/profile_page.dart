@@ -1,4 +1,6 @@
 import 'saved_topics_page.dart';
+import 'notes_page.dart';
+import 'reading_stats_page.dart';
 import '../constants.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -840,6 +842,18 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           iconColor: Colors.amber[700]!,
           title: context.l10n.profile_myBadges,
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBadgesPage()))
+        ),
+        _buildOptionTile(
+          icon: Symbols.edit_note_rounded,
+          iconColor: Colors.orange,
+          title: '我的笔记',
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotesPage())),
+        ),
+        _buildOptionTile(
+          icon: Symbols.bar_chart_rounded,
+          iconColor: Colors.indigo,
+          title: '阅读统计',
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReadingStatsPage())),
         ),
         _buildOptionTile(
           icon: Symbols.save_rounded,

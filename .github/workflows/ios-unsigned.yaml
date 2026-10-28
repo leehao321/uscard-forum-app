@@ -4,6 +4,11 @@ name: iOS Unsigned IPA
 # IPA 未签名，需要用 AltStore / Sideloadly 等工具用自己的 Apple ID 重新签名后装到真机。
 on:
   workflow_dispatch:
+    inputs:
+      with_mirror:
+        description: '带镜像功能（解密 private/mirror.patch.enc 合入；IPA 加密后上传）'
+        type: boolean
+        default: false
 
 env:
   FLUTTER_VERSION: '3.47.4'
@@ -40,6 +45,22 @@ jobs:
       - name: Configure Git for CocoaPods
         run: git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
 
+      # 镜像功能的代码不以明文进仓库：构建时用 Secret 解密补丁合入。
+      # 加解密参数与 tool/mirror_patch.sh 一致。
+      - name: Apply mirror patch
+        if: ${{ inputs.with_mirror }}
+        env:
+          MIRROR_PATCH_KEY: ${{ secrets.MIRROR_PATCH_KEY }}
+        run: |
+          test -n "$MIRROR_PATCH_KEY" || { echo "缺少 Secret MIRROR_PATCH_KEY"; exit 1; }
+          test -f private/mirror.patch.enc || { echo "缺少 private/mirror.patch.enc"; exit 1; }
+          OPENSSL="$(brew --prefix openssl@3)/bin/openssl"
+          test -x "$OPENSSL" || { brew install openssl@3 >/dev/null; OPENSSL="$(brew --prefix openssl@3)/bin/openssl"; }
+          "$OPENSSL" enc -d -aes-256-cbc -pbkdf2 -iter 200000 -md sha256             -in private/mirror.patch.enc -pass env:MIRROR_PATCH_KEY             | git apply --whitespace=nowarn
+          test -d lib/mirror
+          echo "OPENSSL=$OPENSSL" >> "$GITHUB_ENV"
+          echo "镜像补丁已合入"
+
       - name: Build iOS (no codesign)
         run: |
           dart tool/flutterw.dart build ios --release --no-codesign
@@ -55,10 +76,30 @@ jobs:
           mv uscard-forum-unsigned.ipa ../../../dist/
           ls -lh ../../../dist/
 
+      # 带镜像的包加密后再上传：公开仓库的 Actions 产物其他 GitHub 用户也能下载
+      - name: Encrypt IPA
+        if: ${{ inputs.with_mirror }}
+        env:
+          MIRROR_PATCH_KEY: ${{ secrets.MIRROR_PATCH_KEY }}
+        run: |
+          "$OPENSSL" enc -aes-256-cbc -pbkdf2 -iter 200000 -md sha256 -salt             -in dist/uscard-forum-unsigned.ipa -out dist/uscard-forum-unsigned.ipa.enc             -pass env:MIRROR_PATCH_KEY
+          rm dist/uscard-forum-unsigned.ipa
+          ls -lh dist/
+
       - name: Upload IPA
+        if: ${{ !inputs.with_mirror }}
         uses: actions/upload-artifact@v4
         with:
           name: uscard-forum-unsigned-ipa
           path: dist/uscard-forum-unsigned.ipa
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Upload encrypted IPA
+        if: ${{ inputs.with_mirror }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: uscard-forum-unsigned-ipa-encrypted
+          path: dist/uscard-forum-unsigned.ipa.enc
           retention-days: 14
           if-no-files-found: error

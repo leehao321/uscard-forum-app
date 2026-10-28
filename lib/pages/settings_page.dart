@@ -1,3 +1,5 @@
+import '../services/app_lock_service.dart';
+import 'app_lock_settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -376,6 +378,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               onTap: () =>
                   _openSettingsPage((_) => const BottomNavSettingsPage()),
             ),
+            if (AppLockService.isSupportedPlatform)
+              _buildOptionTile(
+                icon: Symbols.lock_rounded,
+                iconColor: Colors.green,
+                title: '应用锁',
+                onTap: () =>
+                    _openSettingsPage((_) => const AppLockSettingsPage()),
+              ),
             _buildOptionTile(
               icon: Symbols.storage_rounded,
               iconColor: Colors.brown,

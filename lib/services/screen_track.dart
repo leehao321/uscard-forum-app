@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../storage/reading_stats_store.dart';
 import 'cf_challenge_service.dart';
 import 'discourse/discourse_service.dart';
 
@@ -198,6 +199,9 @@ class ScreenTrack {
     if (!_hasFocus) return;
 
     _topicTime += diff;
+    // 本机阅读统计（只累加到本机，不上传）
+    final topicId = _topicId;
+    if (topicId != null) ReadingStatsStore.instance.addReading(topicId, diff);
     for (final postNumber in _onscreen) {
       _timings[postNumber] = (_timings[postNumber] ?? 0) + diff;
     }

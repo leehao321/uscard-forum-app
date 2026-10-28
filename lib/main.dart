@@ -20,6 +20,8 @@ import 'providers/selected_topic_provider.dart';
 import 'providers/locale_provider.dart';
 import 'widgets/ai/builtin_presets_factory.dart';
 import 'providers/message_bus_providers.dart';
+import 'services/app_lock_service.dart';
+import 'widgets/app_lock_gate.dart';
 import 'services/auth_issue_notice_service.dart';
 import 'services/crash_context_reporter.dart';
 import 'providers/app_state_refresher.dart';
@@ -273,6 +275,8 @@ Future<void> main() async {
     CsrfTokenService().init(),
     BackgroundNotificationService().initialize(),
     TimeUtils.initialize(),
+    // 应用锁要在第一帧前读好设置，避免先露出内容再上锁
+    AppLockService.instance.init(),
     // 把 compat polyfill asset 读到内存，让 WebView 同步 getter 直接拿。
     // 失败不阻塞启动，仅影响老 WebView 兼容性。
     WebViewSettings.preloadPolyfill(),
@@ -864,6 +868,7 @@ class MainApp extends ConsumerWidget {
                         ),
                       child!,
                       const ReadLaterBubble(),
+                      const AppLockGate(),
                     ],
                   ),
                 );
