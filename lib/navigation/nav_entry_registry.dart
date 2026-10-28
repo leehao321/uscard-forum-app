@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../constants.dart';
 import '../l10n/s.dart';
 import '../models/user.dart';
 import '../pages/bookmarks_page.dart';
@@ -27,7 +28,7 @@ class NavEntryRegistry {
 
   /// 构建完整候选列表
   static List<NavEntry> buildAll() {
-    return [
+    final entries = [
       NavEntry(
         id: NavEntryIds.home,
         kind: NavEntryKind.page,
@@ -114,6 +115,10 @@ class NavEntryRegistry {
         requiresLogin: true,
       ),
     ];
+    if (!AppConstants.siteCustomization.enableChat) {
+      entries.removeWhere((e) => e.id == NavEntryIds.chat);
+    }
+    return entries;
   }
 
   /// 按 id 查找 entry

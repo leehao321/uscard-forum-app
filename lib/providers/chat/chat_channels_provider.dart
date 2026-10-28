@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../constants.dart';
 import '../../models/chat/chat_channel.dart';
 import '../../models/chat/chat_message.dart';
 import '../../services/message_bus_service.dart';
@@ -81,7 +82,9 @@ class ChatChannelsNotifier extends AsyncNotifier<ChatChannelsState> {
     _teardown();
     ref.onDispose(_teardown);
 
-    if (user == null) return const ChatChannelsState();
+    if (user == null || !AppConstants.siteCustomization.enableChat) {
+      return const ChatChannelsState();
+    }
 
     // 冷启:先出缓存快照(损坏/无缓存静默跳过),网络返回后整体覆盖
     if (state.value == null || state.value!.directMessageChannels.isEmpty) {

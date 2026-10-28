@@ -9,6 +9,8 @@ final uscardCustomization = SiteCustomization(
   enableLinuxdoServices: false,
   // 论坛条款禁止程序自动批量访问：列表卡片不为每个话题自动拉首帖
   allowAutoExcerptFetch: false,
+  // 美卡未开启聊天（/chat/api 返回 404）：不显示入口、不请求
+  enableChat: false,
   linkSecurityConfig: _uscardLinkSecurityConfig,
 );
 
