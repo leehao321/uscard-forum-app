@@ -2,6 +2,8 @@ import 'dart:io' show Platform;
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'discourse/discourse_service.dart';
@@ -57,6 +59,27 @@ class UserApiKeyLoginFlow {
   /// 首次调用会懒生成 RSA 密钥对(isolate,可能耗时数秒)。
   Future<bool> start() async {
     final authorizeUrl = await UserApiKeyService().buildAuthorizeUrl();
+    if (Platform.isIOS) {
+      // iOS 用 ASWebAuthenticationSession:回调由系统在会话内拦截,只回本 App。
+      // 走 URL scheme 深链时,手机上若装了 Discourse 官方客户端(同样注册
+      // discourse://),回调会被它抢走。
+      try {
+        final result = await FlutterWebAuth2.authenticate(
+          url: authorizeUrl.toString(),
+          callbackUrlScheme: 'discourse',
+        );
+        await handleCallback(Uri.parse(result));
+        return true;
+      } on PlatformException catch (e) {
+        // 用户主动关闭授权页不算失败
+        if (e.code == 'CANCELED') return true;
+        debugPrint('[UserApiKeyLoginFlow] iOS 授权会话失败: $e');
+        return false;
+      } catch (e) {
+        debugPrint('[UserApiKeyLoginFlow] iOS 授权会话失败: $e');
+        return false;
+      }
+    }
     try {
       // Android 用 Custom Tabs(inAppBrowserView),不用 externalApplication:
       // Chrome 对已建立 App Links 关联的域名(fluxdo 已 autoVerify linux.do)会把
