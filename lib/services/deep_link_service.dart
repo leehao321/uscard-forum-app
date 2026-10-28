@@ -107,8 +107,8 @@ class DeepLinkService {
       return;
     }
 
-    // 自定义 scheme (fluxdo://...)
-    if (uri.scheme == 'fluxdo') {
+    // 自定义 scheme (uscardforum://...)
+    if (uri.scheme == 'uscardforum') {
       _handleCustomScheme(context, uri);
       return;
     }
@@ -163,9 +163,9 @@ class DeepLinkService {
 
   /// 处理自定义 scheme
   /// 支持格式：
-  /// - fluxdo://topic/123
-  /// - fluxdo://topic/123/5 (指定楼层)
-  /// - fluxdo://user/username
+  /// - uscardforum://topic/123
+  /// - uscardforum://topic/123/5 (指定楼层)
+  /// - uscardforum://user/username
   void _handleCustomScheme(BuildContext context, Uri uri) {
     final pathSegments = [
       if (uri.host.isNotEmpty) uri.host,
@@ -260,7 +260,7 @@ class DeepLinkService {
   }
 
   static bool _canHandleUri(Uri uri) {
-    if (uri.scheme == 'fluxdo') return true;
+    if (uri.scheme == 'uscardforum') return true;
     // 浏览器授权登录回调(仅 auth_redirect,不接管其他 discourse:// 链接)
     if (uri.scheme == 'discourse' && uri.host == 'auth_redirect') return true;
     if (uri.scheme != 'http' && uri.scheme != 'https') return false;

@@ -1,4 +1,4 @@
-package com.github.lingyan000.fluxdo
+package com.hao.uscardforum
 
 import android.annotation.TargetApi
 import android.animation.Animator

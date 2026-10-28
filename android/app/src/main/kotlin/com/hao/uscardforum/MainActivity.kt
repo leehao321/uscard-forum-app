@@ -1,4 +1,4 @@
-package com.github.lingyan000.fluxdo
+package com.hao.uscardforum
 
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
@@ -81,10 +81,10 @@ class MainActivity : FlutterActivity() {
         super.onStop()
     }
 
-    private val CHANNEL = "com.github.lingyan000.fluxdo/browser"
-    private val CRASHLYTICS_CHANNEL = "com.github.lingyan000.fluxdo/crashlytics"
-    private val RENDER_BACKEND_CHANNEL = "com.github.lingyan000.fluxdo/render_backend"
-    private val ICON_CHANNEL = "com.github.lingyan000.fluxdo/app_icon"
+    private val CHANNEL = "com.hao.uscardforum/browser"
+    private val CRASHLYTICS_CHANNEL = "com.hao.uscardforum/crashlytics"
+    private val RENDER_BACKEND_CHANNEL = "com.hao.uscardforum/render_backend"
+    private val ICON_CHANNEL = "com.hao.uscardforum/app_icon"
     private val mainHandler = Handler(Looper.getMainLooper())
     private var ownsProvidedFlutterEngine = false
     private var interactiveKeyboardChannel: InteractiveKeyboardChannel? = null

@@ -8,7 +8,7 @@
 PRODUCT_NAME = fluxdo
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.github.lingyan000.fluxdo
+PRODUCT_BUNDLE_IDENTIFIER = com.hao.uscardforum
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2026 FluxDO. All rights reserved.

@@ -267,7 +267,7 @@ Future<void> main() async {
     AppConstants.initUserAgent(),
     LogWriter.init(),
     ProxyCertificate.initialize(),
-    // Windows 深链协议注册(discourse:// / fluxdo://):写 HKCU 免管理员,
+    // Windows 深链协议注册(discourse:// / uscardforum://):写 HKCU 免管理员,
     // 幂等,失败不阻塞启动。其他平台由清单/plist 声明,此调用为 no-op。
     if (Platform.isWindows) ensureWindowsProtocolsRegistered(),
     CookieJarService().initialize(),
@@ -363,7 +363,7 @@ Future<void> main() async {
     ProxySettingsService.instance.initialize(prefs),
     if (Platform.isAndroid)
       MethodChannel(
-        'com.github.lingyan000.fluxdo/crashlytics',
+        'com.hao.uscardforum/crashlytics',
       ).invokeMethod('setCrashlyticsEnabled', {'enabled': crashlyticsEnabled}),
   ]);
   // 跟随同一开关:关闭时导航上下文也不再上报

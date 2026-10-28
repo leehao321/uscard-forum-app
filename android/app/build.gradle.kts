@@ -54,7 +54,7 @@ println(
 )
 
 android {
-    namespace = "com.github.lingyan000.fluxdo"
+    namespace = "com.hao.uscardforum"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -66,7 +66,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.github.lingyan000.fluxdo"
+        applicationId = "com.hao.uscardforum"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

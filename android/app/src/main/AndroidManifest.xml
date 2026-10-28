@@ -22,7 +22,7 @@
     -->
     <uses-permission android:name="android.permission.CREDENTIAL_MANAGER_SET_ORIGIN"/>
     <application
-        android:label="FluxDO"
+        android:label="USCard Forum"
         android:name=".FluxdoApplication"
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true"
@@ -51,7 +51,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-                <data android:scheme="fluxdo-launch" />
+                <data android:scheme="uscardforum-launch" />
             </intent-filter>
             <!-- Deep Links for linux.do - 话题链接 -->
             <intent-filter android:autoVerify="true">
@@ -97,7 +97,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="fluxdo" />
+                <data android:scheme="uscardforum" />
                 <!-- 浏览器授权登录回调:discourse://auth_redirect 为
                      Discourse 站点 allowed_user_api_auth_redirects 默认白名单,
                      无需站方加白(DiscourseHub 同款流程) -->

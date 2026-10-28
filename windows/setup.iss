@@ -1,6 +1,6 @@
-#define MyAppName "FluxDO"
+#define MyAppName "USCard Forum"
 #define MyAppExeName "fluxdo.exe"
-#define MyAppPublisher "FluxDO"
+#define MyAppPublisher "USCard Forum"
 #define MyAppURL "https://github.com/lingyan000/fluxdo"
 
 [Setup]

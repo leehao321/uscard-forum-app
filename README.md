@@ -1,5 +1,11 @@
 # FluxDO
 
+> **关于本项目（USCard Forum）**
+>
+> 本项目基于开源项目 [FluxDO](https://github.com/Lingyan000/fluxdo) 修改，目标是适配美卡论坛（uscardforum.com）的**非官方**第三方客户端，与论坛官方及 FluxDO 原作者无关。
+> 遵循 GPL-3.0 协议开源；`LICENSE` 与原作者版权声明原样保留。下方为上游 FluxDO 的原始 README，尚未全部更新。
+
+
 > 一个真诚、友善、团结、专业的 [Linux.do](https://linux.do/) 第三方客户端
 
 [![Telegram Channel](https://img.shields.io/badge/Telegram-Channel-26A5E4?logo=telegram&logoColor=white)](https://t.me/ldxfd)
