@@ -170,7 +170,7 @@
   "dohDetail_builtinDomains": "Built-in domains",
   "dohDetail_customDomains": "Custom domains",
   "dohDetail_includesSubdomains": "Includes all subdomains",
-  "dohDetail_noCustomDomains": "No custom domains. Built-in rules cover the forum and its static assets.",
+  "dohDetail_noCustomDomains": "No custom domains. Built-in rules cover the forum's main domain.",
   "dohDetail_addEchDomain": "Add domain",
   "dohDetail_editEchDomain": "Edit domain",
   "dohDetail_domain": "Domain",

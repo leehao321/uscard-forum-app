@@ -5,7 +5,7 @@
 #   tool/mirror_patch.sh keygen        生成密钥，保存到仓库外的 ~/.uscard-mirror/patch.key
 #   tool/mirror_patch.sh export        把 uscard-mirror 相对 uscard 的改动加密成 private/mirror.patch.enc
 #   tool/mirror_patch.sh check         在临时工作区里解密并试合入，确认补丁能用
-#   tool/mirror_patch.sh decrypt-ipa <文件.ipa.enc>   解密 Actions 下载的加密 IPA
+#   tool/mirror_patch.sh decrypt-ipa <文件.enc>   解密 Actions 下载的加密 IPA（或加密的构建日志 build.log.enc）
 #
 # 密钥也可以用环境变量 MIRROR_PATCH_KEY 传入。GitHub Actions 里用同名 Secret。
 set -euo pipefail
@@ -45,7 +45,10 @@ case "${1:-}" in
     fi
     tmp="$(mktemp)"
     trap 'rm -f "$tmp"' EXIT
-    git diff --binary "$BASE_BRANCH" "$MIRROR_BRANCH" -- . ":(exclude)$OUT" > "$tmp"
+    # 固定成 git apply 认得的格式：不套本机的 textconv / 外部 diff / 颜色 / 前缀配置
+    git -C "$(git rev-parse --show-toplevel)" diff --binary --no-textconv --no-ext-diff \
+      --no-color --src-prefix=a/ --dst-prefix=b/ \
+      "$BASE_BRANCH" "$MIRROR_BRANCH" -- . ":(exclude)$OUT" > "$tmp"
     [ -s "$tmp" ] || die "$MIRROR_BRANCH 和 $BASE_BRANCH 没有差别"
     mkdir -p "$(dirname "$OUT")"
     openssl enc "${ENC_ARGS[@]}" -salt -in "$tmp" -out "$OUT" -pass env:MIRROR_PATCH_KEY

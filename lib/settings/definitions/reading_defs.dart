@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../config/sites/uscard.dart';
 import '../../l10n/s.dart';
 import '../../pages/topic_detail_page/widgets/progress_gesture_action_meta.dart';
 import '../../pages/topic_detail_page/widgets/progress_gesture_menu_settings_page.dart';
@@ -318,43 +319,47 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
         ),
       ],
     ),
-    SettingsGroup(
-      title: l10n.nested_title,
-      icon: Symbols.account_tree_rounded,
-      items: [
-        SwitchModel(
-          id: 'defaultNestedView',
-          title: l10n.nested_defaultView,
-          subtitle: l10n.nested_defaultViewDesc,
-          icon: Symbols.account_tree_rounded,
-          getValue: (ref) => ref.watch(preferencesProvider).defaultNestedView,
-          onChanged: (ref, v) =>
-              ref.read(preferencesProvider.notifier).setDefaultNestedView(v),
-        ),
-        CustomModel(
-          id: 'nestedLineStyle',
-          title: l10n.nested_lineStyle,
-          builder: (context, ref) {
-            final currentStyle = ref.watch(preferencesProvider).nestedLineStyle;
-            final l = context.l10n;
-            return ListTile(
-              leading: Icon(
-                Symbols.linear_scale_rounded,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              title: Text(l.nested_lineStyle),
-              subtitle: Text(switch (currentStyle) {
-                NestedLineStyle.auto => l.nested_lineStyleAuto,
-                NestedLineStyle.lLine => l.nested_lineStyleL,
-                NestedLineStyle.straight => l.nested_lineStyleStraight,
-              }),
-              trailing: const Icon(Symbols.chevron_right_rounded),
-              onTap: () => _showLineStylePicker(context, ref, currentStyle),
-            );
-          },
-        ),
-      ],
-    ),
+    // 树形视图依赖站点的树形回复插件，美卡没有，整组设置不显示
+    if (uscardCustomization.supportsNestedView)
+      SettingsGroup(
+        title: l10n.nested_title,
+        icon: Symbols.account_tree_rounded,
+        items: [
+          SwitchModel(
+            id: 'defaultNestedView',
+            title: l10n.nested_defaultView,
+            subtitle: l10n.nested_defaultViewDesc,
+            icon: Symbols.account_tree_rounded,
+            getValue: (ref) => ref.watch(preferencesProvider).defaultNestedView,
+            onChanged: (ref, v) =>
+                ref.read(preferencesProvider.notifier).setDefaultNestedView(v),
+          ),
+          CustomModel(
+            id: 'nestedLineStyle',
+            title: l10n.nested_lineStyle,
+            builder: (context, ref) {
+              final currentStyle = ref
+                  .watch(preferencesProvider)
+                  .nestedLineStyle;
+              final l = context.l10n;
+              return ListTile(
+                leading: Icon(
+                  Symbols.linear_scale_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: Text(l.nested_lineStyle),
+                subtitle: Text(switch (currentStyle) {
+                  NestedLineStyle.auto => l.nested_lineStyleAuto,
+                  NestedLineStyle.lLine => l.nested_lineStyleL,
+                  NestedLineStyle.straight => l.nested_lineStyleStraight,
+                }),
+                trailing: const Icon(Symbols.chevron_right_rounded),
+                onTap: () => _showLineStylePicker(context, ref, currentStyle),
+              );
+            },
+          ),
+        ],
+      ),
   ];
 }
 
@@ -460,15 +465,13 @@ void _showGestureActionPicker(
   showDialog<ProgressGestureAction>(
     context: context,
     builder: (dialogContext) {
+      final actions = availableProgressGestureActions();
       final screen = MediaQuery.of(dialogContext).size;
       // 桌面端拉宽到 560，移动端贴近全宽；自动按列宽切换 1/2/3 列
       final dialogWidth = math.min(screen.width - 48, 560.0);
       final dialogMaxHeight = math.min(screen.height * 0.85, 640.0);
       return Dialog(
-        insetPadding: const EdgeInsets.symmetric(
-          horizontal: 24,
-          vertical: 24,
-        ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         clipBehavior: Clip.antiAlias,
         child: ConstrainedBox(
           constraints: BoxConstraints(
@@ -491,16 +494,15 @@ void _showGestureActionPicker(
                 child: GridView.builder(
                   padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
                   shrinkWrap: true,
-                  gridDelegate:
-                      const SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: 240,
-                        mainAxisExtent: 52,
-                        crossAxisSpacing: 4,
-                        mainAxisSpacing: 4,
-                      ),
-                  itemCount: ProgressGestureAction.values.length,
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 240,
+                    mainAxisExtent: 52,
+                    crossAxisSpacing: 4,
+                    mainAxisSpacing: 4,
+                  ),
+                  itemCount: actions.length,
                   itemBuilder: (context, index) {
-                    final action = ProgressGestureAction.values[index];
+                    final action = actions[index];
                     final meta = progressGestureActionMeta(context, action);
                     final isCurrent = action == current;
                     final theme = Theme.of(context);

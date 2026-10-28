@@ -812,6 +812,8 @@ extension _UserActions on _TopicDetailPageState {
       final result = await DiscourseService().toggleReaction(
         post.id,
         post.currentUserReaction?.id ?? 'heart',
+        currentReactions: post.reactions,
+        currentUserReaction: post.currentUserReaction,
       );
       if (!mounted) return;
 
@@ -1685,6 +1687,8 @@ extension _UserActions on _TopicDetailPageState {
 
   /// 切换嵌套视图
   void _toggleNestedView() {
+    // 手势/快捷键里可能还绑着这个动作；站点没有树形回复插件时什么也不做
+    if (!AppConstants.siteCustomization.supportsNestedView) return;
     if (_isNestedView) {
       setState(() {
         _isNestedView = false;

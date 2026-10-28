@@ -49,6 +49,7 @@ jobs:
       # 加解密参数与 tool/mirror_patch.sh 一致。
       - name: Apply mirror patch
         if: ${{ inputs.with_mirror }}
+        shell: bash
         env:
           MIRROR_PATCH_KEY: ${{ secrets.MIRROR_PATCH_KEY }}
         run: |
@@ -62,9 +63,42 @@ jobs:
           echo "镜像补丁已合入"
 
       - name: Build iOS (no codesign)
+        shell: bash
+        env:
+          WITH_MIRROR: ${{ inputs.with_mirror }}
         run: |
-          dart tool/flutterw.dart build ios --release --no-codesign
+          if [ "$WITH_MIRROR" = "true" ]; then
+            # 编译报错会把出错的源码行打印出来，公开仓库的 Actions 日志谁都能看：
+            # 带镜像时输出只写文件，失败时加密后作为 artifact 上传（见下面两步）
+            if ! dart tool/flutterw.dart build ios --release --no-codesign > build.log 2>&1; then
+              echo "构建失败；日志已加密上传为 uscard-forum-build-log-encrypted，"
+              echo "下载后用 tool/mirror_patch.sh decrypt-ipa build.log.enc 解密查看"
+              exit 1
+            fi
+            echo "构建完成（带镜像，编译输出未打印）"
+          else
+            dart tool/flutterw.dart build ios --release --no-codesign
+          fi
           nm -gU build/ios/iphoneos/Runner.app/Runner | grep "_doh_proxy_start_with_config_json"
+
+      - name: Encrypt build log
+        if: ${{ failure() && inputs.with_mirror }}
+        shell: bash
+        env:
+          MIRROR_PATCH_KEY: ${{ secrets.MIRROR_PATCH_KEY }}
+        run: |
+          test -f build.log || exit 0
+          "$OPENSSL" enc -aes-256-cbc -pbkdf2 -iter 200000 -md sha256 -salt             -in build.log -out build.log.enc -pass env:MIRROR_PATCH_KEY
+          rm build.log
+
+      - name: Upload encrypted build log
+        if: ${{ failure() && inputs.with_mirror }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: uscard-forum-build-log-encrypted
+          path: build.log.enc
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Package IPA
         run: |
@@ -81,6 +115,7 @@ jobs:
         if: ${{ inputs.with_mirror }}
         env:
           MIRROR_PATCH_KEY: ${{ secrets.MIRROR_PATCH_KEY }}
+        shell: bash
         run: |
           "$OPENSSL" enc -aes-256-cbc -pbkdf2 -iter 200000 -md sha256 -salt             -in dist/uscard-forum-unsigned.ipa -out dist/uscard-forum-unsigned.ipa.enc             -pass env:MIRROR_PATCH_KEY
           rm dist/uscard-forum-unsigned.ipa

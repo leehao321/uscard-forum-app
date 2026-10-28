@@ -1,12 +1,13 @@
 import 'package:flutter/widgets.dart';
 
-import '../config/sites/linuxdo.dart';
+import '../config/sites/uscard.dart';
 import 'plugin_context.dart';
 import 'site_plugin.dart';
 
 /// 站点插件注册中心
 ///
-/// 默认取当前站点（[linuxdoCustomization]）声明的插件列表。
+/// 默认取当前站点（[uscardCustomization]，须与 `AppConstants.siteCustomization`
+/// 保持同一个站点）声明的插件列表。美卡没有 linux.do 的社区插件，列表为空。
 /// 测试可通过 [overridePlugins] 注入，并用 [resetOverride] 还原。
 ///
 /// 这里直接引用站点配置而不是 `AppConstants`，是为了避开 `constants.dart`
@@ -18,7 +19,7 @@ class PluginRegistry {
 
   /// 当前生效的插件列表
   static List<SitePlugin> get plugins =>
-      _override ?? linuxdoCustomization.plugins;
+      _override ?? uscardCustomization.plugins;
 
   /// 测试注入
   @visibleForTesting

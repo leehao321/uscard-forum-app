@@ -22,17 +22,21 @@ import 'url_helper.dart';
 
 const _browserChannel = MethodChannel('com.hao.uscardforum/browser');
 
+/// [host] 是否本站：主域去掉 `www.` 后的根域，或它的任意子域。
+///
+/// 美卡的 baseUrl 带 www（`www.uscardforum.com`），帖子里贴的链接却常常
+/// 不带（`uscardforum.com/t/...`），两种都要算本站。
+bool isSiteHost(String host) {
+  final baseHost = Uri.tryParse(AppConstants.baseUrl)?.host.toLowerCase();
+  if (baseHost == null || baseHost.isEmpty) return false;
+  final root = baseHost.startsWith('www.') ? baseHost.substring(4) : baseHost;
+  final h = host.toLowerCase();
+  return h == root || h.endsWith('.$root');
+}
+
 /// 检查 URL 是否属于站点内部链接（主域名或子域名）
 bool isInternalUrl(Uri uri) {
-  final baseUri = Uri.tryParse(AppConstants.baseUrl);
-  if (baseUri == null) return false;
-
-  final baseHost = baseUri.host; // 如 'linux.do'
-  final host = uri.host;
-
-  final hostMatches = host == baseHost || host.endsWith('.$baseHost');
-  if (!hostMatches) return false;
-
+  if (!isSiteHost(uri.host)) return false;
   return UrlHelper.samePrefix(uri.toString());
 }
 

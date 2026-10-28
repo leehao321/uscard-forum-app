@@ -1,3 +1,4 @@
+import '../../constants.dart';
 import '../../services/ai_translation_service.dart';
 import '../../storage/saved_topic_store.dart';
 import 'package:ai_model_manager/ai_model_manager.dart';
@@ -6,6 +7,7 @@ import '../../widgets/ai/ai_topic_summary_sheet.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../../services/app_error_handler.dart';
+import '../../services/app_lock_service.dart';
 import '../../services/notion/notion_bookmark_auto_sync.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderSliver, RenderViewport;
@@ -327,6 +329,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    AppLockService.instance.addListener(_onAppLockChanged);
     _isParentActive = widget.parentActive;
     _providerPostNumber = widget.scrollToPostNumber;
     _nestedReadingStore = ref.read(nestedReadingStoreProvider);
@@ -339,9 +342,12 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
     if (_hadNestedSession) {
       _nestedRestorePosition = _nestedReadingSession.position;
     }
-    _isNestedView = _hadNestedSession
-        ? _nestedReadingSession.enabled
-        : ref.read(preferencesProvider).defaultNestedView;
+    // 站点没有树形回复插件时一律平铺，不去请求 /n/topic（见 supportsNestedView）
+    _isNestedView =
+        AppConstants.siteCustomization.supportsNestedView &&
+        (_hadNestedSession
+            ? _nestedReadingSession.enabled
+            : ref.read(preferencesProvider).defaultNestedView);
     _nestedReadingSession.enabled = _isNestedView;
     _nestedAutoEnabled = _isNestedView;
     _nestedTargetPostNumber = _hadNestedSession
@@ -898,6 +904,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
       appRouteObserver.unsubscribe(this);
     }
     WidgetsBinding.instance.removeObserver(this);
+    AppLockService.instance.removeListener(_onAppLockChanged);
     _expandController.dispose();
     _showTitleNotifier.dispose();
     _isScrolledUnderNotifier.dispose();
@@ -923,11 +930,19 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    final hasFocus = state == AppLifecycleState.resumed;
+    // 被应用锁盖住时不算在读：本机阅读统计和上报论坛的阅读时间都暂停
+    final hasFocus =
+        state == AppLifecycleState.resumed && !AppLockService.instance.covering;
     _screenTrack.setHasFocus(hasFocus);
     if (!hasFocus) {
       unawaited(_nestedReadingStore.flush());
     }
+  }
+
+  void _onAppLockChanged() {
+    final resumed =
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+    _screenTrack.setHasFocus(resumed && !AppLockService.instance.covering);
   }
 
   @override
@@ -1805,12 +1820,13 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
                   }
                 },
               ),
-              MenuQuickActionSubmenuChild(
-                icon: Symbols.forum_rounded,
-                label: context.l10n.nested_title,
-                selected: _isNestedView,
-                onTap: _toggleNestedView,
-              ),
+              if (AppConstants.siteCustomization.supportsNestedView)
+                MenuQuickActionSubmenuChild(
+                  icon: Symbols.forum_rounded,
+                  label: context.l10n.nested_title,
+                  selected: _isNestedView,
+                  onTap: _toggleNestedView,
+                ),
               if (hasFilter)
                 MenuQuickActionSubmenuChild(
                   icon: Symbols.filter_list_off_rounded,
@@ -2179,7 +2195,9 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
       onShowAuthorOnly: _handleShowAuthorOnly,
       onShowTopLevelReplies: _handleShowTopLevelReplies,
       onCancelFilter: _handleCancelFilter,
-      onShowNestedView: _toggleNestedView,
+      onShowNestedView: AppConstants.siteCustomization.supportsNestedView
+          ? _toggleNestedView
+          : null,
     );
     _overlayCache = (signature: signature, widget: overlay);
     return overlay;

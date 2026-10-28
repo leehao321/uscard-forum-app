@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../constants.dart';
 import '../models/shortcut_binding.dart';
 import '../providers/discourse_providers.dart';
 import '../models/search_filter.dart';
@@ -32,20 +33,30 @@ import '../widgets/common/search_capsule.dart';
 import '../utils/link_launcher.dart';
 import 'settings_page.dart';
 
-/// 搜索框中的站内直达链接标准化。支持完整 URL、`linux.do/...` 和相对路径；
+/// 搜索框中的站内直达链接标准化。支持完整 URL、不带协议的
+/// `uscardforum.com/...`（含 www）和相对路径；
 /// 普通关键词原样返回，后续由 [isInternalUrlString] 判定后继续普通搜索。
 @visibleForTesting
 String normalizeDirectSearchLink(String rawValue) {
   final value = rawValue.trim();
   if (value.startsWith('/')) return value;
-  if (RegExp(
-    r'^(?:www\.)?linux\.do(?::\d+)?/',
-    caseSensitive: false,
-  ).hasMatch(value)) {
+  if (_bareSiteLinkPattern.hasMatch(value)) {
     return 'https://$value';
   }
   return value;
 }
+
+/// 不带协议的站内链接：主域去掉 `www.` 后，可带或不带 `www.` 前缀。
+final RegExp _bareSiteLinkPattern = () {
+  final host = Uri.parse(AppConstants.baseUrl).host.replaceFirst(
+    RegExp(r'^www\.'),
+    '',
+  );
+  return RegExp(
+    '^(?:www\\.)?${RegExp.escape(host)}(?::\\d+)?/',
+    caseSensitive: false,
+  );
+}();
 
 /// 搜索页面
 class SearchPage extends ConsumerStatefulWidget {

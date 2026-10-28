@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -29,17 +31,23 @@ class _TopicNoteSheet extends StatefulWidget {
   State<_TopicNoteSheet> createState() => _TopicNoteSheetState();
 }
 
-class _TopicNoteSheetState extends State<_TopicNoteSheet> {
+class _TopicNoteSheetState extends State<_TopicNoteSheet>
+    with WidgetsBindingObserver {
   final _text = TextEditingController();
   List<NoteExcerpt> _excerpts = [];
   bool _loaded = false;
+  bool _dirty = false;
+  Timer? _saveTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     TopicNoteStore.get(widget.topicId).then((note) {
       if (!mounted) return;
       _text.text = note?.text ?? '';
+      // 读完再挂监听，填入旧内容不算改动
+      _text.addListener(_scheduleSave);
       setState(() {
         _excerpts = [...?note?.excerpts];
         _loaded = true;
@@ -48,21 +56,46 @@ class _TopicNoteSheetState extends State<_TopicNoteSheet> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 切到后台可能被系统回收，不会走 dispose：离开前台就先存
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      _saveNow();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     // 关闭时自动保存，不需要单独的保存按钮
-    if (_loaded) {
+    _saveNow();
+    _text.dispose();
+    super.dispose();
+  }
+
+  /// 停笔 1 秒后自动保存
+  void _scheduleSave() {
+    _dirty = true;
+    _saveTimer?.cancel();
+    _saveTimer = Timer(const Duration(seconds: 1), _saveNow);
+  }
+
+  void _saveNow() {
+    _saveTimer?.cancel();
+    _saveTimer = null;
+    if (!_loaded || !_dirty) return;
+    _dirty = false;
+    unawaited(
       TopicNoteStore.save(
         TopicNote(
           topicId: widget.topicId,
           title: widget.title,
           text: _text.text,
-          excerpts: _excerpts,
+          excerpts: List.of(_excerpts),
           updatedAt: DateTime.now(),
         ),
-      );
-    }
-    _text.dispose();
-    super.dispose();
+      ),
+    );
   }
 
   Future<void> _pasteExcerpt() async {
@@ -79,6 +112,7 @@ class _TopicNoteSheetState extends State<_TopicNoteSheet> {
     setState(() {
       _excerpts.insert(0, NoteExcerpt(text: text, createdAt: DateTime.now()));
     });
+    _scheduleSave();
   }
 
   @override
@@ -159,7 +193,10 @@ class _TopicNoteSheetState extends State<_TopicNoteSheet> {
                         IconButton(
                           tooltip: '删除摘录',
                           icon: const Icon(Icons.delete_outline, size: 20),
-                          onPressed: () => setState(() => _excerpts.remove(e)),
+                          onPressed: () {
+                            setState(() => _excerpts.remove(e));
+                            _scheduleSave();
+                          },
                         ),
                       ],
                     ),

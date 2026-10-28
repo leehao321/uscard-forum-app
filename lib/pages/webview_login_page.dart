@@ -652,6 +652,31 @@ class _WebViewLoginPageState extends ConsumerState<WebViewLoginPage> {
     var bootstrapOk = false;
     List<Map<String, dynamic>> runtimeDetails = const [];
 
+    // 美卡没有 fingerprint 插件、也不下发 `_rt`：不等指纹上报、不跑 bootstrap，
+    // 只把 WebView 里的 cookie 回灌到 jar 就算会话已同步。
+    if (!AppConstants.siteCustomization.hasSessionBootstrapPlugin) {
+      try {
+        if (!AuthSession().isValid(requestGeneration)) return false;
+        await BoundarySyncService.instance.syncFromWebView(
+          currentUrl: currentUrl,
+          controller: controller,
+          cookieNames: null,
+          allowLowConfidenceSessionCookies: true,
+          requestGeneration: requestGeneration,
+          trusted: true,
+        );
+        if (!AuthSession().isValid(requestGeneration)) return false;
+        WebViewSessionCookieRefreshService.instance.markSynced(
+          reason: 'webview_login_success',
+          tToken: token,
+        );
+        return true;
+      } catch (e) {
+        debugPrint('[Login] 登录 Cookie 回灌失败: $e');
+        return false;
+      }
+    }
+
     try {
       if (!fingerprintObserved) {
         fingerprintObserved = await _waitForFingerprintPost(

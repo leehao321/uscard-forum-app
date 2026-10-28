@@ -97,7 +97,34 @@ mixin _PostsMixin on _DiscourseServiceBase {
   }
 
   /// 切换回应
-  Future<Map<String, dynamic>> toggleReaction(int postId, String reaction) async {
+  ///
+  /// 站点没装 discourse-reactions 时（见 [PreloadedDataService.reactionsPluginEnabled]）
+  /// 改走 Discourse 自带的点赞 `/post_actions`，并按 [currentReactions] /
+  /// [currentUserReaction] 算出新的展示状态，返回格式不变。
+  Future<Map<String, dynamic>> toggleReaction(
+    int postId,
+    String reaction, {
+    List<PostReaction>? currentReactions,
+    PostReaction? currentUserReaction,
+  }) async {
+    if (!PreloadedDataService().reactionsPluginEnabled) {
+      final liked = currentUserReaction != null;
+      if (liked) {
+        await unlikePost(postId);
+      } else {
+        await likePost(postId);
+      }
+      final before = (currentReactions ?? const <PostReaction>[]).fold<int>(
+        0,
+        (sum, r) => sum + r.count,
+      );
+      final count = (before + (liked ? -1 : 1)).clamp(0, 1 << 30);
+      final heart = PostReaction(id: 'heart', type: 'emoji', count: count);
+      return {
+        'reactions': count > 0 ? [heart] : <PostReaction>[],
+        'currentUserReaction': liked ? null : heart,
+      };
+    }
     try {
       final response = await _dio.put(
         '/discourse-reactions/posts/$postId/custom-reactions/$reaction/toggle.json',

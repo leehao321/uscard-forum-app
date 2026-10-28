@@ -167,7 +167,10 @@ class _LoginPageState extends State<LoginPage>
       if (clearance != null && clearance.isNotEmpty) return true;
       await Future<void>.delayed(const Duration(milliseconds: 500));
     }
-    return false;
+    // 验证页已判通过但没拿到 cf_clearance：站点对这个用户/IP 没出挑战时本来就
+    // 不发这个 cookie。照样放行，真被 CF 拦下时登录对话框会在 CSRF 403 时再验一次，
+    // 不能因为缺 cookie 就永远登不上。
+    return true;
   }
 
   /// 表单提交回调。返 true 表示走完成功路径并已 pop, false 留在表单。

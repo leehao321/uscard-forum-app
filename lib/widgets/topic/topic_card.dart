@@ -5,6 +5,7 @@ import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../../constants.dart';
 import '../../models/topic.dart';
 import '../../models/category.dart';
 import '../../models/topic_card_style.dart';
@@ -462,7 +463,10 @@ class TopicCard extends ConsumerWidget {
                 showImages: style.showImages,
                 maxCollapsedLines: style.maxCollapsedLines,
                 isFullyRead: isFullyRead,
-                allowFetch: style.allowExcerptFetch,
+                // 站点开关优先（见 topic_item_builder 同处注释）
+                allowFetch:
+                    AppConstants.siteCustomization.allowAutoExcerptFetch &&
+                    style.allowExcerptFetch,
               )
             : null);
 

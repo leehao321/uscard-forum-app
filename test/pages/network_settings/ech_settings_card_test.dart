@@ -119,8 +119,7 @@ void main() {
         ),
       ),
     );
-    expect(find.text('linux.do'), findsOneWidget);
-    expect(find.text('ldstatic.com'), findsOneWidget);
+    expect(find.text('uscardforum.com'), findsOneWidget);
     expect(find.byTooltip('删除'), findsOneWidget);
     expect(
       tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,

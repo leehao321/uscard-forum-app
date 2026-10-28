@@ -42,7 +42,11 @@ class SmartAvatar extends StatefulWidget {
 /// [SmartAvatar] 的地方(画布直绘的话题卡片、头像外层单独套边框/背景的
 /// 容器)都得调这个同一份判断，不然会出现"图是方的、外层裁切/边框还是圆
 /// 的"这种两层对不上的错位。
-final RegExp _avatarUsernamePattern = RegExp(r'/user_avatar/[^/]+/([^/]+)/');
+/// 站点段限定 linux.do（与那条 CSS 规则一致）：美卡的头像路径是
+/// `/user_avatar/www.uscardforum.com/<username>/`，同名用户不受影响。
+final RegExp _avatarUsernamePattern = RegExp(
+  r'/user_avatar/linux\.do/([^/]+)/',
+);
 const Set<String> _squareAvatarUsernames = {'neo'};
 
 bool isSquareAvatarUrl(String? url) {

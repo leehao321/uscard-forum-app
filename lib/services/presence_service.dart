@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+
+import 'package:flutter/widgets.dart';
 import 'discourse/discourse_service.dart';
 import 'preloaded_data_service.dart';
 
@@ -85,6 +86,11 @@ class PresenceService {
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = Timer.periodic(_heartbeatInterval, (_) {
+      // 回复框开着切到后台时不再上报在线状态（论坛条款不允许后台轮询）
+      if (WidgetsBinding.instance.lifecycleState !=
+          AppLifecycleState.resumed) {
+        return;
+      }
       if (_activeChannels.isNotEmpty) {
         debugPrint('[PresenceService] 心跳: ${_activeChannels.length} 个频道');
         _queuePresenceUpdate(presentChannels: _activeChannels.toList());

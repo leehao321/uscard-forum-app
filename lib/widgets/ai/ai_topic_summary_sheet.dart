@@ -138,7 +138,10 @@ class _AiTopicSummaryBodyState extends ConsumerState<_AiTopicSummaryBody> {
             if (!mounted) return;
             setState(() {
               _streaming = false;
-              if (_result.isEmpty) _error = '模型没有返回内容，请重试。';
+              // 出错时流也会走到这里，不要用「没有返回内容」盖掉真正的失败原因
+              if (_result.isEmpty && _error == null) {
+                _error = '模型没有返回内容，请重试。';
+              }
             });
           },
         );

@@ -190,19 +190,22 @@ class TopicBottomBar extends StatelessWidget {
             ],
           ),
         ),
-        const PopupMenuDivider(),
-        PopupMenuItem(
-          value: 'nested',
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Symbols.forum_rounded,
-                  size: 20, color: theme.colorScheme.onSurface),
-              const SizedBox(width: 12),
-              Text(context.l10n.nested_title),
-            ],
+        // 站点没有树形回复插件时上层不传回调，不显示这一项
+        if (onShowNestedView != null) ...[
+          const PopupMenuDivider(),
+          PopupMenuItem(
+            value: 'nested',
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Symbols.forum_rounded,
+                    size: 20, color: theme.colorScheme.onSurface),
+                const SizedBox(width: 12),
+                Text(context.l10n.nested_title),
+              ],
+            ),
           ),
-        ),
+        ],
       ],
     );
   }

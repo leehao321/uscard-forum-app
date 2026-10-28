@@ -111,6 +111,20 @@ class SiteCustomization {
   /// 是否允许列表卡片为每个话题自动请求首帖做摘要/配图（逐条后台请求，默认开放给用户选择）
   final bool allowAutoExcerptFetch;
 
+  /// 音视频是否改名成 `.xz` 上传。linux.do 的扩展名白名单不含音视频，社区
+  /// 「媒体上传」脚本约定这样绕过；其他站点不绕白名单，按原文件名上传，
+  /// 扩展名不在站点允许列表里就直接提示。默认关闭，linux.do 配置里打开。
+  final bool mediaUploadAsXz;
+
+  /// 站点是否装了树形回复插件（提供 `/n/topic/...` 接口）。没装时隐藏树形视图的
+  /// 所有入口，也不按「默认树形」去请求（否则每个话题先 404 再回落平铺）。
+  final bool supportsNestedView;
+
+  /// 站点是否靠插件脚本在 WebView 里产生额外会话 cookie（linux.do 的
+  /// fingerprint 插件上报后才下发 `_rt`）。没有这类插件时不跑会话 bootstrap：
+  /// 否则每次都找不到插件，反复起无头 WebView 拉首页和插件 JS，登录也会白等。
+  final bool hasSessionBootstrapPlugin;
+
   const SiteCustomization({
     this.avatarGlowRules = const [],
     this.userTitleStyleRules = const [],
@@ -119,6 +133,9 @@ class SiteCustomization {
     this.requiresHcaptcha = true,
     this.enableLinuxdoServices = true,
     this.allowAutoExcerptFetch = true,
+    this.mediaUploadAsXz = false,
+    this.supportsNestedView = true,
+    this.hasSessionBootstrapPlugin = true,
   });
 
   /// 匹配头像光晕（返回光晕颜色，null 表示无光晕）

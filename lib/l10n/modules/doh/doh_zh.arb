@@ -177,7 +177,7 @@
   "dohDetail_builtinDomains": "内置域名",
   "dohDetail_customDomains": "自定义域名",
   "dohDetail_includesSubdomains": "包含所有子域名",
-  "dohDetail_noCustomDomains": "暂无自定义域名，内置规则已覆盖论坛和静态资源。",
+  "dohDetail_noCustomDomains": "暂无自定义域名，内置规则已覆盖论坛主域。",
   "dohDetail_addEchDomain": "添加域名",
   "dohDetail_editEchDomain": "编辑域名",
   "dohDetail_domain": "域名",

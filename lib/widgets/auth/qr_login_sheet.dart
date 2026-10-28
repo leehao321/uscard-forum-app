@@ -223,15 +223,20 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
     });
   }
 
-  /// 每 3 秒查一次分享 key 是否仍存活;消失 = 扫码端已登录并自我吊销。
+  /// 每 5 秒查一次分享 key 是否仍存活;消失 = 扫码端已登录并自我吊销。
   /// (Discourse 无扫码回执机制,轮询本人 /u/:username.json 的
   /// user_api_keys 是唯一可用信号;仅本人可见,无隐私外泄)
+  /// 只在 App 处于前台时查:论坛条款不允许后台轮询。
   void _restartPolling() {
     _pollTimer?.cancel();
     final username = _payload?.username ?? '';
     if (username.isEmpty) return;
-    _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
+    _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
       if (!mounted || _pollInFlight || _consumed || _qrExpired) return;
+      if (WidgetsBinding.instance.lifecycleState !=
+          AppLifecycleState.resumed) {
+        return;
+      }
       _pollInFlight = true;
       try {
         final alive = await QrLoginService.instance.isSharedKeyAlive(

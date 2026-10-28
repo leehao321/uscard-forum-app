@@ -1372,13 +1372,9 @@ class NetworkSettingsService {
 
   List<String> _collectCommonHosts() {
     final preloaded = PreloadedDataService();
-    final hosts = <String>{
-      'connect.linux.do',
-      'ping.linux.do',
-      'cdn.linux.do',
-      'credit.linux.do',
-      'cdk.linux.do',
-    };
+    // 美卡没有 linux.do 那些固定子站（connect/ping/cdn/credit/cdk）；
+    // 主站之外的长轮询、CDN、S3 域名都从站点预载数据里取，下面统一加入。
+    final hosts = <String>{'uscardforum.com'};
 
     for (final value in [
       AppConstants.baseUrl,

@@ -112,7 +112,9 @@ class _TopicProgressGesturesState extends ConsumerState<TopicProgressGestures>
   ) {
     if (!prefs.progressGesturesEnabled) return;
     if (!prefs.progressGestureLongPressEnabled) return;
-    final actions = prefs.progressGestureMenuActions;
+    final actions = prefs.progressGestureMenuActions
+        .where(isProgressGestureActionAvailable)
+        .toList();
     if (actions.isEmpty) return;
 
     final box = context.findRenderObject() as RenderBox?;

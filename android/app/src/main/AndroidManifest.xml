@@ -53,44 +53,46 @@
                 <category android:name="android.intent.category.LAUNCHER" />
                 <data android:scheme="uscardforum-launch" />
             </intent-filter>
-            <!-- Deep Links for linux.do - 话题链接 -->
-            <intent-filter android:autoVerify="true">
+            <!-- 美卡论坛链接。不加 autoVerify：域名不归我们管，放不了 assetlinks.json，
+                 Android 只会列出本 App 让用户选择（也可在系统设置里设为默认打开）。 -->
+            <!-- 话题链接 -->
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="linux.do" android:pathPrefix="/t/" />
+                <data android:scheme="https" android:host="www.uscardforum.com" android:pathPrefix="/t/" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http" android:host="linux.do" android:pathPrefix="/t/" />
+                <data android:scheme="https" android:host="uscardforum.com" android:pathPrefix="/t/" />
             </intent-filter>
-            <!-- Deep Links for linux.do - 用户链接 -->
-            <intent-filter android:autoVerify="true">
+            <!-- 用户链接 -->
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="linux.do" android:pathPrefix="/u/" />
+                <data android:scheme="https" android:host="www.uscardforum.com" android:pathPrefix="/u/" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http" android:host="linux.do" android:pathPrefix="/u/" />
+                <data android:scheme="https" android:host="uscardforum.com" android:pathPrefix="/u/" />
             </intent-filter>
-            <!-- Deep Links for linux.do - 邮箱链接登录 -->
-            <intent-filter android:autoVerify="true">
+            <!-- 邮箱链接登录 -->
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="linux.do" android:pathPrefix="/session/email-login/" />
+                <data android:scheme="https" android:host="www.uscardforum.com" android:pathPrefix="/session/email-login/" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http" android:host="linux.do" android:pathPrefix="/session/email-login/" />
+                <data android:scheme="https" android:host="uscardforum.com" android:pathPrefix="/session/email-login/" />
             </intent-filter>
             <!-- Custom URL Scheme -->
             <intent-filter>

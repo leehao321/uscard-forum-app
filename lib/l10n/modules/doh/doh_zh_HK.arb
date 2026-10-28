@@ -177,7 +177,7 @@
   "dohDetail_builtinDomains": "內置網域",
   "dohDetail_customDomains": "自訂網域",
   "dohDetail_includesSubdomains": "包含所有子網域",
-  "dohDetail_noCustomDomains": "暫無自訂網域，內置規則已涵蓋論壇及靜態資源。",
+  "dohDetail_noCustomDomains": "暫無自訂網域，內置規則已涵蓋論壇主網域。",
   "dohDetail_addEchDomain": "新增網域",
   "dohDetail_editEchDomain": "編輯網域",
   "dohDetail_domain": "網域",

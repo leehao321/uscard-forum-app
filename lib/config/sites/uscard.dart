@@ -9,6 +9,10 @@ final uscardCustomization = SiteCustomization(
   enableLinuxdoServices: false,
   // 论坛条款禁止程序自动批量访问：列表卡片不为每个话题自动拉首帖
   allowAutoExcerptFetch: false,
+  // 没装树形回复插件：真机日志里 `/n/topic/<id>.json` 返回 404
+  supportsNestedView: false,
+  // 没有 linux.do 的 fingerprint 插件，也不下发 `_rt`，不跑 WebView 会话 bootstrap
+  hasSessionBootstrapPlugin: false,
   linkSecurityConfig: _uscardLinkSecurityConfig,
 );
 
@@ -22,11 +26,12 @@ const _uscardLinkSecurityConfig = LinkSecurityConfig(
     '*.uscardforum.com',
     'localhost',
     '*.local',
-    '^127(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}',
-    '^10(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}',
-    '^169\.254(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){2}',
-    '^192\.168(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){2}',
-    '^172\.(?:1[6-9]|2\d|3[0-1])(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){2}',
+    // 普通字符串里要写 \\ 才是正则的 \（单个 \d 会被 Dart 当成字母 d）
+    '^127(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}',
+    '^10(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}',
+    '^169\\.254(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){2}',
+    '^192\\.168(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){2}',
+    '^172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){2}',
   ],
   riskyDomains: [
     'bit.ly', 'tinyurl.com', 't.co', 'goo.gl', 'ow.ly', 'buff.ly',

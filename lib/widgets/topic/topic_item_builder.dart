@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../constants.dart';
 import '../../models/category.dart';
 import '../../models/topic.dart';
 import '../../models/topic_card_style.dart';
@@ -131,7 +132,11 @@ Widget buildTopicItem({
               showImages: currentStyle.showImages,
               maxCollapsedLines: currentStyle.maxCollapsedLines,
               isFullyRead: isFullyRead,
-              allowFetch: currentStyle.allowExcerptFetch,
+              // 站点开关优先：导入的旧备份里可能带着 allowExcerptFetch=true，
+              // 美卡（论坛条款）不允许为列表里的每个话题自动拉首帖
+              allowFetch:
+                  AppConstants.siteCustomization.allowAutoExcerptFetch &&
+                  currentStyle.allowExcerptFetch,
             )
           : null);
 

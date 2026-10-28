@@ -163,11 +163,31 @@ class WebViewSessionCookieRefreshService {
     );
   }
 
+  /// 站点没有会话 bootstrap 插件（美卡）时直接视为已同步：不起无头 WebView、
+  /// 不拉首页和插件 JS。登录时的 WebView cookie 回灌由各登录页自己完成。
+  bool get _siteHasBootstrap =>
+      AppConstants.siteCustomization.hasSessionBootstrapPlugin;
+
+  SessionBootstrapResult _skipForSite(String reason) {
+    if (_lastSuccessAt == null) {
+      _lastSuccessAt = DateTime.now();
+      _failureStreak = 0;
+      _logEnsureEvent(
+        event: 'webview_session_sync_skipped',
+        reason: reason,
+        level: 'info',
+        extra: {'skipReason': 'site_has_no_bootstrap'},
+      );
+    }
+    return const SessionBootstrapResult.success();
+  }
+
   /// 确保当前进程已经让 WebView 登录页面跑过一次并同步 cookie。
   Future<SessionBootstrapResult> ensureSynced({
     String reason = 'unknown',
     bool force = false,
   }) async {
+    if (!_siteHasBootstrap) return _skipForSite(reason);
     final startedAt = DateTime.now();
     _logEnsureEvent(
       event: 'webview_session_sync_started',
@@ -509,6 +529,7 @@ class WebViewSessionCookieRefreshService {
     bool Function()? isCancelled,
     Future<void>? cancellationSignal,
   }) async {
+    if (!_siteHasBootstrap) return _skipForSite(reason);
     if (isCancelled?.call() == true) {
       return const SessionBootstrapResult.failure(phase: 'cancelled');
     }

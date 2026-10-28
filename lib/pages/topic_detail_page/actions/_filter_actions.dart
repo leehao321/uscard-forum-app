@@ -333,18 +333,20 @@ extension _FilterActions on _TopicDetailPageState {
                 }
               },
             ),
-            const Divider(height: 1, indent: 16, endIndent: 16),
-            ListTile(
-              leading: Icon(Symbols.forum_rounded, fill: _isNestedView ? 1 : 0),
-              title: Text(context.l10n.nested_title),
-              trailing: _isNestedView
-                  ? Icon(Symbols.check_rounded, color: theme.colorScheme.primary)
-                  : null,
-              onTap: () {
-                Navigator.pop(ctx);
-                _toggleNestedView();
-              },
-            ),
+            if (AppConstants.siteCustomization.supportsNestedView) ...[
+              const Divider(height: 1, indent: 16, endIndent: 16),
+              ListTile(
+                leading: Icon(Symbols.forum_rounded, fill: _isNestedView ? 1 : 0),
+                title: Text(context.l10n.nested_title),
+                trailing: _isNestedView
+                    ? Icon(Symbols.check_rounded, color: theme.colorScheme.primary)
+                    : null,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _toggleNestedView();
+                },
+              ),
+            ],
             if (hasActiveFilter) ...[
               const Divider(height: 1, indent: 16, endIndent: 16),
               ListTile(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxdo/config/sites/linuxdo.dart';
 import 'package:fluxdo/l10n/s.dart';
 import 'package:fluxdo/models/category.dart';
 import 'package:fluxdo/services/local_notification_service.dart' show navigatorKey;
@@ -190,11 +191,20 @@ void main() {
   group('PluginRegistry.resolveMinPostLength', () {
     tearDown(PluginRegistry.resetOverride);
 
-    test('linux.do 默认注册了 warden 插件', () {
-      expect(PluginRegistry.plugins.whereType<WardenPlugin>(), isNotEmpty);
+    test('美卡默认不注册 warden，分类里即使带 warden 字段也不改下限', () {
+      expect(PluginRegistry.plugins.whereType<WardenPlugin>(), isEmpty);
+      final category = Category.fromJson(_categoryJson(minPost: 16));
+      expect(
+        PluginRegistry.resolveMinPostLength(
+          8,
+          _ctx(extras: category.pluginExtras),
+        ),
+        8,
+      );
     });
 
-    test('真实分类数据：搞七捻三回复要 16 字', () {
+    test('linux.do 配置下：真实分类数据「搞七捻三」回复要 16 字', () {
+      PluginRegistry.overridePlugins(linuxdoCustomization.plugins);
       final category = Category.fromJson(_categoryJson(minPost: 16));
       expect(
         PluginRegistry.resolveMinPostLength(
@@ -207,12 +217,25 @@ void main() {
   });
 
   group('CharacterCountsOverlay', () {
-    testWidgets('字数不足时显示 `x / min` + 社区警告', (tester) async {
+    tearDown(PluginRegistry.resetOverride);
+
+    testWidgets('linux.do 配置下字数不足时显示 `x / min` + 社区警告', (tester) async {
+      PluginRegistry.overridePlugins(linuxdoCustomization.plugins);
       await tester.pumpWidget(
         _host(const CharacterCountsOverlay(length: 12, minimumLength: 16)),
       );
       expect(find.textContaining('12 / 16'), findsOneWidget);
       expect(find.textContaining('勿用各类字数补丁'), findsOneWidget);
+    });
+
+    testWidgets('美卡字数不足时只显示 `x / min`，不带 linux.do 的社区警告', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(const CharacterCountsOverlay(length: 12, minimumLength: 16)),
+      );
+      expect(find.textContaining('12 / 16'), findsOneWidget);
+      expect(find.textContaining('勿用各类字数补丁'), findsNothing);
     });
 
     testWidgets('达标后完全不显示（不占位、无常驻字数）', (tester) async {

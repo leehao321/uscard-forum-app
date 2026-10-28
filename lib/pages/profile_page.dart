@@ -121,8 +121,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       // LDC/CDK provider 现在只 watch currentUser.username，
       // refreshSilently 不会再连带触发它们 rebuild，需要显式刷新
       final prefs = ref.read(sharedPreferencesProvider);
-      final ldcEnabled = prefs.getBool('ldc_enabled') ?? false;
-      final cdkEnabled = prefs.getBool('cdk_enabled') ?? false;
+      // LDC/CDK 是 linux.do 的服务：美卡上即使偏好里残留开启（导入旧备份）也不请求
+      final linuxdo = AppConstants.siteCustomization.enableLinuxdoServices;
+      final ldcEnabled = linuxdo && (prefs.getBool('ldc_enabled') ?? false);
+      final cdkEnabled = linuxdo && (prefs.getBool('cdk_enabled') ?? false);
       await Future.wait([
         ref.read(currentUserProvider.notifier).refreshSilently(force: true),
         ref.read(userSummaryProvider.notifier).refresh(),
@@ -626,6 +628,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     // 仅本页首次成为活跃 tab 后才渲染余额卡片;未激活时返回空,不建 Consumer、
     // 不 watch provider,从而不触发 cdk/ldc user-info 请求。
     if (!_balanceEverActive) return const SizedBox.shrink();
+    if (!AppConstants.siteCustomization.enableLinuxdoServices) {
+      return const SizedBox.shrink();
+    }
     return Consumer(
       builder: (context, ref, _) {
         final prefs = ref.watch(sharedPreferencesProvider);

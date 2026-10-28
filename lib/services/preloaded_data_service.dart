@@ -360,16 +360,30 @@ class PreloadedDataService {
     return raw.split('|').where((s) => s.isNotEmpty).toList();
   }
 
-  /// 获取可用的回应表情列表
+  /// 站点是否装了 discourse-reactions 插件（插件设置会下发到 siteSettings）。
+  /// siteSettings 还没加载时按「装了」处理，沿用原来的行为。
+  bool get reactionsPluginEnabled {
+    final s = _siteSettings;
+    if (s == null) return true;
+    if (s.containsKey('discourse_reactions_enabled')) {
+      return s['discourse_reactions_enabled'] == true;
+    }
+    return s.containsKey('discourse_reactions_enabled_reactions');
+  }
+
+  /// 获取可用的回应表情列表（没装回应插件时为空，界面就不弹表情面板）
   Future<List<String>> getEnabledReactions() async {
     await _ensureLoaded();
+    if (!reactionsPluginEnabled) return const [];
     return _enabledReactions ?? ['heart', '+1', 'laughing', 'open_mouth'];
   }
 
   /// 同步获取可用回应表情列表（仅返回已 preload 结果，未 preload 时返回兜底）
   /// 用于"按下立即弹出"等零延迟场景
-  List<String> get enabledReactionsSync =>
-      _enabledReactions ?? const ['heart', '+1', 'laughing', 'open_mouth'];
+  List<String> get enabledReactionsSync {
+    if (!reactionsPluginEnabled) return const [];
+    return _enabledReactions ?? const ['heart', '+1', 'laughing', 'open_mouth'];
+  }
 
   /// 获取 MessageBus 跨域认证 key（仅独立域名时有值）
   String? get sharedSessionKey => _sharedSessionKey;

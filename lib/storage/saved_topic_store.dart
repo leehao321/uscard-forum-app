@@ -6,6 +6,8 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../utils/time_utils.dart';
+
 /// 「看过就存」里保存的单个楼层（只留离线阅读需要的字段）。
 class SavedPost {
   const SavedPost({
@@ -41,7 +43,7 @@ class SavedPost {
     username: json['u'] as String? ?? '',
     name: json['name'] as String?,
     cooked: json['c'] as String? ?? '',
-    createdAt: DateTime.tryParse(json['t'] as String? ?? '')?.toLocal(),
+    createdAt: TimeUtils.parseUtcTime(json['t'] as String?),
   );
 }
 
@@ -80,7 +82,7 @@ class SavedTopicMeta {
     slug: json['slug'] as String?,
     postCount: json['count'] as int? ?? 0,
     savedAt:
-        DateTime.tryParse(json['savedAt'] as String? ?? '')?.toLocal() ??
+        TimeUtils.parseUtcTime(json['savedAt'] as String?) ??
         DateTime.fromMillisecondsSinceEpoch(0),
     searchText: json['s'] as String? ?? '',
   );

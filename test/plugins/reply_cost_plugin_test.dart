@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxdo/config/sites/linuxdo.dart';
 import 'package:fluxdo/l10n/s.dart';
 import 'package:fluxdo/models/topic.dart';
 import 'package:fluxdo/plugins/plugins.dart';
@@ -199,9 +200,10 @@ void main() {
   group('PluginRegistry', () {
     tearDown(PluginRegistry.resetOverride);
 
-    test('linux.do 默认注册了回复扣积分插件', () {
+    test('美卡默认不注册站点插件（回复扣积分只属于 linux.do）', () {
+      expect(PluginRegistry.plugins, isEmpty);
       expect(
-        PluginRegistry.plugins.whereType<ReplyCostPlugin>(),
+        linuxdoCustomization.plugins.whereType<ReplyCostPlugin>(),
         isNotEmpty,
       );
     });

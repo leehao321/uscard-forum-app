@@ -12,6 +12,11 @@
 | D-007 | 2026-10-28 | 开屏（欢迎页）的浮动 logo 动画沿用 linux.do 条纹圆标，没有美卡特色 | 已完成，待真机验证：启动页加载动画改为指针转动 | 6e0e8ac0 |
 | D-008 | 2026-10-28 | 用户要求去掉聊天功能（代码和入口都去掉） | 已完成，待真机验证 | f1a1fcf8 |
 | D-009 | 2026-10-28 | Boost 弹幕化：用户在帖子里从没见过 Boost 按钮和别人的 Boost，美卡服务端大概率没装 discourse-boosts 插件 | 已处理（隐藏入口），待真机验证 | eb5b25c2 |
+| D-010 | 2026-10-28 | 审查 + 日志：会话 bootstrap 按 linux.do 的 fingerprint 插件写死，美卡上每次都失败（日志 1 小时 40 分钟里 25 次 `fingerprint engine not found`，首页被拉 54 次），用户没操作时也会起无头 WebView 请求论坛 | 已修复，待真机验证 | 见 D-010 小节 |
+| D-011 | 2026-10-28 | 日志：cf_clearance 下发在根域 `.uscardforum.com`，主域判断只认 www，每次冷启动都走慢的无头 WebView 预加载（可能与 D-002 有关） | 已修复，待真机验证 | 同上 |
+| D-012 | 2026-10-28 | 日志：树形视图接口 `/n/topic` 404（美卡没装树形回复插件）；把 linux.do 专属逻辑改成针对美卡（插件、ECH、深链、链接判断、上传等，详见小节） | 已修复，待真机验证 | 同上 |
+| D-013 | 2026-10-28 | 审查：应用锁可被 VoiceOver 读到/操作底下页面、键盘穿透；设备没密码时会被永久锁在外面；多任务缩略图露内容；锁屏时阅读计时还在走 | 已修复，待真机验证 | 同上 |
+| D-014 | 2026-10-28 | 审查：笔记只在关闭面板时保存（被系统回收会丢）；AI 总结失败提示被覆盖；扫码登录和 presence 心跳在后台仍会请求 | 已修复，待真机验证 | 同上 |
 | D-003 | 2026-10-27 | 扫码登录尚未测试 | 未测试 | - |
 
 ## D-001 分析
@@ -61,3 +66,28 @@ iOS 上改用 `flutter_web_auth_2`（ASWebAuthenticationSession）发起授权�
 - 判断依据：用户观察到帖子底部没有 Boost 按钮、从没见过别人的 Boost；日志里也没有 `/discourse-boosts` 请求。没有请求过论坛服务端去确认（服务条款约束）。
 - 处理：去掉设置里的“Boost 弹幕化”开关、个人页的“Boost”标签（该标签会请求 `/discourse-boosts/...`）。
 - 未删：帖子模型、实时更新、帖子渲染、通知里的 Boost 内部代码牵连十几个文件，服务端没有数据时不会显示，保留以便将来同步上游或发现美卡其实支持时再开。
+
+## D-010 ～ D-014：linux.do 逻辑移植与全量审查（2026-10-28）
+
+起因：用户要求把原来针对 linux.do 的优化改成针对美卡，并“从最新 IPA 的源码找 BUG 修复”。做法：三个只读审查（我们的改动、镜像分支与出包流程、上游代码里写死 linux.do 的假设），结论用真机日志 `app_log_share.jsonl` 核对后再改。没有请求论坛。
+
+站点开关（`lib/config/site_customization.dart`，美卡在 `lib/config/sites/uscard.dart`）：
+- `hasSessionBootstrapPlugin=false`：不跑 WebView 会话 bootstrap（`ensureSynced` / `runOnController` 直接视为成功）；WebView 登录后只回灌 cookie，不再等 2.5 秒指纹上报。
+- `supportsNestedView=false`：隐藏树形视图的菜单、筛选、底栏、手势动作和设置组，打开话题不再按“默认树形”去请求。
+- `mediaUploadAsXz=false`：音视频不再改名 `.xz` 绕上传白名单；扩展名在站点允许列表里才按原文件名上传，否则直接提示。
+- 插件注册表改为读美卡配置（原来写死 linux.do：会显示“勿用各类字数补丁”等）。
+
+其他：
+- cookie 主域判断认根域（cf_clearance）；手动验证时能删掉根域上的旧 cf_clearance。
+- 链接判断：`uscardforum.com/...`（不带 www）也算站内链接；搜索框直达链接、发帖“精选链接”同理。
+- ECH 内置域名改为 `uscardforum.com`（Rust 子模块里的内置规则仍是 linux.do，改为随自定义域名一起下发）；DNS 刷新不再解析 linux.do 子站。
+- 头像方形化只对 linux.do 的 neo 生效；Android 深链改为美卡两个域名（不加 autoVerify）；`uscard.dart` 局域网 IP 正则的反斜杠写错，已修。
+- 没装回应插件时点赞改走 `/post_actions`（站点设置有回应插件时不变）。
+- 门控漏网：列表卡片自动拉首帖、个人页 LDC/CDK 余额在导入旧备份后仍会请求，已按站点开关挡住；备份不再带 `app_lock_*`。
+- 应用锁：`BlockSemantics` + 上锁时收起键盘；设备没密码时自动关闭应用锁；离开前台先盖隐私遮罩；锁屏时话题页暂停阅读计时。
+- 笔记停笔 1 秒和切后台时自动保存；AI 总结失败提示不再被覆盖；扫码登录轮询改 5 秒且只在前台；presence 心跳后台不上报；密码登录不再强制要求 cf_clearance 存在。
+- 出包流程：带镜像时编译输出不打印到公开日志，失败时加密上传；相关步骤用 bash（pipefail）；`mirror_patch.sh export` 固定 diff 格式。
+- 测试：新增 `test/config/uscard_site_test.dart`、`test/uscard/uscard_fixes_test.dart` 等；按 linux.do 行为写的插件、ECH、搜索链接测试改为美卡行为（linux.do 插件本身的测试改为显式注入 linux.do 配置）。
+
+未处理：密码登录前的 CF 预检以外的 CF 流程、“看过就存”无上限、`/tags/filter/search` 400、扫码登录（D-003）仍未真机测试。
+

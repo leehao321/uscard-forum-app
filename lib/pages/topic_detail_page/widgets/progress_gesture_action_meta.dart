@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 
+import '../../../config/sites/uscard.dart';
 import '../../../l10n/s.dart';
 import '../../../providers/preferences_provider.dart';
+
+/// 当前站点能用的手势动作。美卡没有树形回复插件，不提供「切换树形视图」。
+/// 设置里的选择列表和长按菜单都从这里取，已保存的旧配置也会被滤掉。
+bool isProgressGestureActionAvailable(ProgressGestureAction action) =>
+    action != ProgressGestureAction.toggleNestedView ||
+    uscardCustomization.supportsNestedView;
+
+List<ProgressGestureAction> availableProgressGestureActions() => [
+  for (final a in ProgressGestureAction.values)
+    if (isProgressGestureActionAvailable(a)) a,
+];
 
 /// 进度悬浮条手势动作的元数据（图标 + 本地化标签）
 /// 半圆菜单、设置 picker、subtitle 等多处共用

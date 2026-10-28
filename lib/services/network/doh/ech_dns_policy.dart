@@ -3,7 +3,13 @@ class EchDnsPolicy {
   const EchDnsPolicy({this.enabled = true, this.customDomains = const []});
 
   static const cloudflareQueryName = 'cloudflare-ech.com';
-  static const builtinDomains = ['linux.do', 'ldstatic.com'];
+
+  /// 当前站点（美卡论坛，在 Cloudflare 后面）的主域，含 www 等子域。
+  ///
+  /// Rust 代理（core/doh_proxy 子模块）里写死的内置规则仍是上游的
+  /// linux.do / ldstatic.com，这里改不到；所以 [toJson] 把这些域名随自定义
+  /// 域名一起下发给 Rust，两侧对美卡的判定保持一致。
+  static const builtinDomains = ['uscardforum.com'];
 
   final bool enabled;
   final List<String> customDomains;
@@ -47,9 +53,12 @@ class EchDnsPolicy {
     return host;
   }
 
+  /// 下发给 Rust 和本地保存都用这份。站点内置域名放在 custom_domains 前面
+  /// （Rust 侧内置规则不含美卡，见 [builtinDomains]）；[fromJson] 会把被内置
+  /// 规则覆盖的条目滤掉，读回来不会混进用户的自定义域名。
   Map<String, dynamic> toJson() => {
     'enabled': enabled,
-    'custom_domains': customDomains,
+    'custom_domains': [...builtinDomains, ...customDomains],
   };
 
   factory EchDnsPolicy.fromJson(Map<String, dynamic> json) {

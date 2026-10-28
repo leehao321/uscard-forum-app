@@ -676,6 +676,28 @@ class PostReaction {
     );
   }
 
+  /// 站点没装 discourse-reactions 时，帖子 JSON 里没有 reactions，点赞在
+  /// `actions_summary`（id=2）里：换成一个 heart 回应，界面沿用同一套展示。
+  static ({List<PostReaction> reactions, PostReaction? current})
+  likesFromActionsSummary(Map<String, dynamic> postJson) {
+    Map<String, dynamic>? like;
+    for (final item in postJson['actions_summary'] as List<dynamic>? ?? const []) {
+      if (item is Map<String, dynamic> && item['id'] == 2) {
+        like = item;
+        break;
+      }
+    }
+    final count =
+        (like?['count'] as num?)?.toInt() ??
+        (postJson['like_count'] as num?)?.toInt() ??
+        0;
+    final heart = PostReaction(id: 'heart', type: 'emoji', count: count);
+    return (
+      reactions: count > 0 ? [heart] : const <PostReaction>[],
+      current: like?['acted'] == true ? heart : null,
+    );
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1038,14 +1060,18 @@ class Post {
       linkCounts: (json['link_counts'] as List<dynamic>?)
           ?.map((e) => LinkCount.fromJson(e as Map<String, dynamic>))
           .toList(),
-      reactions: (json['reactions'] as List<dynamic>?)
-          ?.map((e) => PostReaction.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      reactions: json.containsKey('reactions')
+          ? (json['reactions'] as List<dynamic>?)
+                ?.map((e) => PostReaction.fromJson(e as Map<String, dynamic>))
+                .toList()
+          : PostReaction.likesFromActionsSummary(json).reactions,
       currentUserReaction: json['current_user_reaction'] != null
           ? PostReaction.fromJson(
               json['current_user_reaction'] as Map<String, dynamic>,
             )
-          : null,
+          : json.containsKey('reactions')
+          ? null
+          : PostReaction.likesFromActionsSummary(json).current,
       polls: (json['polls'] as List<dynamic>?)
           ?.map((e) => Poll.fromJson(e as Map<String, dynamic>))
           .toList(),

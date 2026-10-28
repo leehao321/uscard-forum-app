@@ -31,6 +31,7 @@ final linuxdoCustomization = SiteCustomization(
     ),
   ],
   linkSecurityConfig: _linuxdoLinkSecurityConfig,
+  mediaUploadAsXz: true,
   plugins: const [
     // 回复扣积分（抽奖类话题），对应社区插件 discourse-reply-cost
     ReplyCostPlugin(),

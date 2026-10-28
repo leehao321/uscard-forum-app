@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=FluxDO
-Comment=Linux.do 客户端
+Name=USCard Forum
+Comment=美卡论坛客户端
 Exec=fluxdo %u
 Icon=fluxdo
 Terminal=false

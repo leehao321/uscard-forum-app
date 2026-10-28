@@ -55,4 +55,37 @@ void main() {
     expect(tag,
         contains('<source src="/uploads/short-url/xyz.xz" type="video/mp4">'));
   });
+
+  group('按站点上传音视频', () {
+    test('美卡（不改名）：播放路径保留原扩展，linux.do 用 .xz', () {
+      expect(
+        mediaSrcPath('upload://abc.mp4', asXz: false),
+        '/uploads/short-url/abc.mp4',
+      );
+      expect(mediaSrcPath('/uploads/a.mp3', asXz: false), '/uploads/a.mp3');
+      expect(
+        mediaSrcPath('upload://abc.mp4', asXz: true),
+        '/uploads/short-url/abc.xz',
+      );
+    });
+
+    test('扩展名在站点白名单里才放行，不在就给出提示，不设限时放行', () {
+      expect(mediaExtensionRejection('/tmp/a.MP4', ['mp4', 'jpg']), isNull);
+      expect(
+        mediaExtensionRejection(r'C:	mpoice.m4a', ['jpg', 'png']),
+        contains('.m4a'),
+      );
+      expect(mediaExtensionRejection('/tmp/noext', ['mp4']), isNotNull);
+      expect(mediaExtensionRejection('/tmp/a.webm', null), isNull);
+    });
+
+    test('美卡上传不允许的扩展名时直接报错，不发请求', () async {
+      await expectLater(
+        uploadSiteMedia('/tmp/a.mov', asXz: false, allowedExtensions: ['jpg']),
+        throwsA(
+          isA<Exception>().having((e) => '$e', 'message', contains('.mov')),
+        ),
+      );
+    });
+  });
 }

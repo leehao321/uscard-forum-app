@@ -52,6 +52,8 @@ class DataBackupService {
     'vpn_suppressed_',
     'per_device_cert_installed',
     'cert_use_per_device',
+    // 应用锁依赖本机的 Face ID / 设备密码：导入到没设密码的设备会被锁在外面
+    'app_lock_',
     'window_', // 桌面端窗口几何(legacy keys)
     // ── 一次性 UI 标记(新设备应重新引导)──
     'onboarding_completed',
