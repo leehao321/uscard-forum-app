@@ -7,6 +7,8 @@ import '../site_customization.dart';
 final uscardCustomization = SiteCustomization(
   requiresHcaptcha: false,
   enableLinuxdoServices: false,
+  // 论坛条款禁止程序自动批量访问：列表卡片不为每个话题自动拉首帖
+  allowAutoExcerptFetch: false,
   linkSecurityConfig: _uscardLinkSecurityConfig,
 );
 

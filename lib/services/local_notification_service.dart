@@ -35,8 +35,8 @@ class LocalNotificationService {
     );
     const linuxSettings = LinuxInitializationSettings(defaultActionName: 'Open');
     const windowsSettings = WindowsInitializationSettings(
-      appName: 'FluxDO',
-      appUserModelId: 'Com.FluxDO.FluxDO',
+      appName: 'USCard Forum',
+      appUserModelId: 'Com.Hao.UscardForum',
       guid: 'e965ef8c-b676-47c1-b6e7-297d63942974',
     );
 

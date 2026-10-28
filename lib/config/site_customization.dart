@@ -108,6 +108,9 @@ class SiteCustomization {
   /// 是否启用 linux.do 生态专属服务（LDC 积分/打赏、CDK、connect 信任等级统计、元宇宙页）
   final bool enableLinuxdoServices;
 
+  /// 是否允许列表卡片为每个话题自动请求首帖做摘要/配图（逐条后台请求，默认开放给用户选择）
+  final bool allowAutoExcerptFetch;
+
   const SiteCustomization({
     this.avatarGlowRules = const [],
     this.userTitleStyleRules = const [],
@@ -115,6 +118,7 @@ class SiteCustomization {
     this.plugins = const [],
     this.requiresHcaptcha = true,
     this.enableLinuxdoServices = true,
+    this.allowAutoExcerptFetch = true,
   });
 
   /// 匹配头像光晕（返回光晕颜色，null 表示无光晕）

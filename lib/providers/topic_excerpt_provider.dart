@@ -1,3 +1,4 @@
+import '../constants.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/topic.dart';
@@ -19,6 +20,7 @@ final topicExcerptFamily = FutureProvider.family<TopicExcerptData?, Topic>((
   final allowFetch = ref.watch(
     preferencesProvider.select(
       (p) =>
+          AppConstants.siteCustomization.allowAutoExcerptFetch &&
           p.topicCardStyle.allowExcerptFetch &&
           (p.topicCardStyle.showExcerpt || p.topicCardStyle.showImages),
     ),

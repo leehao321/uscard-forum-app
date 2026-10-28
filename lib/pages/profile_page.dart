@@ -1,3 +1,4 @@
+import 'saved_topics_page.dart';
 import '../constants.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -846,6 +847,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           iconColor: Colors.amber[700]!,
           title: context.l10n.profile_myBadges,
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBadgesPage()))
+        ),
+        _buildOptionTile(
+          icon: Symbols.save_rounded,
+          iconColor: Colors.teal,
+          title: '已存帖子',
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SavedTopicsPage()))
         ),
         if (AppConstants.siteCustomization.enableLinuxdoServices)
           _buildOptionTile(

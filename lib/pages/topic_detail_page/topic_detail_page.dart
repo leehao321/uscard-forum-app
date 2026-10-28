@@ -1,4 +1,7 @@
+import '../../services/ai_translation_service.dart';
+import '../../storage/saved_topic_store.dart';
 import 'package:ai_model_manager/ai_model_manager.dart';
+import '../../widgets/ai/ai_topic_summary_sheet.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../../services/app_error_handler.dart';
@@ -200,6 +203,9 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
   late final TopicDetailController _controller;
   late final TopicTocController _tocController;
   late final ScreenTrack _screenTrack;
+
+  /// 「看过就存」防抖定时器：楼层加载稳定 3 秒后才落盘
+  Timer? _saveViewedTimer;
 
   // UI State
   final GlobalKey _headerKey = GlobalKey();
@@ -846,6 +852,35 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
     setState(() => _routeTransitionDone = true);
   }
 
+  /// 「看过就存」：用户打开的话题加载稳定后，把已加载的楼层存到本机。
+  /// 只写本地文件，不发任何网络请求；私信不保存。
+  void _scheduleSaveViewedTopic(TopicDetail detail) {
+    if (detail.isPrivateMessage) return;
+    _saveViewedTimer?.cancel();
+    _saveViewedTimer = Timer(const Duration(seconds: 3), () async {
+      if (!mounted) return;
+      if (!await SavedTopicStore.isEnabled()) return;
+      final posts = [
+        for (final post in detail.postStream.posts)
+          SavedPost(
+            postId: post.id,
+            postNumber: post.postNumber,
+            username: post.username,
+            name: post.name,
+            cooked: post.cooked,
+            createdAt: post.createdAt,
+          ),
+      ];
+      await SavedTopicStore.save(
+        topicId: widget.topicId,
+        title: detail.title,
+        slug: detail.slug,
+        posts: posts,
+        plainTextOf: AiTranslationService.extractPlainText,
+      );
+    });
+  }
+
   @override
   void dispose() {
     _idleFlushPosition?.isScrollingNotifier.removeListener(_onScrollIdle);
@@ -871,6 +906,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
     _pageController.dispose();
     _currentPageNotifier.dispose();
     _controller.scrollController.removeListener(_onScroll);
+    _saveViewedTimer?.cancel();
     _screenTrack.stop();
     unawaited(_nestedReadingStore.flush());
     _controller.dispose();
@@ -1800,6 +1836,18 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
           }
           return;
         }
+        if (value == 'ai_summary') {
+          // 同 assign：隔一个 tick 再开新弹层，避开菜单关闭动画的转场重叠
+          Future<void>.delayed(Duration.zero, () {
+            if (!mounted) return;
+            showAiTopicSummarySheet(
+              context,
+              title: detail.title,
+              posts: detail.postStream.posts,
+            );
+          });
+          return;
+        }
         if (value == 'assign') {
           // 弹菜单本身的关闭动画(PopupMenuButton onSelected 触发时它还没
           // 收完)跟紧接着开的新 modal route 同一帧抢 GPU 合成——聊天那边
@@ -1922,6 +1970,21 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
               ],
             ),
           ),
+        PopupMenuItem(
+          value: 'ai_summary',
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Symbols.auto_awesome_rounded,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              const SizedBox(width: 12),
+              const Text('AI 总结'),
+            ],
+          ),
+        ),
         PopupMenuItem(
           value: 'export',
           child: Row(
@@ -2445,6 +2508,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
     ref.listen(topicDetailProvider(params), (previous, next) {
       if (!context.mounted) return;
       final detail = next.value;
+      if (detail != null) _scheduleSaveViewedTopic(detail);
       // 记录话题标题到会话状态，供用户卡片「基于话题的私信」预填标题
       //
       // 平行视界下这个话题面板可能在 listener 触发的同一拍被压栈顶替

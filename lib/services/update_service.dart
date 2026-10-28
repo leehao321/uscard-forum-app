@@ -238,7 +238,7 @@ class UpdateService {
         options: Options(
           responseType: ResponseType.json,
           headers: {
-            'User-Agent': 'FluxDO-App',
+            'User-Agent': 'USCardForum-App',
             'Accept': 'application/vnd.github.v3+json',
             if (storedEtag != null) 'If-None-Match': storedEtag,
           },

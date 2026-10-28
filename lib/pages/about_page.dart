@@ -243,7 +243,7 @@ class _AboutPageState extends State<AboutPage> {
             child: Column(
               children: [
                 Text(
-                  'FluxDO',
+                  'USCard Forum',
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: theme.colorScheme.onSurface,
@@ -291,7 +291,7 @@ class _AboutPageState extends State<AboutPage> {
                   title: context.l10n.about_openSourceLicense,
                   onTap: () => showLicensePage(
                     context: context,
-                    applicationName: 'FluxDO',
+                    applicationName: 'USCard Forum',
                     applicationVersion: _version,
                     applicationLegalese: context.l10n.about_legalese,
                   ),

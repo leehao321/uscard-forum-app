@@ -1,3 +1,4 @@
+import '../constants.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -256,14 +257,15 @@ class _TopicCardStyleSettingsPageState
               value: style.showImages,
               onChanged: (v) => _update(style.copyWith(showImages: v)),
             ),
-            _fieldSwitch(
-              theme,
-              icon: Symbols.cloud_download_rounded,
-              title: l10n.topicCardStyle_allowExcerptFetch,
-              subtitle: l10n.topicCardStyle_allowExcerptFetchDesc,
-              value: style.allowExcerptFetch,
-              onChanged: _setAllowExcerptFetch,
-            ),
+            if (AppConstants.siteCustomization.allowAutoExcerptFetch)
+              _fieldSwitch(
+                theme,
+                icon: Symbols.cloud_download_rounded,
+                title: l10n.topicCardStyle_allowExcerptFetch,
+                subtitle: l10n.topicCardStyle_allowExcerptFetchDesc,
+                value: style.allowExcerptFetch,
+                onChanged: _setAllowExcerptFetch,
+              ),
           ],
         ),
         const SizedBox(height: 24),
