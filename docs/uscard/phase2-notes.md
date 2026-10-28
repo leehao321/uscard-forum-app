@@ -10,7 +10,7 @@
 - **linux.do 生态服务**：`SiteCustomization.enableLinuxdoServices`（美卡为 false）挡住：个人页的「元宇宙」「信任等级要求」入口、帖子菜单的 LDC 打赏、`connectStatsProvider`（`connect.linux.do` 请求）。
 
 ## 仍保留（需要用户决定）
-- **前台 MessageBus 实时更新**：App 在前台时仍会长轮询 `/message-bus`（新通知、话题新回复提示）。这是否算「自动访问」取决于论坛条款的解读，**待你决定是否保留**；如要关，在 `MessageBusService` 里把订阅启动处加开关即可。
+- **前台 MessageBus 实时更新**：App 在前台时仍会长轮询 `/message-bus`（新通知、话题新回复提示）。**用户已决定保留**（2026-10-27）；后台一律停止。如以后要关，在 `MessageBusService` 里把订阅启动处加开关即可。
 - **启动时预加载首页数据**（`BrowserTrustCoordinator.ensurePreloaded`）：相当于打开首页，保留。
 - **阅读计时上报 / 在线状态心跳**（`screen_track`、`presence_service`）：等同于浏览器网页行为，保留，阶段 3「看过就存」时一并梳理。
 
