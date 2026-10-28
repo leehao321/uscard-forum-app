@@ -250,7 +250,8 @@ class MessageBusService {
   }
 
   void _startPolling() {
-    if (_isPolling) return;
+    // 后台模式下不轮询：论坛条款禁止程序在用户不操作时自动访问
+    if (_isPolling || _backgroundMode) return;
     _isPolling = true;
     _shouldStop = false;
     _pollGeneration++;
@@ -718,26 +719,21 @@ class MessageBusService {
   /// 当前是否正在轮询
   bool get isPolling => _isPolling;
 
-  /// 进入后台模式:下一轮使用 backgroundCallbackInterval
+  /// 进入后台模式:停止轮询
   void enterBackgroundMode() {
     if (_backgroundMode) return;
     _backgroundMode = true;
-    debugPrint(
-      '[MessageBus] 进入后台模式,轮询间隔 ${_backgroundCallbackInterval.inSeconds}s',
-    );
+    debugPrint('[MessageBus] 进入后台模式,停止轮询');
+    _stopPolling();
   }
 
-  /// 退出后台模式:取消当前等待立即重新轮询
+  /// 退出后台模式:恢复轮询
   void exitBackgroundMode() {
     if (!_backgroundMode) return;
     _backgroundMode = false;
     _failureCount = 0;
-    debugPrint('[MessageBus] 退出后台模式,立即恢复轮询');
-    if (_isPolling) {
-      final token = _currentCancelToken;
-      _currentCancelToken = null;
-      token?.cancel();
-    } else if (_subscriptions.isNotEmpty) {
+    debugPrint('[MessageBus] 退出后台模式,恢复轮询');
+    if (_subscriptions.isNotEmpty) {
       _startPolling();
     }
   }

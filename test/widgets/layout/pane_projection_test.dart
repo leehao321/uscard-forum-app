@@ -16,9 +16,9 @@ void main() {
       child: MaterialApp(
         home: Consumer(
           builder: (context, ref, _) {
-            final selected = ref.watch(selectedSeekingProvider);
+            final selected = ref.watch(selectedSearchProvider);
             return PaneProjectionBackScope(
-              stackProvider: selectedSeekingProvider,
+              stackProvider: selectedSearchProvider,
               child: MasterDetailLayout(
                 projectDetailWhenNarrow: true,
                 master: const Scaffold(body: Text('列表页')),
@@ -48,7 +48,7 @@ void main() {
 
     final container = ProviderContainer();
     addTearDown(container.dispose);
-    container.read(selectedSeekingProvider.notifier)
+    container.read(selectedSearchProvider.notifier)
       ..select(topicId: 1, instanceId: 'topic-1')
       ..pushProfile('alice');
 
@@ -64,13 +64,13 @@ void main() {
     await widgetsAppState.didPopRoute();
     await tester.pumpAndSettle();
     expect(find.text('topic:1'), findsOneWidget);
-    expect(container.read(selectedSeekingProvider).stack, hasLength(1));
+    expect(container.read(selectedSearchProvider).stack, hasLength(1));
 
     // 再返回:基础层清空,回列表
     await widgetsAppState.didPopRoute();
     await tester.pumpAndSettle();
     expect(find.text('列表页'), findsOneWidget);
-    expect(container.read(selectedSeekingProvider).stack, isEmpty);
+    expect(container.read(selectedSearchProvider).stack, isEmpty);
   });
 
   testWidgets('宽窄往返=同树重排,栈原样保留', (tester) async {
@@ -80,7 +80,7 @@ void main() {
 
     final container = ProviderContainer();
     addTearDown(container.dispose);
-    container.read(selectedSeekingProvider.notifier)
+    container.read(selectedSearchProvider.notifier)
       ..select(topicId: 1, instanceId: 'topic-1')
       ..pushProfile('alice');
 
@@ -95,13 +95,13 @@ void main() {
     tester.view.physicalSize = const Size(500, 800);
     await tester.pumpAndSettle();
     expect(find.text('profile:alice'), findsOneWidget);
-    expect(container.read(selectedSeekingProvider).stack, hasLength(2));
+    expect(container.read(selectedSearchProvider).stack, hasLength(2));
 
     // 变宽:还原双栏,栈仍原样(不再有合成路由/didUpdateWidget 重放)
     tester.view.physicalSize = const Size(1000, 800);
     await tester.pumpAndSettle();
     expect(find.text('列表页'), findsOneWidget);
     expect(find.text('profile:alice'), findsOneWidget);
-    expect(container.read(selectedSeekingProvider).stack, hasLength(2));
+    expect(container.read(selectedSearchProvider).stack, hasLength(2));
   });
 }

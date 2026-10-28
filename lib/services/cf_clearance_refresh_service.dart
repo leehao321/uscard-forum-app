@@ -123,6 +123,8 @@ class CfClearanceRefreshService {
   ///
   /// 这个方法不阻塞启动链路；没有 sitekey 或没有现存 cf_clearance 时不会
   /// 主动拉起验证页，交给正常请求的 CF challenge 流程处理。
+  static const bool _disabledByTerms = true;
+
   void start() {
     // Windows 的常驻 Turnstile WebView 会让 Flutter 合成线程持续退化，
     // 最终卡死；按需 CF 验证仍由 CfChallengeService 负责。
@@ -133,7 +135,10 @@ class CfClearanceRefreshService {
     // 强行覆盖，导致连接被中途打断（"Indicates that the connection was
     // stopped"）、验证页卡死转圈——跟当初禁用它时描述的是同一类不稳定，
     // 复用 WebView 并没有根治，只是换了个故障形态。重新禁用。)
-    if (io.Platform.isWindows) return;
+    //
+    // 美卡论坛版：全平台禁用。常驻 WebView 在后台自动跑 Turnstile 属于程序自动访问，
+    // 与论坛条款冲突；cf_clearance 只在用户操作触发的验证页里获取。
+    if (_disabledByTerms) return;
 
     _shouldBeRunning = true;
     _pausedByLifecycle = false;

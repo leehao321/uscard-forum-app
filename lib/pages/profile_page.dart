@@ -847,12 +847,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           title: context.l10n.profile_myBadges,
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBadgesPage()))
         ),
-        _buildOptionTile(
-          icon: Symbols.verified_user_rounded,
-          iconColor: Colors.green,
-          title: context.l10n.profile_trustRequirements,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TrustLevelRequirementsPage()))
-        ),
+        if (AppConstants.siteCustomization.enableLinuxdoServices)
+          _buildOptionTile(
+            icon: Symbols.verified_user_rounded,
+            iconColor: Colors.green,
+            title: context.l10n.profile_trustRequirements,
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TrustLevelRequirementsPage()))
+          ),
         if (canAccessInviteLinks)
           _buildOptionTile(
             icon: Symbols.link_rounded,
@@ -872,12 +873,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             MaterialPageRoute(builder: (_) => const ExportHistoryPage()),
           ),
         ),
-        _buildOptionTile(
-          icon: Symbols.explore_rounded,
-          iconColor: Colors.deepOrange,
-          title: context.l10n.profile_metaverse,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MetaversePage()))
-        ),
+        if (AppConstants.siteCustomization.enableLinuxdoServices)
+          _buildOptionTile(
+            icon: Symbols.explore_rounded,
+            iconColor: Colors.deepOrange,
+            title: context.l10n.profile_metaverse,
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MetaversePage()))
+          ),
       ],
     );
   }

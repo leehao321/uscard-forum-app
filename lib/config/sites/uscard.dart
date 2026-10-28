@@ -6,6 +6,7 @@ import '../site_customization.dart';
 /// 因此不挂任何站点插件；头像光晕与头衔特效规则暂时为空，阶段 3 再按需补充。
 final uscardCustomization = SiteCustomization(
   requiresHcaptcha: false,
+  enableLinuxdoServices: false,
   linkSecurityConfig: _uscardLinkSecurityConfig,
 );
 

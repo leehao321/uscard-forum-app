@@ -1,3 +1,4 @@
+import '../constants.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/connect_stats.dart';
 import '../services/network/discourse_dio.dart';
@@ -9,6 +10,8 @@ final connectStatsProvider = FutureProvider<ConnectStats?>((ref) async {
     currentUserProvider.select((value) => value.value),
   );
   if (user == null) return null;
+  // connect.linux.do 是 linux.do 生态服务，其他站点不请求
+  if (!AppConstants.siteCustomization.enableLinuxdoServices) return null;
 
   final dio = DiscourseDio.create();
   final response = await dio.get('https://connect.linux.do/');

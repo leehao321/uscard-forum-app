@@ -75,15 +75,14 @@ void main() {
     expect(notifier.state.isStacked, isFalse);
   });
 
-  test('追觅平行视界与首页、搜索栈相互隔离', () {
+  test('搜索平行视界与首页栈相互隔离', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);
 
-    container.read(selectedSeekingProvider.notifier).select(topicId: 99);
+    container.read(selectedSearchProvider.notifier).select(topicId: 99);
 
-    expect(container.read(selectedSeekingProvider).topicId, 99);
+    expect(container.read(selectedSearchProvider).topicId, 99);
     expect(container.read(selectedTopicProvider).hasSelection, isFalse);
-    expect(container.read(selectedSearchProvider).hasSelection, isFalse);
   });
 
   testWidgets('EmbeddedStackScope 将资料页话题入口压入当前面板栈', (tester) async {

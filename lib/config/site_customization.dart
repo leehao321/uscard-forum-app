@@ -105,12 +105,16 @@ class SiteCustomization {
   /// 登录时是否需要先过 hCaptcha 人机验证（站点没启用 hCaptcha 插件时设为 false）
   final bool requiresHcaptcha;
 
+  /// 是否启用 linux.do 生态专属服务（LDC 积分/打赏、CDK、connect 信任等级统计、元宇宙页）
+  final bool enableLinuxdoServices;
+
   const SiteCustomization({
     this.avatarGlowRules = const [],
     this.userTitleStyleRules = const [],
     this.linkSecurityConfig,
     this.plugins = const [],
     this.requiresHcaptcha = true,
+    this.enableLinuxdoServices = true,
   });
 
   /// 匹配头像光晕（返回光晕颜色，null 表示无光晕）

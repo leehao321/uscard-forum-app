@@ -152,7 +152,7 @@ extension _PostFooterMenuActions on _PostFooterSectionState {
                     widget.onShareAsImage!();
                   },
                 ),
-              if (!isGuest)
+              if (!isGuest && AppConstants.siteCustomization.enableLinuxdoServices)
                 Builder(
                   builder: (context) {
                     final currentUser = ref.read(currentUserProvider).value;
