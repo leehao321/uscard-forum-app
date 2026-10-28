@@ -43,3 +43,8 @@
 - 登录：`lib/pages/login_page.dart`、`lib/pages/webview_login_page.dart`；去掉 hCaptcha 登录步骤
 - AndroidManifest 里 `linux.do` 的 App Link intent-filter（`android/app/src/main/AndroidManifest.xml`）
 - 阶段 2 预留：追觅、`lib/services/background/`（后台通知轮询）、预加载服务
+
+## 仓库
+- 远端：https://github.com/leehao321/uscard-forum-app （公开；iOS 包打好后转私有）
+- `main`：上游 bc5a04b0 原样；`uscard`：改名及后续所有改动。
+- GitHub CLI 登录用设备码网页授权；内置浏览器输入代码时遇到过代码过期，重新生成即可。
