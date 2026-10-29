@@ -562,8 +562,8 @@ class SessionCookieSentinel {
 
   /// 从 host 提取 registrable domain（简化版：取最后两段）。
   ///
-  /// 不处理多级公共后缀（如 .co.uk），项目实际场景为 linux.do / connect.linux.do
-  /// 这种 2 级域，简化够用。
+  /// 不处理多级公共后缀（如 .co.uk），项目实际场景为 www.uscardforum.com /
+  /// uscardforum.com 这类注册域为 2 级的域名，简化够用。
   String? _registrableDomain(String host) {
     final parts = host.split('.');
     if (parts.length < 2) return null;

@@ -113,7 +113,7 @@ class AppPreferences {
   /// 在首页创作按钮上方显示独立刷新入口，默认关闭
   final bool homeRefreshButton;
 
-  /// 自动识别剪贴板中的 Linux.do 话题链接
+  /// 自动识别剪贴板中的本站话题链接
   final bool clipboardTopicLinkDetection;
 
   /// 话题关键词过滤列表（原样存储，仅 trim 去重去空，保留用户输入大小写以便回显）

@@ -60,7 +60,7 @@ class WebViewLoginNeed2FA {
 /// 显示 WebView 内 JS 全流程登录对话框。
 ///
 /// 在一个**与 CF 验证共享 WebView 环境**的 mini WebView 里, 用 data:url
-/// (baseUrl=linux.do, **不加载 Discourse Ember bundle**) 渲染 hcaptcha, 并在
+/// (baseUrl=主站, **不加载 Discourse Ember bundle**) 渲染 hcaptcha, 并在
 /// 同一个 WebView 内核里用 JS 同源 `fetch` 跑完整个登录:
 /// `GET /session/csrf` → `POST /hcaptcha/create.json` → `POST /session.json`。
 ///
@@ -138,7 +138,7 @@ class _WebViewLoginDialogState extends State<_WebViewLoginDialog> {
   }
 
   /// data:url 内嵌页面: hcaptcha widget + 登录全流程 JS。
-  /// baseUrl=linux.do 让文档 origin 为 linux.do, JS fetch 相对路径同源,
+  /// baseUrl=主站让文档 origin 为主站, JS fetch 相对路径同源,
   /// `credentials:'include'` 自动带共享 store 里的 cf_clearance/_forum_session。
   /// hcaptcha verify endpoint 候选: caller (从 Preferences) 优先, 然后
   /// `/captcha/hcaptcha/create.json` (linux.do 当前路径), 最后
@@ -381,9 +381,9 @@ class _WebViewLoginDialogState extends State<_WebViewLoginDialog> {
   }
 
   /// Windows flutter_inappwebview 0.7.x 会用 WebView2 NavigateToString()
-  /// 加载 initialData, 原生层忽略 baseUrl, 导致文档不是 linux.do origin。
+  /// 加载 initialData, 原生层忽略 baseUrl, 导致文档不是主站 origin。
   /// hCaptcha 会把 about:blank/opaque origin 判成 invalid-data。这里先导航到
-  /// linux.do 的轻量静态资源拿真实 origin, 再写入同一份内嵌登录页。
+  /// 主站的轻量静态资源拿真实 origin, 再写入同一份内嵌登录页。
   Future<void> _injectWindowsInlineHtml(
     InAppWebViewController controller,
   ) async {

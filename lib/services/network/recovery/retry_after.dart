@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 
 /// 从 429/503 响应里解析"还要等多久"。
 ///
-/// linux.do(Discourse)会用多种方式表达这个信息,历史上逐个补齐:
+/// Discourse 会用多种方式表达这个信息,历史上逐个补齐:
 /// - 标准 `Retry-After`(秒数或 HTTP 日期)
 /// - `x-ratelimit-reset` 等四种命名变体(秒数或 Unix 时间戳)
 /// - 响应体 `extras.wait_seconds` / `extras.time_left`

@@ -42,8 +42,8 @@ class PreloadedDataService {
   String? _longPollingBaseUrl; // MessageBus 独立域名
   String _baseUri = ''; // Discourse 子路径前缀（如 /forum）
   String? _cdnUrl; // CDN 域名（从 data-discourse-setup 提取）
-  String? _s3CdnUrl; // S3 CDN 域名（如 https://cdn3.linux.do）
-  String? _s3BaseUrl; // S3 基础 URL（如 //linuxdo-uploads.s3.linux.do）
+  String? _s3CdnUrl; // S3 CDN 域名（data-discourse-setup 的 s3-cdn）
+  String? _s3BaseUrl; // S3 基础 URL（data-discourse-setup 的 s3-base-url）
   List<String>? _pluginCandidates; // 首页 HTML 中扫到的 plugin js url 列表
   bool _hasDiscourseSetup = false; // 是否提取到 data-discourse-setup 标签
   bool _loaded = false;
@@ -390,19 +390,19 @@ class PreloadedDataService {
   /// 获取 MessageBus 跨域认证 key（仅独立域名时有值）
   String? get sharedSessionKey => _sharedSessionKey;
 
-  /// 获取 MessageBus 长轮询 base URL（独立域名，如 https://ping.linux.do）
+  /// 获取 MessageBus 长轮询 base URL（站点配置了独立长轮询域名时才有值）
   String? get longPollingBaseUrl => _longPollingBaseUrl;
 
   /// 获取 Discourse 子路径前缀（如 /forum，根部署时为空字符串）
   String get baseUri => _baseUri;
 
-  /// 获取 CDN URL（如 https://cdn.linux.do）
+  /// 获取 CDN URL（data-discourse-setup 的 cdn）
   String? get cdnUrl => _cdnUrl;
 
-  /// 获取 S3 CDN URL（如 https://cdn3.linux.do）
+  /// 获取 S3 CDN URL（data-discourse-setup 的 s3-cdn）
   String? get s3CdnUrl => _s3CdnUrl;
 
-  /// 获取 S3 基础 URL（如 //linuxdo-uploads.s3.linux.do）
+  /// 获取 S3 基础 URL（data-discourse-setup 的 s3-base-url）
   String? get s3BaseUrl => _s3BaseUrl;
 
   /// 获取 MessageBus 频道的初始 message ID

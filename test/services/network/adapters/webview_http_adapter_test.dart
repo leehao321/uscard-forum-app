@@ -31,7 +31,7 @@ void main() {
     RequestOptions buildOptions(String method, {Map<String, dynamic>? extra}) {
       return RequestOptions(
         path: '/latest.json',
-        baseUrl: 'https://linux.do',
+        baseUrl: 'https://www.uscardforum.com',
         method: method,
         extra: extra ?? <String, dynamic>{},
       );

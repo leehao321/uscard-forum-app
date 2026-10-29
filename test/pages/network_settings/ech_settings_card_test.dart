@@ -143,7 +143,7 @@ void main() {
               saved = await showDialog<String>(
                 context: context,
                 builder: (_) => const EchDomainDialog(
-                  existingDomains: ['linux.do', 'example.com'],
+                  existingDomains: ['uscardforum.com', 'example.com'],
                 ),
               );
             },
@@ -158,7 +158,7 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, '保存'));
     await tester.pumpAndSettle();
     expect(find.textContaining('请输入有效域名'), findsOneWidget);
-    await tester.enterText(find.byType(TextFormField), 'cdn.linux.do');
+    await tester.enterText(find.byType(TextFormField), 'cdn.uscardforum.com');
     await tester.tap(find.widgetWithText(FilledButton, '保存'));
     await tester.pumpAndSettle();
     expect(find.text('该域名已被现有规则覆盖'), findsOneWidget);

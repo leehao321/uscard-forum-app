@@ -1,6 +1,6 @@
 part of 'discourse_service.dart';
 
-/// 原生用户名/密码登录 — linux.do 流程对齐网页:
+/// 原生用户名/密码登录 — 流程对齐网页(第 1、3 步只在站点启用 hCaptcha 时执行):
 /// 1. (UI 层) 弹 hcaptcha mini webview, 让用户人机验证拿 hcaptcha token
 /// 2. GET /session/csrf (由 RequestHeaderInterceptor 在 POST 前自动触发)
 /// 3. POST /hcaptcha/create.json {token: hcaptchaToken}

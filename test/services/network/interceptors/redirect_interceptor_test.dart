@@ -10,7 +10,7 @@ void main() {
     final requestExtras = <Map<String, dynamic>>[];
     final dio = Dio(
       BaseOptions(
-        baseUrl: 'https://linux.do',
+        baseUrl: 'https://www.uscardforum.com',
         validateStatus: (status) => status != null && status < 400,
       ),
     )..httpClientAdapter = adapter;
@@ -53,7 +53,7 @@ class _RedirectOnceAdapter implements HttpClientAdapter {
         '',
         301,
         headers: {
-          'location': ['https://linux.do/final'],
+          'location': ['https://www.uscardforum.com/final'],
         },
       );
     }

@@ -1,0 +1,17 @@
+Windows Registry Editor Version 5.00
+
+; USCard Forum URL Scheme Registration
+; 应用启动时会自动写入 HKCU（见 lib/services/windows_protocol_registrar_io.dart），
+; 本文件只是手动兜底：双击导入即可注册 uscardforum:// URL scheme。
+; 下面是安装程序默认的全局安装路径，按用户安装或改过目录时请改成实际路径。
+
+[HKEY_CURRENT_USER\Software\Classes\uscardforum]
+@="URL:uscardforum Protocol"
+"URL Protocol"=""
+
+[HKEY_CURRENT_USER\Software\Classes\uscardforum\shell]
+
+[HKEY_CURRENT_USER\Software\Classes\uscardforum\shell\open]
+
+[HKEY_CURRENT_USER\Software\Classes\uscardforum\shell\open\command]
+@="\"C:\\Program Files\\USCard Forum\\fluxdo.exe\" \"%1\""

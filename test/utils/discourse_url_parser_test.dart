@@ -15,7 +15,10 @@ void main() {
 
     test('只把真正的站点根路径识别为首页', () {
       expect(DiscourseUrlParser.isHomepage('/'), isTrue);
-      expect(DiscourseUrlParser.isHomepage('https://linux.do/'), isTrue);
+      expect(
+        DiscourseUrlParser.isHomepage('https://www.uscardforum.com/'),
+        isTrue,
+      );
       expect(DiscourseUrlParser.isHomepage('/latest'), isFalse);
     });
 

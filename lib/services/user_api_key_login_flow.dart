@@ -82,8 +82,9 @@ class UserApiKeyLoginFlow {
     }
     try {
       // Android 用 Custom Tabs(inAppBrowserView),不用 externalApplication:
-      // Chrome 对已建立 App Links 关联的域名(fluxdo 已 autoVerify linux.do)会把
-      // externalApplication 打开的链接直接弹回本 app,表现为"浏览器一闪就跳回"
+      // Chrome 对已建立 App Links 关联的域名会把 externalApplication 打开的
+      // 链接直接弹回本 app,表现为"浏览器一闪就跳回"(上游对 linux.do 开了
+      // autoVerify 时遇到;美卡清单没开 autoVerify,沿用同一做法)
       // (仅 Chrome 有此行为,换其他浏览器正常)。Custom Tabs 在 app 上下文内打开,
       // 不触发该回弹,且共享 Chrome cookie 复用浏览器登录态(OAuth 标准做法)。
       // 其他平台 externalApplication 已验证正常,保持不变。
@@ -117,7 +118,7 @@ class UserApiKeyLoginFlow {
       }
 
       // 已有登录态:只是补授权。scopes 含 write 才值得留 key 做自愈;
-      // 否则(linux.do 现状)立即焚毁,不留永久零权限凭据
+      // 否则(当前只申请 one_time_password)立即焚毁,不留永久零权限凭据
       final existingToken = await CookieJarService().getTToken();
       if (existingToken != null && existingToken.isNotEmpty) {
         await userApiKeyService.burnAfterLoginIfUseless(DiscourseService().dio);

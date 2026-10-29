@@ -24,11 +24,12 @@ import 'storage/resilient_secure_storage.dart';
 /// - payload/OTP 均为 RSA PKCS1 公钥加密 + Base64(user_api_keys_controller#one_time_password)
 /// - OTP 是 Redis 一次性兑换券,10 分钟 TTL,POST 兑换即焚(session_controller#one_time_password)
 /// - 带 User-Api-Key 头的 POST 豁免 CSRF(application_controller#handle_unverified_request)
-/// - scopes 只申请 one_time_password:linux.do 的 allow_user_api_key_scopes 收窄过,
-///   不含 write,带 write 会因 allowed_scopes.superset? 失败报 generic_error。
+/// - scopes 只申请 one_time_password:沿用上游针对 linux.do 的取舍(那边的
+///   allow_user_api_key_scopes 收窄过,不含 write,带 write 会因
+///   allowed_scopes.superset? 失败报 generic_error);美卡的该项配置未核实。
 ///   代价:one_time_password scope 的 RouteMatcher 为空,带此 key 的 User-Api-Key
 ///   请求会被 ensure_allowed! 拒(仅能授权时随 create 返回一枚一次性 OTP),
-///   故 POST /user-api-key/otp 的长期自愈在 linux.do 现配置下不可用——授权登录
+///   故只申请 one_time_password 时 POST /user-api-key/otp 的长期自愈不可用——授权登录
 ///   本身不受影响。selfHeal/requestOtp 对开了 write 的站点仍有效,403 时静默降级。
 /// - **用完即焚**:兑换 `_t` 与 key 存活完全解耦(session#one_time_password 只查
 ///   Redis),且零 scope key 也能自我吊销(allow? 的 is_revoke_self_request? 豁免)。
@@ -62,7 +63,7 @@ class UserApiKeyService {
   static const String qrApplicationName = '$applicationName QR Login';
 
   /// scopes 是否含 write(决定 key 是否值得留作 _t 自愈弹药)。
-  /// linux.do 现配置只允许 one_time_password → key 兑换后即为
+  /// 当前只申请 one_time_password → key 兑换后即为
   /// 零 scope 永久凭据,纯负债,应当用完即焚。
   static bool get keyWorthKeeping =>
       scopes.split(',').map((s) => s.trim()).contains('write');

@@ -512,7 +512,7 @@ class WebViewSessionCookieRefreshService {
     }
   }
 
-  /// 在一个已经处于 linux.do origin 的 WebView 中运行会话 bootstrap。
+  /// 在一个已经处于主站 origin 的 WebView 中运行会话 bootstrap。
   ///
   /// 供原生登录对话框复用：登录成功后不需要打开完整站点页面，直接在同一个
   /// 同源 WebView 里跑站点 session bootstrap，再做边界同步。

@@ -40,7 +40,7 @@ void main() {
 
     final entry = await _readSingleRequestEntry();
     expect(entry['requestTag'], 'csrf-refresh');
-    expect(entry['url'], 'https://linux.do/session/csrf');
+    expect(entry['url'], 'https://www.uscardforum.com/session/csrf');
   });
 
   test('未标注的请求不产生 requestTag 字段', () async {
@@ -66,7 +66,7 @@ Future<Map<String, dynamic>> _readSingleRequestEntry() async {
 }
 
 Dio _buildDio() {
-  final dio = Dio(BaseOptions(baseUrl: 'https://linux.do'))
+  final dio = Dio(BaseOptions(baseUrl: 'https://www.uscardforum.com'))
     ..httpClientAdapter = _OkAdapter();
   dio.interceptors.add(NetworkLogInterceptor());
   return dio;

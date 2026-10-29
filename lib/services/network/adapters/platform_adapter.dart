@@ -425,7 +425,7 @@ bool requestCanUseWebViewAdapter(RequestOptions options) {
       options.responseType == ResponseType.stream ||
       options.responseType == ResponseType.bytes;
 
-  // 当前 WebView fetch 运行在 linux.do origin；跨域图片即使浏览器能显示，
+  // 当前 WebView fetch 运行在主站 origin；跨域图片即使浏览器能显示，
   // JS 也不能读取响应字节。图片流仅允许同源请求，其它 stream 请求
   //（MessageBus、下载等）仍不走 WebView。
   if (resourceKind == WebViewHttpAdapter.resourceKindImage) {

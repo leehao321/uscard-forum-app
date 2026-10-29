@@ -231,7 +231,7 @@ class User {
     // 简单的 HTML 图片路径修复
     String? fixHtml(String? html) {
       if (html == null) return null;
-      // 替换 src="/... 为 src="https://linux.do/...
+      // 把 src="/... 补全为主站 / CDN 的绝对地址
       return html.replaceAllMapped(
         RegExp(r'''src=["'](/[^"']+)["']'''), 
         (match) => 'src="${UrlHelper.resolveUrlWithCdn(match.group(1)!)}"'

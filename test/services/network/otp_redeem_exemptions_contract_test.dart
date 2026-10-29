@@ -119,7 +119,7 @@ Options _redeemOptions({required bool skipRedirect}) {
 Dio _buildDio(_RecordingAdapter adapter, {bool withRequestHeader = false}) {
   final dio = Dio(
     BaseOptions(
-      baseUrl: 'https://linux.do',
+      baseUrl: 'https://www.uscardforum.com',
       followRedirects: false,
       validateStatus: (status) => status != null && status >= 200 && status < 400,
     ),
@@ -152,7 +152,7 @@ class _RecordingAdapter implements HttpClientAdapter {
         '',
         302,
         headers: {
-          'location': ['https://linux.do/'],
+          'location': ['https://www.uscardforum.com/'],
           'set-cookie': ['_t=new-token-from-otp; Path=/; HttpOnly'],
         },
       );

@@ -423,8 +423,6 @@ mixin _UploadsMixin on _DiscourseServiceBase {
     UploadProgressCallback? onProgress,
   }) => uploadFile(filePath, cancelToken: cancelToken, onProgress: onProgress);
 
-  /// 媒体上传的站点体积上限(linux.do 4MB;超限服务端 413)。
-
   /// 音视频改名上传(与社区「媒体上传」脚本同 hack):站点扩展名白名单
   /// 不含音视频,把文件名换 `.xz`(application/x-xz)绕过 —— 播放端
   /// (本 app MediaCompatService 嗅探 / 网页原生 audio·video 标签)不受

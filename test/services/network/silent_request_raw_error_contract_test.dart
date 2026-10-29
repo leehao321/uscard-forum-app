@@ -85,7 +85,7 @@ void main() {
 Dio _buildDio({String? retryAfter}) {
   final dio = Dio(
     BaseOptions(
-      baseUrl: 'https://linux.do',
+      baseUrl: 'https://www.uscardforum.com',
       validateStatus: (status) => status != null && status < 400,
     ),
   )..httpClientAdapter = _RateLimitedAdapter(retryAfter);

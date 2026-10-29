@@ -537,8 +537,8 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
     final categoryId = _selectedCategory?.id;
 
     // 尚未选分类：对齐官方的特例分支——白名单已下发，且（未分类在白名单里
-    // 或站点压根不允许未分类话题）时放行。linux.do 属于后者：
-    // allow_uncategorized_topics=false，所以刚打开发帖页、还没选分类时
+    // 或站点压根不允许未分类话题）时放行。后者指站点设置
+    // allow_uncategorized_topics=false：刚打开发帖页、还没选分类时
     // 也应当能粘链接——反正发布前必定会选一个合法分类。
     if (categoryId == null) {
       if (allowed == null || allowed.isEmpty) return true;

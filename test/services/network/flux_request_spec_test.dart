@@ -107,6 +107,6 @@ void main() {
 
 RequestOptions _options(Map<String, dynamic> extra) => RequestOptions(
   path: '/latest.json',
-  baseUrl: 'https://linux.do',
+  baseUrl: 'https://www.uscardforum.com',
   extra: Map<String, dynamic>.from(extra),
 );

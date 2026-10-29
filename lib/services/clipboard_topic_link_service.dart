@@ -24,7 +24,7 @@ class ClipboardTopicLinkService {
   static const String lastPromptedHashPrefsKey =
       'pref_clipboard_topic_link_last_prompted_hash';
 
-  static final RegExp _linuxDoUrlRegex = RegExp(
+  static final RegExp _siteUrlRegex = RegExp(
     r'(?:(?:https?:)?//)?(?:www\.)?uscardforum\.com(?::\d+)?/[^\s<>"\]\)）}】》]+',
     caseSensitive: false,
   );
@@ -76,7 +76,7 @@ class ClipboardTopicLinkService {
   }
 
   ClipboardTopicLinkCandidate? findFirstTopicLink(String text) {
-    for (final match in _linuxDoUrlRegex.allMatches(text)) {
+    for (final match in _siteUrlRegex.allMatches(text)) {
       final rawUrl = _trimTrailingPunctuation(match.group(0)!);
       if (!_hasValidLeadingBoundary(text, match.start)) continue;
 
@@ -102,7 +102,7 @@ class ClipboardTopicLinkService {
     if (_looksEmbeddedInAnotherUrl(text, start)) return false;
 
     final previous = text.codeUnitAt(start - 1);
-    // 前一个字符是冒号一律拒绝，覆盖 ://linux.do 与 mailto:linux.do 等情况
+    // 前一个字符是冒号一律拒绝，覆盖 ://uscardforum.com 与 mailto:uscardforum.com 等情况
     if (previous == 0x3a) return false;
     if (previous == 0x3d || previous == 0x26) return false;
 

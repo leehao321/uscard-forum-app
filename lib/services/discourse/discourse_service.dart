@@ -123,7 +123,7 @@ abstract class _DiscourseServiceBase {
   Future<void> finalizeNativeLoginSuccess(String identifier);
 }
 
-/// Linux.do API 服务
+/// Discourse API 服务
 class DiscourseService extends _DiscourseServiceBase
     with
         _AuthMixin,

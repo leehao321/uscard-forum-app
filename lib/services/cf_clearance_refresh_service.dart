@@ -20,7 +20,7 @@ import 'windows_webview_environment_service.dart';
 /// 只维护一个轻量 Headless WebView，加载同源 Turnstile widget，让
 /// Cloudflare 的 challenge-platform / rc 请求继续由 WebView 浏览器栈自己发送。
 /// Dart 侧不代理、不重放 CF 请求，只在边界时机把 WebView 中新的
-/// `.linux.do` cf_clearance 同步回 CookieJar。
+/// 根域（`.uscardforum.com`）cf_clearance 同步回 CookieJar。
 class CfClearanceRefreshService {
   static final CfClearanceRefreshService _instance =
       CfClearanceRefreshService._internal();

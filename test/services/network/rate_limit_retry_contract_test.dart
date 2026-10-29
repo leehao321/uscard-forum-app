@@ -101,7 +101,7 @@ void main() {
       expect(thrown, isA<DioException>());
       final err = thrown as DioException;
       expect(err.error, isA<RateLimitException>());
-      // 结果保真:业务层(如打赏)靠 response.data 提取服务端报错文案
+      // 结果保真:业务层靠 response.data 提取服务端报错文案
       expect(err.response?.statusCode, 429);
       expect(err.response?.data.toString(), contains('太快了'));
     });
@@ -209,7 +209,7 @@ Future<String> _retryLikeUpload(
 Dio _buildDio(_ScriptedAdapter adapter) {
   final dio = Dio(
     BaseOptions(
-      baseUrl: 'https://linux.do',
+      baseUrl: 'https://www.uscardforum.com',
       validateStatus: (status) => status != null && status < 400,
     ),
   )..httpClientAdapter = adapter;

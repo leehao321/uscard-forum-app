@@ -42,7 +42,7 @@ class RawCookieWriter {
 
   /// 通过原始 Set-Cookie 头字符串写入 cookie。
   ///
-  /// [url] — cookie 所属的 URL（如 `https://linux.do`）
+  /// [url] — cookie 所属的 URL（如 `https://www.uscardforum.com`）
   /// [rawSetCookie] — 原始 Set-Cookie 头（如 `_t=xxx; path=/; secure; httponly`）
   ///
   /// 各平台实现：

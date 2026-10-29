@@ -298,7 +298,7 @@ Dio _buildDio(
 }) {
   final dio = Dio(
     BaseOptions(
-      baseUrl: 'https://linux.do',
+      baseUrl: 'https://www.uscardforum.com',
       validateStatus: (status) => status != null && status < 400,
     ),
   )..httpClientAdapter = adapter;

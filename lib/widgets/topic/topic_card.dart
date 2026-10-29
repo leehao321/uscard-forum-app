@@ -805,7 +805,7 @@ class TopicCard extends ConsumerWidget {
     required bool isFullyRead,
   }) {
     final theme = Theme.of(context);
-    // 优先昵称(linux.do 用户多设中文昵称,辨识度更高),空则回退 username
+    // 优先昵称(中文社区用户多设中文昵称,辨识度更高),空则回退 username
     final name = topic.posters.isNotEmpty
         ? topic.posters.first.user?.displayName
         : topic.lastPosterUsername;

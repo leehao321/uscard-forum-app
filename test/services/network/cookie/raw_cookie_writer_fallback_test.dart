@@ -7,7 +7,7 @@ void main() {
     test('host-only Cookie 不传 domain', () {
       final cookie = SetCookieParser.parse(
         '_t=session; Path=/; Secure; HttpOnly',
-        uri: Uri.parse('https://linux.do'),
+        uri: Uri.parse('https://www.uscardforum.com'),
       );
 
       expect(
@@ -21,8 +21,8 @@ void main() {
 
     test('仅为显式 Domain Cookie 补前导点', () {
       final cookie = SetCookieParser.parse(
-        'shared=value; Domain=linux.do; Path=/',
-        uri: Uri.parse('https://linux.do'),
+        'shared=value; Domain=uscardforum.com; Path=/',
+        uri: Uri.parse('https://www.uscardforum.com'),
       );
 
       expect(
@@ -30,14 +30,14 @@ void main() {
           hostOnly: cookie.hostOnly,
           domain: cookie.domain,
         ),
-        '.linux.do',
+        '.uscardforum.com',
       );
       expect(
         RawCookieWriterFallback.resolveCookieDomain(
           hostOnly: false,
-          domain: '.linux.do',
+          domain: '.uscardforum.com',
         ),
-        '.linux.do',
+        '.uscardforum.com',
       );
     });
   });

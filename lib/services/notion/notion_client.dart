@@ -17,7 +17,7 @@ class NotionApiException implements Exception {
 /// Notion API 薄封装。
 ///
 /// 设计：
-/// - 用独立 Dio 实例，不带任何 linux.do cookie；headers 固定 Authorization + Notion-Version
+/// - 用独立 Dio 实例，不带任何论坛 cookie；headers 固定 Authorization + Notion-Version
 /// - 不做缓存、不做重试（除 429 速率限制）；调用方自己控制时序
 /// - 方法返回原始 JSON Map，让上层决定怎么解析；只在 HTTP 非 2xx 时抛
 class NotionClient {

@@ -9,7 +9,7 @@ import '../../../constants.dart';
 /// 可改善因 TLS 指纹被 Cloudflare 识别为非浏览器客户端导致的登录失效问题。
 ///
 /// 仅对主域名的 API 请求生效，排除：
-/// - CDN 图片请求（cdn.linux.do 等子域名）
+/// - CDN 图片请求（cdn 等子域名）
 /// - MessageBus 长轮询（/message-bus/ 路径）
 class WebViewAdapterSettingsService {
   WebViewAdapterSettingsService._internal();

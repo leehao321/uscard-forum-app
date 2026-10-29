@@ -24,7 +24,7 @@ void main() {
 
   final service = CsrfTokenService();
   final adapter = _CsrfAdapter();
-  final dio = Dio(BaseOptions(baseUrl: 'https://linux.do'))
+  final dio = Dio(BaseOptions(baseUrl: 'https://www.uscardforum.com'))
     ..httpClientAdapter = adapter;
   dio.interceptors.add(RequestHeaderInterceptor(service));
   service.attachDio(dio);

@@ -14,12 +14,12 @@ import 'network/adapters/webview_http_adapter.dart';
 /// 包装 Dio 的 http.BaseClient 实现,给 flutter_cache_manager / image 下载用。
 ///
 /// **双 dio 策略**(按 request URL host 选)
-/// - **主域** (`linux.do` 及其子域):用 `_mainDomainDio`,带 cookie。
+/// - **主域** (`www.uscardforum.com` 及其子域):用 `_mainDomainDio`,带 cookie。
 ///   原因:`/uploads/secure-uploads/*` 私密图、user_avatar 在某些配置下需要
 ///   session cookie 才能访问。关掉 cookie 会让这些图 403。
 ///   但仍关掉 CfChallenge / Retry(图片自动 CF 验证 / 重试意义不大)。
 ///
-/// - **第三方 CDN** (`s.pwsh.us.kg` / `cdn.ldstatic.com` / 其它):用 `_cdnDio`,
+/// - **第三方 CDN** (站点 CDN、外链图床等其它域名):用 `_cdnDio`,
 ///   **完全不带 cookie**。CDN 根本不读 cookie header,带过去也无效;反而每张
 ///   图都触发 cookie jar 磁盘读写,30 张同屏 = 60 次磁盘 IO + cookie jar 锁
 ///   争用,这是"PNG 等半天"的根因。
@@ -98,15 +98,15 @@ class DioHttpClient extends http.BaseClient {
   static void sinkPending(DownloadChannel channel, String url) =>
       _semaphoreOf(channel).sink(url);
 
-  /// 提取 [AppConstants.baseUrl] 的 host(例如 `linux.do`),用于判断主域。
-  /// 注意是 host 比对而不是 URL prefix 比对 —— 子域(`auth.linux.do` 等)
-  /// 也算主域,会走带 cookie 的 dio。
+  /// 提取 [AppConstants.baseUrl] 的 host(即 `www.uscardforum.com`),用于判断主域。
+  /// 注意是 host 比对而不是 URL prefix 比对 —— 子域(`*.www.uscardforum.com`)
+  /// 也算主域,会走带 cookie 的 dio;根域 `uscardforum.com` 及其兄弟子域不算。
   static final String _mainHost = Uri.parse(AppConstants.baseUrl).host;
 
   bool _isMainDomain(Uri url) {
     final host = url.host;
     if (host.isEmpty) return false;
-    // 主域精确匹配 或 是主域的子域(*.linux.do)
+    // 主域精确匹配 或 是主域的子域
     return host == _mainHost || host.endsWith('.$_mainHost');
   }
 
