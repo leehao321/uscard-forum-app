@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart' as dio;
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import '../constants.dart';
@@ -15,6 +16,7 @@ import 'network/adapters/webview_http_adapter.dart';
 ///
 /// **双 dio 策略**(按 request URL host 选)
 /// - **主域** (`www.uscardforum.com` 及其子域):用 `_mainDomainDio`,带 cookie。
+///   不带 www 的根域 `uscardforum.com` 先改写成主站再按主域处理(见 [canonicalRequestUri])。
 ///   原因:`/uploads/secure-uploads/*` 私密图、user_avatar 在某些配置下需要
 ///   session cookie 才能访问。关掉 cookie 会让这些图 403。
 ///   但仍关掉 CfChallenge / Retry(图片自动 CF 验证 / 重试意义不大)。
@@ -100,17 +102,38 @@ class DioHttpClient extends http.BaseClient {
 
   /// 提取 [AppConstants.baseUrl] 的 host(即 `www.uscardforum.com`),用于判断主域。
   /// 注意是 host 比对而不是 URL prefix 比对 —— 子域(`*.www.uscardforum.com`)
-  /// 也算主域,会走带 cookie 的 dio;根域 `uscardforum.com` 及其兄弟子域不算。
+  /// 也算主域,会走带 cookie 的 dio;根域的其他子域(如 `cdn.uscardforum.com`)不算。
   static final String _mainHost = Uri.parse(AppConstants.baseUrl).host;
 
-  bool _isMainDomain(Uri url) {
+  /// 去掉 `www.` 的根域(即 `uscardforum.com`);baseUrl 不带 www 时为 null。
+  static final String? _rootHost = _mainHost.startsWith('www.')
+      ? _mainHost.substring(4)
+      : null;
+
+  /// 把根域地址改写成主站地址,其它地址原样返回。
+  ///
+  /// 帖子里的图片常写成不带 www 的根域(`uscardforum.com/uploads/...`),和主站是
+  /// 同一个站点。直接请求根域时 www 的 host-only 登录 cookie 带不上,私密图会
+  /// 403;若让根域走带 cookie 的 dio,根域响应下发的匿名会话 cookie 又会写进 jar,
+  /// 被 [CookieJarService.enforceAuthCookiePolicy] 当成主站候选。所以发请求前
+  /// 统一改成主站 host,根域本身的响应不进 jar。
+  @visibleForTesting
+  static Uri canonicalRequestUri(Uri url) {
+    final root = _rootHost;
+    if (root == null || url.host != root) return url;
+    return url.replace(host: _mainHost);
+  }
+
+  /// 是否走带 cookie 的主域 dio(传入的应是 [canonicalRequestUri] 之后的地址)。
+  @visibleForTesting
+  static bool usesCookieDio(Uri url) {
     final host = url.host;
     if (host.isEmpty) return false;
     // 主域精确匹配 或 是主域的子域
     return host == _mainHost || host.endsWith('.$_mainHost');
   }
 
-  dio.Dio _selectDio(Uri url) => _isMainDomain(url) ? _mainDomainDio : _cdnDio;
+  dio.Dio _selectDio(Uri url) => usesCookieDio(url) ? _mainDomainDio : _cdnDio;
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
@@ -136,8 +159,10 @@ class DioHttpClient extends http.BaseClient {
         bodyBytes = Uint8List.fromList(bytes);
       }
 
-      // 按 host 选 dio:主域用 _mainDomainDio(带 cookie),CDN 用 _cdnDio(lean)
-      final isMainDomain = _isMainDomain(request.url);
+      // 按 host 选 dio:主域用 _mainDomainDio(带 cookie),CDN 用 _cdnDio(lean)。
+      // 并发队列仍按调用方的原始 URL 记账(bumpPending/sinkPending 用的是它)。
+      final requestUrl = canonicalRequestUri(request.url);
+      final isMainDomain = usesCookieDio(requestUrl);
       final extra = <String, dynamic>{};
       if (isMainDomain) {
         extra[WebViewHttpAdapter.resourceKindExtraKey] =
@@ -145,8 +170,8 @@ class DioHttpClient extends http.BaseClient {
         extra[WebViewHttpAdapter.cookieModeExtraKey] =
             WebViewHttpAdapter.cookieModeReadOnly;
       }
-      final response = await _selectDio(request.url).request<dio.ResponseBody>(
-        request.url.toString(),
+      final response = await _selectDio(requestUrl).request<dio.ResponseBody>(
+        requestUrl.toString(),
         options: dio.Options(
           method: request.method,
           headers: headers,
@@ -217,7 +242,8 @@ class DioHttpClient extends http.BaseClient {
     final semaphore = _semaphoreOf(channel);
     await semaphore.acquire(url.toString(), priority);
     try {
-      final isMainDomain = _isMainDomain(url);
+      final requestUrl = canonicalRequestUri(url);
+      final isMainDomain = usesCookieDio(requestUrl);
       final extra = <String, dynamic>{};
       if (isMainDomain) {
         extra[WebViewHttpAdapter.resourceKindExtraKey] =
@@ -225,8 +251,8 @@ class DioHttpClient extends http.BaseClient {
         extra[WebViewHttpAdapter.cookieModeExtraKey] =
             WebViewHttpAdapter.cookieModeReadOnly;
       }
-      final response = await _selectDio(url).get<dio.ResponseBody>(
-        url.toString(),
+      final response = await _selectDio(requestUrl).get<dio.ResponseBody>(
+        requestUrl.toString(),
         options: dio.Options(
           responseType: dio.ResponseType.stream,
           extra: extra,
