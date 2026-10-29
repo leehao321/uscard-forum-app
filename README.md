@@ -1,34 +1,13 @@
-# FluxDO
+# USCard Forum
 
-> **关于本项目（USCard Forum）**
+> 美卡论坛（[uscardforum.com](https://www.uscardforum.com)）的**非官方**第三方客户端，基于 Flutter 开发。
 >
-> 本项目基于开源项目 [FluxDO](https://github.com/Lingyan000/fluxdo) 修改，目标是适配美卡论坛（uscardforum.com）的**非官方**第三方客户端，与论坛官方及 FluxDO 原作者无关。
-> 遵循 GPL-3.0 协议开源；`LICENSE` 与原作者版权声明原样保留。下方为上游 FluxDO 的原始 README，尚未全部更新。
-
-
-> 一个真诚、友善、团结、专业的 [Linux.do](https://linux.do/) 第三方客户端
-
-[![Telegram Channel](https://img.shields.io/badge/Telegram-Channel-26A5E4?logo=telegram&logoColor=white)](https://t.me/ldxfd)
-[![Telegram Group](https://img.shields.io/badge/Telegram-Group-26A5E4?logo=telegram&logoColor=white)](https://t.me/fluxdo_chat)
-
-FluxDO 是为 [Linux.do](https://linux.do/) 社区打造的现代化移动和桌面客户端，基于 Flutter 开发，致力于为用户提供流畅、优雅的论坛浏览体验。
+> 本项目基于开源项目 [FluxDO](https://github.com/Lingyan000/fluxdo) 修改，与美卡论坛官方及 FluxDO 原作者无关。
+> 遵循 GPL-3.0 协议开源；`LICENSE` 与原作者版权声明原样保留。
 
 ## 下载
 
-<a href="https://github.com/lingyan000/fluxdo/releases"><img alt="Get it on GitHub" src="https://img.shields.io/github/v/release/lingyan000/fluxdo?style=for-the-badge&logo=github&label=GitHub%20Releases" /></a>
-<a href="altstore://source?url=https://lingyan000.github.io/fluxdo/source.json"><img alt="Add to AltStore" src="https://img.shields.io/badge/AltStore-Add_Source-0c6bff?style=for-the-badge&logo=apple" /></a>
-
-### AltStore 安装
-
-1. 在 iOS 设备上安装 [AltStore](https://altstore.io/)
-2. 打开 AltStore，进入 **Browse** → **Sources** → 点击左上角 **+**
-3. 粘贴源地址：
-   ```
-   https://lingyan000.github.io/fluxdo/source.json
-   ```
-4. 在源中找到 FluxDO 并安装
-
-![FluxDO 预览](screenshots/preview.png)
+安装包发布在本仓库的 [GitHub Releases](https://github.com/leehao321/uscard-forum-app/releases)；也可以按下方「快速开始」自行构建。
 
 ## 特性
 
@@ -53,16 +32,16 @@ FluxDO 是为 [Linux.do](https://linux.do/) 社区打造的现代化移动和桌
 
 ### 前置要求
 
-- Flutter SDK ^3.10.4
+- Flutter SDK（Dart ^3.13.0）
 - Rust 工具链（用于编译 DOH 代理）
 - Android Studio / Xcode（移动端开发）
 
 ### 安装步骤
 
-1. **克隆仓库**
+1. **克隆仓库（含子模块）**
    ```bash
-   git clone https://github.com/Lingyan000/fluxdo.git
-   cd fluxdo
+   git clone --recurse-submodules https://github.com/leehao321/uscard-forum-app.git
+   cd uscard-forum-app
    ```
 
 2. **初始化工作区**
@@ -108,11 +87,10 @@ FluxDO 是为 [Linux.do](https://linux.do/) 社区打造的现代化移动和桌
 ## 项目结构
 
 ```
-fluxdo/
+uscard-forum-app/
 ├── lib/
-│   ├── config/              # 应用配置
+│   ├── config/              # 应用配置（站点定制见 config/sites/）
 │   ├── models/              # 数据模型（话题、用户、通知等）
-│   ├── modules/             # 功能模块
 │   ├── pages/               # 页面组件
 │   ├── providers/           # Riverpod 状态管理
 │   ├── services/            # 业务逻辑服务
@@ -122,7 +100,7 @@ fluxdo/
 │   ├── widgets/             # 可复用组件
 │   └── main.dart
 ├── core/
-│   └── doh_proxy/           # Rust DOH 代理实现
+│   └── doh_proxy/           # Rust DOH 代理实现（子模块）
 ├── packages/                # 本地依赖包
 ├── scripts/
 │   └── ci/                  # CI / 打包链路内部脚本
@@ -133,16 +111,16 @@ fluxdo/
 
 - **前端框架**：Flutter
 - **状态管理**：Riverpod
-- **网络请求**：Dio + Native Dio Adapter
-- **HTML 渲染**：flutter_widget_from_html
+- **网络请求**：Dio（Native Dio Adapter / rhttp 适配器）
+- **HTML 渲染**：fluxdo_render（子模块 `packages/fluxdo_render`）
 - **代码高亮**：re_highlight + google_fonts (FiraCode)
-- **图片处理**：extended_image + cached_network_image
+- **图片处理**：extended_image_lite（本地包 `packages/extended_image_lite`）+ flutter_cache_manager
 - **本地存储**：shared_preferences + flutter_secure_storage
 - **网络代理**：Rust (DOH + ECH)
 
 ## DOH 代理功能
 
-FluxDO 集成了基于 Rust 的 DOH (DNS over HTTPS) 代理，提供：
+应用集成了基于 Rust 的 DOH (DNS over HTTPS) 代理（沿用上游 FluxDO 的实现），提供：
 
 - **DNS 加密查询**：防止 DNS 污染和劫持
 - **多服务器支持**：DNSPod、腾讯 DNS、阿里 DNS、Cloudflare、Canadian Shield、Google、Quad9
@@ -153,17 +131,15 @@ FluxDO 集成了基于 Rust 的 DOH (DNS over HTTPS) 代理，提供：
 
 详细文档请参考 [core/doh_proxy/README.md](https://github.com/Lingyan000/fluxdo_doh)
 
-## 关于 Linux.do
+## 关于美卡论坛
 
-[Linux.do](https://linux.do/) 是一个真诚、友善、团结、专业的技术社区，汇聚了众多热爱技术、乐于分享的开发者。FluxDO 作为第三方客户端，致力于为社区成员提供更好的移动和桌面端体验。
+[美卡论坛](https://www.uscardforum.com)（USCard Forum）是讨论美国信用卡、银行与积分里程等话题的中文社区。
 
-**注意**：本项目为非官方客户端，与 Linux.do 官方无直接关联。
+**注意**：本项目为非官方客户端，与美卡论坛官方无关。
 
 ## 问题反馈
 
-如果您在使用过程中遇到问题或有建议，欢迎：
-- 在 [Linux.do](https://linux.do/) 论坛发帖讨论
-- 提交 [Issue](https://github.com/Lingyan000/fluxdo/issues)
+如果您在使用过程中遇到问题或有建议，欢迎提交 [Issue](https://github.com/leehao321/uscard-forum-app/issues)。
 
 ## 开源协议
 
@@ -171,7 +147,7 @@ FluxDO 集成了基于 Rust 的 DOH (DNS over HTTPS) 代理，提供：
 
 ## 致谢
 
-感谢 [Linux.do](https://linux.do/) 社区的所有成员，是你们的真诚、友善、团结、专业让这个社区充满活力。
+感谢 [FluxDO](https://github.com/Lingyan000/fluxdo) 的作者与贡献者，本项目在其基础上修改而来。
 
 ## 相关文档
 
