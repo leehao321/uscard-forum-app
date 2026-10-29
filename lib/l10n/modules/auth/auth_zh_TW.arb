@@ -52,12 +52,7 @@
   "migration_cookieUpgrade": "正在升級 Cookie 儲存...",
   "migration_reloginRequired": "本次版本升級優化了 Cookie 儲存機制，已清除舊的登入狀態。請重新登入。",
   "migration_title": "資料升級",
-  "oauth_approvePageParseFailed": "授權頁面解析失敗，請確認已登入論壇",
   "oauth_callbackFailed": "授權回調失敗",
-  "oauth_getAuthUrlFailed": "獲取授權連結失敗",
-  "oauth_missingParams": "授權回調缺少必要參數",
-  "oauth_networkError": "網路請求失敗，請檢查網路連線",
-  "oauth_noRedirectResponse": "授權服務未返回重定向",
   "onboarding_guestAccess": "遊客訪問",
   "onboarding_networkSettings": "網路設定",
   "onboarding_slogan": "真誠 · 友善 · 團結 · 專業"

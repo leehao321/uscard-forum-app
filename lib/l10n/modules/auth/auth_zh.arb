@@ -59,12 +59,7 @@
   "migration_cookieUpgrade": "正在升级 Cookie 存储...",
   "migration_reloginRequired": "本次版本升级优化了 Cookie 存储机制，已清除旧的登录状态。请重新登录。",
   "migration_title": "数据升级",
-  "oauth_approvePageParseFailed": "授权页面解析失败，请确认已登录论坛",
   "oauth_callbackFailed": "授权回调失败",
-  "oauth_getAuthUrlFailed": "获取授权链接失败",
-  "oauth_missingParams": "授权回调缺少必要参数",
-  "oauth_networkError": "网络请求失败，请检查网络连接",
-  "oauth_noRedirectResponse": "授权服务未返回重定向",
   "onboarding_guestAccess": "游客访问",
   "onboarding_networkSettings": "网络设置",
   "onboarding_slogan": "真诚 · 友善 · 团结 · 专业"

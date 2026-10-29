@@ -15,9 +15,6 @@
       }
     }
   },
-  "toast_credentialCleared": "凭证已清除",
-  "toast_credentialIncomplete": "请填写完整的凭证信息",
-  "toast_credentialSaved": "凭证保存成功",
   "toast_networkDisconnected": "网络连接已断开",
   "toast_networkRestored": "网络已恢复",
   "toast_operationFailedRetry": "操作失败，请重试",

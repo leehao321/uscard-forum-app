@@ -45,12 +45,7 @@
   "migration_cookieUpgrade": "Upgrading cookie storage...",
   "migration_reloginRequired": "Cookie storage has been upgraded. Your login session was cleared. Please log in again.",
   "migration_title": "Data Upgrade",
-  "oauth_approvePageParseFailed": "Failed to parse authorization page, please ensure you are logged in",
   "oauth_callbackFailed": "Authorization callback failed",
-  "oauth_getAuthUrlFailed": "Failed to get authorization URL",
-  "oauth_missingParams": "Authorization callback missing required parameters",
-  "oauth_networkError": "Network request failed, please check your connection",
-  "oauth_noRedirectResponse": "Authorization service did not return a redirect",
   "onboarding_guestAccess": "Guest access",
   "onboarding_networkSettings": "Network settings",
   "onboarding_slogan": "Sincere · Friendly · United · Professional"
