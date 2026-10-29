@@ -23,37 +23,27 @@ import 'my_browser_page.dart';
 import 'my_topics_page.dart';
 import 'my_badges_page.dart';
 import 'user_profile_page.dart';
-import 'trust_level_requirements_page.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 import '../widgets/common/loading_dialog.dart';
 import '../widgets/common/notification_icon_button.dart';
 import '../widgets/common/flair_badge.dart';
 import '../widgets/common/smart_avatar.dart';
 import '../providers/app_state_refresher.dart';
-import 'metaverse_page.dart';
 import 'package:ai_model_manager/ai_model_manager.dart';
 import 'topic_detail_page/topic_detail_page.dart';
 import 'drafts_page.dart';
 import 'pending_posts_page.dart';
 import 'private_messages_page.dart';
 import 'invite_links_page.dart';
-import '../providers/ldc_providers.dart';
-import '../widgets/ldc_balance_card.dart';
-import '../providers/cdk_providers.dart';
-import '../widgets/cdk_balance_card.dart';
 import '../widgets/profile_stats_card.dart';
 import '../widgets/common/spotlight_overlay.dart';
 import 'profile_stats_edit_page.dart';
-import '../services/ldc_oauth_service.dart';
-import '../services/cdk_oauth_service.dart';
 import '../l10n/s.dart';
 import '../navigation/nav_action_bus.dart';
-import '../services/toast_service.dart';
 import '../utils/dialog_utils.dart';
 import '../utils/responsive.dart';
 import '../services/emoji_handler.dart';
 import '../services/log/log_writer.dart';
-import '../providers/theme_provider.dart';
 import '../widgets/layout/master_detail_layout.dart';
 
 /// 个人页面
@@ -70,13 +60,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   late ScrollController _rightScrollController;
   bool _showTitle = false;
   bool _isRefreshing = false;
-  bool _ldcProcessing = false;
-  bool _cdkProcessing = false;
-
-  // 余额卡片(CDK/LDC)是否已可渲染:仅在本页首次成为活跃 tab 后置 true。
-  // 避免 IndexedStack 冷启动预构建本页时,balance card 的 watch 就触发
-  // cdk/ldc user-info 请求(撞上 cdk 子域冷启动的 CF 挑战窗口)。
-  bool _balanceEverActive = false;
 
   // 统计卡片引导
   static const String _guideKey = 'profile_stats_card_guide_shown';
@@ -89,8 +72,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
     _rightScrollController = ScrollController();
-    // 启动即为活跃 tab(如默认进入本页)时允许立即渲染;否则等首次切入。
-    _balanceEverActive = widget.isActive;
   }
 
   @override
@@ -98,9 +79,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     super.didUpdateWidget(oldWidget);
     // tab 切换时 isActive 变化
     if (widget.isActive && !oldWidget.isActive) {
-      // 首次切入本页才渲染余额卡片(触发 cdk/ldc 请求),避免冷启动预构建即请求。
-      // didUpdateWidget 后 framework 会自动 rebuild,无需 setState。
-      _balanceEverActive = true;
       if (!_guideShown) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) _tryShowStatsGuide();
@@ -118,20 +96,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     if (!mounted) return;
     if (showAppBarIndicator) setState(() => _isRefreshing = true);
     try {
-      // LDC/CDK provider 现在只 watch currentUser.username，
-      // refreshSilently 不会再连带触发它们 rebuild，需要显式刷新
-      final prefs = ref.read(sharedPreferencesProvider);
-      // LDC/CDK 是 linux.do 的服务：美卡上即使偏好里残留开启（导入旧备份）也不请求
-      final linuxdo = AppConstants.siteCustomization.enableLinuxdoServices;
-      final ldcEnabled = linuxdo && (prefs.getBool('ldc_enabled') ?? false);
-      final cdkEnabled = linuxdo && (prefs.getBool('cdk_enabled') ?? false);
       await Future.wait([
         ref.read(currentUserProvider.notifier).refreshSilently(force: true),
         ref.read(userSummaryProvider.notifier).refresh(),
-        if (ldcEnabled && !_ldcProcessing)
-          ref.read(ldcUserInfoProvider.notifier).refresh(),
-        if (cdkEnabled && !_cdkProcessing)
-          ref.read(cdkUserInfoProvider.notifier).refresh(),
       ]);
     } finally {
       if (mounted && showAppBarIndicator) {
@@ -293,48 +260,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       } finally {
         loading.hide();
       }
-    }
-  }
-
-  Future<void> _reauthorizeLdc() async {
-    if (!mounted || _ldcProcessing) return;
-    setState(() => _ldcProcessing = true);
-    try {
-      final service = LdcOAuthService();
-      final result = await service.reauthorize(context);
-      if (result && mounted) {
-        await ref.read(ldcUserInfoProvider.notifier).refresh();
-        if (mounted) {
-          ToastService.showSuccess(S.current.profile_ldcReauthSuccess);
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ToastService.showError(S.current.metaverse_authFailed(e.toString()));
-      }
-    } finally {
-      if (mounted) setState(() => _ldcProcessing = false);
-    }
-  }
-
-  Future<void> _reauthorizeCdk() async {
-    if (!mounted || _cdkProcessing) return;
-    setState(() => _cdkProcessing = true);
-    try {
-      final service = CdkOAuthService();
-      final result = await service.reauthorize(context);
-      if (result && mounted) {
-        await ref.read(cdkUserInfoProvider.notifier).refresh();
-        if (mounted) {
-          ToastService.showSuccess(S.current.profile_cdkReauthSuccess);
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ToastService.showError(S.current.metaverse_authFailed(e.toString()));
-      }
-    } finally {
-      if (mounted) setState(() => _cdkProcessing = false);
     }
   }
 
@@ -528,8 +453,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           else if (isLoggedIn)
             _buildStatsCardWithGuide(),
 
-          _buildBalanceCards(),
-
           if (isLoggedIn) ...[
             _buildContentCard(theme),
             const SizedBox(height: 20),
@@ -577,8 +500,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 else if (isLoggedIn)
                   _buildStatsCardWithGuide(),
 
-                _buildBalanceCards(),
-
                 if (isLoggedIn) ...[
                   _buildContentCard(theme),
                   const SizedBox(height: 24),
@@ -623,47 +544,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
-  /// LDC/CDK 余额卡片（共用组件）
-  Widget _buildBalanceCards() {
-    // 仅本页首次成为活跃 tab 后才渲染余额卡片;未激活时返回空,不建 Consumer、
-    // 不 watch provider,从而不触发 cdk/ldc user-info 请求。
-    if (!_balanceEverActive) return const SizedBox.shrink();
-    if (!AppConstants.siteCustomization.enableLinuxdoServices) {
-      return const SizedBox.shrink();
-    }
-    return Consumer(
-      builder: (context, ref, _) {
-        final prefs = ref.watch(sharedPreferencesProvider);
-        final ldcEnabled = prefs.getBool('ldc_enabled') ?? false;
-        final cdkEnabled = prefs.getBool('cdk_enabled') ?? false;
-
-        if (!ldcEnabled && !cdkEnabled) return const SizedBox.shrink();
-
-        return Column(
-          children: [
-            SegmentedCardGroup(
-              children: [
-                if (ldcEnabled)
-                  LdcBalanceCard(
-                    inline: true,
-                    isProcessing: _ldcProcessing,
-                    onReauthorize: () => _reauthorizeLdc(),
-                  ),
-                if (cdkEnabled)
-                  CdkBalanceCard(
-                    inline: true,
-                    isProcessing: _cdkProcessing,
-                    onReauthorize: () => _reauthorizeCdk(),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 24),
-          ],
-        );
-      },
-    );
-  }
-  
   Widget _buildError(ThemeData theme, String error) {
     return Card(
       color: theme.colorScheme.errorContainer.withValues(alpha:0.3),
@@ -866,13 +746,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           title: '已存帖子',
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SavedTopicsPage()))
         ),
-        if (AppConstants.siteCustomization.enableLinuxdoServices)
-          _buildOptionTile(
-            icon: Symbols.verified_user_rounded,
-            iconColor: Colors.green,
-            title: context.l10n.profile_trustRequirements,
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TrustLevelRequirementsPage()))
-          ),
         if (canAccessInviteLinks)
           _buildOptionTile(
             icon: Symbols.link_rounded,
@@ -892,13 +765,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             MaterialPageRoute(builder: (_) => const ExportHistoryPage()),
           ),
         ),
-        if (AppConstants.siteCustomization.enableLinuxdoServices)
-          _buildOptionTile(
-            icon: Symbols.explore_rounded,
-            iconColor: Colors.deepOrange,
-            title: context.l10n.profile_metaverse,
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MetaversePage()))
-          ),
       ],
     );
   }
@@ -1005,7 +871,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         child: FilledButton.icon(
           onPressed: _goToLogin,
           icon: const Icon(Symbols.login_rounded, size: 20),
-          label: Text(context.l10n.profile_loginLinuxDo, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+          label: Text(context.l10n.profile_loginForum, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
           style: FilledButton.styleFrom(
             minimumSize: const Size(double.infinity, 52),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),

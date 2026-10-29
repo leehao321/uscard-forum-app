@@ -211,7 +211,7 @@ class ErrorView extends StatelessWidget {
 
 /// 错误详情底部弹窗
 ///
-/// 风格对齐项目通用 sheet（书签/打赏/AI 模型选择等）：
+/// 风格对齐项目通用 sheet（书签/AI 模型选择等）：
 /// 外层 margin 16 + 圆角 16 + surface 背景 + drag handle + 标题栏。
 class ErrorDetailsSheet extends StatelessWidget {
   const ErrorDetailsSheet({super.key, required this.details});

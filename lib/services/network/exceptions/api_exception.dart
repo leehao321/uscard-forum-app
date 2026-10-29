@@ -5,7 +5,7 @@ import '../../../models/pending_post.dart';
 
 /// 429 Rate Limit 异常（重试耗尽后抛出）
 ///
-/// [response] 保留服务端原始响应,供调用方提取业务报错文案(如打赏接口把
+/// [response] 保留服务端原始响应,供调用方提取业务报错文案(有的接口把
 /// 错误信息放在自定义字段里)。ErrorInterceptor 必须通过 handler.reject
 /// 携带原 response 传递本异常,不能 throw——throw 会让 DioException 丢掉
 /// response,下游拦截器与调用方只能看到 statusCode=null。

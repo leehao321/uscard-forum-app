@@ -43,6 +43,9 @@
   "externalLink_shortLinkMessage": "This is a short link, the real destination cannot be previewed",
   "externalLink_shortLinkTitle": "Short link notice",
   "externalLink_shortLinkWarning": "Short links may hide the real destination, verify the source",
+  "github_commentedOn": " commented on ",
+  "github_moreFiles": "... and {count} more files",
+  "github_viewFullCode": "View full code",
   "iframe_exitInteraction": "Exit interaction",
   "onebox_linkPreview": "Link preview"
 }

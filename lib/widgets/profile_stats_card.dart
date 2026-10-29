@@ -4,9 +4,7 @@ import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/profile_stats_config.dart';
 import '../models/user.dart';
-import '../models/connect_stats.dart';
 import '../providers/core_providers.dart';
-import '../providers/directory_providers.dart';
 import '../providers/profile_stats_provider.dart';
 import '../utils/number_utils.dart';
 import '../l10n/s.dart';
@@ -283,48 +281,16 @@ class _StatsCardContent extends ConsumerWidget {
             bottom: 8,
             child: LoadingSpinner(size: 16),
           ),
-        if (resolved.hasError)
-          Positioned(
-            right: 8,
-            bottom: 6,
-            child: Tooltip(
-              message: S.current.profileStats_loadError,
-              child: Icon(
-                Symbols.error_rounded,
-                size: 16,
-                color: Theme.of(context).colorScheme.error.withValues(alpha: 0.6),
-              ),
-            ),
-          ),
       ],
     );
   }
 
-  /// 按需从不同数据源获取数据
   _ResolvedData _resolve(WidgetRef ref) {
-    switch (config.dataSource) {
-      case StatsDataSource.summary:
-        final state = ref.watch(userSummaryProvider);
-        return _ResolvedData(
-          values: _fromSummary(state.value),
-          isLoading: state.isLoading && !state.hasValue,
-        );
-      case StatsDataSource.connect:
-        final state = ref.watch(connectStatsProvider);
-        if (state.value != null) {
-          return _ResolvedData(values: _fromConnect(state.value!));
-        }
-        if (state.isLoading) {
-          return const _ResolvedData(isLoading: true);
-        }
-        if (state.hasError) {
-          return _ResolvedData(
-            values: _fromSummary(ref.watch(userSummaryProvider).value),
-            hasError: true,
-          );
-        }
-        return _ResolvedData(values: _fromSummary(ref.watch(userSummaryProvider).value));
-    }
+    final state = ref.watch(userSummaryProvider);
+    return _ResolvedData(
+      values: _fromSummary(state.value),
+      isLoading: state.isLoading && !state.hasValue,
+    );
   }
 
   Map<ProfileStatType, int> _fromSummary(UserSummary? s) {
@@ -340,19 +306,6 @@ class _StatsCardContent extends ConsumerWidget {
       ProfileStatType.recentTimeRead: s.recentTimeRead,
       ProfileStatType.bookmarkCount: s.bookmarkCount,
       ProfileStatType.topicsEntered: s.topicsEntered,
-    };
-  }
-
-  Map<ProfileStatType, int> _fromConnect(ConnectStats c) {
-    return {
-      ProfileStatType.daysVisited: c.daysVisited,
-      ProfileStatType.postsReadCount: c.postsRead,
-      ProfileStatType.likesReceived: c.likesReceived,
-      ProfileStatType.likesGiven: c.likesGiven,
-      ProfileStatType.topicsEntered: c.topicsViewed,
-      ProfileStatType.topicsRepliedTo: c.topicsRepliedTo,
-      ProfileStatType.likesReceivedDays: c.likesReceivedDays,
-      ProfileStatType.likesReceivedUsers: c.likesReceivedUsers,
     };
   }
 }
@@ -378,12 +331,10 @@ class _StatItemData {
 class _ResolvedData {
   final Map<ProfileStatType, int> values;
   final bool isLoading;
-  final bool hasError;
 
   const _ResolvedData({
     this.values = const {},
     this.isLoading = false,
-    this.hasError = false,
   });
 }
 
@@ -410,22 +361,6 @@ String getStatLabel(ProfileStatType stat) {
       return S.current.profileStats_bookmarkCount;
     case ProfileStatType.topicsEntered:
       return S.current.profileStats_topicsEntered;
-    case ProfileStatType.topicsRepliedTo:
-      return S.current.profileStats_topicsRepliedTo;
-    case ProfileStatType.likesReceivedDays:
-      return S.current.profileStats_likesReceivedDays;
-    case ProfileStatType.likesReceivedUsers:
-      return S.current.profileStats_likesReceivedUsers;
-  }
-}
-
-/// 获取数据源的显示标签
-String getDataSourceLabel(StatsDataSource source) {
-  switch (source) {
-    case StatsDataSource.summary:
-      return S.current.profileStats_sourceSummary;
-    case StatsDataSource.connect:
-      return S.current.profileStats_sourceConnect;
   }
 }
 

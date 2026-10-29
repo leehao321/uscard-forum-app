@@ -127,7 +127,7 @@ class WebViewCookiePriming {
 
       // 2. 从 jar 读"当前 url 适用的所有 cookie" (RFC 6265 domain matching)
       // 不再按 criticalCookieNames 过滤 — 该列表 hard-code 维护不可持续
-      // (每次发现新业务 cookie 如 LDC/CDK 没同步就要追加, 永远列不全)。
+      // (每次发现新的业务 cookie 没同步就要追加, 永远列不全)。
       // jar 是 source of truth, loadCanonicalCookiesForRequest 已经按
       // RFC 6265 domain matching 选出"该 url 适用的全部 cookie", 直接
       // 全量同步到 WV 即可。

@@ -35,17 +35,6 @@ class ProfileStatsConfigNotifier extends Notifier<ProfileStatsConfig> {
     update(state.copyWith(columnsPerRow: columns));
   }
 
-  void setDataSource(StatsDataSource source) {
-    // 切换数据源时，自动移除不兼容的统计项
-    final compatible = state.enabledStats
-        .where((s) => isStatCompatible(s, source))
-        .toList();
-    update(state.copyWith(
-      dataSource: source,
-      enabledStats: compatible,
-    ));
-  }
-
   void setEnabledStats(List<ProfileStatType> stats) {
     update(state.copyWith(enabledStats: stats));
   }

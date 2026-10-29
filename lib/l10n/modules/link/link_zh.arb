@@ -57,6 +57,16 @@
   "externalLink_shortLinkMessage": "此链接为短链接服务，无法预览真实目标",
   "externalLink_shortLinkTitle": "短链接提醒",
   "externalLink_shortLinkWarning": "短链接可能隐藏真实目的地，请确认来源可信",
+  "github_commentedOn": " 评论于 ",
+  "github_moreFiles": "... 还有 {count} 个文件",
+  "@github_moreFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "github_viewFullCode": "点击查看完整代码",
   "iframe_exitInteraction": "退出交互",
   "onebox_linkPreview": "链接预览"
 }

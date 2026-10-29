@@ -27,8 +27,6 @@ void main() {
         'auto_check_update',
         'notion_config_alice',
         'rhttp_enabled',
-        'cdk_enabled',
-        'ldc_enabled',
         // 被排除前缀误伤的真配置,精确回捞
         'sticker_market_base_url',
       ];
@@ -49,8 +47,6 @@ void main() {
         'current_user_cache',
         'current_user_cache_username',
         'user_summary_cache',
-        'cdk_user_info',
-        'ldc_user_info_username',
         'update_cache',
         'update_etag',
         'sticker_market_groups_cache',

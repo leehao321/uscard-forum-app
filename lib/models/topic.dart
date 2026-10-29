@@ -881,7 +881,7 @@ class Post {
   // Linux.do iOS App 帖子来源设备型号（服务端字段 ios_device_name）
   final String? iosDeviceName;
 
-  // 用户 ID（用于打赏等功能）
+  // 用户 ID
   final int? userId;
 
   // 用户身份标识

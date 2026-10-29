@@ -53,7 +53,7 @@ class SessionSweepAction extends RecoveryAction {
 /// 会话自愈策略:401 / 419 / `discourse-logged-out` 的透明恢复。
 ///
 /// 迁移自 SelfHealingInterceptor,保留其全部判定语义:
-/// - 只对主站生效(CDK/LDC 子域的 401 是各自 OAuth 过期,重试主站 session
+/// - 只对主站生效(子域的 401 是各自业务会话过期,重试主站 session
 ///   无意义,还会把一次过期放大成多次请求);
 /// - `error_type: 'not_logged_in'` 是真登出,不自愈;
 /// - jar 中 `_t` 已失效 = 真登出,不自愈;

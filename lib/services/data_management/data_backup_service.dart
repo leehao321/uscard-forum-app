@@ -35,8 +35,6 @@ class DataBackupService {
     'ai_post_review_guidelines_cache',
     'current_user_cache',
     'user_summary_cache',
-    'cdk_user_info',
-    'ldc_user_info',
     'update_', // update_cache / update_cache_time / update_etag
     'sticker_market_', // 贴纸市场缓存(真配置 base_url 在下面精确回捞)
     'bookmark_last_full_sync_',

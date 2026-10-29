@@ -105,9 +105,6 @@ class SiteCustomization {
   /// 登录时是否需要先过 hCaptcha 人机验证（站点没启用 hCaptcha 插件时设为 false）
   final bool requiresHcaptcha;
 
-  /// 是否启用 linux.do 生态专属服务（LDC 积分/打赏、CDK、connect 信任等级统计、元宇宙页）
-  final bool enableLinuxdoServices;
-
   /// 是否允许列表卡片为每个话题自动请求首帖做摘要/配图（逐条后台请求，默认开放给用户选择）
   final bool allowAutoExcerptFetch;
 
@@ -131,7 +128,6 @@ class SiteCustomization {
     this.linkSecurityConfig,
     this.plugins = const [],
     this.requiresHcaptcha = true,
-    this.enableLinuxdoServices = true,
     this.allowAutoExcerptFetch = true,
     this.mediaUploadAsXz = false,
     this.supportsNestedView = true,

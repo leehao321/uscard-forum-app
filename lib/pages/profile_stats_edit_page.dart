@@ -1,12 +1,9 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/profile_stats_config.dart';
 import '../models/user.dart';
-import '../models/connect_stats.dart';
 import '../providers/core_providers.dart';
-import '../providers/directory_providers.dart';
 import '../providers/profile_stats_provider.dart';
 import '../widgets/profile_stats_card.dart';
 import 'package:m3e_ui/m3e_ui.dart';
@@ -54,12 +51,6 @@ class _ProfileStatsEditPageState extends ConsumerState<ProfileStatsEditPage> {
             onReorder: notifier.reorderStats,
             scrollController: _scrollController,
           ),
-          const SizedBox(height: 24),
-
-          // 数据源
-          _SectionHeader(title: S.current.profileStats_dataSource),
-          const SizedBox(height: 8),
-          _DataSourceSelector(config: config),
           const SizedBox(height: 24),
 
           // 统计项选择
@@ -110,58 +101,26 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-/// 预览区域（带防抖 + 拖拽排序支持）
-class _PreviewSection extends ConsumerStatefulWidget {
+/// 预览区域（支持拖拽排序）
+class _PreviewSection extends ConsumerWidget {
   final ProfileStatsConfig config;
   final void Function(int oldIndex, int newIndex)? onReorder;
   final ScrollController? scrollController;
   const _PreviewSection({required this.config, this.onReorder, this.scrollController});
 
   @override
-  ConsumerState<_PreviewSection> createState() => _PreviewSectionState();
-}
-
-class _PreviewSectionState extends ConsumerState<_PreviewSection> {
-  late StatsDataSource _effectiveSource;
-  Timer? _debounce;
-
-  @override
-  void initState() {
-    super.initState();
-    _effectiveSource = widget.config.dataSource;
-  }
-
-  @override
-  void didUpdateWidget(_PreviewSection old) {
-    super.didUpdateWidget(old);
-    if (old.config.dataSource != widget.config.dataSource) {
-      _debounce?.cancel();
-      _debounce = Timer(const Duration(milliseconds: 300), () {
-        if (mounted) setState(() => _effectiveSource = widget.config.dataSource);
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _debounce?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final displayConfig = widget.config.copyWith(dataSource: _effectiveSource);
-    final providerState = _watchSourceState(ref);
-    final isLoading = providerState.isLoading && !providerState.hasValue;
-    final hasError = providerState.hasError && !providerState.hasValue;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final summaryState = ref.watch(userSummaryProvider);
+    final isLoading = summaryState.isLoading && !summaryState.hasValue;
+    final hasError = summaryState.hasError && !summaryState.hasValue;
 
     return Stack(
       children: [
         ProfileStatsCardPreview(
-          config: widget.config,
-          values: _resolveValues(ref, displayConfig),
-          onReorder: widget.onReorder,
-          scrollController: widget.scrollController,
+          config: config,
+          values: _fromSummary(summaryState.value),
+          onReorder: onReorder,
+          scrollController: scrollController,
         ),
         if (isLoading)
           const Positioned(right: 12, bottom: 8, child: LoadingSpinner(size: 16)),
@@ -178,26 +137,6 @@ class _PreviewSectionState extends ConsumerState<_PreviewSection> {
     );
   }
 
-  AsyncValue _watchSourceState(WidgetRef ref) {
-    switch (_effectiveSource) {
-      case StatsDataSource.summary:
-        return ref.watch(userSummaryProvider);
-      case StatsDataSource.connect:
-        return ref.watch(connectStatsProvider);
-    }
-  }
-
-  Map<ProfileStatType, int> _resolveValues(WidgetRef ref, ProfileStatsConfig config) {
-    switch (config.dataSource) {
-      case StatsDataSource.summary:
-        return _fromSummary(ref.watch(userSummaryProvider).value);
-      case StatsDataSource.connect:
-        final c = ref.watch(connectStatsProvider).value;
-        if (c != null) return _fromConnect(c);
-        return _fromSummary(ref.watch(userSummaryProvider).value);
-    }
-  }
-
   Map<ProfileStatType, int> _fromSummary(UserSummary? s) {
     if (s == null) return {};
     return {
@@ -212,43 +151,6 @@ class _PreviewSectionState extends ConsumerState<_PreviewSection> {
       ProfileStatType.bookmarkCount: s.bookmarkCount,
       ProfileStatType.topicsEntered: s.topicsEntered,
     };
-  }
-
-  Map<ProfileStatType, int> _fromConnect(ConnectStats c) {
-    return {
-      ProfileStatType.daysVisited: c.daysVisited,
-      ProfileStatType.postsReadCount: c.postsRead,
-      ProfileStatType.likesReceived: c.likesReceived,
-      ProfileStatType.likesGiven: c.likesGiven,
-      ProfileStatType.topicsEntered: c.topicsViewed,
-      ProfileStatType.topicsRepliedTo: c.topicsRepliedTo,
-      ProfileStatType.likesReceivedDays: c.likesReceivedDays,
-      ProfileStatType.likesReceivedUsers: c.likesReceivedUsers,
-    };
-  }
-}
-
-/// 数据源选择
-class _DataSourceSelector extends ConsumerWidget {
-  final ProfileStatsConfig config;
-  const _DataSourceSelector({required this.config});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final notifier = ref.read(profileStatsConfigProvider.notifier);
-    return Row(
-      children: [
-        for (final source in StatsDataSource.values)
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(
-              label: Text(getDataSourceLabel(source)),
-              selected: config.dataSource == source,
-              onSelected: (_) => notifier.setDataSource(source),
-            ),
-          ),
-      ],
-    );
   }
 }
 
@@ -282,15 +184,10 @@ class _StatChipGrid extends ConsumerWidget {
           FilterChip(
             label: Text(getStatLabel(stat)),
             selected: false,
-            onSelected: !isStatCompatible(stat, config.dataSource)
-                ? null
-                : (_) => notifier.addStat(stat),
+            onSelected: (_) => notifier.addStat(stat),
             showCheckmark: false,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             visualDensity: VisualDensity.compact,
-            tooltip: !isStatCompatible(stat, config.dataSource)
-                ? S.current.profileStats_incompatibleSource
-                : null,
           ),
       ],
     );

@@ -57,6 +57,16 @@
   "externalLink_shortLinkMessage": "此鏈接為短鏈接服務，無法預覽真實目標",
   "externalLink_shortLinkTitle": "短鏈接提醒",
   "externalLink_shortLinkWarning": "短鏈接可能隱藏真實目的地，請確認來源可信",
+  "github_commentedOn": " 評論於 ",
+  "github_moreFiles": "... 還有 {count} 個文件",
+  "@github_moreFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "github_viewFullCode": "點擊查看完整代碼",
   "iframe_exitInteraction": "退出交互",
   "onebox_linkPreview": "鏈接預覽"
 }

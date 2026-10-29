@@ -6,7 +6,6 @@ import '../site_customization.dart';
 /// 因此不挂任何站点插件；头像光晕与头衔特效规则暂时为空，阶段 3 再按需补充。
 final uscardCustomization = SiteCustomization(
   requiresHcaptcha: false,
-  enableLinuxdoServices: false,
   // 论坛条款禁止程序自动批量访问：列表卡片不为每个话题自动拉首帖
   allowAutoExcerptFetch: false,
   // 没装树形回复插件：真机日志里 `/n/topic/<id>.json` 返回 404

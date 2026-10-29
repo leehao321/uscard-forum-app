@@ -452,25 +452,6 @@ class AppCookieManager extends Interceptor {
       });
     }
 
-    if (options.uri.host == 'connect.linux.do') {
-      final authCookies = requestCookies
-          .where((cookie) => cookie.name == 'auth.session-token')
-          .map(
-            (cookie) =>
-                '${cookie.domain ?? '<host-only>'}|${cookie.path ?? '/'}|len=${cookie.value.length}',
-          )
-          .toList(growable: false);
-      if (authCookies.isNotEmpty) {
-        debugPrint(
-          '[CookieManager] request cookies for connect.linux.do: $authCookies',
-        );
-      } else {
-        debugPrint(
-          '[CookieManager] request cookies for connect.linux.do: <none>',
-        );
-      }
-    }
-
     return cookies;
   }
 
@@ -711,7 +692,7 @@ class AppCookieManager extends Interceptor {
     // 对响应里 *所有* cookie 触发 sweep (不再按 critical 过滤):
     // - 路径 A: sweep 内部从 jar 读 winner 写 WV (保证两端一致)
     // - 路径 B: sweep 内部从 WV 读 winner 反向写 jar (WV 已自写)
-    // 全量 sweep 是为了不漏掉新业务 cookie (如 LDC/CDK 等)。
+    // 全量 sweep 是为了不漏掉新出现的业务 cookie。
     // 同步等所有 sweep 完成,保证 next handler 时两端一致。
     if (filteredCookies.isNotEmpty) {
       final sweepFutures = filteredCookies.map((cookie) {

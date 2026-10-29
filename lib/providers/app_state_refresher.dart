@@ -14,8 +14,6 @@ import 'message_bus/notification_providers.dart';
 import 'message_bus/pm_tracking_providers.dart';
 import 'message_bus/session_channel_providers.dart';
 import 'message_bus/topic_tracking_providers.dart';
-import 'ldc_providers.dart';
-import 'cdk_providers.dart';
 
 class AppStateRefresher {
   AppStateRefresher._();
@@ -69,8 +67,6 @@ class AppStateRefresher {
       container.read(tabTagsProvider(id).notifier).state = [];
     }
     container.read(activeCategorySlugsProvider.notifier).reset();
-    await container.read(ldcUserInfoProvider.notifier).disable();
-    await container.read(cdkUserInfoProvider.notifier).disable();
   }
 
   /// 刷新话题列表各 tab
@@ -125,7 +121,5 @@ class AppStateRefresher {
     (c) => c.invalidate(userDraftCountProvider),
     (c) => c.invalidate(reviewableCountsProvider),
     (c) => c.invalidate(messageBusInitProvider),
-    (c) => c.invalidate(ldcUserInfoProvider),
-    (c) => c.invalidate(cdkUserInfoProvider),
   ];
 }

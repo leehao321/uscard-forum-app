@@ -83,7 +83,7 @@ void main() {
       );
       expect(
         requestCanUseWebViewAdapter(
-          options('/api/v1/user', baseUrl: 'https://cdk.uscardforum.com'),
+          options('/api/v1/user', baseUrl: 'https://cdn.uscardforum.com'),
         ),
         isFalse,
       );
