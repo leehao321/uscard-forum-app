@@ -41,7 +41,7 @@
   "login_qrShowCode": "Show login QR code",
   "login_qrSuccess": "Signed in via QR code",
   "login_scanToLogin": "Scan QR to sign in",
-  "login_slogan": "Sincere, Friendly, United, Professional",
+  "login_slogan": "Unofficial third-party client",
   "migration_cookieUpgrade": "Upgrading cookie storage...",
   "migration_reloginRequired": "Cookie storage has been upgraded. Your login session was cleared. Please log in again.",
   "migration_title": "Data Upgrade",

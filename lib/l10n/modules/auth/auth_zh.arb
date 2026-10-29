@@ -55,7 +55,7 @@
   "login_qrShowCode": "显示登录二维码",
   "login_qrSuccess": "扫码登录成功",
   "login_scanToLogin": "扫码登录",
-  "login_slogan": "真诚、友善、团结、专业",
+  "login_slogan": "非官方第三方客户端",
   "migration_cookieUpgrade": "正在升级 Cookie 存储...",
   "migration_reloginRequired": "本次版本升级优化了 Cookie 存储机制，已清除旧的登录状态。请重新登录。",
   "migration_title": "数据升级",
