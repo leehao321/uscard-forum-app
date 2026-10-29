@@ -20,18 +20,18 @@ void main() {
     test('keeps internal page links on origin host', () {
       expect(
         UrlHelper.resolveUrl('/t/topic-slug/123'),
-        'https://linux.do/t/topic-slug/123',
+        'https://www.uscardforum.com/t/topic-slug/123',
       );
     });
 
     test('keeps relative upload paths on origin host', () {
       expect(
         UrlHelper.resolveUrl('/uploads/short-url/test.pdf'),
-        'https://linux.do/uploads/short-url/test.pdf',
+        'https://www.uscardforum.com/uploads/short-url/test.pdf',
       );
       expect(
         UrlHelper.resolveUrl('/uploads/default/optimized/1X/test_2_690x200.png'),
-        'https://linux.do/uploads/default/optimized/1X/test_2_690x200.png',
+        'https://www.uscardforum.com/uploads/default/optimized/1X/test_2_690x200.png',
       );
     });
 
@@ -45,15 +45,15 @@ void main() {
 
       expect(
         UrlHelper.resolveUrl('/t/topic-slug/123'),
-        'https://linux.do/forum/t/topic-slug/123',
+        'https://www.uscardforum.com/forum/t/topic-slug/123',
       );
       expect(
         UrlHelper.resolveUrl('/forum/t/topic-slug/123'),
-        'https://linux.do/forum/t/topic-slug/123',
+        'https://www.uscardforum.com/forum/t/topic-slug/123',
       );
       expect(
         UrlHelper.resolveUrl('/'),
-        'https://linux.do/forum',
+        'https://www.uscardforum.com/forum',
       );
     });
 

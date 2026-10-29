@@ -48,10 +48,12 @@ class CfTestPlatform extends InAppWebViewPlatform {
   ) => webView = CfTestWebView(params);
 }
 
+/// 与真机一致：Cloudflare 把 cf_clearance 下发在根域 `.uscardforum.com`，
+/// 而不是主站 `www.uscardforum.com`。
 Cookie cfTestCookie(String value) => Cookie(
   name: 'cf_clearance',
   value: value,
-  domain: '.linux.do',
+  domain: '.uscardforum.com',
   path: '/',
   isSecure: true,
   isHttpOnly: true,
@@ -152,7 +154,8 @@ class CfTestController extends PlatformInAppWebViewController {
   }
 
   @override
-  Future<WebUri?> getUrl() async => WebUri('https://linux.do/challenge');
+  Future<WebUri?> getUrl() async =>
+      WebUri('https://www.uscardforum.com/challenge');
 
   @override
   Future<dynamic> callDevToolsProtocolMethod({

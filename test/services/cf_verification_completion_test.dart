@@ -17,7 +17,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   final platform = CfTestPlatform();
   final jar = CookieJarService();
-  const verifyUrl = 'https://linux.do/challenge';
+  const verifyUrl = 'https://www.uscardforum.com/challenge';
 
   setUpAll(platform.initialize);
   setUp(platform.reset);
@@ -90,7 +90,7 @@ void main() {
   testWidgets('源站无盾即可结束，已有旧副本仍按普通同步规则保护在位值', (tester) async {
     await jar.cookieJar.saveFromResponse(Uri.parse(verifyUrl), [
       io.Cookie('cf_clearance', 'incumbent')
-        ..domain = '.linux.do'
+        ..domain = '.uscardforum.com'
         ..path = '/',
     ]);
     platform.cookies.values = [cfTestCookie('webview-residue')];
@@ -127,7 +127,7 @@ void main() {
   testWidgets('Cookie 同步没有更新 jar，也不改变源站已放行的结果', (tester) async {
     await jar.cookieJar.saveFromResponse(Uri.parse(verifyUrl), [
       io.Cookie('cf_clearance', 'other')
-        ..domain = '.linux.do'
+        ..domain = '.uscardforum.com'
         ..path = '/',
     ]);
     platform.cookies.singleValue = 'fresh';
