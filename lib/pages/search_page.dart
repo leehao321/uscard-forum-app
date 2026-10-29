@@ -1225,7 +1225,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     height: 32,
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
-                      child: Switch(
+                      child: Switch.adaptive(
                         value:
                             ref.watch(searchSettingsProvider).aiSearchEnabled &&
                             ref.watch(searchSettingsProvider).sortOrder ==

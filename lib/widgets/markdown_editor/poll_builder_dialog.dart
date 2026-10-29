@@ -484,7 +484,7 @@ class _PollBuilderDialogState extends State<_PollBuilderDialog> {
                   onChanged: (v) =>
                       setState(() => _results = v ?? 'always'),
                 ),
-                SwitchListTile(
+                SwitchListTile.adaptive(
                   value: _public,
                   onChanged: (v) => setState(() => _public = v),
                   title: const Text('公开投票人', style: TextStyle(fontSize: 14)),

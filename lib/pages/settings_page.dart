@@ -291,7 +291,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       itemCount: filtered.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 3),
+      // iOS inset-grouped 下条目无缝连成一组,不留间隙
+      separatorBuilder: (context, _) => SizedBox(
+        height: SegmentedCardGroupStyle.isInsetGrouped(context) ? 0 : 3,
+      ),
       itemBuilder: (context, index) {
         final result = filtered[index];
         return SegmentedCardItem(

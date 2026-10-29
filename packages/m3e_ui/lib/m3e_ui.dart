@@ -9,7 +9,8 @@
 /// - [M3eRefreshIndicator]:M3E 下拉刷新(LoadingSpinner 表现层);
 /// - [M3eButtonGroup]:联排按钮组(按压展宽/邻项挤压);
 /// - [M3eFabMenu]:FAB 菜单(stagger 入场 + FAB 收圆变形);
-/// - [SegmentedCardGroup]:M3E 分段卡片列表。
+/// - [SegmentedCardGroup]:M3E 分段卡片列表(主题注册
+///   [SegmentedCardGroupStyle] 后可切 iOS inset-grouped 形态)。
 library;
 
 export 'src/loading_spinner.dart';

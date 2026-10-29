@@ -170,7 +170,7 @@ class _TopicCardStyleSettingsPageState
                 ],
               ),
             ),
-            SwitchListTile(
+            SwitchListTile.adaptive(
               title: Text(l10n.topicCardStyle_animatedAvatar),
               subtitle: Text(l10n.topicCardStyle_animatedAvatarDesc),
               secondary: Icon(
@@ -412,7 +412,7 @@ class _TopicCardStyleSettingsPageState
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    return SwitchListTile(
+    return SwitchListTile.adaptive(
       title: Text(title),
       subtitle: subtitle != null ? Text(subtitle) : null,
       secondary: Icon(

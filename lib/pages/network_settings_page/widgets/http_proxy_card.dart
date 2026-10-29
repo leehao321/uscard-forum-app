@@ -76,7 +76,7 @@ class _HttpProxyCardInner extends StatelessWidget {
               ? theme.colorScheme.tertiaryContainer.withValues(alpha: 0.3)
               : null,
           children: [
-            SwitchListTile(
+            SwitchListTile.adaptive(
               title: Text(context.l10n.httpProxy_title),
               subtitle: Text(
                 vpnLocked

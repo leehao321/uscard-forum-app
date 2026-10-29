@@ -410,7 +410,7 @@ class _CryptoEncryptSheetState extends ConsumerState<CryptoEncryptSheet> {
     }
     return Row(
       children: [
-        Switch(
+        Switch.adaptive(
           value: _rememberPassword,
           onChanged: (v) => setState(() => _rememberPassword = v),
         ),

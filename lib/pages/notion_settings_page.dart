@@ -381,7 +381,7 @@ class _NotionSettingsPageState extends ConsumerState<NotionSettingsPage> {
             const SizedBox(height: 8),
             SegmentedCardGroup(
               children: [
-                SwitchListTile(
+                SwitchListTile.adaptive(
                   title: Text(
                     context.l10n.notion_autoSyncOnBookmark,
                     style: theme.textTheme.bodyMedium?.copyWith(

@@ -99,7 +99,7 @@ class _ProgressGestureMenuSettingsPageState
       body: ListView(
         children: [
           // 启用开关
-          SwitchListTile(
+          SwitchListTile.adaptive(
             value: longPressEnabled,
             title: Text(l10n.progressGesture_longPressEnable),
             subtitle: Text(l10n.progressGesture_longPressEnableDesc),

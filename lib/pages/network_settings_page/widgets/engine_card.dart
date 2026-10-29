@@ -328,7 +328,7 @@ class _EngineCardState extends State<EngineCard> {
       children: [
         _divider(theme),
         // rhttp 引擎
-        SwitchListTile(
+        SwitchListTile.adaptive(
           dense: true,
           secondary: Icon(
             Symbols.rocket_launch_rounded,
@@ -376,7 +376,7 @@ class _EngineCardState extends State<EngineCard> {
           ),
         _divider(theme),
         // WebView 适配器
-        SwitchListTile(
+        SwitchListTile.adaptive(
           dense: true,
           secondary: Icon(
             Symbols.language_rounded,
@@ -408,7 +408,7 @@ class _EngineCardState extends State<EngineCard> {
 
     return [
       _divider(theme),
-      SwitchListTile(
+      SwitchListTile.adaptive(
         secondary: const Icon(Symbols.swap_horiz_rounded),
         title: Text(l10n.networkAdapter_forceFallback),
         subtitle: Text(l10n.networkAdapter_forceFallbackDesc),

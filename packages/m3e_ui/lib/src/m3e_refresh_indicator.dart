@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart' show CupertinoActivityIndicator;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -21,6 +22,10 @@ import 'm3e_flags.dart';
 /// 完整小圆片),刷新中形状 morph 即加载状态,完成后缩放收没。
 ///
 /// M3E 开关关闭时回退原生 [RefreshIndicator]。
+///
+/// iOS(`Theme.platform == iOS`)上展示层换成 [CupertinoActivityIndicator]
+/// (下拉时随进度渐显,刷新中转动),无圆片托底;拖拽/armed/snap/refresh
+/// 状态机与回调完全沿用同一套,M3E 开关在 iOS 上不再影响下拉刷新形态。
 class M3eRefreshIndicator extends StatefulWidget {
   final Widget child;
   final RefreshCallback onRefresh;
@@ -65,7 +70,10 @@ class M3eRefreshIndicatorState extends State<M3eRefreshIndicator> {
 
   @override
   Widget build(BuildContext context) {
-    if (!M3eFlags.of(context).enabled) {
+    final isIOS = Theme.of(context).platform == TargetPlatform.iOS;
+    // iOS 一律走自绘状态机(Cupertino 展示层),不随 M3E 开关回退成
+    // Material 圆形进度。
+    if (!isIOS && !M3eFlags.of(context).enabled) {
       return RefreshIndicator(
         key: _fallbackKey,
         onRefresh: widget.onRefresh,
@@ -77,6 +85,7 @@ class M3eRefreshIndicatorState extends State<M3eRefreshIndicator> {
     }
     return _M3eRefreshCore(
       key: _coreKey,
+      cupertino: isIOS,
       onRefresh: widget.onRefresh,
       edgeOffset: widget.edgeOffset,
       displacement: widget.displacement,
@@ -109,6 +118,9 @@ const double _kBadgeShadowMargin = 6;
 
 class _M3eRefreshCore extends StatefulWidget {
   final Widget child;
+
+  /// 展示层用 iOS 风格转圈(CupertinoActivityIndicator)。
+  final bool cupertino;
   final RefreshCallback onRefresh;
   final double edgeOffset;
   final double displacement;
@@ -116,6 +128,7 @@ class _M3eRefreshCore extends StatefulWidget {
 
   const _M3eRefreshCore({
     super.key,
+    required this.cupertino,
     required this.child,
     required this.onRefresh,
     required this.edgeOffset,
@@ -411,7 +424,16 @@ class _M3eRefreshCoreState extends State<_M3eRefreshCore>
                     scale: _scaleFactor,
                     child: FadeTransition(
                       opacity: _opacity,
-                      child: const _SpinnerBadge(size: _kBadgeSize),
+                      child: widget.cupertino
+                          ? _CupertinoSpinner(
+                              position: _positionController,
+                              // 拖拽/取消回缩中随位移渐显;松手进入 snap/refresh 后转动
+                              revealing:
+                                  _status == RefreshIndicatorStatus.drag ||
+                                  _status == RefreshIndicatorStatus.armed ||
+                                  _status == RefreshIndicatorStatus.canceled,
+                            )
+                          : const _SpinnerBadge(size: _kBadgeSize),
                     ),
                   ),
                 ),
@@ -446,6 +468,48 @@ class _SpinnerBadge extends StatelessWidget {
           height: size,
           child: Center(child: LoadingSpinner(size: size - 18)),
         ),
+      ),
+    );
+  }
+}
+
+/// iOS 风格转圈:无托底,占位高度与 [_SpinnerBadge] 一致(保持悬停位几何不变)。
+///
+/// 下拉中([revealing])按位移进度渐显(同 CupertinoSliverRefreshControl 的
+/// partiallyRevealed),拉到 armed 阈值时刚好满格;松手进入刷新后转动。
+class _CupertinoSpinner extends StatelessWidget {
+  final Animation<double> position;
+  final bool revealing;
+
+  const _CupertinoSpinner({required this.position, required this.revealing});
+
+  static const double _radius = 11;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurfaceVariant;
+    return SizedBox(
+      height: _kBadgeSize + 2 * _kBadgeShadowMargin,
+      child: Center(
+        child: revealing
+            ? AnimatedBuilder(
+                animation: position,
+                builder: (context, _) =>
+                    CupertinoActivityIndicator.partiallyRevealed(
+                      key: const ValueKey('revealing'),
+                      radius: _radius,
+                      color: color,
+                      progress: (position.value * _kDragSizeFactorLimit).clamp(
+                        0.0,
+                        1.0,
+                      ),
+                    ),
+              )
+            : CupertinoActivityIndicator(
+                key: const ValueKey('spinning'),
+                radius: _radius,
+                color: color,
+              ),
       ),
     );
   }

@@ -6,6 +6,66 @@ const double _kSheetCornerRadius = 20.0;
 const double _kHandleWidth = 32.0;
 const double _kHandleHeight = 4.0;
 
+// iOS 外壳常量(HIG:顶部圆角 12、36×5 抓手、17pt 半粗标题)
+const double _kIosSheetCornerRadius = 12.0;
+const double _kIosHandleWidth = 36.0;
+const double _kIosHandleHeight = 5.0;
+const double _kIosTitleBarHeight = 44.0;
+const TextStyle _kIosTitleStyle = TextStyle(
+  fontSize: 17,
+  fontWeight: FontWeight.w600,
+  height: 1.3,
+);
+
+/// [AppSheetScaffold] 在 iOS 上的外观覆盖(ThemeExtension,可选)。
+///
+/// common_ui 不依赖应用,iOS 的圆角/标题字阶由宿主通过这个扩展传入;
+/// 未注册时 iOS 回退到内置的 HIG 默认值(圆角 12、标题 17/w600)。
+/// 其他平台忽略此扩展,外壳保持原样。
+///
+/// 注意:light/dark 两个 ThemeData 必须对称注册 —— ThemeData.lerp 对
+/// "单边缺失"的 extension 不插值而是瞬时并入。
+@immutable
+class AppSheetShellStyle extends ThemeExtension<AppSheetShellStyle> {
+  /// 顶部圆角。
+  final double topRadius;
+
+  /// 标题样式(不含颜色与 fontFamily,外壳按 textTheme 补字体与颜色)。
+  final TextStyle? titleStyle;
+
+  const AppSheetShellStyle({
+    this.topRadius = _kIosSheetCornerRadius,
+    this.titleStyle,
+  });
+
+  @override
+  AppSheetShellStyle copyWith({double? topRadius, TextStyle? titleStyle}) =>
+      AppSheetShellStyle(
+        topRadius: topRadius ?? this.topRadius,
+        titleStyle: titleStyle ?? this.titleStyle,
+      );
+
+  @override
+  AppSheetShellStyle lerp(ThemeExtension<AppSheetShellStyle>? other, double t) {
+    if (other is! AppSheetShellStyle) return this;
+    return AppSheetShellStyle(
+      topRadius: topRadius + (other.topRadius - topRadius) * t,
+      titleStyle: TextStyle.lerp(titleStyle, other.titleStyle, t),
+    );
+  }
+
+  // ThemeData 每次 build 都是新实例;extension 不可比较会让 AnimatedTheme
+  // 在每次 rebuild 时空转一段 lerp 动画。
+  @override
+  bool operator ==(Object other) =>
+      other is AppSheetShellStyle &&
+      other.topRadius == topRadius &&
+      other.titleStyle == titleStyle;
+
+  @override
+  int get hashCode => Object.hash(topRadius, titleStyle);
+}
+
 /// 底部弹框的两种受控形态。
 enum AppSheetStyle {
   /// 贴边列表式:贴屏幕左右下边、顶部圆角,默认带拖拽条、可下滑关闭。
@@ -89,6 +149,11 @@ class AppSheetScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final isIOS = theme.platform == TargetPlatform.iOS;
+    final shellStyle = theme.extension<AppSheetShellStyle>();
+    final topRadius = isIOS
+        ? (shellStyle?.topRadius ?? _kIosSheetCornerRadius)
+        : _kSheetCornerRadius;
     final isCard = style == AppSheetStyle.card;
     // 拖拽条默认:贴边式显示、卡片式隐藏;显式指定则以指定为准。
     final resolvedShowHandle = showDragHandle ?? !isCard;
@@ -106,17 +171,24 @@ class AppSheetScaffold extends StatelessWidget {
     // ink 层会导致点击反馈被不透明背景遮挡。
     final shell = Material(
       color: cs.surface,
-      borderRadius: const BorderRadius.vertical(
-        top: Radius.circular(_kSheetCornerRadius),
-      ),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(topRadius)),
       clipBehavior: Clip.antiAlias,
       child: SafeArea(
         top: false,
         child: Column(
           mainAxisSize: expandToFill ? MainAxisSize.max : MainAxisSize.min,
           children: [
-            if (resolvedShowHandle) _buildDragHandle(cs),
-            if (_hasTitle) _buildTitleBar(context, theme, resolvedShowHandle),
+            if (resolvedShowHandle) _buildDragHandle(cs, isIOS),
+            if (_hasTitle)
+              // 仅纯文字标题走 iOS 居中骨架;自定义 titleWidget 保持原布局
+              isIOS && titleWidget == null
+                  ? _buildIosTitleBar(
+                      context,
+                      theme,
+                      shellStyle,
+                      resolvedShowHandle,
+                    )
+                  : _buildTitleBar(context, theme, resolvedShowHandle),
             if (_hasTitle && showTitleDivider)
               const Divider(height: 1, indent: 16, endIndent: 16),
             content,
@@ -144,17 +216,63 @@ class AppSheetScaffold extends StatelessWidget {
     );
   }
 
-  Widget _buildDragHandle(ColorScheme cs) {
+  Widget _buildDragHandle(ColorScheme cs, bool isIOS) {
+    final width = isIOS ? _kIosHandleWidth : _kHandleWidth;
+    final height = isIOS ? _kIosHandleHeight : _kHandleHeight;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Center(
         child: Container(
-          width: _kHandleWidth,
-          height: _kHandleHeight,
+          width: width,
+          height: height,
           decoration: BoxDecoration(
             color: cs.onSurfaceVariant.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(_kHandleHeight / 2),
+            borderRadius: BorderRadius.circular(height / 2),
           ),
+        ),
+      ),
+    );
+  }
+
+  /// iOS 标题栏:标题(headline)相对整条栏居中,actions/关闭按钮靠右。
+  /// 仅用于纯文字 [title](无 [titleWidget])。
+  Widget _buildIosTitleBar(
+    BuildContext context,
+    ThemeData theme,
+    AppSheetShellStyle? shellStyle,
+    bool hasHandle,
+  ) {
+    final trailing = <Widget>[
+      ...actions,
+      if (showCloseButton)
+        IconButton(
+          icon: const Icon(Symbols.close_rounded),
+          visualDensity: VisualDensity.compact,
+          tooltip: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+    ];
+    // 字体取 textTheme(带用户字体与中文 fallback),字阶取 shellStyle/默认 HIG
+    final titleStyle = (theme.textTheme.titleMedium ?? const TextStyle())
+        .copyWith(letterSpacing: 0)
+        .merge(shellStyle?.titleStyle ?? _kIosTitleStyle)
+        .copyWith(color: theme.colorScheme.onSurface);
+    return Padding(
+      padding: EdgeInsets.only(top: hasHandle ? 0 : 4, left: 8, right: 8),
+      child: SizedBox(
+        height: _kIosTitleBarHeight,
+        child: NavigationToolbar(
+          centerMiddle: true,
+          middle: Text(
+            title!,
+            style: titleStyle,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: trailing.isEmpty
+              ? null
+              : Row(mainAxisSize: MainAxisSize.min, children: trailing),
         ),
       ),
     );

@@ -47,7 +47,7 @@ class _AppLockSettingsPageState extends State<AppLockSettingsPage> {
       appBar: AppBar(title: const Text('应用锁')),
       body: ListView(
         children: [
-          SwitchListTile(
+          SwitchListTile.adaptive(
             title: const Text('启用应用锁'),
             subtitle: const Text('打开 App 时需要 Face ID / Touch ID 或设备密码'),
             value: _service.enabled,

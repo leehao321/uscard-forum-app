@@ -182,7 +182,7 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SwitchListTile(
+            SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
               title: const Text('启用监控'),
               subtitle: Text(
@@ -193,7 +193,7 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
               value: FrameJankMonitor.isRunning,
               onChanged: _toggle,
             ),
-            SwitchListTile(
+            SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
               title: const Text('悬浮监控面板'),
               subtitle: const Text(

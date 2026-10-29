@@ -88,7 +88,7 @@ class _DohSettingsCardInner extends StatelessWidget {
           : null,
       children: [
         // DOH 开关
-        SwitchListTile(
+        SwitchListTile.adaptive(
           title: const Text('DNS over HTTPS'),
           subtitle: Text(
             vpnLocked
@@ -574,7 +574,7 @@ class _CertGuideState extends State<_CertGuide> {
     }
 
     // 其他平台: per-device 证书开关
-    return SwitchListTile(
+    return SwitchListTile.adaptive(
       secondary: Icon(
         _perDeviceEnabled
             ? Symbols.verified_user_rounded

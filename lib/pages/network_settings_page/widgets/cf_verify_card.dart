@@ -20,7 +20,7 @@ class CfVerifyCard extends ConsumerWidget {
 
     return SegmentedCardGroup(
       children: [
-        SwitchListTile(
+        SwitchListTile.adaptive(
           secondary: const Icon(Symbols.shield_rounded),
           title: Text(context.l10n.cfVerify_autoTitle),
           subtitle: Text(context.l10n.cfVerify_autoDesc),

@@ -1270,7 +1270,7 @@ class _BackgroundSection extends ConsumerWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
-          SwitchListTile(
+          SwitchListTile.adaptive(
             secondary: Icon(
               Symbols.opacity_rounded,
               color: transparent ? cs.primary : cs.onSurfaceVariant,

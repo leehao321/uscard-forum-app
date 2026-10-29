@@ -90,6 +90,7 @@ import 'utils/hashtag_handlers.dart';
 import 'utils/image_decode_gate.dart';
 import 'widgets/post/post_item/render_parse_cache.dart';
 import 'utils/scroll_busy_signal.dart';
+import 'theme/app_adaptive_theme.dart';
 import 'theme/theme_resolver.dart';
 import 'widgets/common/app_background_layer.dart';
 import 'utils/time_utils.dart';
@@ -600,14 +601,16 @@ ThemeData _withChineseFallback(ThemeData base) {
 
 /// Material Symbols 全局轴默认：fill=0 走线框，weight/grade/opticalSize
 /// 给出与现有视觉匹配的中性值。状态类图标需在使用处显式传 `fill: 1`。
-IconThemeData _appIconTheme(Color color) => IconThemeData(
-  color: color,
-  size: 24,
-  fill: 0,
-  weight: 400,
-  grade: 0,
-  opticalSize: 24,
-);
+/// iOS 上 weight 降到 300(更细,贴近 SF Symbols 的笔画)。
+IconThemeData _appIconTheme(Color color, TargetPlatform platform) =>
+    IconThemeData(
+      color: color,
+      size: 24,
+      fill: 0,
+      weight: platform == TargetPlatform.iOS ? 300 : 400,
+      grade: 0,
+      opticalSize: 24,
+    );
 
 /// 页面转场:框架在 Android 的默认(PredictiveBack,常规导航兜底到
 /// FadeForwards)是入场/离场两页各套一个整页 FadeTransition —— Impeller
@@ -651,6 +654,13 @@ const _fullscreenSwipePageTransitionsTheme = PageTransitionsTheme(
 /// 完成,theme 注入全局生效;时长对齐规格用的 DefaultEffects 弹簧
 /// (spring(1.0, 1600) 收敛 ≈180ms,规格注释明确"不允许过冲",
 /// Material 的 fastOutSlowIn 曲线正好同为无过冲缓动)。
+// 按钮形状样式只建一次：resolveWith 的闭包每次新建都不相等，会让每次
+// 装配出的 ThemeData 都不相等，MaterialApp 的 AnimatedTheme 因此在每次
+// 重建时都空跑一段整树主题插值动画。
+final ButtonStyle _m3ePressedShapeStyleInstance = _m3ePressedShapeStyle();
+final ButtonStyle _m3eIconButtonShapeStyleInstance =
+    _m3eIconButtonShapeStyle();
+
 ButtonStyle _m3ePressedShapeStyle() => ButtonStyle(
   animationDuration: const Duration(milliseconds: 180),
   shape: WidgetStateProperty.resolveWith(
@@ -679,25 +689,31 @@ ButtonStyle _m3eIconButtonShapeStyle() => ButtonStyle(
 
 /// light/dark 共用的 ThemeData 装配(两侧必须对称,尤其 M3eFlags ——
 /// ThemeData.lerp 对单边缺失的 extension 不插值而是瞬时并入)。
+///
+/// [platform] 默认取 [defaultTargetPlatform](测试可显式传入 iOS)。iOS 专属
+/// 适配与设计 token 由 `applyAppAdaptiveLayer` 在末尾叠加,非 iOS 视觉不变。
 ThemeData _buildAppTheme(
   ColorScheme scheme,
   ThemeState themeState, {
   required bool fullscreenSwipeBack,
   required bool transparent,
+  TargetPlatform? platform,
 }) {
+  final targetPlatform = platform ?? defaultTargetPlatform;
   final m3e = themeState.m3eEnabled;
-  final buttonStyle = m3e ? _m3ePressedShapeStyle() : null;
-  return ThemeData(
+  final buttonStyle = m3e ? _m3ePressedShapeStyleInstance : null;
+  final base = ThemeData(
     colorScheme: scheme,
     useMaterial3: true,
+    platform: targetPlatform,
     fontFamily: themeState.fontFamilyName,
     // 透明模式：脚手架让出背景，由根背景层的用户图片透出
     scaffoldBackgroundColor: transparent ? Colors.transparent : null,
     pageTransitionsTheme: fullscreenSwipeBack
         ? _fullscreenSwipePageTransitionsTheme
         : _pageTransitionsTheme,
-    iconTheme: _appIconTheme(scheme.onSurface),
-    primaryIconTheme: _appIconTheme(scheme.onPrimary),
+    iconTheme: _appIconTheme(scheme.onSurface, targetPlatform),
+    primaryIconTheme: _appIconTheme(scheme.onPrimary, targetPlatform),
     extensions: [M3eFlags(enabled: m3e)],
     // year2023: false 启用进度条/滑块的 M3E 翻新(圆角端点/track gap/
     // stop indicator/16dp 滑轨+竖条 thumb)。字段虽标记 deprecated,但
@@ -717,7 +733,7 @@ ThemeData _buildAppTheme(
     outlinedButtonTheme: OutlinedButtonThemeData(style: buttonStyle),
     textButtonTheme: TextButtonThemeData(style: buttonStyle),
     iconButtonTheme: IconButtonThemeData(
-      style: m3e ? _m3eIconButtonShapeStyle() : null,
+      style: m3e ? _m3eIconButtonShapeStyleInstance : null,
     ),
     cardTheme: CardThemeData(
       elevation: 0,
@@ -733,7 +749,29 @@ ThemeData _buildAppTheme(
       menuPadding: const EdgeInsets.symmetric(vertical: 8),
     ),
   );
+  return applyAppAdaptiveLayer(
+    base,
+    scheme: scheme,
+    platform: targetPlatform,
+    fontFamilyFallback: SystemChineseFont.fontFamilyFallback,
+  );
 }
+
+/// 供测试直接装配应用主题(`_buildAppTheme` 私有)。
+@visibleForTesting
+ThemeData buildAppThemeForTest(
+  ColorScheme scheme,
+  ThemeState themeState, {
+  required TargetPlatform platform,
+  bool fullscreenSwipeBack = false,
+  bool transparent = false,
+}) => _buildAppTheme(
+  scheme,
+  themeState,
+  fullscreenSwipeBack: fullscreenSwipeBack,
+  transparent: transparent,
+  platform: platform,
+);
 
 class MainApp extends ConsumerWidget {
   const MainApp({super.key});

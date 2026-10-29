@@ -57,7 +57,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
               // IPv6 开关
               SegmentedCardGroup(
                 children: [
-                  SwitchListTile(
+                  SwitchListTile.adaptive(
                     title: Text(context.l10n.dohDetail_gatewayMode),
                     subtitle: Text(
                       settings.gatewayEnabled
@@ -68,7 +68,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
                     value: settings.gatewayEnabled,
                     onChanged: (value) => _service.setGatewayEnabled(value),
                   ),
-                  SwitchListTile(
+                  SwitchListTile.adaptive(
                     title: Text(context.l10n.dohDetail_h2Mitm),
                     subtitle: Text(
                       settings.h2Mitm
@@ -79,7 +79,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
                     value: settings.h2Mitm,
                     onChanged: (value) => _service.setH2Mitm(value),
                   ),
-                  SwitchListTile(
+                  SwitchListTile.adaptive(
                     title: Text(context.l10n.dohDetail_ipv6Prefer),
                     subtitle: Text(context.l10n.dohDetail_ipv6PreferDesc),
                     secondary: const Icon(Symbols.language_rounded),

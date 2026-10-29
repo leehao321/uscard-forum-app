@@ -78,7 +78,7 @@ class _ReadingStatsPageState extends State<ReadingStatsPage> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('阅读统计')),
-      body: RefreshIndicator(
+      body: RefreshIndicator.adaptive(
         onRefresh: _load,
         child: ListView(
           padding: const EdgeInsets.all(16),

@@ -100,7 +100,7 @@ class _SavedTopicsPageState extends State<SavedTopicsPage> {
       ),
       body: Column(
         children: [
-          SwitchListTile(
+          SwitchListTile.adaptive(
             title: const Text('看过就存'),
             subtitle: const Text('打开并加载过的话题自动保存到本机，不额外联网'),
             value: _enabled,

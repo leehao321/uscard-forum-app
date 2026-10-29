@@ -38,7 +38,7 @@ class SettingsRenderer extends ConsumerWidget {
     if (!(m.enabledWhen?.call(ref) ?? true)) return const SizedBox.shrink();
     final value = m.getValue(ref);
     final subtitle = m.subtitleBuilder?.call(ref) ?? m.subtitle;
-    return SwitchListTile(
+    return SwitchListTile.adaptive(
       title: Text(m.title),
       subtitle: subtitle != null ? Text(subtitle) : null,
       secondary: Icon(

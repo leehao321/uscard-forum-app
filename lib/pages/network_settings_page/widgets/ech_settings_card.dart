@@ -27,7 +27,7 @@ class EchSettingsCard extends StatelessWidget {
     return SegmentedCardGroup(
       children: [
         serverSelector,
-        SwitchListTile(
+        SwitchListTile.adaptive(
           secondary: const Icon(Symbols.encrypted_rounded),
           title: Text(l10n.dohDetail_publicEch),
           subtitle: Text(
