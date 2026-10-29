@@ -361,27 +361,29 @@ class PreloadedDataService {
   }
 
   /// 站点是否装了 discourse-reactions 插件（插件设置会下发到 siteSettings）。
-  /// siteSettings 还没加载时按「装了」处理，沿用原来的行为。
-  bool get reactionsPluginEnabled {
+  ///
+  /// siteSettings 还没加载、加载失败或刷新途中被清空时为 null：不知道装没装。
+  /// 这时点赞走 Discourse 自带接口（装没装插件都能用），也不弹表情面板。
+  bool? get reactionsPluginState {
     final s = _siteSettings;
-    if (s == null) return true;
+    if (s == null || s.isEmpty) return null;
     if (s.containsKey('discourse_reactions_enabled')) {
       return s['discourse_reactions_enabled'] == true;
     }
     return s.containsKey('discourse_reactions_enabled_reactions');
   }
 
-  /// 获取可用的回应表情列表（没装回应插件时为空，界面就不弹表情面板）
+  /// 获取可用的回应表情列表（没装或不知道装没装回应插件时为空，界面就不弹表情面板）
   Future<List<String>> getEnabledReactions() async {
     await _ensureLoaded();
-    if (!reactionsPluginEnabled) return const [];
+    if (reactionsPluginState != true) return const [];
     return _enabledReactions ?? ['heart', '+1', 'laughing', 'open_mouth'];
   }
 
-  /// 同步获取可用回应表情列表（仅返回已 preload 结果，未 preload 时返回兜底）
+  /// 同步获取可用回应表情列表（仅返回已 preload 结果）
   /// 用于"按下立即弹出"等零延迟场景
   List<String> get enabledReactionsSync {
-    if (!reactionsPluginEnabled) return const [];
+    if (reactionsPluginState != true) return const [];
     return _enabledReactions ?? const ['heart', '+1', 'laughing', 'open_mouth'];
   }
 

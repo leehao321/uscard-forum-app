@@ -698,6 +698,23 @@ class PostReaction {
     );
   }
 
+  /// 把 [reactions] 里 heart 的数量改成 [count]，其他表情原样保留；
+  /// 数量为 0 时去掉 heart。走 Discourse 自带点赞接口后用它更新展示。
+  static List<PostReaction> withHeartCount(
+    List<PostReaction> reactions,
+    int count,
+  ) {
+    final index = reactions.indexWhere((r) => r.id == 'heart');
+    final next = [...reactions.where((r) => r.id != 'heart')];
+    if (count > 0) {
+      next.insert(
+        index < 0 ? 0 : index.clamp(0, next.length),
+        PostReaction(id: 'heart', type: 'emoji', count: count),
+      );
+    }
+    return next;
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

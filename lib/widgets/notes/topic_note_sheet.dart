@@ -39,6 +39,9 @@ class _TopicNoteSheetState extends State<_TopicNoteSheet>
   bool _dirty = false;
   Timer? _saveTimer;
 
+  /// 上次读入或保存的正文
+  String _savedText = '';
+
   @override
   void initState() {
     super.initState();
@@ -46,8 +49,9 @@ class _TopicNoteSheetState extends State<_TopicNoteSheet>
     TopicNoteStore.get(widget.topicId).then((note) {
       if (!mounted) return;
       _text.text = note?.text ?? '';
+      _savedText = _text.text;
       // 读完再挂监听，填入旧内容不算改动
-      _text.addListener(_scheduleSave);
+      _text.addListener(_onTextChanged);
       setState(() {
         _excerpts = [...?note?.excerpts];
         _loaded = true;
@@ -73,6 +77,13 @@ class _TopicNoteSheetState extends State<_TopicNoteSheet>
     super.dispose();
   }
 
+  /// 控制器在光标、选区变化时也会通知：只有文字真的变了才算改动，
+  /// 否则点一下输入框也会刷新修改时间，「我的笔记」的排序就乱了
+  void _onTextChanged() {
+    if (_text.text == _savedText) return;
+    _scheduleSave();
+  }
+
   /// 停笔 1 秒后自动保存
   void _scheduleSave() {
     _dirty = true;
@@ -85,6 +96,7 @@ class _TopicNoteSheetState extends State<_TopicNoteSheet>
     _saveTimer = null;
     if (!_loaded || !_dirty) return;
     _dirty = false;
+    _savedText = _text.text;
     unawaited(
       TopicNoteStore.save(
         TopicNote(

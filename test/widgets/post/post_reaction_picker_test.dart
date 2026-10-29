@@ -6,6 +6,7 @@ import 'package:fluxdo/l10n/s.dart';
 import 'package:fluxdo/models/topic.dart';
 import 'package:fluxdo/services/discourse_cache_manager.dart';
 import 'package:fluxdo/services/emoji_handler.dart';
+import 'package:fluxdo/services/preloaded_data_service.dart';
 import 'package:fluxdo/utils/platform_utils.dart';
 import 'package:fluxdo/widgets/post/post_item/widgets/post_action_bar.dart';
 import 'package:fluxdo/widgets/post/post_item/widgets/post_reaction_picker.dart';
@@ -142,6 +143,10 @@ void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     PlatformUtils.debugDesktopOverride = false;
+    // 表情面板只在确定站点装了回应插件时出现（不知道时只能点赞）
+    PreloadedDataService().debugSeed(
+      siteSettings: {'discourse_reactions_enabled': true},
+    );
 
     // 向图片缓存注入内存图，手势测试不依赖网络、磁盘或原生解码器。
     final recorder = ui.PictureRecorder();
@@ -162,6 +167,7 @@ void main() {
   });
 
   tearDown(() {
+    PreloadedDataService().debugSeed();
     PlatformUtils.debugDesktopOverride = null;
     PaintingBinding.instance.imageCache
       ..clear()

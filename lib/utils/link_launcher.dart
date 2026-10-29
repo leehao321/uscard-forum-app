@@ -151,6 +151,14 @@ Future<void> launchContentLink(
     return;
   }
 
+  // 2. 聊天链接(/chat/c/...):美卡没开聊天、App 里也没有聊天页,交给内置浏览器。
+  //    必须在分类和话题解析之前——/chat/c/-/:cid/t/:tid/:mid 里的 "/c/…"、
+  //    "/t/数字" 会被分类、话题正则误命中,打开成不相干的分类或话题
+  if (DiscourseUrlParser.parseChat(url) != null && isInternalUrlString(url)) {
+    WebViewPage.open(context, UrlHelper.resolveUrl(url));
+    return;
+  }
+
   // 首页平行视界中的站点首页、分类和标签链接直接替换左栏，不再打开
   // WebView。正文链接与话题头部 Badge 使用同一套行为。
   final workspace = HomeWorkspaceScope.maybeOf(context);

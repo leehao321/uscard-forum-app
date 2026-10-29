@@ -7,6 +7,7 @@ import '../../utils/dialog_utils.dart';
 import '../../models/topic.dart';
 import '../../providers/discourse_providers.dart';
 import '../../services/app_error_handler.dart';
+import '../../services/app_lock_service.dart';
 import '../../services/discourse/discourse_service.dart';
 import '../../services/screen_track.dart';
 import '../../services/toast_service.dart';
@@ -73,7 +74,8 @@ class _PostRepliesSheetContent extends ConsumerStatefulWidget {
 }
 
 class _PostRepliesSheetContentState
-    extends ConsumerState<_PostRepliesSheetContent> {
+    extends ConsumerState<_PostRepliesSheetContent>
+    with WidgetsBindingObserver {
   static const int _batchSize = 20;
 
   final DiscourseService _service = DiscourseService();
@@ -110,13 +112,30 @@ class _PostRepliesSheetContentState
     if (_isLoggedIn) {
       _screenTrack.start(widget.topicId);
     }
+    WidgetsBinding.instance.addObserver(this);
+    AppLockService.instance.addListener(_syncScreenTrackFocus);
     _loadInitial();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    AppLockService.instance.removeListener(_syncScreenTrackFocus);
     _screenTrack.stop();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) =>
+      _syncScreenTrackFocus(state);
+
+  /// 与话题页一致：切到后台或被应用锁盖住时不算在读，本机阅读统计和
+  /// 上报论坛的阅读时间都暂停
+  void _syncScreenTrackFocus([AppLifecycleState? state]) {
+    final resumed =
+        (state ?? WidgetsBinding.instance.lifecycleState) ==
+        AppLifecycleState.resumed;
+    _screenTrack.setHasFocus(resumed && !AppLockService.instance.covering);
   }
 
   Future<void> _loadInitial() async {

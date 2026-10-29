@@ -105,7 +105,8 @@ class _ReadingStatsPageState extends State<ReadingStatsPage> {
                     Text('最近 7 天', style: theme.textTheme.titleSmall),
                     const SizedBox(height: 12),
                     SizedBox(
-                      height: 140,
+                      // 数字 + 柱（最高 100）+ 星期，系统字号调大时柱子自己让出空间
+                      height: 150,
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
@@ -121,15 +122,17 @@ class _ReadingStatsPageState extends State<ReadingStatsPage> {
                                     style: theme.textTheme.labelSmall,
                                   ),
                                   const SizedBox(height: 4),
-                                  Container(
-                                    width: 18,
-                                    height: 4 + 96 * d.millis / maxMs,
-                                    decoration: BoxDecoration(
-                                      color: d == today
-                                          ? theme.colorScheme.primary
-                                          : theme.colorScheme.primary
-                                                .withValues(alpha: 0.45),
-                                      borderRadius: BorderRadius.circular(4),
+                                  Flexible(
+                                    child: Container(
+                                      width: 18,
+                                      height: 4 + 96 * d.millis / maxMs,
+                                      decoration: BoxDecoration(
+                                        color: d == today
+                                            ? theme.colorScheme.primary
+                                            : theme.colorScheme.primary
+                                                  .withValues(alpha: 0.45),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 6),

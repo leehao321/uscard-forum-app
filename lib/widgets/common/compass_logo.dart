@@ -39,6 +39,13 @@ class _CompassLogoState extends State<CompassLogo>
     vsync: this,
   );
 
+  // 只建一次:CurvedAnimation 会给 controller 挂状态监听,每次 build 新建会越挂越多
+  // easeInOut 让指针像在"找方向":加速、减速、再转
+  late final CurvedAnimation _turns = CurvedAnimation(
+    parent: _controller,
+    curve: Curves.easeInOutCubic,
+  );
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +64,7 @@ class _CompassLogoState extends State<CompassLogo>
 
   @override
   void dispose() {
+    _turns.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -86,11 +94,7 @@ class _CompassLogoState extends State<CompassLogo>
               width: CompassLogo._needleSide * k,
               height: CompassLogo._needleSide * k,
               child: RotationTransition(
-                // easeInOut 让指针像在"找方向":加速、减速、再转
-                turns: CurvedAnimation(
-                  parent: _controller,
-                  curve: Curves.easeInOutCubic,
-                ),
+                turns: _turns,
                 child: _svg(context, 'assets/logo_needle.svg'),
               ),
             ),

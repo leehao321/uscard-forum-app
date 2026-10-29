@@ -1620,7 +1620,13 @@ extension _UserActions on _TopicDetailPageState {
         break;
       case TopicMessageType.liked:
       case TopicMessageType.unliked:
-        notifier.updatePostLikes(update.postId, likesCount: update.likesCount);
+        final me = ref.read(currentUserProvider).value?.id;
+        notifier.updatePostLikes(
+          update.postId,
+          likesCount: update.likesCount,
+          liked: update.type == TopicMessageType.liked,
+          byCurrentUser: me != null && update.userId == me,
+        );
         break;
       case TopicMessageType.boostAdded:
         if (update.boostData != null) {

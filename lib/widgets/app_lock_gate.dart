@@ -15,7 +15,6 @@ class AppLockGate extends StatefulWidget {
 class _AppLockGateState extends State<AppLockGate> {
   final _service = AppLockService.instance;
   bool _wasLocked = false;
-  bool _wasCovering = false;
 
   @override
   void initState() {
@@ -32,19 +31,17 @@ class _AppLockGateState extends State<AppLockGate> {
 
   void _onChanged() {
     final locked = _service.locked;
-    final covering = _service.covering;
-    if (covering && !_wasCovering) {
-      // 盖上的那一刻收起键盘：否则键盘浮在锁屏上，打的字会进到被盖住的输入框
-      FocusManager.instance.primaryFocus?.unfocus();
-    }
     if (locked && !_wasLocked) {
+      // 上锁的那一刻收起键盘：否则键盘浮在锁屏上，打的字会进到被盖住的输入框。
+      // 只盖隐私遮罩时不收：iOS 拉通知中心、钥匙串自动填充的 Face ID 确认都会
+      // 短暂 inactive，收了键盘会打断正在写的回复、让密码填不进去
+      FocusManager.instance.primaryFocus?.unfocus();
       // 刚上锁：等这一帧画完再弹系统认证
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _service.locked) _service.unlock();
       });
     }
     _wasLocked = locked;
-    _wasCovering = covering;
     if (mounted) setState(() {});
   }
 

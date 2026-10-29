@@ -98,31 +98,37 @@ mixin _PostsMixin on _DiscourseServiceBase {
 
   /// 切换回应
   ///
-  /// 站点没装 discourse-reactions 时（见 [PreloadedDataService.reactionsPluginEnabled]）
-  /// 改走 Discourse 自带的点赞 `/post_actions`，并按 [currentReactions] /
-  /// [currentUserReaction] 算出新的展示状态，返回格式不变。
+  /// 站点没装 discourse-reactions、或还不知道装没装时（见
+  /// [PreloadedDataService.reactionsPluginState]），点赞（heart）改走 Discourse
+  /// 自带的 `/post_actions`：插件把 heart 记成普通点赞，装没装都能用。再按
+  /// [currentReactions] / [currentUserReaction] 算出新的展示状态，返回格式不变。
   Future<Map<String, dynamic>> toggleReaction(
     int postId,
     String reaction, {
     List<PostReaction>? currentReactions,
     PostReaction? currentUserReaction,
   }) async {
-    if (!PreloadedDataService().reactionsPluginEnabled) {
+    final plugin = PreloadedDataService().reactionsPluginState;
+    final isHeart =
+        reaction == 'heart' &&
+        (currentUserReaction == null || currentUserReaction.id == 'heart');
+    if (plugin == false || (plugin == null && isHeart)) {
       final liked = currentUserReaction != null;
       if (liked) {
         await unlikePost(postId);
       } else {
         await likePost(postId);
       }
-      final before = (currentReactions ?? const <PostReaction>[]).fold<int>(
-        0,
-        (sum, r) => sum + r.count,
-      );
+      final current = currentReactions ?? const <PostReaction>[];
+      final before = current
+          .where((r) => r.id == 'heart')
+          .fold<int>(0, (sum, r) => sum + r.count);
       final count = (before + (liked ? -1 : 1)).clamp(0, 1 << 30);
-      final heart = PostReaction(id: 'heart', type: 'emoji', count: count);
       return {
-        'reactions': count > 0 ? [heart] : <PostReaction>[],
-        'currentUserReaction': liked ? null : heart,
+        'reactions': PostReaction.withHeartCount(current, count),
+        'currentUserReaction': liked
+            ? null
+            : PostReaction(id: 'heart', type: 'emoji', count: count),
       };
     }
     try {
@@ -442,6 +448,27 @@ mixin _PostsMixin on _DiscourseServiceBase {
 
   /// 获取帖子回应人列表
   Future<List<ReactionUsersGroup>> getReactionUsers(int postId) async {
+    if (PreloadedDataService().reactionsPluginState != true) {
+      // 没装（或还不知道装没装）回应插件：用 Discourse 自带的点赞人列表
+      final response = await _dio.get(
+        '/post_action_users.json',
+        queryParameters: {'id': postId, 'post_action_type_id': 2},
+      );
+      final data = response.data as Map<String, dynamic>;
+      final users = [
+        for (final e in data['post_action_users'] as List? ?? const [])
+          if (e is Map<String, dynamic>) ReactionUser.fromJson(e),
+      ];
+      if (users.isEmpty) return const [];
+      final total = data['total_rows_post_action_users'];
+      return [
+        ReactionUsersGroup(
+          id: 'heart',
+          count: total is int ? total : users.length,
+          users: users,
+        ),
+      ];
+    }
     final response = await _dio.get(
       '/discourse-reactions/posts/$postId/reactions-users.json',
     );

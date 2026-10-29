@@ -5,6 +5,7 @@ import 'package:fluxdo/config/sites/uscard.dart';
 import 'package:fluxdo/models/topic.dart';
 import 'package:fluxdo/services/app_lock_service.dart';
 import 'package:fluxdo/services/network/cookie/cookie_jar_service.dart';
+import 'package:fluxdo/services/preloaded_data_service.dart';
 import 'package:fluxdo/services/webview_session_cookie_refresh_service.dart';
 import 'package:fluxdo/storage/topic_note_store.dart';
 import 'package:fluxdo/widgets/app_lock_gate.dart';
@@ -105,7 +106,7 @@ void main() {
       expect(lock.covering, isFalse);
     });
 
-    testWidgets('遮罩屏蔽底下页面的语义（VoiceOver 读不到），并收起键盘', (tester) async {
+    testWidgets('隐私遮罩屏蔽底下页面的语义（VoiceOver 读不到），但不收键盘', (tester) async {
       final semantics = tester.ensureSemantics();
       // 从语义树根往下收集所有 label：这才是 VoiceOver 实际能读到的内容
       List<String> spokenLabels() {
@@ -158,7 +159,8 @@ void main() {
         matching: find.byType(BlockSemantics),
       );
       expect(gateBlock, findsOneWidget);
-      expect(focus.hasFocus, isFalse);
+      // iOS 拉通知中心、钥匙串自动填充都会短暂盖遮罩，不能打断正在输入的内容
+      expect(focus.hasFocus, isTrue);
       expect(spokenLabels(), isNot(contains('私信内容')));
       expect(find.text('解锁'), findsNothing);
 
@@ -167,6 +169,77 @@ void main() {
       expect(gateBlock, findsNothing);
       expect(spokenLabels(), contains('私信内容'));
       semantics.dispose();
+    });
+
+    testWidgets('真正上锁时收起键盘，打的字不会进到被盖住的输入框', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final focus = FocusNode();
+      addTearDown(focus.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Stack(
+              fit: StackFit.expand,
+              children: [
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: TextField(focusNode: focus),
+                ),
+                const AppLockGate(),
+              ],
+            ),
+          ),
+        ),
+      );
+      focus.requestFocus();
+      await tester.pump();
+      expect(focus.hasFocus, isTrue);
+
+      lock.debugSetState(enabled: true, locked: true);
+      await tester.pump();
+      expect(focus.hasFocus, isFalse);
+      // 测试环境没有系统认证：自动解锁失败、判定设备没有密码后关掉应用锁
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pump();
+    });
+  });
+
+  test('改 heart 数量时保留其他表情，数量为 0 时去掉 heart', () {
+    const plus = PostReaction(id: '+1', type: 'emoji', count: 2);
+    const heart = PostReaction(id: 'heart', type: 'emoji', count: 3);
+    expect(
+      PostReaction.withHeartCount([plus, heart], 4).map((r) => '${r.id}:${r.count}'),
+      ['+1:2', 'heart:4'],
+    );
+    expect(PostReaction.withHeartCount([heart, plus], 0), [plus]);
+    expect(
+      PostReaction.withHeartCount(const [], 1).single.id,
+      'heart',
+    );
+  });
+
+  group('回应插件三种状态', () {
+    final preloaded = PreloadedDataService();
+    tearDown(() => preloaded.debugSeed());
+
+    test('站点设置没加载（或刷新途中被清空）：不知道，不弹表情面板', () {
+      for (final settings in [null, <String, dynamic>{}]) {
+        preloaded.debugSeed(siteSettings: settings);
+        expect(preloaded.reactionsPluginState, isNull);
+        expect(preloaded.enabledReactionsSync, isEmpty);
+      }
+    });
+
+    test('设置里没有回应插件的项：没装', () {
+      preloaded.debugSeed(siteSettings: {'title': 'USCard Forum'});
+      expect(preloaded.reactionsPluginState, isFalse);
+      expect(preloaded.enabledReactionsSync, isEmpty);
+    });
+
+    test('装了：弹表情面板', () {
+      preloaded.debugSeed(siteSettings: {'discourse_reactions_enabled': true});
+      expect(preloaded.reactionsPluginState, isTrue);
+      expect(preloaded.enabledReactionsSync, contains('heart'));
     });
   });
 
@@ -190,5 +263,27 @@ void main() {
     await tester.runAsync(() => Future<void>.delayed(Duration.zero));
     final note = await tester.runAsync(() => TopicNoteStore.get(42));
     expect(note?.text, '写了一半');
+  });
+
+  testWidgets('只点进输入框、不改内容，不算修改', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () =>
+                showTopicNoteSheet(context, topicId: 43, title: '话题'),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(TextField));
+    await tester.pump(const Duration(milliseconds: 1200));
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    final note = await tester.runAsync(() => TopicNoteStore.get(43));
+    expect(note, isNull);
   });
 }
