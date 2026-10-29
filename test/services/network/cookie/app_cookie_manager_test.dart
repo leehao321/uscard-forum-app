@@ -79,7 +79,7 @@ void main() {
     // 每种污染副本都配一个按 cookie 域规则本会命中的子域名
     for (final (domain, subdomainBase) in [
       ('.www.uscardforum.com', 'https://cdn.www.uscardforum.com'),
-      ('.uscardforum.com', 'https://cdk.uscardforum.com'),
+      ('.uscardforum.com', 'https://sub.uscardforum.com'),
     ]) {
       test('会话 Cookie 的 domain 污染副本不会发送到子域名（domain=$domain）', () async {
         final jar = CookieJar();
@@ -91,7 +91,7 @@ void main() {
 
         final manager = AppCookieManager(jar);
         final options = RequestOptions(
-          path: '/api/v1/oauth/user-info',
+          path: '/api/v1/status',
           baseUrl: subdomainBase,
           method: 'GET',
         );
@@ -156,21 +156,21 @@ void main() {
   });
 
   group('CookieJarService.buildCookieHeaderForRequest', () {
-    test('CDK retry header 保留业务 domain cookie 且不带主站登录 cookie', () {
+    test('子域 retry header 保留业务 domain cookie 且不带主站登录 cookie', () {
       final header = CookieJarService.buildCookieHeaderForRequest([
         Cookie('cf_clearance', 'cf-token')
           ..domain = '.uscardforum.com'
           ..path = '/',
-        Cookie('linux_do_cdk_session_id', 'cdk-token')
+        Cookie('sub_session_id', 'sub-token')
           ..domain = '.uscardforum.com'
           ..path = '/',
         Cookie('_t', 'polluted-token')
           ..domain = '.uscardforum.com'
           ..path = '/',
-      ], Uri.parse('https://cdk.uscardforum.com/api/v1/oauth/user-info'));
+      ], Uri.parse('https://sub.uscardforum.com/api/v1/status'));
 
       expect(header, contains('cf_clearance=cf-token'));
-      expect(header, contains('linux_do_cdk_session_id=cdk-token'));
+      expect(header, contains('sub_session_id=sub-token'));
       expect(header, isNot(contains('_t=')));
     });
 

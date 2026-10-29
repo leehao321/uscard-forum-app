@@ -101,8 +101,8 @@ class _RateLimiter {
 /// 单个 host 维度的调度状态
 ///
 /// 同一 host 的所有 dio 实例共享同一份 [_HostState], 避免出现:
-/// - 主站 dio + LdcOAuthService 内部 dio + CdkOAuthService 内部 dio 各自一份
-///   窗口, 用户视角的真实速率 = 各 host 之和, 远超用户在设置里配的阈值,
+/// - 主站 dio 与其它服务内部各自创建的 dio 各自一份窗口,
+///   用户视角的真实速率 = 各实例之和, 远超用户在设置里配的阈值,
 ///   导致服务端按 IP/cookie 维度统计后直接 429。
 class _HostState {
   int running = 0;

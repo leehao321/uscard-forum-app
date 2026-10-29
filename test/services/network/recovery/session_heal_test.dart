@@ -14,7 +14,7 @@ import 'package:fluxdo/services/network/recovery/session_heal_policy.dart';
 ///
 /// 两条历史事故驱动的语义必须保住:
 ///
-/// 1. **子域隔离**:CDK/LDC 等业务子域的 401 是各自 OAuth 授权过期,重试
+/// 1. **子域隔离**:业务子域的 401 是各自会话过期,重试
 ///    主站 session 修复没有意义,还会把一次过期放大成多次请求。
 ///
 /// 2. **jar 快照时序**(M0 修过的坑):服务端拒绝时常带 `Set-Cookie` 清 `_t`。
@@ -22,14 +22,14 @@ import 'package:fluxdo/services/network/recovery/session_heal_policy.dart';
 ///    否则会误判"真登出"而跳过自愈——这正是注册顺序错误时发生的事。
 void main() {
   group('子域隔离', () {
-    test('CDK 子域 401 不触发主站会话自愈', () async {
+    test('业务子域 401 不触发主站会话自愈', () async {
       final policy = SessionSelfHealPolicy(
         readSessionToken: () async =>
             CanonicalCookie(name: '_t', value: 'valid'),
       );
       final outcome = _failure(
         401,
-        url: 'https://cdk.uscardforum.com/api/v1/oauth/user-info',
+        url: 'https://sub.uscardforum.com/api/v1/status',
       );
 
       expect(policy.canHandle(outcome), isFalse);
