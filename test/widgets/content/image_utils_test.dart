@@ -38,7 +38,7 @@ void main() {
     test('recognizes absolute short-url on origin / CDN hosts only', () {
       expect(
         DiscourseImageUtils.isUploadUrl(
-          'https://linux.do/uploads/short-url/abc.xz',
+          'https://www.uscardforum.com/uploads/short-url/abc.xz',
         ),
         isTrue,
       );
@@ -83,7 +83,7 @@ void main() {
       );
       expect(
         DiscourseImageUtils.getCachedUploadUrl(
-          'https://linux.do/uploads/short-url/lwDn83PDeB3xOUoEeZI9v77qGJa.xz',
+          'https://www.uscardforum.com/uploads/short-url/lwDn83PDeB3xOUoEeZI9v77qGJa.xz',
         ),
         'https://cdn3.example.com/original/4X/9/6/d/96de.mp4',
       );

@@ -71,17 +71,21 @@ void main() {
       service.enableSessionFallback();
 
       expect(
-        service.shouldUseWebView(Uri.parse('https://linux.do/latest.json')),
+        service.shouldUseWebView(
+          Uri.parse('https://www.uscardforum.com/latest.json'),
+        ),
         true,
       );
       expect(
         service.shouldUseWebView(
-          Uri.parse('https://linux.do/message-bus/abc/poll'),
+          Uri.parse('https://www.uscardforum.com/message-bus/abc/poll'),
         ),
         false,
       );
       expect(
-        service.shouldUseWebView(Uri.parse('https://cdn.linux.do/image.png')),
+        service.shouldUseWebView(
+          Uri.parse('https://cdn.uscardforum.com/image.png'),
+        ),
         false,
       );
     });

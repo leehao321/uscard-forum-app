@@ -15,7 +15,7 @@ void main() {
         expiresAt: exp,
       );
       final raw = service.encodePayload(payload);
-      expect(raw.startsWith('fluxdo://qr-login?'), isTrue);
+      expect(raw.startsWith('uscardforum://qr-login?'), isTrue);
       expect(raw.contains('k='), isTrue);
       expect(raw.contains('o='), isTrue);
 
@@ -47,14 +47,19 @@ void main() {
       expect(parsed.isExpired, isFalse);
     });
 
-    test('reject non fluxdo scheme and v1 token payload', () {
-      expect(service.parsePayload('https://linux.do/t/1'), isNull);
-      expect(service.parsePayload('fluxdo://topic/1'), isNull);
+    test('reject non uscardforum scheme and v1 token payload', () {
+      expect(service.parsePayload('https://www.uscardforum.com/t/1'), isNull);
+      expect(service.parsePayload('uscardforum://topic/1'), isNull);
       expect(service.parsePayload('not a uri'), isNull);
+      // 上游 fluxdo 的扫码登录 scheme 不再接受
+      expect(
+        service.parsePayload('fluxdo://qr-login?v=2&k=key&o=otp&u=bob&exp=0'),
+        isNull,
+      );
       // 旧 v1 `_t` 协议不再接受
       expect(
         service.parsePayload(
-          'fluxdo://qr-login?v=1&t=oldtoken&u=alice&exp=9999999999999',
+          'uscardforum://qr-login?v=1&t=oldtoken&u=alice&exp=9999999999999',
         ),
         isNull,
       );

@@ -271,7 +271,7 @@ void main() {
       await tester.runAsync(
         () => IOOverrides.runZoned(
           () => notifier.startDownload(
-            url: 'https://linux.do/uploads/short-url/example.pdf',
+            url: 'https://www.uscardforum.com/uploads/short-url/example.pdf',
             suggestedFilename: '附件.pdf',
           ),
           createFile: stage == '预留文件' ? _DeniedFile.new : null,
@@ -298,7 +298,8 @@ void main() {
         stage == '创建目录' ? 'createDirectory' : 'reserveFile',
       );
       expect(failure['osErrorCode'], stage == '创建目录' ? isNotNull : 1);
-      expect(failure['directory'], endsWith('Documents/Downloads'));
+      // 日志记录的是原生路径，分隔符随平台变化（Windows 上是反斜杠）
+      expect(failure['directory'], endsWith(p.join('Documents', 'Downloads')));
       expect(failure['stackTrace'], isNotEmpty);
       await tester.pump(const Duration(seconds: 4));
       await tester.pumpAndSettle();
@@ -344,7 +345,7 @@ void main() {
       try {
         await tester.runAsync(
           () => notifier.startDownload(
-            url: 'https://user:password@linux.do/uploads/example.pdf?token=secret#fragment',
+            url: 'https://user:password@www.uscardforum.com/uploads/example.pdf?token=secret#fragment',
             suggestedFilename: scenario == 'head' ? null : '附件.pdf',
           ),
         );
