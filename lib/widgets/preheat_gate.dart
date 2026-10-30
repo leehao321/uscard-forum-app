@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/s.dart';
 import '../pages/about_page.dart';
@@ -14,6 +13,7 @@ import '../services/discourse/discourse_service.dart';
 import '../services/emoji_handler.dart';
 import '../services/log/log_writer.dart';
 import '../services/migration_service.dart';
+import '../utils/app_version.dart';
 import '../utils/dialog_utils.dart';
 import '../widgets/common/ambient_background.dart';
 import '../widgets/common/error_view.dart';
@@ -181,8 +181,8 @@ class _PreheatLoadingState extends State<_PreheatLoading> {
         if (mounted) setState(() => _showSkip = true);
       });
     }
-    PackageInfo.fromPlatform().then((info) {
-      if (mounted) setState(() => _version = info.version);
+    loadDisplayVersion().then((version) {
+      if (mounted) setState(() => _version = version);
     });
   }
 

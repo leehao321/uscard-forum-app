@@ -1,5 +1,5 @@
 name: app_icons
-description: "全局统一图标库（Material Symbols Rounded + 自绘）。"
+description: "全局统一图标库（Lucide + 迁移期的 Material Symbols Rounded + 自绘）。"
 version: 1.0.0
 publish_to: none
 
@@ -11,6 +11,8 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
+  # v2 图标（0.4.0 起）；页面迁完后去掉 material_symbols_icons
+  lucide_icons_flutter: ^4.0.1
   material_symbols_icons: ^4.2951.0
 
 dev_dependencies:

@@ -10,6 +10,7 @@ import '../services/toast_service.dart';
 import '../services/update_checker_helper.dart';
 import '../services/update_service.dart';
 import '../l10n/s.dart';
+import '../utils/app_version.dart';
 import '../utils/dialog_utils.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 import '../widgets/update_dialog.dart';
@@ -80,7 +81,8 @@ class _AboutPageState extends State<AboutPage> {
   }
 
   Future<void> _loadVersion() async {
-    final version = await _updateService.getCurrentVersion();
+    final version = await loadDisplayVersion();
+    if (!mounted) return;
     setState(() {
       _version = version;
     });
