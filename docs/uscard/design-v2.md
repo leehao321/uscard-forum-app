@@ -1,9 +1,9 @@
 # 美卡论坛 iOS v2 设计实现说明（0.4.0）
 
-状态：全部页面已出稿（第 1–4 批 + 393 抽查），按「设计决策」§7 定稿，待你审阅。
-唯一设计来源：Figma「美卡论坛 iOS App · v2 定稿」（5 页：Cover、首页、阅读页、Components、Tokens 与规范）。
+状态：全部页面已出稿（第 1–4 批 + 393 抽查），并已搬进 Figma 新增的「补充 · …」页面（§0.1）；按「设计决策」§7 定稿，待你审阅。
+唯一设计来源：Figma「美卡论坛 iOS App · v2 定稿」（原 5 页：Cover、首页、阅读页、Components、Tokens 与规范，本次一处未改；新增页面全部以「补充 · 」开头，见 §0.1）。
 本文件取代 `docs/uscard/design-spec.md`（第 1 期 A 方向规范）里的 token；那份文件里的分期、验收流程仍可参考。
-设计稿（私有链接，需本人登录 claude.ai 查看）：https://claude.ai/artifact/LHmQ2Z2NQUZEt5a3jB9cof
+设计稿以 Figma 补充页为准；私有画布备份（需本人登录 claude.ai 查看）：https://claude.ai/artifact/LHmQ2Z2NQUZEt5a3jB9cof
 所有数值都是 pt（= Flutter 逻辑像素）。画布宽 440，另在 393 宽度抽查。
 
 ## 0. 怎么读这份文件
@@ -14,6 +14,21 @@
 - §5 是每个页面的布局说明和全量页面覆盖表。
 - §7 是「设计决策」：Figma 稿内部不一致的地方、我按 A/B/C 选定的决定，以及仍需另批的项。
 - 首页、阅读页按 Figma 原样重建；帖子渲染器和编辑器只换皮，不重写。
+
+## 0.1 Figma 补充页（本次新增，只增不改）
+
+每个 Section 里第一行浅色、第二行深色，画框 440×956；颜色全部绑定「美卡 · 颜色」变量，深色帧用变量的 Dark 模式。
+
+| 页面 | Section（节点） |
+| --- | --- |
+| 补充 · 组件与状态 [40:29](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=40-29) | 组件：系统 · 状态栏 [40:30](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=40-30)、系统 · Home Indicator [40:47](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=40-47)、浮动 Tab 栏（选中 × 浅 / 深，布尔属性「未读」）[40:202](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=40-202)；共享状态 [57:1127](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=57-1127)；共享浮层 [57:1711](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=57-1711)；通用控件样本 [57:1949](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=57-1949) |
+| 补充 · 标签页 [41:2](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=41-2) | 通知 [41:388](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=41-388)；我的 · 已登录 [43:1231](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=43-1231)；我的 · 未登录 [43:1565](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=43-1565)；搜索 [44:1189](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=44-1189)；全部分类 [44:1951](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=44-1951)；标题菜单 [44:2851](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=44-2851) |
+| 补充 · 话题相关 [45:2](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=45-2) | 用户主页 [45:682](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=45-682)；私信 [45:1096](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=45-1096)；书签 · 浏览历史 · 已存帖子 · 稍后阅读 [46:977](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=46-977)；我的话题 · 草稿 · 待审内容 [46:1475](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=46-1475)；编辑器 [47:1775](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=47-1775)；楼层长按菜单 · 添加笔记 · 话题菜单 · 本帖通知 [48:1627](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=48-1627)；图片查看器 [48:1825](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=48-1825)；分类话题页 · 我的徽章 · 徽章详情 · 话题内搜索 [49:1637](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=49-1637) |
+| 补充 · 自有功能 [50:2](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=50-2) | 我的笔记 · 笔记半屏 [50:286](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=50-286)；阅读统计 [50:456](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=50-456)；应用锁 · 锁屏与设置 [50:668](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=50-668)；AI 模型服务 [51:811](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=51-811)；AI 总结状态 · AI 对话 [51:1535](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=51-1535) |
+| 补充 · 设置与登录 [52:2](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=52-2) | 设置 [52:518](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=52-518)；外观 [52:1436](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=52-1436)；阅读 · 功能 · 标签栏 · 数据管理 [53:1241](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=53-1241)；网络与代理 [53:1823](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=53-1823)；关于 · 诊断 [54:1133](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=54-1133)；登录 · 验证 · 引导 [54:1903](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=54-1903) |
+| 补充 · 393 抽查 [55:2520](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=55-2520) | 393 抽查 · 浅色 [55:3224](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=55-3224)（通知、我的、搜索结果、外观，393×852） |
+
+已知显示问题：列表行组件里的点赞数 / 回复数用 SF Pro，在 Figma 网页里正常显示，但用 MCP 导出的截图里是空白；状态栏时间和字母头像已改用 Noto Sans SC Medium（Semibold 占位，同 Figma 原稿）。
 
 ## 1. 总原则（来自 Tokens 页）
 
@@ -154,6 +169,8 @@ Components 页组件集节点：置顶折叠行 [9:15](https://www.figma.com/des
 
 ## 4. 新增组件（本次设计）
 
+Figma：补充 · 组件与状态 [40:29](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=40-29)（通用控件样本 [57:1949](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=57-1949)、共享状态 [57:1127](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=57-1127)、共享浮层 [57:1711](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=57-1711)）。
+
 全部由 §2 的 token 组合；★ 表示用到了 §6 里提议的新值。
 
 | 组件 | 规格 | 依据 |
@@ -183,7 +200,7 @@ Components 页组件集节点：置顶折叠行 [9:15](https://www.figma.com/des
 
 ## 5. 页面
 
-### 5.1 第 1 批（已出稿）
+### 5.1 第 1 批（已出稿；Figma 补充 · 标签页 [41:2](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=41-2)，共享状态 / 浮层在补充 · 组件与状态 [40:29](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=40-29)）
 
 每个画板都给浅色、深色；长页面另给「滚到底」帧。
 
@@ -243,9 +260,9 @@ Components 页组件集节点：置顶折叠行 [9:15](https://www.figma.com/des
 
 **共享浮层**（浅深各一行）：Toast（「链接已复制」）、操作表（分享半屏：复制链接、生成分享图片、导出文章、用浏览器打开、更多…）、对话框（退出登录）。
 
-### 5.2 第 2 批 · 话题相关（已出稿）
+### 5.2 第 2 批 · 话题相关（已出稿；Figma 补充 · 话题相关 [45:2](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=45-2)）
 
-**用户主页**（画板「用户主页 · 菜单 · 关注与粉丝」）
+**用户主页**（画板「用户主页」[45:682](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=45-682)）
 - 导航：左 chevron-left；右 search / mail / more（gap 24，长帖导航同款 pad 0 20 0 12）。不再用头图、渐变和白字。
 - 头部 pad 8 20 12，gap 16：大头像 64 + 名字 17 Semibold + @handle 13 meta + 「L3 活跃用户 · 10 分钟前在线」11 meta；右侧「关注」主按钮 44（已关注 = 次按钮「已关注」）。
 - 简介 17/1.75 两行 + chevron（→「关于」半屏）；「128 关注 · 2.3k 粉丝」13（数字 text/primary）。
@@ -254,23 +271,23 @@ Components 页组件集节点：置顶折叠行 [9:15](https://www.figma.com/des
 - ⋮ 菜单：关于、分享用户 ｜ 常规（✓）、免打扰、忽略…（→ 忽略时长半屏）。切换后 Toast。
 - 关注与粉丝：页内筛选「关注 · 128 / 粉丝 · 2.3k」；行 = 34 头像 + 名字 17 + @handle 11 + 右侧筛选胶囊「已关注」/「＋ 关注」（brand）。自己那一行无按钮，handle 后缀「· 你」。
 
-**私信**（画板「私信 · 列表与新建」）
+**私信**（画板「私信」[45:1096](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=45-1096)）
 - 导航「私信」+ 右 square-pen（新建私信，热区 44）。页内筛选：收件箱 · 已发送 · 归档。
 - 行 = 头像行：标题 = 私信主题；元信息 = 参与者 · 时间；未读点；已关闭的私信前置 lock 14。
 - 新建私信 = 通用编辑器半屏（见下）：头部「新建私信」；收件人行（13 meta「收件人」+ 胶囊「@bossdao ×」+ 占位「搜索用户或群组」）；标题行 17 Semibold 占位；正文。
 
-**书签 / 浏览历史 / 已存帖子 / 稍后阅读**（画板「书签 · 浏览历史 · 已存帖子 · 稍后阅读」）
+**书签 / 浏览历史 / 已存帖子 / 稍后阅读**（画板「书签 · 浏览历史 · 已存帖子 · 稍后阅读」[46:977](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=46-977)）
 - 书签：导航右 search + refresh（同步书签）；页内筛选 = 书签名（全部 · 未命名 · 8 …）；行 = 列表行 + 顶部 13 meta「bookmark 14 名称 · clock 14 提醒 明天 09:00」。左滑露出「编辑」（brand/button 底）「删除」（text/destructive 底），各 72 宽，图标 20 + 13 白字。
 - 浏览历史：按天分组页眉（今天 / 昨天，13 meta）；元信息里「读到 #742」用 brand。
 - 已存帖子：导航右「清空」（text/destructive，需确认）；顶部分组「看过就存」开关 + 说明；搜索框（页内输入框）；行 = 标题 + 「776 个楼层 · 保存于 10月28日」；页脚「共 3 个话题 · 占用 4.2 MB · 只保存在这台设备上」。离线阅读页沿用阅读页楼层样式。
 - 稍后阅读：浮球 48 圆，浮动胶囊材质，layers 20 + 条数 11（不用红色角标）；浮层 = 遮罩 32% + 背景模糊 12，头部白字「稍后阅读 3 / 10」+ 44 关闭圆钮；横滑卡片 280 宽，surface/page 底（深色 surface/grouped）、r12、胶囊阴影：「读到 #742」筛选胶囊 + 删除；标题 17 Semibold 两行；摘录 13 meta 五行；底部「clock 14 · 2小时前加入」+ 44 圆形主按钮 arrow-right（继续阅读）。
 
-**我的话题 / 草稿 / 待审内容**（画板「我的话题 · 草稿 · 待审内容」）
+**我的话题 / 草稿 / 待审内容**（画板「我的话题 · 草稿 · 待审内容」[46:1475](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=46-1475)）
 - 我的话题：标准列表行；已关闭话题标题前 lock 16。
 - 草稿：行首 13 meta 类型（plus「新话题」/ reply「回复 #742」/ mail「私信」· 时间）+ 右侧删除 20（需确认）；标题 17 Semibold；正文预览 13 meta 两行。
 - 待审：类型行带 clock「等待审核」；底部右对齐文字按钮「撤回」「撤回并重新编辑」（13 brand，gap 20）；确认对话框「撤回待审内容？」破坏性按钮「撤回」。
 
-**编辑器**（画板「编辑器 · 回复 / 新话题 / 上传 / 表情 / 提及」，只换皮）
+**编辑器**（画板「编辑器 · 回复 / 新话题 / 上传 / 表情 / 提及」[47:1775](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=47-1775)，只换皮）
 - 回复 / 私信 / 编辑帖子：通用半屏，顶到状态栏下（≈95%）；头部 44：左 x 22（关闭即存草稿）、中标题 17 Semibold（「回复 @chan1108 · #742」，放不下截断）、右 book-open 24（预览）+ 主按钮「发送」44。正文 17/1.75，字数 13 meta 右对齐。
 - 工具条：复用底部工具栏材质，贴在键盘上方，两行各 44：上下文行（左：回复对象或分类 / 标签胶囊；右：草稿状态 cloud-check 14 + 「草稿已保存」13 meta）；格式行（smile、bold、italic、heading、image、link、list、quote、chevron-up 展开全部工具；24 图标均分）。
 - 新话题：整页；导航左 x、中「发新话题」、右主按钮「发布」；标题行 48（17 Semibold + 右侧「还差 3 字」13 meta）；上下文行用筛选胶囊「选择分类 ▾」（brand）「＋ 添加标签」。
@@ -278,42 +295,42 @@ Components 页组件集节点：置顶折叠行 [9:15](https://www.figma.com/des
 - 表情面板：顶替键盘，同键盘高 336，surface/grouped 底；顶部页内筛选「表情 · 表情包」+ 搜索 20；分组行（clock 20 brand + 13 meta 分组名）；8 列网格，表情 28 显示（论坛表情按图片渲染）；右下 44 圆钮退格。格式行里 smile 变 brand 表示面板打开。
 - @ 候选：浮在工具条上方，左右 20，r12 卡片 + 胶囊阴影；行 = 34 头像 + 「@chan1108」17 + 显示名 11 meta，分隔线缩进 58。
 
-**楼层长按 / 话题菜单 / 订阅**（画板「楼层长按菜单 · 添加笔记 · 话题菜单 · 订阅级别」）
+**楼层长按 / 话题菜单 / 订阅**（画板「楼层长按菜单 · 添加笔记 · 话题菜单 · 本帖通知」[48:1627](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=48-1627)）
 - 长按楼层：背景遮罩 32% + 模糊 10；楼层浮起（surface/page 卡片 r12 + 胶囊阴影，左右 20），菜单在下方左对齐，宽 260：回复这层、引用回复、**添加笔记**（图标 brand）、给这层加书签、复制文字、复制楼层链接、只看 TA、翻译、生成分享图片 ｜ 举报（destructive）。自己的楼层另有编辑、删除（destructive）。这个菜单取代现在的「⋯ 更多」弹层和头像径向菜单；点赞仍只在楼层下方。
 - 添加笔记：半屏，头部「笔记 · #742」+ x；话题名 13 meta；被记录楼层的引用块（3pt quote/rule + @作者 · #楼层 + 两行摘录）；多行输入框（surface/elevated r10，最小高 120，17/1.75）；「摘录 · 1」+「粘贴为摘录」；说明「停笔 1 秒自动保存……」。
 - 话题 ⋮ 菜单（右上 more 变 brand）：加入稍后阅读、话题笔记、AI 总结、生成分享图片、导出文章 ›、在浏览器打开 ｜ 编辑话题、标记为未读。书签、分享、通知级别已在工具栏，不重复。
 - 本帖通知（工具栏铃铛）：半屏，四行（图标 20 + 名称 17 + 说明 13 meta，选中 check）：关注 / 跟踪 / 常规 / 静音。
 
-**图片查看器**（画板「图片查看器」）
+**图片查看器**（画板「图片查看器」[48:1825](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=48-1825)）
 - 浅深一致的黑底（#000）。顶部 54 下：左「保存」「分享」两个 44 圆钮（#1C1C1E + 0.5 白 14% 描边，图标 20 白），中间页码胶囊 32 高 r16「2 / 5」，右「关闭」圆钮。原图加载中在图下方显示「系统菊花 + 原图加载中 62%」13 #98989F；底部文件名 13 #98989F。
 - 长按图片：通用操作表（保存到相册、复制图片、复制链接、分享图片），跟随浅 / 深色。
 
-**分类话题页 / 徽章 / 话题内搜索**（画板「分类话题页 · 我的徽章 · 徽章详情 · 话题内搜索」）
+**分类话题页 / 徽章 / 话题内搜索**（画板「分类话题页 · 我的徽章 · 徽章详情 · 话题内搜索」[49:1637](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=49-1637)）
 - 分类话题页：导航中间分类名 17 Semibold，右 bell（分类通知）+ search；子分类用分类条；筛选胶囊行（最新 · 默认排序 · 标签）；置顶折叠行 + 列表行。
 - 我的徽章：页内筛选「已获得 · 12 / 全部徽章」；三列卡片（surface/grouped r12 pad 12）：48 圆内 award 24 brand + 名称 13 Semibold + 「金 · ×2」11 meta。**金银铜只写字，不加颜色**。
 - 徽章详情：居中 48 圆 + 名称 17 Semibold + 说明 13 meta + 「金 · 1,204 人获得」11；「我获得的 · 2 次」列表行；「最近获得」头像排。
 - 话题内搜索：顶部 56 高：chevron-left + 页内输入框；下方 44 行「23 处匹配 · 第 3 处」+ 上 / 下箭头；结果行 = 元信息（#楼层 · @作者 … 时间）+ 正文两行，命中词 brand。
 
-### 5.3 第 3 批 · 自有功能（已出稿）
+### 5.3 第 3 批 · 自有功能（已出稿；Figma 补充 · 自有功能 [50:2](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=50-2)）
 
-**我的笔记**（画板「我的笔记 · 笔记半屏」）
+**我的笔记**（画板「我的笔记 · 笔记半屏」[50:286](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=50-286)）
 - 顶部页内搜索框「搜索标题、笔记和摘录」；行 = 话题标题 17 Semibold + 笔记预览 13 meta 两行 + 元信息（楼层链接 #742 #751 用 brand · 「2 条笔记 · 1 条摘录」· 时间）+ chevron；没有楼层的旧笔记显示「话题笔记」。左滑删除（需确认）。
 - 笔记半屏：头部「笔记」+ 「打开话题」（brand）+ x；按楼层分段（「#742 · @chan1108」13 brand + 输入框）；摘录区（引用块 + 删除 16）；底部「自动保存 · 只保存在这台设备上」。
 
-**阅读统计**（画板「阅读统计」）
+**阅读统计**（画板「阅读统计」[50:456](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=50-456)）
 - 三张卡片：今天 / 今天读过 / 连续阅读（三列）；最近 7 天柱状（柱宽 24 r4，今天 brand/primary，其余 avatar/fill；柱顶分钟 11 meta，柱下星期 11 meta，今天 brand「今天」）；30 天合计 / 读过话题 / 日均（三列）；底部说明 13 meta。
 
-**应用锁**（画板「应用锁 · 锁屏与设置」）
+**应用锁**（画板「应用锁 · 锁屏与设置」[50:668](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=50-668)）
 - 锁屏：居中 App 图标 96（brand/button 底，系统图标圆角 22）+ 「美卡论坛已锁定」17 Semibold + 「用 Face ID / Touch ID 或设备密码解锁」13 meta + 主按钮 48「解锁」（lock-open 20）。隐私遮罩 = 同一页去掉文字和按钮。
 - 设置：「启用应用锁」开关 + 说明；「离开 App 多久后上锁」单选组（立即 / 1 分钟 ✓ / 5 分钟 / 15 分钟）；页脚说明多任务遮罩；验证失败 Toast。
 
-**AI 模型服务**（画板「AI 模型服务」）
+**AI 模型服务**（画板「AI 模型服务」[51:811](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=51-811)）
 - 首页分组：供应商（2 个）、模型配置（当前默认模型）、聊天记录、快捷词管理（说明）、高级设置；页脚说明「AI 请求直接从这台设备发给你配置的服务商，不经过论坛……」。
 - 供应商：导航右 plus；「置顶 / 其他」两组；行 = 34 方块（r8，首字母）+ 名称 + 「OpenAI · 5 / 12 个模型」13 meta + 置顶 pin 20（置顶为 brand）+ chevron；左滑删除，按住拖动排序。
 - 编辑供应商：导航右「保存」（brand 文字）；页内筛选「配置 · 模型 · 12」；表单用分组列表「左标签 96 宽 + 右对齐值」：名称、类型（chevron-down 菜单）、Base URL、API Key（掩码 + eye）；页脚「实际请求：…」；次按钮整宽「测试模型」；结果 Toast。
 - 模型配置：每项一组，页眉写用途（「默认聊天模型 · 用于 AI 总结、AI 对话」）；行 = 34 方块 + 模型名 + 服务商 13 meta + 重置 rotate 20 + chevron；未设置显示 meta「未设置」。
 
-**AI 总结状态与 AI 对话**（画板「AI 总结状态 · AI 对话」）
+**AI 总结状态与 AI 对话**（画板「AI 总结状态 · AI 对话」[51:1535](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=51-1535)）
 - 全部在阅读页「AI 局部总结卡片」原位：
   - 加载：头行「AI 总结 · 正在总结前 20 楼…」；三条骨架（12 高，r4）；超过 3 秒加一行「正在等待模型响应」（同等待提示样式）。
   - 出错：头行 + chevron-up；说明 13「没能生成总结。请检查网络和服务商的 API Key 后重试。」；次按钮 44「重试」+ 文字按钮「查看服务商设置」。原始错误只进诊断。
@@ -321,13 +338,13 @@ Components 页组件集节点：置顶折叠行 [9:15](https://www.figma.com/des
 - 全文总结（话题 ⋮ 菜单「AI 总结」）：半屏，头部 sparkles 20 brand + 「AI 总结」+ x；「服务商 / 模型 · 基于已加载的 120 个楼层」13 meta；流式正文 17/1.75，楼层号 brand 可点；底部右对齐次按钮「停止」「复制」（生成中复制置灰）。
 - AI 对话：导航「AI 助手」+ more；筛选胶囊行（上下文：前 20 楼 ▾ / 模型 ▾）；用户消息 = 右对齐 surface/grouped r12 气泡；AI 回复不加气泡，头行「sparkles AI」13 Semibold brand，下方「复制 · 重新生成」13 meta；底部快捷词胶囊行 + 输入框 + 44 圆形发送。
 
-### 5.4 第 4 批 · 设置与登录（已出稿）
+### 5.4 第 4 批 · 设置与登录（已出稿；Figma 补充 · 设置与登录 [52:2](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=52-2)，393 抽查 [55:2520](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=55-2520)）
 
-**设置首页**（画板「设置首页 · 设置搜索」）
+**设置首页**（画板「设置」[52:518](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=52-518)）
 - 页内搜索框「搜索设置」；分组：显示与阅读（外观 · 默认、阅读、标签栏、功能）／安全与网络（应用锁 · 已开启、网络与代理 · 标准）／数据（数据管理 · 286 MB、Notion 同步 · 未连接）／高级（诊断、关于美卡论坛 · 0.4.0）。行内右侧显示当前值。
 - 搜索结果：输入框 + 「取消」；「4 个结果」页眉；行 = 名称（命中字 brand）+ 路径 13 meta「外观 › 字体」。
 
-**外观**（画板「外观设置 · 字体 · 微调」）
+**外观**（画板「外观」[52:1436](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=52-1436)）
 - 顶部实时预览卡（0.5 separator 描边 r12）：一条列表行 + 一层楼（头像、名字、楼主标签、正文），右上角写当前预设名；滚动时预览固定在顶部。
 - 预设：四格等宽（默认 / 紧凑 / 舒适 / 大字），surface/grouped r12，选中文字变 brand。
 - 外观模式：跟随系统 ✓ / 浅色 / 深色。
@@ -337,26 +354,26 @@ Components 页组件集节点：置顶折叠行 [9:15](https://www.figma.com/des
 - 字体页：预览卡（界面一行、正文一行）；「界面字体」单选（系统 · 苹方 / SF Pro ✓、MiSans 内置、已导入字体）；「正文字体」单选（跟随界面字体、各字体）；「已导入的字体」行 = 34 方块（用该字体写一个字）+ 字体名 + 「文件名 · 大小」13 meta（.ttc 注明「只读第一个字重」）+ 删除 20；次按钮整宽「＋ 导入字体文件」（系统文件选择器，只允许 .ttf / .otf / .ttc）；页脚「字体文件只保存在本机；缺字时用系统字体补上」。
 - 导入中：行内进度条 + 「14.2 / 22.0 MB」+ 取消；导入期间「导入字体文件」置灰。不是字体时 Toast「「readme.pdf」不是字体文件，没有导入」（不崩、不弹详细错误）。删除确认对话框「删除「思源宋体」？正文字体会换回跟随界面字体。」
 
-**阅读 / 功能 / 标签栏 / 数据管理**（画板「阅读 · 功能 · 底栏 · 数据管理」）
+**阅读 / 功能 / 标签栏 / 数据管理**（画板「阅读 · 功能 · 标签栏 · 数据管理」[53:1241](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=53-1241)）
 - 阅读：正文（字号与行高 → 外观 › 微调；中英文混排优化；读到底部显示相关话题）／交互（长按话题预览、外部链接用内置浏览器、默认展开相关链接、显示用户签名、左滑打开 AI 助手）。页脚：工具栏收起是固定行为。
 - 功能：基础（分享不带个人标识、记住账号密码、识别剪贴板链接）／内容过滤（标题关键词过滤 · 3 个、本地拉黑用户 · 1 人、显示过滤提示）／编辑器（自动加中英文空格、富文本编辑器）／AI（发帖前 AI 审核、AI 翻译 · 目标语言）。各行文案改为一句话说清，原来的长副标题收进页脚或下一级。
 - 标签栏：顶部浮动胶囊实时预览（surface/grouped 卡片内）；「已显示 · 按住拖动排序」（首页、我的带 lock 固定首尾，其余 circle-minus 移除 + grip）；「可添加」（circle-plus brand）；页脚「最多 4 个标签；加满后搜索胶囊会变窄」；「点按已选中的标签」单击 / 双击动作。导航右「恢复默认」（brand）。
 - 数据管理：缓存分组（圆形勾选 + 类别 + 大小 13 meta）；次按钮整宽「清理所选 · 223 MB」；退出时清除图片缓存开关；备份（导出设置、从备份恢复，页脚提示含敏感信息）；破坏性单独一组（清除 AI 聊天记录、清除 Cookie 并退出登录，均需确认）。不再用彩色分段条。
 
-**网络与代理**（画板「网络 / 代理」）
+**网络与代理**（画板「网络与代理」[53:1823](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=53-1823)）
 - 网络引擎单选（标准 ✓ / 高性能 / 兼容 / 自定义 ›），页脚「当前：Cupertino 适配器」。
 - 代理与 DNS：上游代理 · SOCKS5 ›、DNS over HTTPS · Cloudflare ›、连上 VPN 时自动关闭 DoH 开关。
 - 安全验证：自动完成 Cloudflare 验证开关、现在验证一次 ›。页脚指向「设置 › 高级 › 诊断」。原「调试」「并发与限流」「文件上传」等技术项移到诊断或保持在「自定义」子页。
 - 上游代理半屏：表单（类型 · 服务器 · 端口 · 用户名 · 密码，左标签 72）；结果行「check 可用 · 延迟 182 ms」；次按钮「测试代理」；文字按钮「从 ss:// 链接导入」；头部「保存」brand。
 - DoH 详细：总开关；服务器单选（名称 + 「IP · 延迟」13 meta，超时写「超时」不变色）、「添加服务器」；ECH 开关 + 适用域名；证书行（shield-check brand「CA 证书已安装」+「重新安装」）。
 
-**关于 · 高级 › 诊断**（画板「关于 · 高级 › 诊断」）
+**关于 · 高级 › 诊断**（画板「关于 · 诊断」[54:1133](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=54-1133)）
 - 关于：App 图标 96 + 「美卡论坛」+ 版本 + 「非官方第三方客户端」；检查更新、GitHub 下载加速、开源许可；项目源码、反馈问题（extlink）。连点版本号 7 次开开发者模式（行为不变）。
 - 诊断（新）：日志（应用日志、网络请求、Cloudflare 验证日志、性能诊断）／调试工具（内置浏览器调试控制台、悬浮性能面板）／发给开发者（复制设备信息、导出诊断包）；页脚「HTTP 状态码、请求头和原始错误只在这里出现」。
 - 网络请求日志：筛选胶囊（级别、类型）；行 = 「GET /latest.json」13 等宽 + 右侧状态码 13（错误用 text/destructive）+ 「时间 · 耗时 · 适配器」11 meta。不再用彩色左边条。
 - 请求详情半屏：标题「GET 请求」+ 复制 + x；键值分组（键 13 meta 56 宽，值 13，URL 等宽可换行）；「响应头」+ 代码块（surface/elevated r8，11 等宽）。
 
-**登录与验证**（画板「登录 · 人机验证 · Cloudflare · 引导」）
+**登录与验证**（画板「登录 · 验证 · 引导」[54:1903](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=54-1903)）
 - 登录：导航左返回、右 globe（网络设置）；App 图标 64（r16）+ 「登录美卡论坛」+ 「非官方第三方客户端」；分组输入（用户名或邮箱 / 密码 + eye）；「记住密码」圆形勾选 + 「忘记密码？」brand；主按钮 48「登录」；「或」分隔；次按钮 48「用浏览器授权登录」「扫码登录」；文字按钮「其他方式（OAuth / Passkey / 注册）」；页脚说明。去掉极光背景。
 - 二步验证：对话框（左右 40），6 格输入（48 高 r10 surface/elevated，当前格 1.5pt brand 内描边），「改用备用码或安全密钥」，按钮「取消 / 验证」（未满 6 位置灰）；系统数字键盘。
 - 浏览器授权回到 App：全屏遮罩 + 等待提示「正在完成登录…」（同等待提示样式），不另出稿。
@@ -365,7 +382,7 @@ Components 页组件集节点：置顶折叠行 [9:15](https://www.figma.com/des
 - 引导页：App 图标 96 + 「美卡论坛」+ 「真诚 · 友善 · 团结 · 专业」；三条说明（图标 20 brand + 17 标题 + 13 说明）；底部主按钮 48「登录」+ 透明按钮「先逛逛」；右上 globe。去掉极光背景。
 - 启动预热页：App 图标 96 居中 + 版本号 13 meta；10 秒后出现「跳过」文字按钮；失败时套原地错误（「没有连上论坛」+「重试」），右上「网络设置」「关于」「退出登录」三个 44 图标钮。不另出稿。
 
-**393 抽查**（画板「393pt 抽查」）：通知、我的、搜索结果、外观在 393×852 下的排版；浮动 Tab 胶囊宽度不变（211），搜索胶囊收窄到 128 仍能放下「搜索话题」；分类条、筛选胶囊行横向滚动；没有换行错位。
+**393 抽查**（画板「393 抽查 · 浅色」[55:3224](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=55-3224)）：通知、我的、搜索结果、外观在 393×852 下的排版；浮动 Tab 胶囊宽度不变（211），搜索胶囊收窄到 128 仍能放下「搜索话题」；分类条、筛选胶囊行横向滚动；没有换行错位。
 
 ### 5.5 全量页面覆盖（来自代码盘点，约 230 个界面）
 
@@ -374,7 +391,7 @@ Components 页组件集节点：置顶折叠行 [9:15](https://www.figma.com/des
 | 现有界面 | v2 处理 | 画板 |
 | --- | --- | --- |
 | 主框架底栏、自适应底栏 | 浮动 Tab 胶囊 + Safari 式搜索 | 首页（Figma）、通知 |
-| 底栏设置、恢复默认、选择动作 | 标签栏设置页 | 阅读 · 功能 · 底栏 · 数据管理 |
+| 底栏设置、恢复默认、选择动作 | 标签栏设置页 | 阅读 · 功能 · 标签栏 · 数据管理 |
 | 登录失效对话框、剪贴板链接 Toast、离线提示条 | 对话框 / Toast / 等待提示外壳 | 共享浮层、共享状态 |
 | 首页、筛选菜单、忽略确认 | 首页按 Figma；筛选改标题菜单 | 标题菜单 |
 | 话题长按预览卡 | 改为长按上下文菜单（列表行同款浮起） | 楼层长按菜单 |
@@ -382,7 +399,7 @@ Components 页组件集节点：置顶折叠行 [9:15](https://www.figma.com/des
 | 分类侧栏、分类长按菜单、订阅面板、编辑我的分类 | 全部分类半屏 + 编辑分类条；订阅用「本帖通知」同款半屏 | 全部分类、楼层长按菜单 |
 | 通知快捷面板、通知页 | 通知 Tab | 通知 |
 | 我的、退出确认、登录二维码半屏 | 我的；二维码用通用半屏（二维码 240 居中 + 倒计时 13 meta + 警示文字 13 text/destructive） | 我的 · 已登录、共享浮层 |
-| 搜索页、高级搜索、日期选择、结果长按预览 | 搜索 Tab 页 | 搜索 · 历史、搜索 · 结果与筛选 |
+| 搜索页、高级搜索、日期选择、结果长按预览 | 搜索 Tab 页 | 搜索 |
 | 话题内搜索、个人内容搜索 | 话题内搜索页；个人列表用页内搜索框 | 分类话题页 · 徽章 · 话题内搜索 |
 | 用户主页、用户卡片、头像径向菜单、关注 / 粉丝、徽章、统计自定义 | 用户主页；用户卡片改半屏（头像行 + 关注 / 私信按钮）；统计自定义用分组列表勾选 | 用户主页、我的徽章 |
 | 私信列表、私信编辑、成员面板、邀请 | 私信；成员面板用半屏列表 | 私信 |
@@ -395,7 +412,7 @@ Components 页组件集节点：置顶折叠行 [9:15](https://www.figma.com/des
 | 图片查看器、图片长按菜单、Mermaid 查看 | 图片查看器；Mermaid 同查看器外壳 | 图片查看器 |
 | 笔记、阅读统计、应用锁、AI 模型服务全部页面 | 已出稿 | 第 3 批画板 |
 | 设置全部子页、网络全部卡片、数据管理、Notion、关于、日志、性能诊断 | 已出稿主要页面；Notion、快捷词管理、DoH 子对话框套分组列表 / 半屏 | 第 4 批画板 |
-| 登录、二步验证、WebView 登录、扫码、CF 验证、引导、预热 | 已出稿 | 登录 · 人机验证 · Cloudflare · 引导 |
+| 登录、二步验证、WebView 登录、扫码、CF 验证、引导、预热 | 已出稿 | 登录 · 验证 · 引导 |
 | 加解密工具箱、视频 / 音频播放器、应用内浏览器 | 套半屏 / 黑底查看器外壳；播放器控件用图片查看器圆钮 | — |
 | 仅 Android / 桌面界面 | 不在 iOS 设计范围 | — |
 
@@ -474,6 +491,11 @@ Components 页组件集节点：置顶折叠行 [9:15](https://www.figma.com/des
 | D31 | 强调色 | A 预置 4 组（§6），只换 brand 一对；B 只有默认；C 自由取色 | A |
 | D32 | 搜索框位置 | A 搜索页保持底部 Safari 式（与首页一致）；B 顶部 | A |
 | D33 | 页内筛选与筛选胶囊 | A 只复用「分类条项」和「楼层胶囊 · 32pt」两种，不新造分段控件；B 新增 iOS 分段控件 | A |
+| D34 | 档位滑块拇指位置 | A 拇指中心 = 12 + 档位 ×（轨长 − 24），两端不出轨道（iOS UISlider 行为）；B 拇指中心对准轨道端点，最大档时半个拇指出轨 | A |
+| D35 | 半屏里的卡片、胶囊在深色下的底色 | A 用 surface/elevated（深色半屏底 = surface/grouped，同色会看不见）；B 照用 surface/grouped | A |
+| D36 | 带前导勾选框的行，分隔线左缩进 | A 44（勾选框按「有图标」算，和文字起点对齐）；B 12 | A |
+| D37 | 等宽字体 | A App 用系统等宽字体（SF Mono），Figma 里用 Roboto Mono 占位；B 全部用 Noto Sans SC | A |
+| D38 | 标签栏设置页的 4 标签预览 | A 用浮动 Tab 栏同款材质与 62 宽标签，加满 4 个后 Tab 胶囊变宽、搜索胶囊收窄到只放「搜索」；B 不出预览 | A |
 
 ### 7.3 仍需要你另批的（会改 Figma 已有页面或 Tokens 规则，目前都没有做）
 
