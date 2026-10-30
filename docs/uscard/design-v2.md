@@ -1,6 +1,6 @@
 # 美卡论坛 iOS v2 设计实现说明（0.4.0）
 
-状态：全部页面已出稿（第 1–4 批 + 393 抽查），并已搬进 Figma 新增的「补充 · …」页面（§0.1）；按「设计决策」§7 定稿，待你审阅。
+状态：全部页面已出稿（第 1–4 批 + 393 抽查 + 阅读页横屏），并已搬进 Figma 新增的「补充 · …」页面（§0.1）；按「设计决策」§7 定稿，待你审阅。
 唯一设计来源：Figma「美卡论坛 iOS App · v2 定稿」（原 5 页：Cover、首页、阅读页、Components、Tokens 与规范，本次一处未改；新增页面全部以「补充 · 」开头，见 §0.1）。
 本文件取代 `docs/uscard/design-spec.md`（第 1 期 A 方向规范）里的 token；那份文件里的分期、验收流程仍可参考。
 设计稿以 Figma 补充页为准；私有画布备份（需本人登录 claude.ai 查看）：https://claude.ai/artifact/LHmQ2Z2NQUZEt5a3jB9cof
@@ -12,7 +12,7 @@
 - §3 是 Figma 里已有的组件，尺寸是从 Figma「复制为 CSS」逐层导出的原始值，不是目测。
 - §4 是本次为其余页面新增的组件，全部由 §2 的 token 组合而成；凡是 token 里没有的值，都列进 §6「提议新增 token」，没有悄悄发明。
 - §5 是每个页面的布局说明和全量页面覆盖表。
-- §7 是「设计决策」：Figma 稿内部不一致的地方、我按 A/B/C 选定的决定，以及仍需另批的项。
+- §7 是「设计决策」：Figma 稿内部不一致的地方、我按 A/B/C 选定的决定，以及另批的结果（发帖入口、大头像字母、横屏）。
 - 首页、阅读页按 Figma 原样重建；帖子渲染器和编辑器只换皮，不重写。
 
 ## 0.1 Figma 补充页（本次新增，只增不改）
@@ -26,6 +26,7 @@
 | 补充 · 话题相关 [45:2](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=45-2) | 用户主页 [45:682](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=45-682)；私信 [45:1096](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=45-1096)；书签 · 浏览历史 · 已存帖子 · 稍后阅读 [46:977](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=46-977)；我的话题 · 草稿 · 待审内容 [46:1475](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=46-1475)；编辑器 [47:1775](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=47-1775)；楼层长按菜单 · 添加笔记 · 话题菜单 · 本帖通知 [48:1627](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=48-1627)；图片查看器 [48:1825](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=48-1825)；分类话题页 · 我的徽章 · 徽章详情 · 话题内搜索 [49:1637](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=49-1637) |
 | 补充 · 自有功能 [50:2](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=50-2) | 我的笔记 · 笔记半屏 [50:286](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=50-286)；阅读统计 [50:456](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=50-456)；应用锁 · 锁屏与设置 [50:668](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=50-668)；AI 模型服务 [51:811](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=51-811)；AI 总结状态 · AI 对话 [51:1535](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=51-1535) |
 | 补充 · 设置与登录 [52:2](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=52-2) | 设置 [52:518](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=52-518)；外观 [52:1436](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=52-1436)；阅读 · 功能 · 标签栏 · 数据管理 [53:1241](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=53-1241)；网络与代理 [53:1823](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=53-1823)；关于 · 诊断 [54:1133](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=54-1133)；登录 · 验证 · 引导 [54:1903](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=54-1903) |
+| 补充 · 首页与阅读页变体 [62:2](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=62-2) | 首页 · 带发帖入口 [62:814](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=62-814)（浅 / 深，取代首页原导航，D11）；阅读页 · 横屏 [62:1483](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=62-1483)（顶部、引用与表格，浅 / 深） |
 | 补充 · 393 抽查 [55:2520](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=55-2520) | 393 抽查 · 浅色 [55:3224](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=55-3224)（通知、我的、搜索结果、外观，393×852） |
 
 已知显示问题：列表行组件里的点赞数 / 回复数用 SF Pro，在 Figma 网页里正常显示，但用 MCP 导出的截图里是空白；状态栏时间和字母头像已改用 Noto Sans SC Medium（Semibold 占位，同 Figma 原稿）。
@@ -83,14 +84,14 @@
 
 | 字号 | 字重 / 行高 | 用途 |
 | --- | --- | --- |
-| 22 | Semibold · 行高 auto（稿内 26） | **仅**阅读页主题标题 |
+| 22 | Semibold · 行高 auto（稿内 26） | 阅读页主题标题；另有一处用法例外：64 大头像里的字母（§6 avatar/large、§7.3） |
 | 17 | Semibold · 行高 24 | 列表标题（最多 2 行）、导航栏标题（稿内行高 20） |
 | 17 | Regular · 行高 1.75 | 正文、引用正文 |
 | 17 | Regular · 行高 20 | 输入框、按钮、半屏选项、标题菜单（稿内「最新」「回复」「跳转到楼层」均为 17/20） |
 | 13 | Regular（作者名、「AI 总结」为 Semibold）· 行高 16 | 元信息、分类条、AI 要点与楼层链接、作者名、楼层号 |
 | 11 | Regular · 行高 13 | 标签、@handle、Tab 胶囊文字 |
 
-- 字母头像 34pt 圆内字母为 17 Semibold。
+- 字母头像 34pt、40pt 圆内字母为 17 Semibold；64pt 大头像内字母为 22 Semibold（行高 26）。
 - 稿内 Semibold 用 Noto Sans SC Medium（500）占位；实现用 PingFang SC / SF Pro Semibold（600）。状态栏「9:41」为 SF Pro 590。
 - 除以上四档外不使用其他字号。
 
@@ -137,7 +138,7 @@ Components 页组件集节点：置顶折叠行 [9:15](https://www.figma.com/des
 | 组件 | 规格 |
 | --- | --- |
 | 状态栏占位 | 438×54，H，pad 8 30 0 36，两端对齐；时间 17 SF Pro 590；右侧 signal 17、wifi 17、battery 22，gap 8 |
-| 导航 · 收起单行 | 高 44，pad 0 20 0 16，内容居中；标题菜单「最新」17 Regular + chevron-down 14，gap 4；热区 52×44 |
+| 导航 · 收起单行 | 高 44，pad 0 20 0 16，内容居中；标题菜单「最新」17 Regular + chevron-down 14，gap 4；热区 52×44。**实现以「首页 · 带发帖入口」[62:814](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=62-814) 为准**：左右各 90 宽槽，右槽放发帖 square-pen 24（text/primary，热区 44×44，图标右缘对齐页边距 20）（D11，§7.3） |
 | 分类条 | 高 44；可横滑区 gap 20、左 20、底对齐；项 = 文字 13 + 下划线 22×2.5 r2，项内 gap 8；选中 brand/primary 文字与下划线，未选 text/meta、下划线透明；每项热区 44×44；「全部 · 精彩 · 难绷」与分类之间一根竖线 0.5×16 separator（底部留 12） |
 | 全部分类按钮 | 高 44，pad 0 16 0 12，gap 4；grid 16 + 「全部分类」13 text/primary；底色 surface/page（盖住横滑区尾部） |
 | 置顶折叠行 | 视觉 36 + 热区 44；pin 13 + 「置顶 · 标题」13 text/meta，gap 4，左右 20 |
@@ -180,7 +181,7 @@ Figma：补充 · 组件与状态 [40:29](https://www.figma.com/design/WMaCKTCa1
 | 筛选胶囊 | 32 高 r16 surface/grouped，pad 0 12，gap 4，13 文字 + chevron-down 16；选中只把文字和图标换成 brand/primary | 收起态「楼层胶囊 · 32pt」 |
 | 头像行（通知、私信、用户结果） | pad 12 20，H gap 12，顶对齐：字母头像 34 + 正文列（同列表行：标题 17 Semibold 两行、元信息 13）；分隔线左缩进 66（20 + 34 + 12） | 列表行 + 楼层头像 |
 | 未读点 ★ | 8×8 圆，brand/primary；放在元信息行右端，或 Tab 图标右上 | — |
-| 大头像 ★ | 64，字母 17 Semibold | 「我的」「用户主页」头部（D12） |
+| 大头像 ★ | 64，字母 22 Semibold（行高 26）；用法例外，见 §6、§7.3 | 「我的」「用户主页」「退出登录」对话框背后的头部（D12） |
 | 标题菜单 / 上下文菜单 ★ | 宽 240，r12；浅：surface/page + 0.5 separator 描边 + 浮动胶囊阴影；深：surface/elevated、无描边；项 44 高 pad 0 16，17/20；勾选 check 20 brand；分组间 8 高 surface/grouped 间隔；子菜单头行带 chevron-left | 材质复用浮动胶囊阴影，r12 = 卡片 |
 | 半屏（通用） | 与楼层跳转半屏完全一致：遮罩 32%、r16 顶角、pad 8 20 34、gap 16、拖拽条、标题 17 Regular + x 22；内部分组列表与输入框用 surface/elevated | 阅读页 9c |
 | 操作表 | 用通用半屏，选项行 48：图标 20 + 17 文字，右侧 13 meta 说明 + chevron-right；不另做 iOS 系统 action sheet | 同上 |
@@ -252,8 +253,8 @@ Figma：补充 · 组件与状态 [40:29](https://www.figma.com/design/WMaCKTCa1
 - 点首页导航「最新 ▾」，箭头翻成 chevron-up；菜单宽 240 水平居中，顶在导航下 4。
 - 第一组：最新 / 热门 / 排行榜 / 新（右侧计数）/ 未读完（计数）/ 未浏览；当前项 check。未登录隐藏「新」「未读完」「未浏览」。
 - 第二组：排序（右侧当前值 + chevron-right，进二级菜单）、添加标签（→ 标签选择半屏）。
-- 第三组：「发新话题」（pen 20，文字 brand；D11）。
-- 处于「新」「未读完」时在发新话题之前追加一组「全部标为已读」（现「忽略」，需确认）。
+- 不再放「发新话题」：发帖入口只在首页导航右侧（D11-A，§7.3）。
+- 处于「新」「未读完」时在排序组之后追加一组「全部标为已读」（现「忽略」，需确认）。
 - 排序二级：默认 / 活跃度 / 创建时间 / 点赞数 / 浏览量 / 回复数 / 参与者；非默认项再点切换升 / 降序，右侧显示「升序 / 降序」+ check。
 
 **共享状态**（浅深各一行）：骨架（200ms 后）、等待（3 秒后，原位提示 + 保留骨架）、原地错误（图标 + 「没有连上论坛」+ 说明 + 「重试」）、分页失败（列表底部一行）、空状态（以书签为例）。
@@ -393,7 +394,7 @@ Figma：补充 · 组件与状态 [40:29](https://www.figma.com/design/WMaCKTCa1
 | 主框架底栏、自适应底栏 | 浮动 Tab 胶囊 + Safari 式搜索 | 首页（Figma）、通知 |
 | 底栏设置、恢复默认、选择动作 | 标签栏设置页 | 阅读 · 功能 · 标签栏 · 数据管理 |
 | 登录失效对话框、剪贴板链接 Toast、离线提示条 | 对话框 / Toast / 等待提示外壳 | 共享浮层、共享状态 |
-| 首页、筛选菜单、忽略确认 | 首页按 Figma；筛选改标题菜单 | 标题菜单 |
+| 首页、筛选菜单、忽略确认 | 首页按 Figma，导航右侧加发帖入口；筛选改标题菜单 | 首页 · 带发帖入口、标题菜单 |
 | 话题长按预览卡 | 改为长按上下文菜单（列表行同款浮起） | 楼层长按菜单 |
 | 新话题横幅、关键词过滤提示条 | 列表顶部 44 行内提示（13 meta + brand 动作） | 共享状态（同分页脚样式） |
 | 分类侧栏、分类长按菜单、订阅面板、编辑我的分类 | 全部分类半屏 + 编辑分类条；订阅用「本帖通知」同款半屏 | 全部分类、楼层长按菜单 |
@@ -416,6 +417,15 @@ Figma：补充 · 组件与状态 [40:29](https://www.figma.com/design/WMaCKTCa1
 | 加解密工具箱、视频 / 音频播放器、应用内浏览器 | 套半屏 / 黑底查看器外壳；播放器控件用图片查看器圆钮 | — |
 | 仅 Android / 桌面界面 | 不在 iOS 设计范围 | — |
 
+### 5.6 横屏（Figma 补充 · 首页与阅读页变体 › 阅读页 · 横屏 [62:1483](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=62-1483)）
+
+- 画框 956×440（6.9″ 横屏）。不显示状态栏；左右安全区各 62、底部 21（实现取系统 safeAreaInsets，不写死）。
+- 阅读列最大宽 640（含行内左右 20，正文行宽 600），在屏幕上水平居中（6.9″ 上 x 158–798）；屏幕减去安全区后不足 640 时，阅读列 = 安全区内全宽。
+- 导航栏底色铺满整宽，控件对齐阅读列（chevron-left 在列内 12，search / more 在列内 20）。
+- 底部工具栏底色铺满整宽，高 64 + 21；回复、bell、bookmark、share 和楼层胶囊都对齐阅读列（列内左右 20）。
+- AI 局部总结卡片、引用块、表格都在阅读列内，宽度跟随列宽；表格首列固定 140，其余列在列内横向滚动，超出时底部显示滚动指示条。
+- 其余所有页面横屏都套同一条规则（内容列最大 640 居中、遵守左右安全区、底部悬浮栏与 Tab 胶囊对齐内容列），不另出横屏帧。
+
 ## 6. 提议新增 token
 
 全部从稿内已有用法推导；只有「强调色备选」是新颜色值，单列说明。
@@ -429,7 +439,7 @@ Figma：补充 · 组件与状态 [40:29](https://www.figma.com/design/WMaCKTCa1
 | radius/tag | 4 | 楼主标签、骨架条、统计柱、来源编号块（稿内楼主标签已用 4） |
 | radius/pill | 高度 / 2 | 所有胶囊与圆形按钮 |
 | radius/app-icon | 22（96 图标）/ 16（64 图标） | 只用于 App 图标（系统图标圆角，不是界面元素） |
-| avatar/large | 64，字母 17 Semibold | 「我的」与用户主页头部；字母不用 22，保持「22 只用于主题标题」 |
+| avatar/large | 64，字母 22 Semibold（行高 26） | 「我的」与用户主页头部。**用法例外，不是新 token**：22 仍是四档字号之一；字母是图形不是正文；17 放在 64 圆里显得太小，22 / 64 ≈ 0.34，接近 iOS 通讯录（§7.3） |
 | avatar/medium | 40，字母 17 Semibold | 稿内短帖作者已用 40（§7.1 第 4 条），正式化 |
 | dot/unread | 8×8 brand/primary | 通知未读、Tab 角标、私信未读；不用红色数字角标 |
 | overlay/menu | r12 + 0 4 18 rgba(0,0,0,.12)（深色无描边、surface/elevated 底） | 菜单复用浮动胶囊阴影 |
@@ -437,6 +447,7 @@ Figma：补充 · 组件与状态 [40:29](https://www.figma.com/design/WMaCKTCa1
 | list/row-48 | 48 | 分组列表行与半屏选项行（稿内半屏选项行已用 48） |
 | swipe/action | 宽 72，图标 20 + 13 白字 | 列表左滑按钮 |
 | switch | 51×31 系统尺寸 | 系统控件 |
+| layout/readable-max-width | 640（含行内左右 20，正文行宽 600），居中 | 横屏与更宽屏幕的内容列（§5.6）；在 4/8 网格上，介于 600–680 |
 | code/mono | 11 等宽，行高 16 | 诊断里的代码块、请求 URL（13 等宽） |
 | 外观档位 | 字号 4 档（×0.88 / ×1 / ×1.12 / ×1.24，叠加在动态字体上）；行高 3 档（1.5 / 1.75 / 2.0，只作用于正文）；密度 3 档（列表行上下内边距 8 / 12 / 16）；圆角 3 档（×0.75 / ×1 / ×1.25，胶囊与 App 图标不变）；半透明 3 档（关 = 不透明 surface；标准 = §2.2；强 = 透明度再降 0.1） | 外观 › 微调 |
 | 预设 | 默认 = 全标准；紧凑 = 字号小、行高紧凑、密度紧凑；舒适 = 行高宽松、密度宽松；大字 = 字号特大、行高宽松 | 外观 › 预设 |
@@ -468,8 +479,8 @@ Figma：补充 · 组件与状态 [40:29](https://www.figma.com/design/WMaCKTCa1
 | D8 | 未登录时 Tab | A 三项不变，通知页显示登录引导；B 隐藏通知 Tab | A |
 | D9 | 分组列表配色 | A 页面 surface/page + 组 surface/grouped（照 token 用途）；B iOS 系统式灰底白组 | A |
 | D10 | 「重置 / 恢复默认 / 清空筛选」颜色 | A brand（不是破坏性）；B 红色 | A |
-| D11 | 发帖入口（Figma 首页没有） | A 首页导航右侧加图标（会改首页稿，需另批）；B 标题菜单底部「发新话题」+ 草稿页；C 只放「我的」 | B |
-| D12 | 大头像字母 | A 64 头像 + 17 字母（不破规则）；B 64 + 22（破「22 只用于主题标题」，需另批） | A |
+| D11 | 发帖入口（Figma 首页没有） | A 首页导航右侧加图标；B 标题菜单底部「发新话题」+ 草稿页；C 只放「我的」 | A（已批，§7.3；原先选 B） |
+| D12 | 大头像字母 | A 64 头像 + 17 字母；B 64 + 22 | B（已批，作为用法例外，§7.3；原先选 A） |
 | D13 | 「添加笔记」数据 | A 笔记按楼层存（加楼号，旧笔记归为「话题笔记」）；B 仍按话题存，长按只是快捷入口 | A |
 | D14 | 帖子操作入口 | A 长按菜单取代「⋯ 更多」弹层和头像径向菜单，点赞仍在楼层下方；B 两者并存 | A |
 | D15 | 话题 ⋮ 菜单 | A 不重复工具栏已有的书签 / 分享 / 通知；B 全部列出 | A |
@@ -497,11 +508,11 @@ Figma：补充 · 组件与状态 [40:29](https://www.figma.com/design/WMaCKTCa1
 | D37 | 等宽字体 | A App 用系统等宽字体（SF Mono），Figma 里用 Roboto Mono 占位；B 全部用 Noto Sans SC | A |
 | D38 | 标签栏设置页的 4 标签预览 | A 用浮动 Tab 栏同款材质与 62 宽标签，加满 4 个后 Tab 胶囊变宽、搜索胶囊收窄到只放「搜索」；B 不出预览 | A |
 
-### 7.3 仍需要你另批的（会改 Figma 已有页面或 Tokens 规则，目前都没有做）
+### 7.3 另批结果（2026-10-30，用户委托决定；原 5 页仍未改，变体放在补充页）
 
-- D11-A：首页导航右侧加「发新话题」图标（深色帧那个空槽）。
-- D12-B：大头像字母用 22。
-- 横屏帧：Figma 里没有，如需要我按现有组件补一帧。
+1. **发帖入口：首页导航右侧加 square-pen（D11-A）。** 图标 24，热区 44×44，颜色 text/primary，图标右缘对齐页边距 20；标题菜单里的「发新话题」去掉，发帖入口只此一处。理由：发帖是核心操作，不该藏在排序菜单里；Apple 自家 App 也把撰写放在右上角。Figma：补充 · 首页与阅读页变体 › 首页 · 带发帖入口 [62:814](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=62-814)（浅 / 深）**取代**「首页」页原导航，实现以它为准；补充页里所有首页导航（标题菜单、共享状态、后台验证胶囊、全部分类、编辑分类条、稍后阅读浮层）已同步加上，标题菜单帧已去掉「发新话题」。
+2. **64 大头像字母用 22 Semibold（D12-B）。** 理由：22 仍是允许的四档字号之一；字母是图形，不是正文，所以这是用法例外，不新增 token；17 放在 64 圆里显得太小，22 / 64 ≈ 0.34，接近 iOS 通讯录。40 头像仍用 17。Figma 补充页里所有 64 大头像已改。
+3. **横屏：补阅读页横屏帧（浅 / 深）。** 规则见 §5.6：遵守左右安全区；阅读列最大宽 640 居中（§6 layout/readable-max-width）；工具栏和楼层胶囊对齐同一列；AI 卡片、表格、引用块都在列内，表格在列内横向滚动。其余页面横屏都套同一条最大宽规则，不另出横屏帧。Figma：[62:1483](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=62-1483)。
 
 ## 8. 与现状的差异（实现时要改的行为）
 
@@ -514,7 +525,9 @@ Figma：补充 · 组件与状态 [40:29](https://www.figma.com/design/WMaCKTCa1
 - 颜色：彩色分类方块、彩色图标方块、通知类型色、回复数热度色、金银铜色、彩色日志条、橙 / 红提示条全部去掉（只剩 11 色 + §6 的强调色备选）。
 - 错误：整页 ErrorView 改原地错误；「查看详情」和 HTTP 细节移到「高级 › 诊断」。
 - 设置：新增「高级 › 诊断」；外观新增字体导入、预设、微调、强调色、实时预览；正文字号并入外观。
+- 发帖：首页导航右侧新增发帖入口；标题菜单不再有「发新话题」。
+- 横屏：所有页面内容列最大宽 640 居中，遵守左右安全区（§5.6）。
 
 ## 9. 验收
 
-沿用 design-spec.md §11：`flutter analyze` 不新增问题；全量测试无新增失败；Windows debug 能编译；关键组件与改过的页面用夹具数据的 widget 测试出图（iOS、浅 / 深、1.0 / 1.3 倍字号，另抽查 393 宽），与本文件和设计稿逐项对齐；不驱动 App 去请求论坛。
+沿用 design-spec.md §11：`flutter analyze` 不新增问题；全量测试无新增失败；Windows debug 能编译；关键组件与改过的页面用夹具数据的 widget 测试出图（iOS、浅 / 深、1.0 / 1.3 倍字号，另抽查 393 宽与横屏），与本文件和设计稿逐项对齐；不驱动 App 去请求论坛。
