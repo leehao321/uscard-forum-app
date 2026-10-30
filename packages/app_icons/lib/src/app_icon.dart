@@ -2,13 +2,13 @@
 //
 // 用法：
 //   AppIcon(AppIcons.close)                          // 字体图标
-//   AppIcon(AppIcons.bookmark, fill: 1)              // 字体图标 + fill 切换
+//   AppIcon(AppIcons.bookmark, color: brand)         // 字体图标（Lucide 无填充轴，两态用颜色）
 //   AppIcon(AppIcons.smileyOutline, fill: 1)         // 自绘图标 + fill 切换
 //
 // IconData 也能直接当 AppIconSpec 用（隐式转换由 `IconDataToSpec.asSpec` 提供，
 // 或者更省事 —— [AppIcon] 的构造函数同时接受 `IconData`/`AppIconSpec`，自动适配）。
 //
-// 全局默认参数由 [IconTheme] 决定（main.dart 注入 fill=0、weight=400、size=24）。
+// 全局默认参数由 [IconTheme] 决定（theme/app_theme.dart：text/primary、size=24）。
 import 'package:flutter/material.dart';
 
 import 'app_icons.dart';

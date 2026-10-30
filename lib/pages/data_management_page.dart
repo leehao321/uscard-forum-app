@@ -1,7 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
-import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:ai_model_manager/ai_model_manager.dart';
@@ -117,12 +116,12 @@ class _CacheManagementSectionState
         ImageCacheCategory.other => S.current.dataManagement_categoryOther,
       };
 
-  /// 分类色:固定统计色板 + harmonizeWith(primary) 向主题色调和。
+  /// 分类色:固定统计色板（0.4.0 起不再向主题色调和；本页在 M8 按 v2 重做）。
   ///
   /// 不能从 colorScheme 派生(primary/secondary/tertiary 在单色主题下
-  /// 几乎同色,六类无法区分);固定色板保证区分度,harmonize 保证与
-  /// 任意主题色/深浅模式协调 —— Telegram 统计色板同款思路。
-  Color _categoryColor(ImageCacheCategory c, ColorScheme scheme) {
+  /// 几乎同色,六类无法区分);固定色板保证区分度 —— Telegram 统计色板
+  /// 同款思路。
+  Color _categoryColor(ImageCacheCategory c) {
     const palette = {
       ImageCacheCategory.content: Color(0xFF4C8DF6), // 蓝
       ImageCacheCategory.sticker: Color(0xFFF2A03F), // 橙
@@ -131,7 +130,7 @@ class _CacheManagementSectionState
       ImageCacheCategory.external: Color(0xFF9B7BF0), // 紫
       ImageCacheCategory.other: Color(0xFF95A1AC), // 灰
     };
-    return palette[c]!.harmonizeWith(scheme.primary);
+    return palette[c]!;
   }
 
   Future<void> _clearSelected() async {
@@ -289,7 +288,7 @@ class _CacheManagementSectionState
                               if (_selected.contains(c) &&
                                   (breakdown[c] ?? 0) > 0)
                                 (
-                                  color: _categoryColor(c, theme.colorScheme),
+                                  color: _categoryColor(c),
                                   size: breakdown[c]!,
                                 ),
                           ],
@@ -353,7 +352,7 @@ class _CacheManagementSectionState
     ImageCacheCategory c,
     int? size,
   ) {
-    final color = _categoryColor(c, theme.colorScheme);
+    final color = _categoryColor(c);
     final empty = size != null && size <= 0;
     final checked = _selected.contains(c) && !empty;
     final total = _imageTotal;

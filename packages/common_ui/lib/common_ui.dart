@@ -7,7 +7,11 @@
 ///   按 [GlassRecipe] 按阅读密度分级的场景配方使用。
 /// - [DesktopScrollInteractionBehavior] 与 [DesktopScrollInteractionBinding]:
 ///   统一桌面滚动期间的控件点击，接入应用入口即可覆盖后代滚动容器。
+/// - v2 设计 token（0.4.0）：[AppTokens]（`context.tokens`）汇总颜色、
+///   字号、圆角、材质与外观档位；固定间距与尺寸在 [AppSpace]、[AppSize]。
 library;
+
+export 'src/tokens/tokens.dart';
 
 export 'src/app_sheet_scaffold.dart';
 export 'src/dismissible_popup_menu.dart';

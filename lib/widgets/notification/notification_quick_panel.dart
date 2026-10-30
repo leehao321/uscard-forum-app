@@ -8,7 +8,6 @@ import '../../providers/shortcut_provider.dart';
 import '../../providers/preferences_provider.dart';
 import '../../pages/notifications_page.dart';
 import '../../services/dynamic_content_suspension_service.dart';
-import '../../theme/theme_resolver.dart';
 import '../../utils/blur_config.dart';
 import '../../utils/dialog_utils.dart';
 import '../../utils/responsive.dart';
@@ -300,7 +299,7 @@ class _SidebarNotificationPanelState
             : Colors.black26;
 
         final panel = Material(
-          color: Theme.of(context).colorScheme.overlaySurface,
+          color: Theme.of(context).colorScheme.surface,
           clipBehavior: Clip.antiAlias,
           elevation: 8,
           borderRadius: showRail

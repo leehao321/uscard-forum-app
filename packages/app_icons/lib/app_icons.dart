@@ -1,10 +1,11 @@
-/// app_icons —— Flux 全局图标库（Material Symbols Rounded + 自绘）。
+/// app_icons —— 全局图标库（0.4.0 起是 Lucide + 自绘）。
 ///
-/// 业务方只 `import 'package:app_icons/app_icons.dart';`。
+/// 业务方只 `import 'package:app_icons/app_icons.dart';`，用 [AppIcons] 里的
+/// 语义常量；自绘场景用 [AppCustomIcon]/[AppIcon]；规则细节见
+/// src/app_icons.dart 头注释。
 ///
-/// 推荐：用 [AppIcons] 中已收录的语义常量；只有当图标尚未收录、又确实属于
-/// Material Symbols 字形时，才直接用 `Symbols.xxx_rounded`（同样从这里导出）。
-/// 自绘场景用 [AppCustomIcon]/[AppIcon]；规则细节见 src/app_icons.dart 头注释。
+/// 迁移期仍导出 Material Symbols 的 [Symbols]：页面里还没迁完的旧图标
+/// 继续可用，tool/ui_audit.dart 统计其数量，全部迁完（M10）后去掉。
 library;
 
 export 'package:material_symbols_icons/symbols.dart' show Symbols;
@@ -12,4 +13,3 @@ export 'package:material_symbols_icons/symbols.dart' show Symbols;
 export 'src/app_icon.dart';
 export 'src/app_icons.dart';
 export 'src/icon_painters.dart';
-

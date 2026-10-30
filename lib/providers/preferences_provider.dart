@@ -542,7 +542,6 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
   static const String _longPressPreviewKey = 'pref_long_press_preview';
   static const String _openExternalLinksInAppBrowserKey =
       'pref_open_external_links_in_app_browser';
-  static const String _contentFontScaleKey = 'pref_content_font_scale';
   static const String _shareImageThemeIndexKey = 'pref_share_image_theme_index';
   static const String _autoFillLoginKey = 'pref_auto_fill_login';
   static const String _homeRefreshButtonKey = 'pref_home_refresh_button';
@@ -635,7 +634,10 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
           longPressPreview: _prefs.getBool(_longPressPreviewKey) ?? true,
           openExternalLinksInAppBrowser:
               _prefs.getBool(_openExternalLinksInAppBrowserKey) ?? false,
-          contentFontScale: _prefs.getDouble(_contentFontScaleKey) ?? 1.0,
+          // 0.4.0 起正文字号并入外观字号档（appearance_provider，全局
+          // 动态字体 × 档位），旧值只在迁移时读一次；这里固定 1，避免
+          // 阅读页再乘一遍。键保留不删，降级回旧版还能用。
+          contentFontScale: 1.0,
           shareImageThemeIndex: _prefs.getInt(_shareImageThemeIndexKey) ?? 0,
           autoFillLogin: _prefs.getBool(_autoFillLoginKey) ?? true,
           homeRefreshButton: _prefs.getBool(_homeRefreshButtonKey) ?? false,
@@ -671,7 +673,9 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
           ),
           aiTranslationModelKey: _prefs.getString(_aiTranslationModelPrefKey),
           hcaptchaCreateEndpoint: _prefs.getString(_hcaptchaCreateEndpointKey),
-          dialogBlur: _prefs.getBool(_dialogBlurKey) ?? true,
+          // 0.4.0：v2 的弹窗遮罩是 32% 纯色、不模糊（设计说明 §2.2），外观页
+          // 也去掉了这个开关；旧键保留不删
+          dialogBlur: false,
           cryptoRememberPassword:
               _prefs.getBool(_cryptoRememberPasswordKey) ?? false,
           cryptoRecentAlgorithms:
@@ -777,13 +781,6 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
   Future<void> setOpenExternalLinksInAppBrowser(bool enabled) async {
     state = state.copyWith(openExternalLinksInAppBrowser: enabled);
     await _prefs.setBool(_openExternalLinksInAppBrowserKey, enabled);
-  }
-
-  Future<void> setContentFontScale(double scale) async {
-    // 限制范围在 0.8 ~ 1.4
-    final clampedScale = scale.clamp(0.8, 1.4);
-    state = state.copyWith(contentFontScale: clampedScale);
-    await _prefs.setDouble(_contentFontScaleKey, clampedScale);
   }
 
   Future<void> setShareImageThemeIndex(int index) async {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxdo/providers/theme_provider.dart';
-import 'package:fluxdo/utils/blur_config.dart';
+import 'package:fluxdo/utils/blur_config.dart' show ModalBlurScene;
 import 'package:fluxdo/utils/dialog_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,7 +10,7 @@ void main() {
   for (final scene in ModalBlurScene.values) {
     for (final brightness in Brightness.values) {
       for (final enabled in [false, true]) {
-        testWidgets('$scene $brightness blur=$enabled: 路由场景模糊与开关', (
+        testWidgets('$scene $brightness 旧偏好 blur=$enabled: 遮罩不模糊', (
           tester,
         ) async {
           SharedPreferences.setMockInitialValues({'pref_dialog_blur': enabled});
@@ -52,24 +52,9 @@ void main() {
           );
           await tester.tap(find.text('open'));
           await tester.pumpAndSettle();
-          if (enabled) {
-            expect(find.byType(BackdropFilter), findsOneWidget);
-            expect(
-              tester.widget<BackdropFilter>(find.byType(BackdropFilter)).filter,
-              createBlurFilter(scene.sigma),
-            );
-            expect(
-              tester
-                  .widget<AnimatedModalBarrier>(
-                    find.byType(AnimatedModalBarrier),
-                  )
-                  .color
-                  .value,
-              blurBarrierColor(brightness, scene: scene),
-            );
-          } else {
-            expect(find.byType(BackdropFilter), findsNothing);
-          }
+          // 0.4.0（计划 P11）：v2 的遮罩是 32% 纯色、不模糊，「弹窗模糊」
+          // 去掉了；旧版存的 pref_dialog_blur=true 也不再生效
+          expect(find.byType(BackdropFilter), findsNothing);
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox());
         });

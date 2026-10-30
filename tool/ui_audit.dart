@@ -6,7 +6,7 @@ import '_workspace_cli.dart';
 // 0.4.0 界面审计：统计页面代码里绕开 token / 组件的写法。
 //
 // 用法：
-//   dart tool/ui_audit.dart            对照基线，任何一项总数上升就退出码 1
+//   dart tool/ui_audit.dart            对照基线，任何一项「白名单外」计数上升就退出码 1
 //   dart tool/ui_audit.dart --detail   另外按目录列出明细
 //   dart tool/ui_audit.dart --update   把当前计数写成新基线
 //
@@ -226,7 +226,10 @@ void main(List<String> args) {
 
   final counts = _scan();
   final baseline = _readBaseline();
-  final baseTotal = (baseline?['total'] as Map?)?.cast<String, int>() ?? {};
+  // 拦截看「白名单外」：token 定义、图标包、共用外壳里本来就该有这些写法，
+  // 搬进去时总数可能上升，但页面里的用量必须只降不升（计划 §6.3）
+  final baseOutside =
+      (baseline?['outside'] as Map?)?.cast<String, int>() ?? {};
 
   stdout.writeln(
     '${_pad('写法', 30, left: true)}${_pad('总数', 8)}${_pad('白名单外', 10)}'
@@ -234,13 +237,13 @@ void main(List<String> args) {
   );
   var regressed = false;
   for (final rule in _rules) {
-    final now = counts.total[rule.id] ?? 0;
-    final base = baseTotal[rule.id];
+    final now = counts.outside[rule.id] ?? 0;
+    final base = baseOutside[rule.id];
     final delta = base == null ? '' : now - base;
     if (base != null && now > base) regressed = true;
     stdout.writeln(
-      '${_pad(rule.label, 30, left: true)}${_pad(now, 8)}'
-      '${_pad(counts.outside[rule.id] ?? 0, 10)}${_pad(base ?? '-', 8)}'
+      '${_pad(rule.label, 30, left: true)}${_pad(counts.total[rule.id] ?? 0, 8)}'
+      '${_pad(now, 10)}${_pad(base ?? '-', 8)}'
       '${_pad(delta is int && delta > 0 ? '+$delta' : delta, 8)}',
     );
   }

@@ -1,21 +1,22 @@
-// 全局图标中心层 —— Flux 图标统一收口
+// 全局图标中心层 —— 图标统一收口
 //
 // 规则（务必遵守）：
-//   1. 全 App 只用 Material Symbols Rounded 一种风格；缺失时走自绘（AppCustomIcon）。
-//   2. 业务/页面代码禁止直接引用 `Icons.*` / `Symbols.*` / `PhosphorIcons.*`，
-//      所有图标必须经过本文件暴露的 AppIcons 常量。
-//   3. "操作类"图标恒为线框；渲染由全局 IconTheme 统一控制 fill=0 / weight=400 /
-//      grade=0 / opticalSize=24。
-//   4. "状态类"图标（同一概念有 选中/未选中 两态）用同一个 IconData，渲染时通过
-//      `Icon(..., fill: isActive ? 1 : 0)` 切换实/空。**绝不允许** 用
-//      xxx_border / xxx_outline 这种不同名字的变体表达同一概念的两态。
-//   5. 自绘图标：用 [AppCustomIcon] 包装 [IconPainterBuilder]，并在调用处用
+//   1. 0.4.0（v2 设计）起只用 Lucide 线框图标，300 字重（描边约 1.55，
+//      最接近 Figma 稿里的 1.75；描边随图标尺寸等比缩放）；缺失时走自绘
+//      （AppCustomIcon）。尺寸只用 24 / 20 / 16（AppSize.iconL/M/S）。
+//   2. 业务/页面代码禁止直接引用 `Icons.*` / `Symbols.*` / `LucideIcons*`，
+//      所有图标必须经过本文件暴露的 AppIcons 常量。页面里残留的
+//      `Symbols.*` 随各里程碑迁到这里（tool/ui_audit.dart 统计）。
+//   3. 图标恒为线框。Lucide 没有填充轴，`Icon(fill:)` 对它无效；需要
+//      「选中 / 未选中」两态时用颜色区分（brand/primary vs text/meta），
+//      自绘图标仍可用 fill。
+//   4. 自绘图标：用 [AppCustomIcon] 包装 [IconPainterBuilder]，并在调用处用
 //      [AppIcon] 渲染。AppCustomIcon 同样支持 fill/size/color，遵循 IconTheme。
-//   6. 例外：社区数据驱动的 badge/tag/category 图标继续走 font_awesome。
+//   5. 例外：社区数据驱动的 badge/tag/category 图标继续走 font_awesome。
 library;
 
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:lucide_icons_flutter/lucide_icons_300.dart';
 
 import 'icon_painters.dart';
 
@@ -27,7 +28,7 @@ sealed class AppIconSpec {
   const AppIconSpec();
 }
 
-/// 字体图标（Material Symbols 等）。
+/// 字体图标（Lucide 等）。
 class AppFontIcon extends AppIconSpec {
   final IconData data;
   const AppFontIcon(this.data);
@@ -64,146 +65,163 @@ extension IconDataToSpec on IconData {
 /// 全 App 图标统一出口。仅暴露常量，不要在这里写组件。
 abstract final class AppIcons {
   // ─── 导航 / 通用操作 ────────────────────────────────────────────────
-  static const close = Symbols.close_rounded;
-  static const back = Symbols.arrow_back_rounded;
-  static const forward = Symbols.arrow_forward_rounded;
-  static const up = Symbols.arrow_upward_rounded;
-  static const down = Symbols.arrow_downward_rounded;
-  static const chevronLeft = Symbols.chevron_left_rounded;
-  static const chevronRight = Symbols.chevron_right_rounded;
-  static const expandMore = Symbols.expand_more_rounded;
-  static const expandLess = Symbols.expand_less_rounded;
-  static const dropdown = Symbols.arrow_drop_down_rounded;
-  static const dropup = Symbols.arrow_drop_up_rounded;
-  static const menu = Symbols.menu_rounded;
-  static const moreHoriz = Symbols.more_horiz_rounded;
-  static const moreVert = Symbols.more_vert_rounded;
-  static const check = Symbols.check_rounded;
-  static const checkAll = Symbols.done_all_rounded;
-  static const add = Symbols.add_rounded;
-  static const remove = Symbols.remove_rounded;
-  static const search = Symbols.search_rounded;
-  static const filter = Symbols.filter_list_rounded;
-  static const filterOff = Symbols.filter_list_off_rounded;
-  static const sort = Symbols.sort_rounded;
-  static const tune = Symbols.tune_rounded;
-  static const refresh = Symbols.refresh_rounded;
-  static const sync = Symbols.sync_rounded;
-  static const undo = Symbols.undo_rounded;
-  static const redo = Symbols.redo_rounded;
+  static const close = LucideIcons300.x;
+  static const back = LucideIcons300.chevronLeft;
+  static const forward = LucideIcons300.arrowRight;
+  static const up = LucideIcons300.arrowUp;
+  static const down = LucideIcons300.arrowDown;
+  static const chevronLeft = LucideIcons300.chevronLeft;
+  static const chevronRight = LucideIcons300.chevronRight;
+  static const chevronDown = LucideIcons300.chevronDown;
+  static const chevronUp = LucideIcons300.chevronUp;
+  static const expandMore = LucideIcons300.chevronDown;
+  static const expandLess = LucideIcons300.chevronUp;
+  static const dropdown = LucideIcons300.chevronDown;
+  static const dropup = LucideIcons300.chevronUp;
+  static const menu = LucideIcons300.menu;
+  static const moreHoriz = LucideIcons300.ellipsis;
+  static const moreVert = LucideIcons300.ellipsisVertical;
+  static const check = LucideIcons300.check;
+  static const checkAll = LucideIcons300.checkCheck;
+  static const add = LucideIcons300.plus;
+  static const remove = LucideIcons300.minus;
+  static const search = LucideIcons300.search;
+  static const filter = LucideIcons300.listFilter;
+  static const filterOff = LucideIcons300.funnelX;
+  static const sort = LucideIcons300.arrowDownWideNarrow;
+  static const tune = LucideIcons300.slidersHorizontal;
+  static const refresh = LucideIcons300.refreshCw;
+  static const sync = LucideIcons300.refreshCcw;
+  static const undo = LucideIcons300.undo2;
+  static const redo = LucideIcons300.redo2;
 
-  // ─── 文件 / 内容操作 ───────────────────────────────────────────────
-  static const copy = Symbols.content_copy_rounded;
-  static const cut = Symbols.content_cut_rounded;
-  static const paste = Symbols.content_paste_rounded;
-  static const delete = Symbols.delete_rounded;
-  static const edit = Symbols.edit_rounded;
-  static const save = Symbols.save_rounded;
-  static const saveAlt = Symbols.save_alt_rounded;
-  static const download = Symbols.download_rounded;
-  static const upload = Symbols.upload_rounded;
-  static const share = Symbols.share_rounded;
-  static const reply = Symbols.reply_rounded;
-  static const replyAll = Symbols.reply_all_rounded;
-  static const forwardMsg = Symbols.forward_rounded;
-  static const send = Symbols.send_rounded;
-  static const openInNew = Symbols.open_in_new_rounded;
-  static const link = Symbols.link_rounded;
-  static const linkOff = Symbols.link_off_rounded;
-  static const code = Symbols.code_rounded;
-  static const formatQuote = Symbols.format_quote_rounded;
+  // ─── v2 语义名（设计说明 §2.6、§5） ─────────────────────────────────
+  /// 发帖入口
+  static const compose = LucideIcons300.squarePen;
 
-  // ─── 媒体 / 视图 ───────────────────────────────────────────────────
-  static const image = Symbols.image_rounded;
-  static const imageBroken = Symbols.broken_image_rounded;
-  static const videoLibrary = Symbols.video_library_rounded;
-  static const play = Symbols.play_arrow_rounded;
-  static const pause = Symbols.pause_rounded;
-  static const camera = Symbols.photo_camera_rounded;
-  static const brush = Symbols.brush_rounded;
-  static const gallery = Symbols.photo_library_rounded;
+  /// 楼层按钮 / 楼层胶囊
+  static const floor = LucideIcons300.arrowUpDown;
 
-  // ─── 状态类（同一 IconData，fill 切实/空） ────────────────────────
-  // 用法：`Icon(AppIcons.bookmark, fill: isBookmarked ? 1 : 0)`
-  static const bookmark = Symbols.bookmark_rounded;
-  static const notification = Symbols.notifications_rounded;
-  static const favorite = Symbols.favorite_rounded;
-  static const star = Symbols.star_rounded;
-  static const heart = Symbols.favorite_rounded;
-  static const visibility = Symbols.visibility_rounded;
-  static const visibilityOff = Symbols.visibility_off_rounded;
-  static const pushPin = Symbols.push_pin_rounded;
-  static const chatBubble = Symbols.chat_bubble_rounded;
-  static const thumbUp = Symbols.thumb_up_rounded;
-  static const thumbDown = Symbols.thumb_down_rounded;
-  static const checkBox = Symbols.check_box_rounded;
-  static const radioButton = Symbols.radio_button_checked_rounded;
-  static const radioButtonOff = Symbols.radio_button_unchecked_rounded;
-  static const playCircle = Symbols.play_circle_rounded;
+  /// 全部标为已读
+  static const markAllRead = LucideIcons300.checkCheck;
+
+  /// 通知类型：提及
+  static const mention = LucideIcons300.atSign;
+
+  /// 通知类型：关注
+  static const follow = LucideIcons300.userPlus;
+
+  // ─── 编辑 / 内容 ───────────────────────────────────────────────────
+  static const copy = LucideIcons300.copy;
+  static const cut = LucideIcons300.scissors;
+  static const paste = LucideIcons300.clipboardPaste;
+  static const delete = LucideIcons300.trash2;
+  static const edit = LucideIcons300.pen;
+  static const save = LucideIcons300.save;
+  static const saveAlt = LucideIcons300.download;
+  static const download = LucideIcons300.download;
+  static const upload = LucideIcons300.upload;
+  static const share = LucideIcons300.share;
+  static const reply = LucideIcons300.reply;
+  static const replyAll = LucideIcons300.replyAll;
+  static const forwardMsg = LucideIcons300.forward;
+  static const send = LucideIcons300.send;
+  static const openInNew = LucideIcons300.externalLink;
+  static const link = LucideIcons300.link;
+  static const linkOff = LucideIcons300.unlink;
+  static const code = LucideIcons300.code;
+  static const formatQuote = LucideIcons300.quote;
+
+  // ─── 媒体 ─────────────────────────────────────────────────────────
+  static const image = LucideIcons300.image;
+  static const imageBroken = LucideIcons300.imageOff;
+  static const videoLibrary = LucideIcons300.video;
+  static const play = LucideIcons300.play;
+  static const pause = LucideIcons300.pause;
+  static const camera = LucideIcons300.camera;
+  static const brush = LucideIcons300.brush;
+  static const gallery = LucideIcons300.images;
+
+  // ─── 状态类（两态用颜色区分，见规则 3） ─────────────────────────────
+  static const bookmark = LucideIcons300.bookmark;
+  static const notification = LucideIcons300.bell;
+  static const favorite = LucideIcons300.heart;
+  static const star = LucideIcons300.star;
+  static const heart = LucideIcons300.heart;
+  static const visibility = LucideIcons300.eye;
+  static const visibilityOff = LucideIcons300.eyeOff;
+  static const pushPin = LucideIcons300.pin;
+  static const chatBubble = LucideIcons300.messageCircle;
+  static const thumbUp = LucideIcons300.thumbsUp;
+  static const thumbDown = LucideIcons300.thumbsDown;
+  static const checkBox = LucideIcons300.squareCheck;
+  static const radioButton = LucideIcons300.circleDot;
+  static const radioButtonOff = LucideIcons300.circle;
+  static const playCircle = LucideIcons300.circlePlay;
 
   // ─── 用户 / 账户 ───────────────────────────────────────────────────
-  static const person = Symbols.person_rounded;
-  static const people = Symbols.group_rounded;
-  static const account = Symbols.account_circle_rounded;
-  static const login = Symbols.login_rounded;
-  static const logout = Symbols.logout_rounded;
-  static const lock = Symbols.lock_rounded;
-  static const lockOpen = Symbols.lock_open_rounded;
-  static const key = Symbols.key_rounded;
-  static const shield = Symbols.shield_rounded;
-  static const security = Symbols.security_rounded;
-  static const verifiedUser = Symbols.verified_user_rounded;
-  static const medal = Symbols.workspace_premium_rounded;
+  static const person = LucideIcons300.user;
+  static const people = LucideIcons300.users;
+  static const account = LucideIcons300.circleUser;
+  static const login = LucideIcons300.logIn;
+  static const logout = LucideIcons300.logOut;
+  static const lock = LucideIcons300.lock;
+  static const lockOpen = LucideIcons300.lockOpen;
+  static const key = LucideIcons300.key;
+  static const shield = LucideIcons300.shield;
+  static const security = LucideIcons300.shieldCheck;
+  static const verifiedUser = LucideIcons300.badgeCheck;
+  static const medal = LucideIcons300.award;
 
-  // ─── 通讯 / 通知 ───────────────────────────────────────────────────
-  static const mail = Symbols.mail_rounded;
-  static const forum = Symbols.forum_rounded;
-  static const message = Symbols.message_rounded;
-  static const announcement = Symbols.campaign_rounded;
+  // ─── 通讯 ─────────────────────────────────────────────────────────
+  static const mail = LucideIcons300.mail;
+  static const forum = LucideIcons300.messagesSquare;
+  static const message = LucideIcons300.messageSquare;
+  static const announcement = LucideIcons300.megaphone;
 
-  // ─── 状态反馈 ─────────────────────────────────────────────────────
-  static const info = Symbols.info_rounded;
-  static const help = Symbols.help_rounded;
-  static const warning = Symbols.warning_rounded;
-  static const error = Symbols.error_rounded;
-  static const checkCircle = Symbols.check_circle_rounded;
-  static const cancelCircle = Symbols.cancel_rounded;
-  static const doNotDisturb = Symbols.do_not_disturb_on_rounded;
-  static const block = Symbols.block_rounded;
-  static const loading = Symbols.hourglass_top_rounded;
+  // ─── 状态提示 ──────────────────────────────────────────────────────
+  static const info = LucideIcons300.info;
+  static const help = LucideIcons300.circleHelp;
+  static const warning = LucideIcons300.triangleAlert;
+  static const error = LucideIcons300.circleAlert;
+  static const checkCircle = LucideIcons300.circleCheck;
+  static const cancelCircle = LucideIcons300.circleX;
+  static const doNotDisturb = LucideIcons300.circleMinus;
+  static const block = LucideIcons300.ban;
+  static const loading = LucideIcons300.hourglass;
 
-  // ─── 结构 / 布局 ───────────────────────────────────────────────────
-  static const settings = Symbols.settings_rounded;
-  static const home = Symbols.home_rounded;
-  static const article = Symbols.article_rounded;
-  static const book = Symbols.menu_book_rounded;
-  static const autoStories = Symbols.auto_stories_rounded;
-  static const folder = Symbols.folder_rounded;
-  static const accountTree = Symbols.account_tree_rounded;
-  static const category = Symbols.category_rounded;
-  static const tag = Symbols.tag_rounded;
-  static const history = Symbols.history_rounded;
-  static const lockClock = Symbols.lock_clock_rounded;
-  static const cloud = Symbols.cloud_rounded;
-  static const cloudOff = Symbols.cloud_off_rounded;
-  static const hub = Symbols.hub_rounded;
-  static const language = Symbols.language_rounded;
-  static const palette = Symbols.palette_rounded;
-  static const colorLens = Symbols.color_lens_rounded;
-  static const speed = Symbols.speed_rounded;
-  static const rocket = Symbols.rocket_launch_rounded;
-  static const touchApp = Symbols.touch_app_rounded;
-  static const wallet = Symbols.account_balance_wallet_rounded;
-  static const token = Symbols.token_rounded;
-  static const description = Symbols.description_rounded;
-  static const military = Symbols.military_tech_rounded;
-  static const addComment = Symbols.add_comment_rounded;
-  static const emoji = Symbols.emoji_emotions_rounded;
-  static const autoAwesome = Symbols.auto_awesome_rounded;
-  static const autoFixHigh = Symbols.auto_fix_high_rounded;
-  static const callSplit = Symbols.call_split_rounded;
+  // ─── 分类 / 设置 / 杂项 ────────────────────────────────────────────
+  static const settings = LucideIcons300.settings;
+  static const home = LucideIcons300.house;
+  static const article = LucideIcons300.fileText;
+  static const book = LucideIcons300.bookOpen;
+  static const autoStories = LucideIcons300.bookOpenText;
+  static const folder = LucideIcons300.folder;
+  static const accountTree = LucideIcons300.listTree;
+  static const category = LucideIcons300.layoutGrid;
+  static const tag = LucideIcons300.tag;
+  static const history = LucideIcons300.history;
+  static const lockClock = LucideIcons300.lockKeyhole;
+  static const cloud = LucideIcons300.cloud;
+  static const cloudOff = LucideIcons300.cloudOff;
+  static const hub = LucideIcons300.network;
+  static const language = LucideIcons300.languages;
+  static const palette = LucideIcons300.palette;
+  static const colorLens = LucideIcons300.palette;
+  static const speed = LucideIcons300.gauge;
+  static const rocket = LucideIcons300.rocket;
+  static const touchApp = LucideIcons300.pointer;
+  static const wallet = LucideIcons300.wallet;
+  static const token = LucideIcons300.coins;
+  static const description = LucideIcons300.fileText;
+  static const military = LucideIcons300.medal;
+  static const addComment = LucideIcons300.messageSquarePlus;
+  static const emoji = LucideIcons300.smile;
+  static const autoAwesome = LucideIcons300.sparkles;
+  static const autoFixHigh = LucideIcons300.wandSparkles;
+  static const callSplit = LucideIcons300.split;
 
-  // ─── 自绘图标（Material Symbols 没有合适字形时） ─────────────────
+  // ─── 自绘图标（Lucide 没有合适字形时） ─────────────────────────────
   static final AppCustomIcon openBook = AppCustomIcon(
     ({required color, required fill, required strokeWidth}) =>
         OpenBookPainter(color: color, strokeWidth: strokeWidth),

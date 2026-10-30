@@ -16,7 +16,6 @@ import 'package:m3e_ui/m3e_ui.dart';
 // 让用例失败。设置环境变量 SHOTS_DIR 时把截图写到该目录，人工核对对齐。
 // 全部是本地夹具，不碰网络。
 
-const _seed = Color(0xFF4B73E6);
 const _size = Size(390, 844);
 
 Future<void> _loadFonts() async {
@@ -41,13 +40,12 @@ Future<void> _loadFonts() async {
 }
 
 ThemeData _theme(Brightness brightness) => buildAppThemeForTest(
-  ColorScheme.fromSeed(seedColor: _seed, brightness: brightness),
-  ThemeState(
+  brightness,
+  platform: TargetPlatform.iOS,
+  themeState: ThemeState(
     mode: brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light,
-    seedColor: _seed,
     fontFamily: AppFontFamily.miSans,
   ),
-  platform: TargetPlatform.iOS,
 );
 
 Widget _sectionHeader(BuildContext context, String text) => Padding(

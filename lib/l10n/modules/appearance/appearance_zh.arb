@@ -1,5 +1,10 @@
 {
   "@@locale": "zh",
+  "appearance_accent": "强调色",
+  "appearance_accentGraphite": "石墨",
+  "appearance_accentMeika": "美卡绿",
+  "appearance_accentNavy": "海军蓝",
+  "appearance_accentWisteria": "紫藤",
   "appearance_appIcon": "应用图标",
   "appearance_bgBlur": "背景模糊",
   "appearance_bgChange": "更换图片",

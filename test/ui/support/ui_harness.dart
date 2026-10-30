@@ -144,19 +144,15 @@ Future<void> loadUiFonts() async {
   }
 }
 
-/// 测试用主题：M0 先用现有主题装配，M1 换成 v2 token 后这里跟着换
-ThemeData uiTheme(Brightness brightness) {
-  const seed = Color(0xFF4B73E6);
-  return buildAppThemeForTest(
-    ColorScheme.fromSeed(seedColor: seed, brightness: brightness),
-    ThemeState(
-      mode: brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light,
-      seedColor: seed,
-      fontFamily: AppFontFamily.miSans,
-    ),
-    platform: TargetPlatform.iOS,
-  );
-}
+/// 测试用主题：和应用同一套 v2 装配，字体固定 MiSans（测试里没有系统字体）
+ThemeData uiTheme(Brightness brightness) => buildAppThemeForTest(
+  brightness,
+  platform: TargetPlatform.iOS,
+  themeState: ThemeState(
+    mode: brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light,
+    fontFamily: AppFontFamily.miSans,
+  ),
+);
 
 final _boundaryKey = GlobalKey(debugLabel: 'ui_harness_boundary');
 

@@ -90,9 +90,7 @@ import 'utils/hashtag_handlers.dart';
 import 'utils/image_decode_gate.dart';
 import 'widgets/post/post_item/render_parse_cache.dart';
 import 'utils/scroll_busy_signal.dart';
-import 'theme/app_adaptive_theme.dart';
-import 'theme/theme_resolver.dart';
-import 'widgets/common/app_background_layer.dart';
+import 'theme/app_theme.dart';
 import 'utils/time_utils.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -100,8 +98,8 @@ import 'package:ai_model_manager/ai_model_manager.dart';
 import 'services/app_logger.dart';
 import 'services/network/adapters/platform_adapter.dart';
 import 'providers/preferences_provider.dart';
+import 'providers/appearance_provider.dart';
 import 'providers/theme_provider.dart';
-import 'package:dynamic_color/dynamic_color.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:video_player_media_kit/video_player_media_kit.dart';
 import 'services/audio/just_audio_gst.dart';
@@ -589,29 +587,6 @@ Future<void> main() async {
   );
 }
 
-/// 只给 textTheme/primaryTextTheme 注入中文 fallback，保留 ThemeData 原本的
-/// fontFamily 与 weight 配置（避免覆盖 Android OEM 字体导致视觉变粗）。
-ThemeData _withChineseFallback(ThemeData base) {
-  final fallback = SystemChineseFont.fontFamilyFallback;
-  return base.copyWith(
-    textTheme: base.textTheme.apply(fontFamilyFallback: fallback),
-    primaryTextTheme: base.primaryTextTheme.apply(fontFamilyFallback: fallback),
-  );
-}
-
-/// Material Symbols 全局轴默认：fill=0 走线框，weight/grade/opticalSize
-/// 给出与现有视觉匹配的中性值。状态类图标需在使用处显式传 `fill: 1`。
-/// iOS 上 weight 降到 300(更细,贴近 SF Symbols 的笔画)。
-IconThemeData _appIconTheme(Color color, TargetPlatform platform) =>
-    IconThemeData(
-      color: color,
-      size: 24,
-      fill: 0,
-      weight: platform == TargetPlatform.iOS ? 300 : 400,
-      grade: 0,
-      opticalSize: 24,
-    );
-
 /// 页面转场:框架在 Android 的默认(PredictiveBack,常规导航兜底到
 /// FadeForwards)是入场/离场两页各套一个整页 FadeTransition —— Impeller
 /// 下每个半透明整页 = 一次全屏 saveLayer 离屏,且 Impeller 没有 Skia 的
@@ -648,128 +623,41 @@ const _fullscreenSwipePageTransitionsTheme = PageTransitionsTheme(
   },
 );
 
-/// M3E 按钮按压形变,参数对照 Compose ButtonSmallTokens 标准:
-/// ContainerShapeRound = CornerFull(Stadium)→ PressedContainerShape =
-/// CornerSmall(8dp)。形状插值由 Material 内部 ImplicitlyAnimatedWidget
-/// 完成,theme 注入全局生效;时长对齐规格用的 DefaultEffects 弹簧
-/// (spring(1.0, 1600) 收敛 ≈180ms,规格注释明确"不允许过冲",
-/// Material 的 fastOutSlowIn 曲线正好同为无过冲缓动)。
-// 按钮形状样式只建一次：resolveWith 的闭包每次新建都不相等，会让每次
-// 装配出的 ThemeData 都不相等，MaterialApp 的 AnimatedTheme 因此在每次
-// 重建时都空跑一段整树主题插值动画。
-final ButtonStyle _m3ePressedShapeStyleInstance = _m3ePressedShapeStyle();
-final ButtonStyle _m3eIconButtonShapeStyleInstance =
-    _m3eIconButtonShapeStyle();
-
-ButtonStyle _m3ePressedShapeStyle() => ButtonStyle(
-  animationDuration: const Duration(milliseconds: 180),
-  shape: WidgetStateProperty.resolveWith(
-    (states) => states.contains(WidgetState.pressed)
-        ? RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))
-        : const StadiumBorder(),
-  ),
-);
-
-/// IconButton 版本:在按压形变之上叠加 selected 态形状(Compose
-/// IconToggleButtonShapes 语义:pressed > checked > 默认)。选中的
-/// 切换图标按钮从全圆变小圆角方,给 36 处 isSelected 调用点免费的
-/// M3E 切换标志动效;时长同 DefaultEffects。
-ButtonStyle _m3eIconButtonShapeStyle() => ButtonStyle(
-  animationDuration: const Duration(milliseconds: 180),
-  shape: WidgetStateProperty.resolveWith((states) {
-    if (states.contains(WidgetState.pressed)) {
-      return RoundedRectangleBorder(borderRadius: BorderRadius.circular(8));
-    }
-    if (states.contains(WidgetState.selected)) {
-      return RoundedRectangleBorder(borderRadius: BorderRadius.circular(12));
-    }
-    return const StadiumBorder();
-  }),
-);
-
-/// light/dark 共用的 ThemeData 装配(两侧必须对称,尤其 M3eFlags ——
-/// ThemeData.lerp 对单边缺失的 extension 不插值而是瞬时并入)。
-///
-/// [platform] 默认取 [defaultTargetPlatform](测试可显式传入 iOS)。iOS 专属
-/// 适配与设计 token 由 `applyAppAdaptiveLayer` 在末尾叠加,非 iOS 视觉不变。
+/// light/dark 共用的 ThemeData 装配：配色、字号与组件主题由 v2 token
+/// 生成（theme/app_theme.dart，全平台一套），这里只补页面转场与中文
+/// 字体回退。两侧必须对称注册 extension（ThemeData.lerp 对单边缺失的
+/// extension 不插值而是瞬时并入）。
 ThemeData _buildAppTheme(
-  ColorScheme scheme,
-  ThemeState themeState, {
+  Brightness brightness,
+  ThemeState themeState,
+  AppearanceTiers tiers, {
   required bool fullscreenSwipeBack,
-  required bool transparent,
   TargetPlatform? platform,
-}) {
-  final targetPlatform = platform ?? defaultTargetPlatform;
-  final m3e = themeState.m3eEnabled;
-  final buttonStyle = m3e ? _m3ePressedShapeStyleInstance : null;
-  final base = ThemeData(
-    colorScheme: scheme,
-    useMaterial3: true,
-    platform: targetPlatform,
-    fontFamily: themeState.fontFamilyName,
-    // 透明模式：脚手架让出背景，由根背景层的用户图片透出
-    scaffoldBackgroundColor: transparent ? Colors.transparent : null,
-    pageTransitionsTheme: fullscreenSwipeBack
-        ? _fullscreenSwipePageTransitionsTheme
-        : _pageTransitionsTheme,
-    iconTheme: _appIconTheme(scheme.onSurface, targetPlatform),
-    primaryIconTheme: _appIconTheme(scheme.onPrimary, targetPlatform),
-    extensions: [M3eFlags(enabled: m3e)],
-    // year2023: false 启用进度条/滑块的 M3E 翻新(圆角端点/track gap/
-    // stop indicator/16dp 滑轨+竖条 thumb)。字段虽标记 deprecated,但
-    // trackGap 等新样式只由它驱动,官方 M3E 独立包落地前只能走这里。
-    // circularTrackPadding 归零:新样式默认 4dp 内边距会把存量
-    // SizedBox(20) 小圈的可画区吃掉 8dp。
-    // ignore: deprecated_member_use
-    progressIndicatorTheme: ProgressIndicatorThemeData(
-      // ignore: deprecated_member_use
-      year2023: !m3e,
-      circularTrackPadding: EdgeInsets.zero,
-    ),
-    // ignore: deprecated_member_use
-    sliderTheme: SliderThemeData(year2023: !m3e),
-    filledButtonTheme: FilledButtonThemeData(style: buttonStyle),
-    elevatedButtonTheme: ElevatedButtonThemeData(style: buttonStyle),
-    outlinedButtonTheme: OutlinedButtonThemeData(style: buttonStyle),
-    textButtonTheme: TextButtonThemeData(style: buttonStyle),
-    iconButtonTheme: IconButtonThemeData(
-      style: m3e ? _m3eIconButtonShapeStyleInstance : null,
-    ),
-    cardTheme: CardThemeData(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: scheme.surfaceContainerLow,
-      margin: EdgeInsets.zero,
-    ),
-    popupMenuTheme: PopupMenuThemeData(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      elevation: 3,
-      color: scheme.surfaceContainerLow,
-      surfaceTintColor: Colors.transparent,
-      menuPadding: const EdgeInsets.symmetric(vertical: 8),
-    ),
-  );
-  return applyAppAdaptiveLayer(
-    base,
-    scheme: scheme,
-    platform: targetPlatform,
-    fontFamilyFallback: SystemChineseFont.fontFamilyFallback,
-  );
-}
+}) => buildAppTheme(
+  brightness: brightness,
+  platform: platform ?? defaultTargetPlatform,
+  fontFamily: themeState.fontFamilyName,
+  fontFamilyFallback: SystemChineseFont.fontFamilyFallback,
+  accent: themeState.accent,
+  tiers: tiers,
+  pageTransitionsTheme: fullscreenSwipeBack
+      ? _fullscreenSwipePageTransitionsTheme
+      : _pageTransitionsTheme,
+);
 
 /// 供测试直接装配应用主题(`_buildAppTheme` 私有)。
 @visibleForTesting
 ThemeData buildAppThemeForTest(
-  ColorScheme scheme,
-  ThemeState themeState, {
+  Brightness brightness, {
   required TargetPlatform platform,
+  ThemeState themeState = const ThemeState(mode: ThemeMode.system),
+  AppearanceTiers tiers = const AppearanceTiers(),
   bool fullscreenSwipeBack = false,
-  bool transparent = false,
 }) => _buildAppTheme(
-  scheme,
+  brightness,
   themeState,
+  tiers,
   fullscreenSwipeBack: fullscreenSwipeBack,
-  transparent: transparent,
   platform: platform,
 );
 
@@ -786,32 +674,9 @@ class MainApp extends ConsumerWidget {
       unawaited(_syncSlangLocale(next));
     });
 
-    return DynamicColorBuilder(
-      builder: (lightDynamic, darkDynamic) {
-        // 把系统动态色原始 primary 存到 ThemeState 中；
-        // 明暗两套齐全才采用，缺一侧回退种子色（沿用原逻辑）
-        final rawDynamicPrimary = lightDynamic != null && darkDynamic != null
-            ? lightDynamic.primary
-            : null;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          ref.read(themeProvider.notifier).setDynamicPrimary(rawDynamicPrimary);
-        });
+    final tiers = ref.watch(appearanceProvider);
 
-        // 默认走完整 fromSeed 方案（表面带种子色相）；中性/纯黑/透明
-        // 开关由 ThemeResolver 切换到"强调色 × 中性层"的合成路径。
-        // 动态色路径只取系统动态色 primary 当种子，不用 OEM 原始 scheme。
-        final resolvedTheme = ThemeResolver.resolve(
-          mode: themeState.mode,
-          neutral: themeState.neutralEnabled,
-          black: themeState.blackEnabled,
-          transparent: themeState.isTransparentActive,
-          seed: themeState.effectiveSeedColor,
-          variant: themeState.schemeVariant,
-        );
-        final lightScheme = resolvedTheme.light;
-        final darkScheme = resolvedTheme.dark;
-
-        return TranslationProvider(
+    return TranslationProvider(
           child: Builder(
             builder: (context) => MaterialApp(
               scrollBehavior: const DesktopScrollInteractionBehavior(),
@@ -836,25 +701,18 @@ class MainApp extends ConsumerWidget {
                 GlobalCupertinoLocalizations.delegate,
               ],
               supportedLocales: AppLocaleUtils.supportedLocales,
-              themeMode: resolvedTheme.mode,
-              // 仅注入 fontFamilyFallback，不替换 textTheme，避免覆盖 Android OEM
-              // 系统字体（chinese_font_library 自带的 ThemeData.useSystemChineseFont
-              // 会强制改为 Roboto，导致字体显得比之前粗）。
-              theme: _withChineseFallback(
-                _buildAppTheme(
-                  lightScheme,
-                  themeState,
-                  fullscreenSwipeBack: fullscreenSwipeBack,
-                  transparent: resolvedTheme.transparent,
-                ),
+              themeMode: themeState.mode,
+              theme: _buildAppTheme(
+                Brightness.light,
+                themeState,
+                tiers,
+                fullscreenSwipeBack: fullscreenSwipeBack,
               ),
-              darkTheme: _withChineseFallback(
-                _buildAppTheme(
-                  darkScheme,
-                  themeState,
-                  fullscreenSwipeBack: fullscreenSwipeBack,
-                  transparent: resolvedTheme.transparent,
-                ),
+              darkTheme: _buildAppTheme(
+                Brightness.dark,
+                themeState,
+                tiers,
+                fullscreenSwipeBack: fullscreenSwipeBack,
               ),
               builder: (context, child) {
                 final brightness = Theme.of(context).brightness;
@@ -867,11 +725,7 @@ class MainApp extends ConsumerWidget {
                     Platform.isLinux) {
                   final isDark = brightness == Brightness.dark;
                   acrylic.Window.setEffect(
-                    // 透明模式下禁用系统窗口效果，避免桌面壁纸
-                    // 与用户背景图双重透出造成视觉混乱
-                    effect: resolvedTheme.transparent
-                        ? acrylic.WindowEffect.disabled
-                        : Platform.isMacOS
+                    effect: Platform.isMacOS
                         ? acrylic.WindowEffect.sidebar
                         : Platform.isWindows
                         ? acrylic.WindowEffect.mica
@@ -894,20 +748,18 @@ class MainApp extends ConsumerWidget {
                     // 关闭系统自动 scrim，实现完全沉浸
                     systemNavigationBarContrastEnforced: false,
                   ),
-                  child: Stack(
-                    fit: StackFit.passthrough,
-                    children: [
-                      // 透明模式的用户背景层，垫在 Navigator 之下
-                      if (resolvedTheme.transparent)
-                        Positioned.fill(
-                          child: AppBackgroundLayer(
-                            background: themeState.background,
-                          ),
-                        ),
-                      child!,
-                      const ReadLaterBubble(),
-                      const AppLockGate(),
-                    ],
+                  // 动态字体：系统字号 × 外观字号档（计划 §8）。放在最内层，
+                  // 读到的是外面各层（含 Android 安全区修正）处理后的值
+                  child: TieredTextScaling(
+                    factor: tiers.font.factor,
+                    child: Stack(
+                      fit: StackFit.passthrough,
+                      children: [
+                        child!,
+                        const ReadLaterBubble(),
+                        const AppLockGate(),
+                      ],
+                    ),
                   ),
                 );
 
@@ -980,8 +832,6 @@ class MainApp extends ConsumerWidget {
             ),
           ),
         );
-      },
-    );
   }
 }
 

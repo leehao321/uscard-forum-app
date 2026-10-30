@@ -1,5 +1,10 @@
 {
   "@@locale": "en",
+  "appearance_accent": "Accent color",
+  "appearance_accentGraphite": "Graphite",
+  "appearance_accentMeika": "USCard green",
+  "appearance_accentNavy": "Navy",
+  "appearance_accentWisteria": "Wisteria",
   "appearance_appIcon": "App icon",
   "appearance_bgBlur": "Background blur",
   "appearance_bgChange": "Change image",

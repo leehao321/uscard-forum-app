@@ -21,20 +21,6 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
       title: l10n.appearance_reading,
       icon: Symbols.chrome_reader_mode_rounded,
       items: [
-        DoubleSliderModel(
-          id: 'contentFontScale',
-          title: l10n.appearance_contentFontSize,
-          icon: Symbols.format_size_rounded,
-          min: 0.8,
-          max: 1.4,
-          divisions: 12,
-          labelBuilder: (v) => '${(v * 100).round()}%',
-          getValue: (ref) => ref.watch(preferencesProvider).contentFontScale,
-          onChanged: (ref, v) =>
-              ref.read(preferencesProvider.notifier).setContentFontScale(v),
-          onReset: (ref) =>
-              ref.read(preferencesProvider.notifier).setContentFontScale(1.0),
-        ),
         SwitchModel(
           id: 'displayPanguSpacing',
           title: l10n.appearance_panguSpacing,

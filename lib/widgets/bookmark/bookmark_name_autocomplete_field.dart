@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart';
 
-import '../../theme/theme_resolver.dart';
 
 class _RefreshableTextEditingController extends TextEditingController {
   _RefreshableTextEditingController.fromValue(super.value) : super.fromValue();
@@ -208,7 +207,7 @@ class _BookmarkNameAutocompleteFieldState
           alignment: Alignment.topLeft,
           child: Material(
             elevation: 6,
-            color: theme.colorScheme.overlaySurface,
+            color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420, maxHeight: 240),
