@@ -37,7 +37,7 @@
   "appearance_displayModeRestartHint": "May require app restart on some devices",
   "appearance_font": "Font",
   "appearance_fontBody": "Body font",
-  "appearance_fontBodySample": "Sincere, friendly, united, professional",
+  "appearance_fontBodySample": "The quick brown fox jumps over the lazy dog",
   "appearance_fontCancel": "Cancel import",
   "appearance_fontDelete": "Delete",
   "appearance_fontDeleteBody": "The body font will switch back to follow the interface font.",

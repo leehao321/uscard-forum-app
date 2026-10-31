@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/message_bus_service.dart';
 import '../../services/discourse/discourse_service.dart';
+import '../../services/preloaded_data_service.dart';
 import '../../utils/time_utils.dart';
 import '../discourse_providers.dart';
 import 'message_bus_service_provider.dart';
@@ -20,6 +21,7 @@ class TopicChannelNotifier extends Notifier<TopicChannelState> {
   @override
   TopicChannelState build() {
     _disposed = false;
+    _topicSubscribed = false;
     // 确保 MessageBus 已 configure（域名配置），避免用主站域名轮询
     ref.watch(messageBusInitProvider);
     final messageBus = ref.watch(messageBusServiceProvider);
@@ -278,25 +280,78 @@ class TopicChannelNotifier extends Notifier<TopicChannelState> {
       _addPostUpdate(postId, TopicMessageType.acted, DateTime.now());
     }
 
-    messageBus.subscribe(topicChannel, onTopicMessage);
+    // /topic/:id 等 /t/:id.json 加载完再订阅（页面调 [attachTopicChannel]，带上
+    // 详情里的 message_bus_last_id）；兜底：页面一直没调（比如别处只借用了
+    // 这个 provider）时，10 秒后按「只收新消息」订阅，不会永远不订。
+    _subscribeTopic = (int lastMessageId) {
+      if (_disposed || _topicSubscribed) return;
+      _topicSubscribed = true;
+      _topicFallbackTimer?.cancel();
+      _topicFallbackTimer = null;
+      messageBus.subscribe(
+        topicChannel,
+        onTopicMessage,
+        lastMessageId: lastMessageId,
+      );
+    };
+    _topicFallbackTimer = Timer(const Duration(seconds: 10), () {
+      _subscribeTopic?.call(-1);
+    });
     messageBus.subscribe(reactionsChannel, onReactionsMessage);
-    messageBus.subscribe(presenceChannel, onPresenceMessage);
 
-    // 异步加载初始 presence 状态
-    _loadInitialPresence(service, messageBus, presenceChannel, topicId, onPresenceMessage);
+    // presence 只在已登录且站点启用 presence_enabled 时才订阅并拉初始状态：
+    // 访客、未装插件的站点进帖不再多一次 /presence/get
+    final presenceEnabled =
+        service.isAuthenticated &&
+        PreloadedDataService().siteSettingsSync?['presence_enabled'] == true;
+    if (presenceEnabled) {
+      messageBus.subscribe(presenceChannel, onPresenceMessage);
+      _loadInitialPresence(
+        service,
+        messageBus,
+        presenceChannel,
+        topicId,
+        onPresenceMessage,
+      );
+    }
+
+    // 与 topicDetailProvider 的 30 秒缓存对齐（同一套 onCancel / onResume 写法）：
+    // 退出帖子后 30 秒内重进同一帖，不重新订阅，也不再拉 /presence/get
+    final keepLink = ref.keepAlive();
+    Timer? keepTimer;
+    ref.onCancel(() {
+      keepTimer = Timer(const Duration(seconds: 30), keepLink.close);
+    });
+    ref.onResume(() {
+      keepTimer?.cancel();
+    });
 
     ref.onDispose(() {
+      keepTimer?.cancel();
       _disposed = true;
       _pendingUpdates.clear();
       _typingDebounce?.cancel();
       _typingDebounce = null;
       _pendingTypingUsers = null;
+      _topicFallbackTimer?.cancel();
+      _topicFallbackTimer = null;
+      _subscribeTopic = null;
       messageBus.unsubscribe(topicChannel, onTopicMessage);
       messageBus.unsubscribe(reactionsChannel, onReactionsMessage);
       messageBus.unsubscribe(presenceChannel, onPresenceMessage);
     });
 
     return const TopicChannelState();
+  }
+
+  void Function(int lastMessageId)? _subscribeTopic;
+  bool _topicSubscribed = false;
+  Timer? _topicFallbackTimer;
+
+  /// 详情加载完后订阅 `/topic/:id`，[lastMessageId] 取详情的
+  /// `message_bus_last_id`（没有就当 -1 只收新消息）。重复调用无副作用。
+  void attachTopicChannel(int? lastMessageId) {
+    _subscribeTopic?.call(lastMessageId ?? -1);
   }
 
   Future<void> _loadInitialPresence(

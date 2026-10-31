@@ -12,6 +12,7 @@
   },
   "browsingHistory_groupToday": "Last active · Today",
   "browsingHistory_groupYesterday": "Last active · Yesterday",
+  "browsingHistory_loadEarlier": "Load earlier history",
   "browsingHistory_searchHint": "Search browsing history...",
   "browsingHistory_title": "Browsing History",
   "myTopics_empty": "No topics",

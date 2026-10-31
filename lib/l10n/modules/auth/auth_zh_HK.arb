@@ -48,12 +48,12 @@
   "login_qrShowCode": "顯示登錄二維碼",
   "login_qrSuccess": "掃碼登錄成功",
   "login_scanToLogin": "掃碼登錄",
-  "login_slogan": "非官方第三方客戶端",
+  "login_slogan": "第三方客戶端",
   "migration_cookieUpgrade": "正在升級 Cookie 儲存...",
   "migration_reloginRequired": "本次版本升級優化了 Cookie 儲存機制，已清除舊的登入狀態。請重新登入。",
   "migration_title": "資料升級",
   "oauth_callbackFailed": "授權回調失敗",
   "onboarding_guestAccess": "先逛逛",
   "onboarding_networkSettings": "網絡設置",
-  "onboarding_slogan": "真誠 · 友善 · 團結 · 專業"
+  "onboarding_slogan": "第三方客戶端"
 }

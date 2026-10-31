@@ -41,12 +41,12 @@
   "login_qrShowCode": "Show login QR code",
   "login_qrSuccess": "Signed in via QR code",
   "login_scanToLogin": "Scan QR to sign in",
-  "login_slogan": "Unofficial third-party client",
+  "login_slogan": "Third-party client",
   "migration_cookieUpgrade": "Upgrading cookie storage...",
   "migration_reloginRequired": "Cookie storage has been upgraded. Your login session was cleared. Please log in again.",
   "migration_title": "Data Upgrade",
   "oauth_callbackFailed": "Authorization callback failed",
   "onboarding_guestAccess": "Just browsing",
   "onboarding_networkSettings": "Network settings",
-  "onboarding_slogan": "Sincere · Friendly · United · Professional"
+  "onboarding_slogan": "Third-party client"
 }

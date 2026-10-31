@@ -403,36 +403,45 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
           '[TopicDetail] onTimingsSent callback triggered: topicId=$topicId, highestSeen=$highestSeen',
         );
         final container = _providerContainer;
-        // 更新会话已读状态，触发 PostItem 消除未读圆点
-        container
-            .read(topicSessionProvider(topicId).notifier)
-            .markAsRead(postNumbers);
+        // 退出帖子后完成的最后一批上报也要回写首页的未读点：这里不能用
+        // `mounted` 判断，只在 ProviderContainer 已销毁（读它会抛 StateError）时放弃。
+        try {
+          // 更新会话已读状态，触发 PostItem 消除未读圆点
+          container
+              .read(topicSessionProvider(topicId).notifier)
+              .markAsRead(postNumbers);
+        } on StateError {
+          return;
+        }
         // 先只更新一份全局追踪状态。之前在每个分类列表的 updateSeen 内
         // 重复写一次，还会因为 ref.read(notifier) 初始化从未打开过的
         // provider，导致一次阅读上报并发加载全部置顶分类。
         scheduleIdleTask(() {
-          if (!mounted) return;
-          final tracked = container.read(topicTrackingStateProvider)[topicId];
-          if (tracked != null) {
-            container
-                .read(topicTrackingStateProvider.notifier)
-                .updateTopicRead(
-                  topicId,
-                  highestSeen,
-                  tracked.highestPostNumber,
-                );
-          }
+          try {
+            final tracked = container.read(topicTrackingStateProvider)[topicId];
+            if (tracked != null) {
+              container
+                  .read(topicTrackingStateProvider.notifier)
+                  .updateTopicRead(
+                    topicId,
+                    highestSeen,
+                    tracked.highestPostNumber,
+                  );
+            }
 
-          // 只更新已经存在的列表 provider；未打开的分类没有 UI 状态需要
-          // 同步，绝不能为了一次本地字段更新触发网络初始化。
-          final pinnedIds = container.read(pinnedCategoriesProvider);
-          final categoryIds = [null, ...pinnedIds];
-          for (final categoryId in categoryIds) {
-            final provider = topicListProvider(categoryId);
-            if (!container.exists(provider)) continue;
-            container
-                .read(provider.notifier)
-                .updateSeen(topicId, highestSeen, updateTracking: false);
+            // 只更新已经存在的列表 provider；未打开的分类没有 UI 状态需要
+            // 同步，绝不能为了一次本地字段更新触发网络初始化。
+            final pinnedIds = container.read(pinnedCategoriesProvider);
+            final categoryIds = [null, ...pinnedIds];
+            for (final categoryId in categoryIds) {
+              final provider = topicListProvider(categoryId);
+              if (!container.exists(provider)) continue;
+              container
+                  .read(provider.notifier)
+                  .updateSeen(topicId, highestSeen, updateTracking: false);
+            }
+          } on StateError {
+            // container 已销毁（整个应用退出）：没有可同步的状态
           }
         });
       },
@@ -2429,10 +2438,24 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
       }
     });
 
+    // 缓存里已经有详情（30 秒内重进同一帖）时 listen 不会触发，这里补订一次
+    final cachedDetail = ref.read(topicDetailProvider(params)).value;
+    if (cachedDetail != null) {
+      ref
+          .read(topicChannelProvider(widget.topicId).notifier)
+          .attachTopicChannel(cachedDetail.messageBusLastId);
+    }
+
     // 预解析帖子 HTML
     ref.listen(topicDetailProvider(params), (previous, next) {
       if (!context.mounted) return;
       final detail = next.value;
+      // 详情加载完再订阅 /topic/:id，带上 message_bus_last_id（重复调用无副作用）
+      if (detail != null) {
+        ref
+            .read(topicChannelProvider(widget.topicId).notifier)
+            .attachTopicChannel(detail.messageBusLastId);
+      }
       if (detail != null) _scheduleSaveViewedTopic(detail);
       // 记录话题标题到会话状态，供用户卡片「基于话题的私信」预填标题
       //

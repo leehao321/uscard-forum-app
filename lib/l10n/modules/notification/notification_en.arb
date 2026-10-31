@@ -73,6 +73,7 @@
   "notification_likedMultiplePosts": "{displayName} liked {count} of your posts",
   "notification_linkedMultiplePosts": "{displayName} linked {count} of your posts",
   "notification_linkedPost": "{username} linked your post",
+  "notification_loadEarlier": "Load earlier notifications",
   "notification_loginRequired": "Sign in to see notifications",
   "notification_markAllRead": "Mark all as read",
   "notification_membershipAccepted": "Your request to join '{groupName}' was accepted",

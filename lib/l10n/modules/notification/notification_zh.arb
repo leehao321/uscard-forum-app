@@ -221,6 +221,7 @@
       }
     }
   },
+  "notification_loadEarlier": "加载更早的通知",
   "notification_loginRequired": "登录后查看通知",
   "notification_markAllRead": "全部标为已读",
   "notification_membershipAccepted": "加入 '{groupName}' 的申请已被接受",

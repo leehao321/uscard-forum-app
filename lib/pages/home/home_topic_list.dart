@@ -13,7 +13,6 @@ import '../../l10n/s.dart';
 import '../../models/category.dart';
 import '../../models/topic.dart';
 import '../../providers/discourse_providers.dart';
-import '../../providers/message_bus/topic_tracking_providers.dart';
 import '../../providers/preferences_provider.dart';
 import '../../providers/selected_topic_provider.dart';
 import '../../providers/shortcut_provider.dart';
@@ -285,16 +284,19 @@ class _HomeTopicListState extends ConsumerState<HomeTopicList>
     }
   }
 
-  /// 标为已读（0.4.0 计划 P8）：失败只提示，不重试
+  /// 能不能「标为已读」：已登录、非置顶、有未读或新帖子。左滑和长按菜单共用
+  bool _canMarkRead(Topic topic, bool isLoggedIn) =>
+      isLoggedIn && !topic.pinned && (topic.unread > 0 || topic.newPosts > 0);
+
+  /// 标为已读（0.4.0 计划 P8）：只发这一条的 dismiss 请求，成功后只改这一条的
+  /// 本地已读状态（列表项 + 它自己的追踪状态）。不按分类清零，也不再重取整帖详情。
+  /// 失败只提示，不重试。
   Future<void> _markRead(Topic topic, int? providerKey) async {
     try {
       await ref.read(discourseServiceProvider).dismissTopicPosts([topic.id]);
       ref
-          .read(topicTrackingStateProvider.notifier)
-          .dismissUnreadTopics(categoryId: int.tryParse(topic.categoryId));
-      await ref
           .read(topicListProvider(providerKey).notifier)
-          .refreshTopic(topic.id);
+          .updateSeen(topic.id, topic.highestPostNumber);
     } catch (e) {
       ToastService.showError(S.current.common_operationFailed(e.toString()));
     }
@@ -339,7 +341,7 @@ class _HomeTopicListState extends ConsumerState<HomeTopicList>
           icon: AppIcons.share,
           value: 2,
         ),
-        if (isLoggedIn && !topic.unseen && topic.unread > 0)
+        if (_canMarkRead(topic, isLoggedIn))
           AppMenuItem(
             label: S.current.topic_rowMarkRead,
             icon: AppIcons.checkAll,
@@ -388,13 +390,14 @@ class _HomeTopicListState extends ConsumerState<HomeTopicList>
             icon: AppIcons.bookmark,
             onTap: () => _bookmark(topic),
           ),
-          SwipeActionItem(
-            label: S.current.topic_rowMarkRead,
-            icon: AppIcons.checkAll,
-            background: tokens.colors.avatarFill,
-            foreground: tokens.colors.textPrimary,
-            onTap: () => _markRead(topic, providerKey),
-          ),
+          if (_canMarkRead(topic, isLoggedIn))
+            SwipeActionItem(
+              label: S.current.topic_rowMarkRead,
+              icon: AppIcons.checkAll,
+              background: tokens.colors.avatarFill,
+              foreground: tokens.colors.textPrimary,
+              onTap: () => _markRead(topic, providerKey),
+            ),
         ],
         child: ColoredBox(color: tokens.colors.surfacePage, child: item),
       );

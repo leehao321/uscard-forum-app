@@ -1971,6 +1971,11 @@ class TopicDetail {
   /// 避免整份原始 JSON 常驻内存。
   final Map<String, dynamic> pluginExtras;
 
+  /// `/t/:id.json` 的 `message_bus_last_id`：这份详情对应的 `/topic/:id` 频道
+  /// 最后一条消息号。详情加载完再订阅频道时带上它，不会漏掉详情之后的消息，
+  /// 也不必拿 -1 去重放。
+  final int? messageBusLastId;
+
   bool get isAssigned => assignedToUser != null || assignedToGroupName != null;
 
   bool get hasAcceptedAnswer => acceptedAnswers.isNotEmpty;
@@ -2034,6 +2039,7 @@ class TopicDetail {
     this.assignmentStatus,
     this.indirectlyAssignedTo = const {},
     this.pluginExtras = const <String, dynamic>{},
+    this.messageBusLastId,
   });
 
   /// 从话题详情原始 JSON 中挑出顶层标量字段,供站点插件读取
@@ -2252,6 +2258,7 @@ class TopicDetail {
         json['indirectly_assigned_to'],
       ),
       pluginExtras: _extractPluginExtras(json),
+      messageBusLastId: json['message_bus_last_id'] as int?,
     );
   }
 
@@ -2428,6 +2435,7 @@ class TopicDetail {
       indirectlyAssignedTo: indirectlyAssignedTo,
       // 插件扩展字段只有整页重拉才会变,本地局部更新一律透传旧值
       pluginExtras: pluginExtras,
+      messageBusLastId: messageBusLastId,
     );
   }
 }
