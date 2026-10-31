@@ -127,6 +127,7 @@ import 'navigation/nav_entry_registry.dart';
 import 'providers/read_later_provider.dart';
 import 'providers/shortcut_provider.dart';
 import 'widgets/keyboard_shortcut_handler.dart';
+import 'services/font_import_service.dart';
 import 'utils/platform_utils.dart';
 import 'utils/discourse_url_parser.dart';
 
@@ -284,6 +285,8 @@ Future<void> main() async {
     TimeUtils.initialize(),
     // 应用锁要在第一帧前读好设置，避免先露出内容再上锁
     AppLockService.instance.init(),
+    // 已导入的字体要在第一帧前注册（失败不阻塞，退回系统字体）
+    FontImportService.instance.ensureLoaded().catchError((_) => <ImportedFont>[]),
     // 把 compat polyfill asset 读到内存，让 WebView 同步 getter 直接拿。
     // 失败不阻塞启动，仅影响老 WebView 兼容性。
     WebViewSettings.preloadPolyfill(),
@@ -648,6 +651,7 @@ ThemeData _buildAppTheme(
   fontFamilyFallback: SystemChineseFont.fontFamilyFallback,
   accent: themeState.accent,
   tiers: tiers,
+  bodyFontFamily: themeState.bodyFontFamilyName,
   pageTransitionsTheme: fullscreenSwipeBack
       ? _fullscreenSwipePageTransitionsTheme
       : _pageTransitionsTheme,

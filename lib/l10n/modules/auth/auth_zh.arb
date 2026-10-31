@@ -60,7 +60,7 @@
   "migration_reloginRequired": "本次版本升级优化了 Cookie 存储机制，已清除旧的登录状态。请重新登录。",
   "migration_title": "数据升级",
   "oauth_callbackFailed": "授权回调失败",
-  "onboarding_guestAccess": "游客访问",
+  "onboarding_guestAccess": "先逛逛",
   "onboarding_networkSettings": "网络设置",
   "onboarding_slogan": "真诚 · 友善 · 团结 · 专业"
 }

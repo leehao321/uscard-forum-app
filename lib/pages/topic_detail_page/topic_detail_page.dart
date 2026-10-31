@@ -3173,6 +3173,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
               onReply: _handleReply,
               onEdit: _handleEdit,
               onShareAsImage: _sharePostAsImage,
+              onQuotePost: (post) => unawaited(_handleQuotePost(post)),
               onRefreshPost: _handleRefreshPost,
               onVoteChanged: _handleVoteChanged,
               onSharedIssueChanged: _handleSharedIssueChanged,

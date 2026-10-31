@@ -1,7 +1,7 @@
 {
   "@@locale": "zh_TW",
+  "editorUploads_pendingSubmit": "還有附件沒傳完，完成或移除後才能發送",
   "editorUploads_title": "上傳任務",
-  "editorUploads_pendingSubmit": "仍有附件正在上傳或上傳失敗，請等待完成、重試或移除後再發佈",
   "editorUploads_queued": "等待上傳",
   "editorUploads_preparing": "正在準備",
   "editorUploads_uploading": "正在上傳",

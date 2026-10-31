@@ -51,6 +51,7 @@ import '../services/toast_service.dart';
 import '../models/badge.dart' as badge_model;
 import 'topic_detail_page/topic_detail_page.dart';
 import 'search_page.dart';
+import '../widgets/user/profile_stats_row.dart';
 import 'follow_list_page.dart';
 import 'image_viewer_page.dart';
 import 'badge_page.dart';
@@ -1242,7 +1243,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
     final double pinnedHeaderHeight =
         kToolbarHeight +
         MediaQuery.of(context).padding.top +
-        36; // 36 是 TabBar 高度
+        44; // 44 是 TabBar 高度
 
     // 宽窄两版排版按**本页实际可用宽度**分流(不是屏宽):嵌入面板、
     // 压栈后收窄的左栏拿到的都是格子宽,窄了自动回竖版折叠头图形态。
@@ -1953,7 +1954,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
       actions: _buildHeaderActions(isOwnProfile),
       // Bottom 参数承载 TabBar，并应用圆角背景，这样它会“浮”在 FlexibleSpace 背景图之上
       bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(36),
+        preferredSize: const Size.fromHeight(44),
         child: Container(
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -1990,7 +1991,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                 left: 20,
                 right: 20,
                 // TabBar 高度 + 间距(精简模式收紧间距,给内容让位)
-                bottom: 36 + (compactHeader ? 12 : 24),
+                bottom: 44 + (compactHeader ? 12 : 24),
                 child: Opacity(
                   opacity: contentOpacity,
                   child: _buildUserInfoContent(
@@ -2005,7 +2006,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
               Positioned(
                 left: 60 + MediaQuery.of(context).padding.left, // 横屏时需加上左侧安全区
                 right: 48 + MediaQuery.of(context).padding.right, // 横屏时需加上右侧安全区
-                bottom: 14 + 36, // 调整位置适应 TabBar (36是TabBar高度)
+                bottom: 14 + 44, // 调整位置适应 TabBar (44是TabBar高度)
                 child: GestureDetector(
                   onTap: titleOpacity > 0.5
                       ? () {
@@ -2188,13 +2189,6 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                             color: context.tokens.colors.textPrimary,
                             fontSize: 22,
                             fontWeight: FontWeight.w600,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black45,
-                                offset: Offset(0, 1),
-                                blurRadius: 2,
-                              ),
-                            ],
                           ),
                         ),
                       ),
@@ -2301,11 +2295,16 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
           GestureDetector(
             onTap: hasInfo ? _showUserInfo : null,
             child: Container(
-              height: 54,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              constraints: const BoxConstraints(minHeight: AppSize.hit),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpace.m,
+                vertical: AppSpace.s,
+              ),
               decoration: BoxDecoration(
                 color: context.tokens.colors.surfaceGrouped,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(
+                  context.tokens.radius.card,
+                ),
               ),
               child: Row(
                 children: [
@@ -2317,8 +2316,8 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                             overflow: TextOverflow.ellipsis,
                             textStyle: TextStyle(
                               color: context.tokens.colors.textMeta,
-                              fontSize: 14,
-                              height: 1.3,
+                              fontSize: 13,
+                              height: 1.4,
                             ),
                           )
                         : Text(
@@ -2327,9 +2326,8 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: context.tokens.colors.textMeta,
-                              fontSize: 14,
-                              height: 1.3,
-                              fontStyle: FontStyle.italic,
+                              fontSize: 13,
+                              height: 1.4,
                             ),
                           ),
                   ),
@@ -2347,82 +2345,62 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
           ),
         ],
 
-        // Stats
+        // Stats：关注 / 粉丝一行（可点），其下四列统计卡
         const SizedBox(height: 16),
         if (_summary != null)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 第一行：关注、粉丝
-              if (_user?.totalFollowing != null ||
-                  _user?.totalFollowers != null)
-                Wrap(
-                  spacing: 16,
-                  children: [
-                    if (_user?.totalFollowing != null)
-                      GestureDetector(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => FollowListPage(
-                              username: widget.username,
-                              isFollowing: true,
-                            ),
-                          ),
-                        ),
-                        child: _buildStatSlot(
-                          NumberUtils.formatCount(_user!.totalFollowing!),
-                          context.l10n.userProfile_following,
-                          _user!.totalFollowing!,
-                        ),
-                      ),
-                    if (_user?.totalFollowers != null)
-                      GestureDetector(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => FollowListPage(
-                              username: widget.username,
-                              isFollowing: false,
-                            ),
-                          ),
-                        ),
-                        child: _buildStatSlot(
-                          NumberUtils.formatCount(_user!.totalFollowers!),
-                          context.l10n.userProfile_followers,
-                          _user!.totalFollowers!,
-                        ),
-                      ),
-                  ],
+          ProfileStatsRow(
+            following: _user?.totalFollowing == null
+                ? null
+                : ProfileStat(
+                    value: NumberUtils.formatCount(_user!.totalFollowing!),
+                    label: context.l10n.userProfile_following,
+                    raw: _user!.totalFollowing!,
+                  ),
+            followers: _user?.totalFollowers == null
+                ? null
+                : ProfileStat(
+                    value: NumberUtils.formatCount(_user!.totalFollowers!),
+                    label: context.l10n.userProfile_followers,
+                    raw: _user!.totalFollowers!,
+                  ),
+            onFollowingTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => FollowListPage(
+                  username: widget.username,
+                  isFollowing: true,
                 ),
-              // 第二行：获赞、访问、话题、回复
-              if (_user?.totalFollowing != null ||
-                  _user?.totalFollowers != null)
-                const SizedBox(height: 8),
-              Wrap(
-                spacing: 16,
-                children: [
-                  _buildStatSlot(
-                    NumberUtils.formatCount(_summary!.likesReceived),
-                    context.l10n.userProfile_statsLikes,
-                    _summary!.likesReceived,
-                  ),
-                  _buildStatSlot(
-                    NumberUtils.formatCount(_summary!.daysVisited),
-                    context.l10n.userProfile_statsVisits,
-                    _summary!.daysVisited,
-                  ),
-                  _buildStatSlot(
-                    NumberUtils.formatCount(_summary!.topicCount),
-                    context.l10n.userProfile_statsTopics,
-                    _summary!.topicCount,
-                  ),
-                  _buildStatSlot(
-                    NumberUtils.formatCount(_summary!.postCount),
-                    context.l10n.userProfile_statsReplies,
-                    _summary!.postCount,
-                  ),
-                ],
+              ),
+            ),
+            onFollowersTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => FollowListPage(
+                  username: widget.username,
+                  isFollowing: false,
+                ),
+              ),
+            ),
+            stats: [
+              ProfileStat(
+                value: NumberUtils.formatCount(_summary!.likesReceived),
+                label: context.l10n.userProfile_statsLikes,
+                raw: _summary!.likesReceived,
+              ),
+              ProfileStat(
+                value: NumberUtils.formatCount(_summary!.daysVisited),
+                label: context.l10n.userProfile_statsVisits,
+                raw: _summary!.daysVisited,
+              ),
+              ProfileStat(
+                value: NumberUtils.formatCount(_summary!.topicCount),
+                label: context.l10n.userProfile_statsTopics,
+                raw: _summary!.topicCount,
+              ),
+              ProfileStat(
+                value: NumberUtils.formatCount(_summary!.postCount),
+                label: context.l10n.userProfile_statsReplies,
+                raw: _summary!.postCount,
               ),
             ],
           ),
@@ -2464,45 +2442,59 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
   /// Tab 栏本体(样式统一)。窄版挂在 SliverAppBar.bottom 的圆角容器里,
   /// 宽版直接放右栏顶部。
   Widget _buildTabBar(ThemeData theme) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final labelStyle = theme.textTheme.bodyMedium!.merge(tokens.text.control);
+    // v2 页内筛选：文字标签 + 品牌色短下划线（分类条同款）
     return TabBar(
       controller: _tabController,
       isScrollable: true,
       tabAlignment: TabAlignment.start,
-      labelColor: theme.colorScheme.primary,
-      unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
-      indicatorColor: theme.colorScheme.primary,
-      labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+      labelColor: colors.textPrimary,
+      unselectedLabelColor: colors.textMeta,
+      labelStyle: labelStyle.copyWith(fontWeight: FontWeight.w600),
+      unselectedLabelStyle: labelStyle,
+      indicator: UnderlineTabIndicator(
+        borderSide: BorderSide(color: colors.brandPrimary, width: 2.5),
+        borderRadius: BorderRadius.circular(2),
+      ),
+      labelPadding: const EdgeInsets.symmetric(horizontal: AppSpace.m),
       indicatorSize: TabBarIndicatorSize.label,
       dividerColor: Colors.transparent,
+      overlayColor: const WidgetStatePropertyAll(Colors.transparent),
       tabs: [
-        Tab(height: 36, text: context.l10n.userProfile_tabSummary),
-        Tab(height: 36, text: context.l10n.userProfile_tabActivity),
-        Tab(height: 36, text: context.l10n.userProfile_tabTopics),
-        Tab(height: 36, text: context.l10n.userProfile_tabReplies),
-        Tab(height: 36, text: context.l10n.userProfile_tabLikes),
-        Tab(height: 36, text: context.l10n.userProfile_tabReactions),
-        Tab(height: 36, text: context.l10n.userProfile_tabVotes),
-        Tab(height: 36, text: context.l10n.userProfile_tabSolved),
+        Tab(height: AppSize.hit, text: context.l10n.userProfile_tabSummary),
+        Tab(height: AppSize.hit, text: context.l10n.userProfile_tabActivity),
+        Tab(height: AppSize.hit, text: context.l10n.userProfile_tabTopics),
+        Tab(height: AppSize.hit, text: context.l10n.userProfile_tabReplies),
+        Tab(height: AppSize.hit, text: context.l10n.userProfile_tabLikes),
+        Tab(height: AppSize.hit, text: context.l10n.userProfile_tabReactions),
+        Tab(height: AppSize.hit, text: context.l10n.userProfile_tabVotes),
+        Tab(height: AppSize.hit, text: context.l10n.userProfile_tabSolved),
       ],
     );
   }
 
-  /// 顶部操作按钮(搜索/私信/聊天/更多)。窄版在 SliverAppBar.actions,
-  /// 宽版在左侧资料栏顶行。
+  /// 顶部操作按钮(搜索/私信/更多)。窄版在 SliverAppBar.actions,
+  /// 宽版在左侧资料栏顶行。⋮ 菜单是 v2 的 [AppMenuButton]：
+  /// 关于 / 分享 ｜ 通知级别（常规 / 静音 / 忽略，当前项打勾）
   List<Widget> _buildHeaderActions(bool isOwnProfile) {
+    final l10n = context.l10n;
     return <Widget>[
-      IconButton(
-        icon: const Icon(AppIcons.search),
-        onPressed: () => _openUserSearch(),
+      AppIconButton(
+        icon: AppIcons.search,
+        semanticLabel: l10n.common_search,
+        onPressed: _openUserSearch,
       ),
       if (_user != null && _user!.canSendPrivateMessageToUser != false)
-        IconButton(
+        AppIconButton(
+          icon: AppIcons.mail,
+          semanticLabel: l10n.userProfile_message,
           onPressed: _openMessageDialog,
-          icon: const Icon(AppIcons.mail),
-          tooltip: context.l10n.userProfile_message,
         ),
-      SwipeDismissiblePopupMenuButton<String>(
-        icon: const Icon(AppIcons.moreVert),
+      AppMenuButton<String>(
+        icon: AppIcons.moreHoriz,
+        semanticLabel: l10n.topicDetail_moreOptions,
         onSelected: (value) {
           switch (value) {
             case 'about':
@@ -2517,136 +2509,46 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
               _setNotificationLevel('ignore');
           }
         },
-        itemBuilder: (context) {
-          final theme = Theme.of(context);
-          return [
-            PopupMenuItem<String>(
+        sectionsBuilder: (context) => [
+          [
+            AppMenuItem<String>(
+              label: l10n.common_about,
               value: 'about',
-              child: Row(
-                children: [
-                  Icon(
-                    AppIcons.info,
-                    size: 20,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(context.l10n.common_about),
-                ],
-              ),
+              icon: AppIcons.info,
             ),
-            PopupMenuItem<String>(
+            AppMenuItem<String>(
+              label: l10n.userProfile_shareUser,
               value: 'share',
-              child: Row(
-                children: [
-                  Icon(
-                    AppIcons.share,
-                    size: 20,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(context.l10n.userProfile_shareUser),
-                ],
-              ),
+              icon: AppIcons.share,
             ),
-            // 非自己才显示订阅级别选项
-            if (!isOwnProfile && _user != null) ...[
-              const PopupMenuDivider(),
-              PopupMenuItem<String>(
+          ],
+          // 非自己才显示订阅级别选项
+          if (!isOwnProfile && _user != null)
+            [
+              AppMenuItem<String>(
+                label: l10n.userProfile_normal,
                 value: 'level_normal',
-                child: Row(
-                  children: [
-                    Icon(
-                      AppIcons.notification,
-                      size: 20,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(child: Text(context.l10n.userProfile_normal)),
-                    if (_notificationLevel == 'normal')
-                      Icon(
-                        AppIcons.check,
-                        size: 18,
-                        color: theme.colorScheme.primary,
-                      ),
-                  ],
-                ),
+                icon: AppIcons.notification,
+                checked: _notificationLevel == 'normal',
               ),
               if (_user!.canMuteUser != false)
-                PopupMenuItem<String>(
+                AppMenuItem<String>(
+                  label: l10n.userProfile_mute,
                   value: 'level_mute',
-                  child: Row(
-                    children: [
-                      Icon(
-                        AppIcons.notificationOff,
-                        size: 20,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(child: Text(context.l10n.userProfile_mute)),
-                      if (_notificationLevel == 'mute')
-                        Icon(
-                          AppIcons.check,
-                          size: 18,
-                          color: theme.colorScheme.primary,
-                        ),
-                    ],
-                  ),
+                  icon: AppIcons.notificationOff,
+                  checked: _notificationLevel == 'mute',
                 ),
               if (_user!.canIgnoreUser == true)
-                PopupMenuItem<String>(
+                AppMenuItem<String>(
+                  label: l10n.userProfile_ignored,
                   value: 'level_ignore',
-                  child: Row(
-                    children: [
-                      Icon(
-                        AppIcons.visibilityOff,
-                        size: 20,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(child: Text(context.l10n.userProfile_ignored)),
-                      if (_notificationLevel == 'ignore')
-                        Icon(
-                          AppIcons.check,
-                          size: 18,
-                          color: theme.colorScheme.primary,
-                        ),
-                    ],
-                  ),
+                  icon: AppIcons.visibilityOff,
+                  checked: _notificationLevel == 'ignore',
                 ),
             ],
-          ];
-        },
-      ),
-    ];
-  }
-
-  Widget _buildStatSlot(String value, String label, int rawValue) {
-    return Tooltip(
-      message: '$rawValue',
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              color: context.tokens.colors.textPrimary,
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: context.tokens.colors.textMeta,
-              fontSize: 12,
-            ),
-          ),
         ],
       ),
-    );
+    ];
   }
 
   Widget _buildFollowButton(bool isOwnProfile) {

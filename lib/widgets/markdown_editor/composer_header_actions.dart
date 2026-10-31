@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../l10n/s.dart';
-import '../../utils/platform_utils.dart';
 import '../../services/draft_controller.dart';
 import 'composer_draft_status.dart';
 import 'composer_page_chrome.dart';
@@ -58,7 +57,6 @@ class ComposerHeaderActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final scaler = MediaQuery.textScalerOf(context);
     const submitWidth = 66.0;
     final actions = [
@@ -127,72 +125,96 @@ class ComposerHeaderActions extends StatelessWidget {
                 : null,
         };
 
-    Widget more(
-      bool reviewing,
-      VoidCallback? onReview,
-    ) => SwipeDismissiblePopupMenuButton<_HeaderAction>(
-      key: const ValueKey('composer-header-more'),
-      tooltip: S.current.common_more,
-      requestFocus: PlatformUtils.isDesktop,
-      position: PopupMenuPosition.under,
-      offset: const Offset(0, 4),
-      icon: draftStatus == null
-          ? const Icon(AppIcons.moreHoriz, size: 21)
-          : ComposerDraftAttention(
-              status: draftStatus!,
-              child: const Icon(AppIcons.moreHoriz, size: 21),
-            ),
-      style: ComposerActionButton.buttonStyle,
-      onSelected: (action) => callback(action, onReview)?.call(),
-      itemBuilder: (_) => [
-        for (final action in overflow) ...[
-          if (action == _HeaderAction.discard && action != overflow.first ||
-              action != _HeaderAction.draft &&
-                  overflow.first == _HeaderAction.draft &&
-                  overflow.indexOf(action) == 1)
-            const PopupMenuDivider(),
-          if (action == _HeaderAction.draft)
-            ComposerDraftMenuEntry<_HeaderAction>(
-              status: draftStatus!,
-              retryValue: _HeaderAction.draft,
-              canRetry: onRetryDraft != null,
-            )
-          else
-            PopupMenuItem<_HeaderAction>(
-              key: ValueKey('composer-header-${action.name}'),
-              value: action,
-              enabled: callback(action, onReview) != null,
-              child: Row(
-                children: [
-                  if (action == _HeaderAction.review && reviewing)
-                    const SizedBox.square(
-                      dimension: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  else
-                    AppIcon(
-                      icon(action),
-                      size: 21,
-                      color:
-                          action == _HeaderAction.discard && onDiscard != null
-                          ? theme.colorScheme.error
-                          : null,
-                    ),
-                  const SizedBox(width: 12),
-                  Flexible(
-                    child: Text(
-                      label(action, reviewing),
-                      style:
-                          action == _HeaderAction.discard && onDiscard != null
-                          ? TextStyle(color: theme.colorScheme.error)
-                          : null,
-                    ),
+    Widget more(bool reviewing, VoidCallback? onReview) => Builder(
+      builder: (buttonContext) {
+        final colors = buttonContext.tokens.colors;
+        final moreIcon = Icon(
+          AppIcons.moreHoriz,
+          size: AppSize.iconL,
+          color: colors.textPrimary,
+        );
+        // 草稿状态在菜单打开期间会变（保存中 → 已保存 / 失败），整份菜单实时重取
+        List<List<AppMenuItem<VoidCallback>>> menuSections() {
+          final status = draftStatus?.value;
+          final error =
+              status == DraftSaveStatus.error ||
+              status == DraftSaveStatus.conflict;
+          final retryable = error || status == DraftSaveStatus.local;
+          final saving =
+              status == DraftSaveStatus.saving &&
+              !MediaQuery.disableAnimationsOf(buttonContext);
+          return [
+            [
+              for (final action in overflow)
+                if (action == _HeaderAction.draft)
+                  AppMenuItem(
+                    rowKey: const ValueKey('composer-draft-status-item'),
+                    icon: status == DraftSaveStatus.error
+                        ? AppIcons.cloudOff
+                        : AppIcons.cloudUpload,
+                    leading: saving
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 1.5),
+                          )
+                        : null,
+                    label: retryable && onRetryDraft != null
+                        ? '${label(action, false)} · ${status == DraftSaveStatus.conflict ? S.current.composer_draftResolve : S.current.common_retry}'
+                        : label(action, false),
+                    destructive: error,
+                    enabled: retryable && onRetryDraft != null,
+                    onTap: onRetryDraft,
+                  )
+                else
+                  AppMenuItem(
+                    rowKey: ValueKey('composer-header-${action.name}'),
+                    // 预览图标是自绘的 AppCustomIcon，菜单行只认字体图标，退回文章图标
+                    icon: icon(action) is IconData
+                        ? icon(action) as IconData
+                        : AppIcons.article,
+                    label: label(action, reviewing),
+                    destructive:
+                        action == _HeaderAction.discard && onDiscard != null,
+                    enabled: callback(action, onReview) != null,
+                    onTap: callback(action, onReview),
                   ),
-                ],
+            ],
+          ];
+        }
+
+        Future<void> open() async {
+          await showAppMenu<VoidCallback>(
+            context: buttonContext,
+            anchor: globalRectOf(buttonContext),
+            sections: menuSections(),
+            requestFocus: false,
+            refresh: draftStatus,
+            liveSections: menuSections,
+          );
+        }
+
+        return AppPressable(
+          key: const ValueKey('composer-header-more'),
+          onTap: open,
+          child: Semantics(
+            button: true,
+            label: S.current.common_more,
+            excludeSemantics: true,
+            onTap: open,
+            child: SizedBox.square(
+              dimension: AppSize.hit,
+              child: Center(
+                child: draftStatus == null
+                    ? moreIcon
+                    : ComposerDraftAttention(
+                        status: draftStatus!,
+                        child: moreIcon,
+                      ),
               ),
             ),
-        ],
-      ],
+          ),
+        );
+      },
     );
 
     Widget reviewHost({required bool folded}) => KeyedSubtree(

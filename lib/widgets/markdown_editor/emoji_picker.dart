@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
@@ -420,8 +421,8 @@ class _EmojiPickerState extends ConsumerState<EmojiPicker>
                             width: tabWidth,
                             child: DecoratedBox(
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.primaryContainer
-                                    .withValues(alpha: 0.5),
+                                color: context.tokens.colors.brandPrimary
+                                    .withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
@@ -534,11 +535,10 @@ class _EmojiPickerState extends ConsumerState<EmojiPicker>
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       child: Text(
         title,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
+        // v2 分组标题：13 meta
+        style: Theme.of(context).textTheme.bodySmall
+            ?.merge(context.tokens.text.meta)
+            .copyWith(color: context.tokens.colors.textMeta),
       ),
     );
   }
@@ -638,8 +638,7 @@ class _EmojiCell extends StatelessWidget {
         if (wasSynchronouslyLoaded || frame != null) return child;
         return DecoratedBox(
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.onSurfaceVariant
-                .withValues(alpha: 0.06),
+            color: context.tokens.colors.avatarFill,
             borderRadius: BorderRadius.circular(8),
           ),
           child: SizedBox(width: width, height: height),
@@ -722,24 +721,26 @@ class _EmojiSearchViewState extends State<_EmojiSearchView> {
               ),
               Expanded(
                 child: Container(
-                  height: 36,
+                  height: AppSize.hit,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest.withValues(
-                      alpha: 0.5,
+                    color: context.tokens.colors.surfaceGrouped,
+                    borderRadius: BorderRadius.circular(
+                      context.tokens.radius.field,
                     ),
-                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: TextField(
                     controller: _searchController,
                     focusNode: _searchFocusNode,
                     autofocus: true,
                     textAlignVertical: TextAlignVertical.center,
-                    style: const TextStyle(fontSize: 14),
+                    style: theme.textTheme.bodyMedium
+                        ?.merge(context.tokens.text.control)
+                        .copyWith(color: context.tokens.colors.textPrimary),
                     decoration: InputDecoration(
                       hintText: S.current.emoji_searchHint,
-                      hintStyle: TextStyle(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      hintStyle: theme.textTheme.bodyMedium
+                          ?.merge(context.tokens.text.control)
+                          .copyWith(color: context.tokens.colors.textMeta),
                       border: InputBorder.none,
                       isDense: true,
                       contentPadding: const EdgeInsets.only(right: 12),

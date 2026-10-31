@@ -26,6 +26,10 @@ class TopicRow extends StatelessWidget {
     this.isSelected = false,
     this.highlightColor,
     this.showCounts = true,
+    this.topSlot,
+    this.middleSlot,
+    this.showUnreadDot = false,
+    this.metaText,
   });
 
   final Topic topic;
@@ -44,6 +48,18 @@ class TopicRow extends StatelessWidget {
 
   /// 私信等不显示赞 / 回复计数的列表传 false
   final bool showCounts;
+
+  /// 标题上方的附加内容（书签行的书签名 / 提醒条）
+  final Widget? topSlot;
+
+  /// 标题与元信息之间的附加内容（书签笔记摘要）
+  final Widget? middleSlot;
+
+  /// 私信列表：有未读时标题前面放 8×8 品牌色圆点（不用红色角标）
+  final bool showUnreadDot;
+
+  /// 整行替换元信息文字（榜单行：「作者 · 获得于 日期 · N 回复」）
+  final String? metaText;
 
   /// 「N 条新回复」：已读过的话题里还没读的帖子数
   static int newRepliesOf(Topic topic) {
@@ -82,16 +98,20 @@ class TopicRow extends StatelessWidget {
     final likes = topic.likeCount;
     final replies = topic.replyCount;
 
-    final metaParts = <String>[
-      if (category != null) category!.name,
-      ?author,
-      if (time.isNotEmpty) time,
-    ];
+    final metaParts = metaText != null
+        ? <String>[metaText!]
+        : <String>[
+            if (category != null) category!.name,
+            ?author,
+            if (time.isNotEmpty) time,
+          ];
     final newText = newReplies > 0
         ? context.l10n.topic_newRepliesCount(newReplies)
         : null;
 
     final semanticLabel = [
+      if (showUnreadDot && (topic.unseen || newReplies > 0))
+        context.l10n.notification_stateUnread,
       topic.title,
       ...metaParts,
       ?newText,
@@ -116,14 +136,38 @@ class TopicRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            topic.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: base
-                .merge(tokens.text.headline)
-                .copyWith(color: colors.textPrimary),
-          ),
+          if (topSlot != null) ...[topSlot!, const SizedBox(height: AppSpace.xs)],
+          if (showUnreadDot && (topic.unseen || newReplies > 0))
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const UnreadDot(),
+                const SizedBox(width: AppSpace.s),
+                Expanded(
+                  child: Text(
+                    topic.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: base
+                        .merge(tokens.text.headline)
+                        .copyWith(color: colors.textPrimary),
+                  ),
+                ),
+              ],
+            )
+          else
+            Text(
+              topic.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: base
+                  .merge(tokens.text.headline)
+                  .copyWith(color: colors.textPrimary),
+            ),
+          if (middleSlot != null) ...[
+            const SizedBox(height: AppSpace.xs),
+            middleSlot!,
+          ],
           const SizedBox(height: AppSpace.s),
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,

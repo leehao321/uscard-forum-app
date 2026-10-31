@@ -10,12 +10,12 @@ import '../providers/selected_topic_provider.dart';
 import '../providers/user_content_search_provider.dart';
 import '../utils/load_more_coordinator.dart';
 import '../utils/blocked_user_filter.dart';
+import '../utils/time_utils.dart';
 import '../widgets/common/paged_list_footer.dart';
 import '../widgets/layout/master_detail_layout.dart';
 import '../widgets/layout/master_detail_pane_host.dart';
 import '../widgets/search/searchable_app_bar.dart';
 import '../widgets/search/user_content_search_view.dart';
-import '../widgets/topic/topic_card_prewarmer.dart';
 import '../widgets/topic/topic_item_builder.dart';
 import '../widgets/topic/topic_list_skeleton.dart';
 import '../providers/preferences_provider.dart';
@@ -122,6 +122,31 @@ class _BrowsingHistoryPageState extends ConsumerState<BrowsingHistoryPage> {
         ),
       ),
     );
+  }
+
+  /// 把话题按「最后活动」的自然日切开，每一天前面插一个页眉
+  List<_HistoryEntry> _groupByDay(List<Topic> topics) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final l10n = context.l10n;
+    final entries = <_HistoryEntry>[];
+    DateTime? lastDay;
+    for (final topic in topics) {
+      final time = topic.lastPostedAt ?? topic.createdAt ?? now;
+      final day = DateTime(time.year, time.month, time.day);
+      if (lastDay != day) {
+        lastDay = day;
+        final diff = today.difference(day).inDays;
+        final label = diff == 0
+            ? l10n.browsingHistory_groupToday
+            : diff == 1
+            ? l10n.browsingHistory_groupYesterday
+            : l10n.browsingHistory_groupDate(TimeUtils.formatFullDate(time));
+        entries.add(_HistoryEntry.header(label));
+      }
+      entries.add(_HistoryEntry.topic(topic));
+    }
+    return entries;
   }
 
   @override
@@ -252,20 +277,21 @@ class _BrowsingHistoryPageState extends ConsumerState<BrowsingHistoryPage> {
             );
           }
 
-          return TopicCardPrewarmScope(
-            topics: visibleTopics,
-            child: ListView.builder(
+          // v2：按天分组的页眉。话题接口没有「浏览时间」，只能按话题的最后活动
+          // 日期（last_posted_at，缺省取创建时间）分组，页眉明说「最后活动」。
+          final entries = _groupByDay(visibleTopics);
+          final enableLongPress = ref
+              .watch(preferencesProvider)
+              .longPressPreview;
+          return ListView.builder(
             controller: _scrollController,
             // 底部让出 extendBody 注入的底栏高度
-            padding: EdgeInsets.fromLTRB(
-              12,
-              12,
-              12,
-              12 + MediaQuery.paddingOf(context).bottom,
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.paddingOf(context).bottom,
             ),
-            itemCount: visibleTopics.length + 1,
+            itemCount: entries.length + 1,
             itemBuilder: (context, index) {
-              if (index == visibleTopics.length) {
+              if (index == entries.length) {
                 final notifier = ref.watch(browsingHistoryProvider.notifier);
                 return PagedListFooter(
                   hasMore: notifier.hasMore,
@@ -274,11 +300,12 @@ class _BrowsingHistoryPageState extends ConsumerState<BrowsingHistoryPage> {
                   onRetry: notifier.retryLoadMore,
                 );
               }
-
-              final topic = visibleTopics[index];
-              final enableLongPress = ref
-                  .watch(preferencesProvider)
-                  .longPressPreview;
+              final entry = entries[index];
+              final header = entry.header;
+              if (header != null) {
+                return _DayHeader(label: header);
+              }
+              final topic = entry.topic!;
               return buildTopicItem(
                 context: context,
                 topic: topic,
@@ -287,12 +314,48 @@ class _BrowsingHistoryPageState extends ConsumerState<BrowsingHistoryPage> {
                 enableLongPress: enableLongPress,
               );
             },
-            ),
           );
         },
         loading: () => const TopicListSkeleton(),
         error: (error, stack) =>
             ErrorView(error: error, stackTrace: stack, onRetry: _onRefresh),
+      ),
+    );
+  }
+}
+
+class _HistoryEntry {
+  const _HistoryEntry.header(String this.header) : topic = null;
+  const _HistoryEntry.topic(Topic this.topic) : header = null;
+
+  final String? header;
+  final Topic? topic;
+}
+
+/// 日期页眉：13 meta，上 12 下 4，左边距 20
+class _DayHeader extends StatelessWidget {
+  const _DayHeader({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Semantics(
+      header: true,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpace.pageMargin,
+          AppSpace.m,
+          AppSpace.pageMargin,
+          AppSpace.xs,
+        ),
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall
+              ?.merge(tokens.text.meta)
+              .copyWith(color: tokens.colors.textMeta),
+        ),
       ),
     );
   }

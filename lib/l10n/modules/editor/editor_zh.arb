@@ -11,6 +11,7 @@
       }
     }
   },
+  "composer_kindTopic": "发新话题",
   "draft_topicTitle": "话题 #{id}",
   "@draft_topicTitle": {
     "placeholders": {
@@ -129,7 +130,6 @@
   "composer_cursorUp": "向上移动",
   "composer_cursorDown": "向下移动",
   "composer_cursorSelect": "扩展选区",
-  "composer_kindTopic": "创建话题",
   "composer_kindQuestion": "创建问答",
   "composer_toolsNavigate": "选择",
   "composer_toolsApply": "应用",

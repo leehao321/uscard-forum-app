@@ -14,6 +14,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/gestures.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:app_icons/app_icons.dart';
@@ -299,8 +300,8 @@ class _CursorSwipeControlState extends State<CursorSwipeControl> {
         label: _selecting ? '选择模式:滑动选择文本,单击退出' : '按住滑动移动光标,单击进入选择模式',
         child: Container(
           key: const ValueKey('cursor-swipe-knob'),
-          width: 48,
-          height: 48,
+          width: AppSize.hit,
+          height: AppSize.hit,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: active

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/topic.dart';
 import '../../utils/url_helper.dart';
-import '../common/radial_long_press_menu.dart';
 import '../common/smart_avatar.dart';
 import '../user/avatar_action_menu.dart';
 import '../user/user_card.dart';
@@ -68,7 +67,7 @@ class _NestedPostAvatarState extends State<NestedPostAvatar> {
             widget.avatarTemplate.replaceAll('{size}', '48'),
           )
         : null;
-    return RadialLongPressMenu(
+    return AvatarLongPressMenu(
       onTap: _openUserCard,
       itemsBuilder: () => buildAvatarMenuItems(
         context,
@@ -77,14 +76,10 @@ class _NestedPostAvatarState extends State<NestedPostAvatar> {
         postNumber: widget.post?.postNumber,
         onMentionUser: widget.onMentionUser,
       ),
-      pressAreaIndicatorBuilder: (ctx, rect, opacity) => Opacity(
-        opacity: opacity,
-        child: SmartAvatar(
-          imageUrl: imageUrl,
-          radius: rect.shortestSide / 2,
-          fallbackText: widget.username,
-          border: Border.all(color: Theme.of(ctx).colorScheme.primary, width: 2),
-        ),
+      liftedChild: SmartAvatar(
+        imageUrl: imageUrl,
+        radius: NestedPostAvatar.size / 2,
+        fallbackText: widget.username,
       ),
       child: CompositedTransformTarget(
         link: _link,

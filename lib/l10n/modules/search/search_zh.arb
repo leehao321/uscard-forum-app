@@ -32,7 +32,9 @@
   "search_clearAll": "清除全部",
   "search_currentFilter": "当前筛选",
   "search_custom": "自定义",
+  "search_dateEnd": "结束日期",
   "search_dateRange": "时间范围",
+  "search_dateStart": "开始日期",
   "search_emptyHint": "输入关键词搜索",
   "search_error": "搜索出错",
   "search_filterBookmarks": "书签",
@@ -50,6 +52,7 @@
       }
     }
   },
+  "search_nextMatch": "下一个匹配",
   "search_noLimit": "不限",
   "search_noPopularTags": "暂无热门标签",
   "search_noResults": "没有找到相关结果",
@@ -57,6 +60,7 @@
   "search_pillStatus": "状态",
   "search_pillTags": "标签",
   "search_pillTime": "时间",
+  "search_prevMatch": "上一个匹配",
   "search_selectResultHint": "选择一个搜索结果，在此处查看详情",
   "search_popularTags": "热门标签",
   "search_recentSearches": "最近搜索",

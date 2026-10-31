@@ -1,33 +1,59 @@
 {
   "@@locale": "zh",
   "bottomNav_actionPickerTitle": "选择动作",
+  "bottomNav_addLabel": "添加{name}",
+  "@bottomNav_addLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "bottomNav_appearanceGroup": "外观",
   "bottomNav_customizeLayout": "自定义底栏项",
   "bottomNav_customizeLayoutDesc": "选择显示哪些入口、调整顺序",
   "bottomNav_doubleTapAction": "双击已选中项",
   "bottomNav_doubleTapActionDesc": "300ms 内第二次点击时执行的动作",
+  "bottomNav_dragLabel": "拖动排序{name}",
+  "@bottomNav_dragLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "bottomNav_editorAvailable": "可添加",
   "bottomNav_editorEmptyAvailable": "没有可添加的入口",
   "bottomNav_editorEnabled": "已启用",
   "bottomNav_editorEnabledHint": "{count}/{max} 项，至少 {min} 项",
   "@bottomNav_editorEnabledHint": {
     "placeholders": {
-      "count": {"type": "int"},
-      "min": {"type": "int"},
-      "max": {"type": "int"}
+      "count": {
+        "type": "int"
+      },
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
     }
   },
   "bottomNav_editorLockedHint": "必备项，不可移除",
   "bottomNav_editorMaxReached": "最多 {max} 项",
   "@bottomNav_editorMaxReached": {
     "placeholders": {
-      "max": {"type": "int"}
+      "max": {
+        "type": "int"
+      }
     }
   },
   "bottomNav_editorMinReached": "至少保留 {min} 项",
   "@bottomNav_editorMinReached": {
     "placeholders": {
-      "min": {"type": "int"}
+      "min": {
+        "type": "int"
+      }
     }
   },
   "bottomNav_editorPreviewHint": "拖动调整顺序，首页始终保持在第一位",
@@ -39,9 +65,28 @@
   "bottomNav_floatingDesc": "胶囊宽度随入口数量自适应，悬浮于页面内容之上",
   "bottomNav_floatingBlur": "毛玻璃模糊",
   "bottomNav_floatingBlurDesc": "胶囊背景模糊透出页面内容，关闭后为实色",
+  "bottomNav_footerMax": "最多 {max} 个标签；加满后搜索胶囊会变窄",
+  "@bottomNav_footerMax": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "bottomNav_gesturesGroup": "手势",
   "bottomNav_labelless": "无字模式",
   "bottomNav_labellessDesc": "底栏只显示图标，隐藏文字标签",
+  "bottomNav_pinnedFirst": "固定在第一位",
+  "bottomNav_pinnedLast": "固定在最后",
+  "bottomNav_removeLabel": "移除{name}",
+  "@bottomNav_removeLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bottomNav_shownHeader": "已显示 · 按住拖动排序",
   "bottomNav_singleTapAction": "单击已选中项",
   "bottomNav_singleTapActionDesc": "再次点击已选中的标签时执行的动作",
   "bottomNav_title": "底栏",
@@ -71,7 +116,9 @@
   "preferences_topicFilterKeywordsCount": "已设置 {count} 个关键词",
   "@preferences_topicFilterKeywordsCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "preferences_topicFilterKeywordsHint": "输入关键词后按回车添加",
@@ -83,7 +130,9 @@
   "preferences_blockedUsernamesCount": "已拉黑 {count} 个用户",
   "@preferences_blockedUsernamesCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "preferences_blockedUsernamesHint": "输入用户名后按回车添加",
@@ -134,21 +183,48 @@
   "preferences_renderGlesRestartTitle": "需要重启应用",
   "preferences_stickerSource": "表情包数据源",
   "preferences_title": "功能设置",
-  "settings_about": "关于 USCard Forum",
-  "settings_appearance": "外观设置",
-  "settings_bottomNav": "底栏设置",
+  "settings_about": "关于美卡论坛",
+  "settings_appLock": "应用锁",
+  "settings_appearance": "外观",
+  "settings_bottomNav": "标签栏",
   "settings_dataManagement": "数据管理",
-  "settings_network": "网络设置",
-  "settings_preferences": "功能设置",
-  "settings_reading": "阅读设置",
   "reading_bookmarksOpenMode": "默认打开标签页方式",
   "reading_bookmarksOpenModeDefault": "默认",
   "reading_bookmarksOpenModeTabbedWorkspace": "标签页模式",
+  "settings_diagnostics": "诊断",
+  "settings_engineCompat": "兼容",
+  "settings_engineCustom": "自定义",
+  "settings_engineHigh": "高性能",
+  "settings_engineStandard": "标准",
+  "settings_groupAdvanced": "高级",
+  "settings_groupData": "数据",
+  "settings_groupDisplay": "显示与阅读",
+  "settings_groupSecurity": "安全与网络",
+  "settings_network": "网络与代理",
+  "settings_preferences": "功能",
+  "settings_presetComfortable": "舒适",
+  "settings_presetCompact": "紧凑",
+  "settings_presetLargeText": "大字",
+  "settings_presetStandard": "默认",
+  "settings_reading": "阅读",
+  "settings_resultCount": "共 {count} 个结果",
+  "@settings_resultCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settings_searchEmpty": "未找到匹配的设置项",
-  "settings_searchHint": "搜索设置项...",
+  "settings_searchHint": "搜索设置",
   "settings_shortcuts": "快捷键",
-  "settings_title": "应用设置",
   "settings_selectHint": "选择左侧设置项，在此处进行配置",
+  "settings_title": "设置",
+  "settings_valueConnected": "已连接",
+  "settings_valueCustom": "自定义",
+  "settings_valueDisconnected": "未连接",
+  "settings_valueOff": "未开启",
+  "settings_valueOn": "已开启",
   "shortcuts_closeOverlay": "关闭浮层",
   "shortcuts_composer": "撰写",
   "shortcuts_composerSubmit": "提交（发送/发布）",

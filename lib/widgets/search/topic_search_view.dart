@@ -10,7 +10,6 @@ import '../../pages/topic_detail_page/topic_detail_page.dart';
 import '../../providers/selected_topic_provider.dart';
 import 'search_list_skeleton.dart';
 import 'search_post_card.dart';
-import 'search_preview_dialog.dart';
 import '../../providers/preferences_provider.dart';
 
 /// 话题内搜索结果视图
@@ -30,6 +29,9 @@ class TopicSearchView extends ConsumerStatefulWidget {
 class _TopicSearchViewState extends ConsumerState<TopicSearchView> {
   final ScrollController _scrollController = ScrollController();
   final LoadMoreCoordinator _loadMoreCoordinator = LoadMoreCoordinator();
+
+  /// 匹配导航：当前停在第几条结果（0 起）
+  int _current = 0;
 
   @override
   void initState() {
@@ -67,6 +69,14 @@ class _TopicSearchViewState extends ConsumerState<TopicSearchView> {
     await ref
         .read(topicSearchProvider(widget.topicId).notifier)
         .retryLoadMore();
+  }
+
+  /// 上 / 下一个匹配：循环切换并跳到那条结果所在楼层
+  void _step(int delta, List<dynamic> results) {
+    if (results.isEmpty) return;
+    final next = (_current + delta) % results.length;
+    setState(() => _current = next < 0 ? next + results.length : next);
+    widget.onJumpToPost?.call(results[_current].postNumber as int);
   }
 
   @override
@@ -109,24 +119,44 @@ class _TopicSearchViewState extends ConsumerState<TopicSearchView> {
     // 搜索结果
     return Column(
       children: [
-        // 结果数量
+        // 结果数量 + 匹配导航（上 / 下一个匹配，当前位置 n/N）
         SizedBox(
           height: AppSize.hit,
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpace.pageMargin,
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                context.l10n.search_resultCount(
-                  searchState.results.length,
-                  searchState.hasMore ? '+' : '',
+            padding: const EdgeInsets.only(left: AppSpace.pageMargin),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    context.l10n.search_resultCount(
+                      searchState.results.length,
+                      searchState.hasMore ? '+' : '',
+                    ),
+                    style: theme.textTheme.bodySmall
+                        ?.merge(context.tokens.text.meta)
+                        .copyWith(color: context.tokens.colors.textMeta),
+                  ),
                 ),
-                style: theme.textTheme.bodySmall
-                    ?.merge(context.tokens.text.meta)
-                    .copyWith(color: context.tokens.colors.textMeta),
-              ),
+                if (widget.onJumpToPost != null) ...[
+                  Text(
+                    '${_current.clamp(0, searchState.results.length - 1) + 1}'
+                    '/${searchState.results.length}',
+                    style: theme.textTheme.bodySmall
+                        ?.merge(context.tokens.text.meta)
+                        .copyWith(color: context.tokens.colors.textMeta),
+                  ),
+                  AppIconButton(
+                    icon: AppIcons.chevronUp,
+                    semanticLabel: context.l10n.search_prevMatch,
+                    onPressed: () => _step(-1, searchState.results),
+                  ),
+                  AppIconButton(
+                    icon: AppIcons.chevronDown,
+                    semanticLabel: context.l10n.search_nextMatch,
+                    onPressed: () => _step(1, searchState.results),
+                  ),
+                ],
+              ],
             ),
           ),
         ),
@@ -183,38 +213,7 @@ class _TopicSearchViewState extends ConsumerState<TopicSearchView> {
                       }
                     }
                   },
-                  onLongPress: enableLongPress
-                      ? (cardContext) => SearchPreviewDialog.show(
-                          context,
-                          post: post,
-                          onOpen: () {
-                            if (widget.onJumpToPost != null) {
-                              widget.onJumpToPost!(post.postNumber);
-                              return;
-                            }
-                            final topic = post.topic;
-                            if (topic != null) {
-                              if (EmbeddedStackScope.maybePushTopic(
-                                context,
-                                topicId: topic.id,
-                                scrollToPostNumber: post.postNumber,
-                              )) {
-                                return;
-                              }
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => TopicDetailPage(
-                                    topicId: topic.id,
-                                    scrollToPostNumber: post.postNumber,
-                                  ),
-                                ),
-                              );
-                            }
-                          },
-                          sourceContext: cardContext,
-                        )
-                      : null,
+                  enableLongPress: enableLongPress,
                 );
               },
             ),

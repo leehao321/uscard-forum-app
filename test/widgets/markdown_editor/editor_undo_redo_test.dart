@@ -4,6 +4,7 @@
 /// 故这里断言的是「按钮存在 + 可用性随历史栈变化 + 点击真的改文本」。
 library;
 
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -55,12 +56,13 @@ Future<void> _openActions(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+// v2 菜单：每项是一个 AppPressable，不可用时 onTap 为空
 Finder _action(String label) => find.ancestor(
   of: find.text(label),
-  matching: find.byType(TextButton),
+  matching: find.byType(AppPressable),
 );
 bool _enabled(WidgetTester tester, Finder finder) =>
-    tester.widget<TextButton>(finder).onPressed != null;
+    tester.widget<AppPressable>(finder.first).onTap != null;
 
 void main() {
   setUp(() => PlatformUtils.debugDesktopOverride = false);

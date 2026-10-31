@@ -472,10 +472,12 @@ class _SourceUploadPanelState extends State<SourceUploadPanel> {
         heightFactor: 1,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 520),
-          child: GlassSurfaceFrame(
-            key: const ValueKey('source-upload-glass'),
-            radius: 20,
-            recipe: _expanded ? GlassRecipe.sheet : GlassRecipe.toolbar,
+          child: CapsuleSurface(
+            key: const ValueKey('source-upload-card'),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(context.tokens.radius.card),
+            ),
+            fill: context.tokens.colors.surfaceElevated,
             child: Material(
               color: Colors.transparent,
               child: Column(

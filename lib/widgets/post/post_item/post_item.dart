@@ -1,3 +1,5 @@
+import 'dart:async';
+import '../../../utils/copy_source_tracker.dart';
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
@@ -43,6 +45,9 @@ class PostItem extends ConsumerStatefulWidget {
   final VoidCallback? onLike;
   final VoidCallback? onEdit;
   final VoidCallback? onShareAsImage;
+
+  /// 引用整层回复（菜单「引用回复」）；null = 不显示
+  final VoidCallback? onQuotePost;
   final void Function(int postId)? onRefreshPost;
   final void Function(int postNumber)? onJumpToPost;
   final void Function(int postId, bool accepted)? onSolutionChanged;
@@ -91,6 +96,7 @@ class PostItem extends ConsumerStatefulWidget {
     this.onLike,
     this.onEdit,
     this.onShareAsImage,
+    this.onQuotePost,
     this.onRefreshPost,
     this.onJumpToPost,
     this.onSolutionChanged,
@@ -361,9 +367,14 @@ class _PostItemState extends ConsumerState<PostItem> {
                                         post: post,
                                         topicId: widget.topicId,
                                       ),
-                                  onCopyToast: () => ToastService.showSuccess(
-                                    context.l10n.common_copiedToClipboard,
-                                  ),
+                                  onCopyToast: () {
+                                    unawaited(
+                                      CopySourceTracker.note(post.postNumber),
+                                    );
+                                    ToastService.showSuccess(
+                                      context.l10n.common_copiedToClipboard,
+                                    );
+                                  },
                                   // 划词「解密」:选中文本命中密文特征时 toolbar 显示,
                                   // 打开加解密工具箱解密面板(ENC1/OpenSSL/编码)。
                                   onDecryptRequest: (plainText) =>
@@ -470,6 +481,7 @@ class _PostItemState extends ConsumerState<PostItem> {
                   onReply: widget.onReply,
                   onEdit: widget.onEdit,
                   onShareAsImage: widget.onShareAsImage,
+                  onQuotePost: widget.onQuotePost,
                   onRefreshPost: widget.onRefreshPost,
                   onJumpToPost: widget.onJumpToPost,
                   onSolutionChanged: widget.onSolutionChanged,

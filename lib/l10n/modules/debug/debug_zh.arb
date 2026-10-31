@@ -79,5 +79,13 @@
   "debugTools_noLogsHint": "启用 DOH 并发起请求后会产生日志",
   "debugTools_noLogsToShare": "暂无日志可分享",
   "debugTools_shareLogs": "分享日志",
-  "debugTools_viewLogs": "查看日志"
+  "debugTools_viewLogs": "查看日志",
+  "diagnostics_eruda": "内置浏览器调试控制台",
+  "diagnostics_erudaHint": "切换后需重新打开相关页面或重启应用才生效",
+  "diagnostics_exportPackage": "导出诊断包",
+  "diagnostics_footer": "HTTP 状态码、请求头和原始错误只在这里出现",
+  "diagnostics_logs": "日志",
+  "diagnostics_perf": "性能诊断",
+  "diagnostics_send": "发给开发者",
+  "diagnostics_tools": "调试工具"
 }

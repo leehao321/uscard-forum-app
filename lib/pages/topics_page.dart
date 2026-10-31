@@ -11,6 +11,7 @@ import '../l10n/s.dart';
 import '../models/category.dart';
 import '../models/search_filter.dart';
 import '../providers/discourse_providers.dart';
+import '../providers/leaderboard_provider.dart';
 import '../providers/pinned_categories_provider.dart';
 import '../providers/shortcut_provider.dart';
 import '../models/shortcut_binding.dart';
@@ -22,6 +23,7 @@ import 'home/all_categories_sheet.dart';
 import 'home/category_bar.dart';
 import 'home/home_signals.dart';
 import 'home/home_topic_list.dart';
+import 'home/leaderboard_topic_list.dart';
 import 'home/title_menu.dart';
 
 export 'home/home_signals.dart';
@@ -105,6 +107,21 @@ class _TopicsPageState extends ConsumerState<TopicsPage> {
     setState(() => _index = index);
     ref.read(currentTabCategoryIdProvider.notifier).state = categoryId;
     ref.read(activeSidebarCategoryIdProvider.notifier).state = categoryId;
+  }
+
+  /// 分类条 / 标题菜单 / 全部分类半屏共用：回到「全部」
+  void _showAll() {
+    ref.read(homeBrowseModeProvider.notifier).state = null;
+    _select(0);
+  }
+
+  /// 浏览方式：null = 全部，否则切到对应榜单（榜单和分类是同一条分类条上的单选）
+  void _browse(LeaderboardKind? kind) {
+    if (kind == null) {
+      _showAll();
+    } else {
+      ref.read(homeBrowseModeProvider.notifier).state = kind;
+    }
   }
 
   /// 全局筛选 / 排序变化：刷新当前分类，其余标记为 stale，切过去时再刷新。
@@ -260,11 +277,34 @@ class _TopicsPageState extends ConsumerState<TopicsPage> {
       _invalidateTopicTabs(pinnedIds);
     });
 
+    ref.listen(homeShowAllSignalProvider, (_, _) => _showAll());
+
     final currentId = _currentCategoryId;
+    // 分类条：全部 · 精彩 · 难绷 | 分类…（站点没有对应徽章的榜单不出现）
+    final kinds = availableLeaderboards();
+    final mode = ref.watch(homeBrowseModeProvider);
     final labels = [
       context.l10n.common_all,
+      for (final kind in kinds) leaderboardLabel(context, kind),
       for (final id in pinnedIds) categoryMap?[id]?.name ?? '',
     ];
+    final barIndex = mode != null
+        ? 1 + kinds.indexOf(mode)
+        : _index == 0
+        ? 0
+        : kinds.length + _index;
+    void onBarSelected(int i) {
+      if (i == 0) {
+        _showAll();
+      } else if (i <= kinds.length) {
+        _browse(kinds[i - 1]);
+      } else {
+        // 选分类：回到普通列表
+        ref.read(homeBrowseModeProvider.notifier).state = null;
+        _select(i - kinds.length);
+        if (_index == i - kinds.length) setState(() {});
+      }
+    }
 
     return ColoredBox(
       color: context.tokens.colors.surfacePage,
@@ -278,6 +318,7 @@ class _TopicsPageState extends ConsumerState<TopicsPage> {
               categoryId: currentId,
               onSelectTags: _openTagSelection,
               onDismissAll: _confirmDismiss,
+              onBrowse: _browse,
             ),
             trailing: [
               if (isLoggedIn && widget.onCreateTopic != null)
@@ -290,19 +331,30 @@ class _TopicsPageState extends ConsumerState<TopicsPage> {
           ),
           HomeCategoryBar(
             labels: labels,
-            selectedIndex: _index.clamp(0, labels.length - 1),
-            onSelected: _select,
+            selectedIndex: barIndex.clamp(0, labels.length - 1),
+            dividerAfter: pinnedIds.isEmpty ? null : kinds.length,
+            onSelected: onBarSelected,
             onReselect: () => ref.read(scrollToTopProvider.notifier).trigger(),
             onOpenAllCategories: () => showAllCategoriesSheet(context),
           ),
           const AppHairline(),
           Expanded(
-            child: HomeTopicList(
-              key: ValueKey('home-list-$currentId'),
-              categoryId: currentId,
-              categoryMap: categoryMap ?? const <int, Category>{},
-              parentActive: widget.isActive,
-            ),
+            child: mode != null
+                // 导航栏已经让过状态栏，列表不要再叠一次顶部安全区
+                ? MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: LeaderboardTopicList(
+                      key: ValueKey('home-$mode'),
+                      kind: mode,
+                    ),
+                  )
+                : HomeTopicList(
+                    key: ValueKey('home-list-$currentId'),
+                    categoryId: currentId,
+                    categoryMap: categoryMap ?? const <int, Category>{},
+                    parentActive: widget.isActive,
+                  ),
           ),
         ],
       ),

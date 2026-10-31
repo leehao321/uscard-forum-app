@@ -1,6 +1,7 @@
 {
   "@@locale": "en",
   "about_appLogs": "App logs",
+  "about_appName": "USCard Forum",
   "about_checkUpdate": "Check for updates",
   "about_checkUpdateError": "Cannot check for updates.\nError: {error}",
   "about_checkUpdateFailed": "Update check failed",
@@ -19,6 +20,7 @@
   "about_tapToDisableDeveloperMode": "Tap to disable developer mode",
   "about_title": "About",
   "about_uiGallery": "Component gallery",
+  "about_unofficial": "Unofficial third-party client",
   "deviceInfo_dohOff": "DOH: Off",
   "deviceInfo_proxyOff": "Proxy: Off",
   "update_changelog": "What's new",

@@ -209,11 +209,8 @@ class _DraftsPageState extends ConsumerState<DraftsPage> {
             return ListView.builder(
               controller: _scrollController,
               // 底部让出 extendBody 注入的底栏高度
-              padding: EdgeInsets.fromLTRB(
-                12,
-                12,
-                12,
-                12 + MediaQuery.paddingOf(context).bottom,
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.paddingOf(context).bottom,
               ),
               itemCount: drafts.length,
               itemBuilder: (context, index) {
@@ -442,96 +439,88 @@ class _DraftCard extends StatelessWidget {
     final title = draft.displayTitle;
     final content = data.reply;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      clipBehavior: Clip.antiAlias,
-      // 双栏下标记"正在右栏处理的这条"。只有选中/未选中两档。
-      color: selected ? theme.colorScheme.surfaceContainerHighest : null,
-      child: InkWell(
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final base = theme.textTheme.bodyMedium!;
+
+    // v2：平行，不再是卡片。类型头（图标 14 + 类型 13 brand + 时间 13 meta）、
+    // 标题 17 Semibold 最多 2 行、预览 13 meta 最多 2 行；左滑「删除」
+    return SwipeActions(
+      actions: [
+        SwipeActionItem(
+          label: context.l10n.common_delete,
+          icon: AppIcons.delete,
+          background: colors.textDestructive,
+          onTap: onDelete,
+        ),
+      ],
+      child: AppPressable(
+        highlight: true,
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 类型标签、时间和删除按钮
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            // 双栏下标记「正在右栏处理的这条」
+            color: selected ? colors.surfaceGrouped : colors.surfacePage,
+            border: Border(
+              bottom: BorderSide(
+                color: colors.separator,
+                width: AppSpace.hairline,
+              ),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpace.pageMargin,
+              vertical: AppSpace.m,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(typeIcon, size: 14, color: colors.brandPrimary),
+                    const SizedBox(width: AppSpace.xs),
+                    Text(
+                      typeLabel,
+                      style: base
+                          .merge(tokens.text.metaStrong)
+                          .copyWith(color: colors.brandPrimary),
                     ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          typeIcon,
-                          size: 14,
-                          color: theme.colorScheme.onPrimaryContainer,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          typeLabel,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onPrimaryContainer,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  // 更新时间
-                  if (draft.updatedAt != null)
-                    RelativeTimeText(
-                      dateTime: draft.updatedAt,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                    const SizedBox(width: AppSpace.m),
+                    if (draft.updatedAt != null)
+                      RelativeTimeText(
+                        dateTime: draft.updatedAt,
+                        style: base
+                            .merge(tokens.text.meta)
+                            .copyWith(color: colors.textMeta),
                       ),
-                    ),
-                  const Spacer(),
-                  IconButton(
-                    icon: Icon(
-                      AppIcons.delete,
-                      size: 20,
-                      color: theme.colorScheme.error,
-                    ),
-                    onPressed: onDelete,
-                    visualDensity: VisualDensity.compact,
-                    tooltip: context.l10n.drafts_deleteDraft,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // 标题
-              Text(
-                title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
+                  ],
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-
-              // 内容预览
-              if (content != null && content.isNotEmpty) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpace.s),
                 Text(
-                  content,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  maxLines: 3,
+                  title,
+                  style: base
+                      .merge(tokens.text.control)
+                      .copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (content != null && content.isNotEmpty) ...[
+                  const SizedBox(height: AppSpace.xs),
+                  Text(
+                    content,
+                    style: base
+                        .merge(tokens.text.meta)
+                        .copyWith(color: colors.textMeta),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -547,7 +536,7 @@ class _DraftsListSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Skeleton(
       child: ListView.builder(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.zero,
         itemCount: 5,
         itemBuilder: (context, index) => const _DraftCardSkeleton(),
       ),
@@ -555,39 +544,32 @@ class _DraftsListSkeleton extends StatelessWidget {
   }
 }
 
-/// 单个草稿卡片骨架屏
+/// 单个草稿行骨架屏
 class _DraftCardSkeleton extends StatelessWidget {
   const _DraftCardSkeleton();
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 类型标签和时间
-            Row(
-              children: [
-                SkeletonBox(width: 60, height: 22, borderRadius: 6),
-                const SizedBox(width: 8),
-                SkeletonBox(width: 50, height: 14),
-                const Spacer(),
-                SkeletonBox(width: 24, height: 24, borderRadius: 12),
-              ],
-            ),
-            const SizedBox(height: 12),
-            // 标题
-            SkeletonBox(width: double.infinity, height: 18),
-            const SizedBox(height: 8),
-            // 内容预览
-            SkeletonBox(width: double.infinity, height: 14),
-            const SizedBox(height: 4),
-            SkeletonBox(width: 200, height: 14),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpace.pageMargin,
+        vertical: AppSpace.m,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              SkeletonBox(width: 60, height: 14),
+              const SizedBox(width: 12),
+              SkeletonBox(width: 50, height: 14),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SkeletonBox(width: double.infinity, height: 18),
+          const SizedBox(height: 4),
+          SkeletonBox(width: 200, height: 14),
+        ],
       ),
     );
   }

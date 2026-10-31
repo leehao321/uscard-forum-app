@@ -187,25 +187,14 @@ void showUserCard({
     );
     overlay.insert(entry);
   } else {
-    // 移动端：顶部全宽停靠卡 + 模糊遮罩（对应网页版移动端 card-cloak）。
-    showAppGeneralDialog(
+    // 移动端（v2）：底部半屏，遮罩 32%，下滑或点遮罩关闭
+    showAppBottomSheet<void>(
       context: context,
-      barrierDismissible: true,
-      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (dialogContext, _, _) =>
-          _DockedLayer(child: buildCard(() => Navigator.of(dialogContext).pop())),
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
-        return FadeTransition(
-          opacity: curved,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.96, end: 1.0).animate(curved),
-            alignment: Alignment.topCenter,
-            child: child,
-          ),
-        );
-      },
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => _DockedLayer(
+        child: buildCard(() => Navigator.of(sheetContext).pop()),
+      ),
     );
   }
 }
@@ -362,10 +351,11 @@ class _DockedLayer extends StatelessWidget {
     final media = MediaQuery.of(context);
     final maxHeight = media.size.height * 0.82;
     return SafeArea(
+      top: false,
       child: Align(
-        alignment: Alignment.topCenter,
+        alignment: Alignment.bottomCenter,
         child: Padding(
-          // 顶部多留出头像戳出的高度，避免被状态栏/安全区裁剪
+          // 顶部多留出头像戳出的高度，避免被裁剪
           padding: const EdgeInsets.fromLTRB(
               _kScreenMargin, _kAvatarOverflow + 6, _kScreenMargin, _kScreenMargin),
           child: ConstrainedBox(

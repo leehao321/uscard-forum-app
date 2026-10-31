@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +10,6 @@ import '../../providers/preferences_provider.dart';
 import '../../providers/selected_topic_provider.dart';
 import '../../services/toast_service.dart';
 import '../../utils/share_utils.dart';
-import '../common/radial_long_press_menu.dart';
 import '../post/reply_sheet.dart';
 
 /// 复制用户名到剪贴板并 toast + 轻触觉（长按菜单/用户卡片/用户主页共用）
@@ -60,7 +60,38 @@ void composeMessageToUser({
   );
 }
 
-/// 构建头像长按径向菜单项（长按触发瞬间调用）。
+/// 头像长按：浮起头像 + v2 菜单（点按仍是原来的 [onTap]，通常打开用户卡片）。
+class AvatarLongPressMenu extends StatelessWidget {
+  const AvatarLongPressMenu({
+    super.key,
+    required this.onTap,
+    required this.itemsBuilder,
+    required this.child,
+    this.liftedChild,
+  });
+
+  final VoidCallback onTap;
+  final List<AppMenuItem<VoidCallback>> Function() itemsBuilder;
+  final Widget child;
+
+  /// 浮起时显示的头像；默认就是 [child]
+  final Widget? liftedChild;
+
+  @override
+  Widget build(BuildContext context) {
+    return LiftedContextMenu<VoidCallback>(
+      sectionsBuilder: (_) => [itemsBuilder()],
+      liftedBuilder: (_) => liftedChild ?? child,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: child,
+      ),
+    );
+  }
+}
+
+/// 构建头像长按菜单项（长按触发瞬间调用）。
 ///
 /// - 进入主页 / 复制用户名：总是显示
 /// - 私信：已登录且当前用户可发私信且非自己（目标用户级能力此时未知，
@@ -68,7 +99,7 @@ void composeMessageToUser({
 /// - @用户：[onMentionUser] 非 null（链路可回复）且非自己
 /// - 只看此人：有话题上下文时显示(发帖数此时未知,不设官方 ≥2 帖门
 ///   槛;已在过滤该用户时变「取消只看」)
-List<RadialMenuItem> buildAvatarMenuItems(
+List<AppMenuItem<VoidCallback>> buildAvatarMenuItems(
   BuildContext context, {
   required String username,
   int? topicId,
@@ -98,16 +129,16 @@ List<RadialMenuItem> buildAvatarMenuItems(
   }
 
   return [
-    RadialMenuItem(
-      icon: Symbols.account_circle_rounded,
+    AppMenuItem(
+      icon: AppIcons.person,
       label: S.current.avatarMenu_viewProfile,
-      onSelected: () => EmbeddedStackScope.openProfile(context, username),
+      onTap: () => EmbeddedStackScope.openProfile(context, username),
     ),
     if (canMessage)
-      RadialMenuItem(
-        icon: Symbols.mail_rounded,
+      AppMenuItem(
+        icon: AppIcons.mail,
         label: S.current.userProfile_message,
-        onSelected: () => composeMessageToUser(
+        onTap: () => composeMessageToUser(
           context: context,
           username: username,
           topicId: topicId,
@@ -116,30 +147,28 @@ List<RadialMenuItem> buildAvatarMenuItems(
         ),
       ),
     if (onMentionUser != null && !isSelf)
-      RadialMenuItem(
-        icon: Symbols.alternate_email_rounded,
+      AppMenuItem(
+        icon: AppIcons.mention,
         label: S.current.avatarMenu_mention,
-        onSelected: () => onMentionUser(username),
+        onTap: () => onMentionUser(username),
       ),
     if (canFilter)
-      RadialMenuItem(
-        icon: isFilteringThisUser
-            ? Symbols.filter_list_off_rounded
-            : Symbols.filter_list_rounded,
+      AppMenuItem(
+        icon: isFilteringThisUser ? AppIcons.filterOff : AppIcons.filter,
         label: isFilteringThisUser
             ? S.current.avatarMenu_cancelFilterPosts
             : S.current.avatarMenu_filterPosts,
-        onSelected: () => container
+        onTap: () => container
             .read(topicUserFilterRequestProvider.notifier)
             .request(
               topicId: topicId!,
               username: isFilteringThisUser ? null : username,
             ),
       ),
-    RadialMenuItem(
-      icon: Symbols.content_copy_rounded,
+    AppMenuItem(
+      icon: AppIcons.copy,
       label: S.current.avatarMenu_copyUsername,
-      onSelected: () => copyUsernameToClipboard(username),
+      onTap: () => copyUsernameToClipboard(username),
     ),
   ];
 }

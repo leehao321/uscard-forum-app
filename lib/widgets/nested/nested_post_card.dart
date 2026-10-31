@@ -1,3 +1,5 @@
+import 'dart:async';
+import '../../utils/copy_source_tracker.dart';
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
@@ -25,7 +27,6 @@ import '../post/post_item/widgets/post_footer_section/post_footer_section.dart';
 import '../post/post_item/widgets/post_stamp_painter.dart';
 import '../post/post_signature_block.dart';
 import '../post/small_action_item.dart';
-import '../common/radial_long_press_menu.dart';
 import '../common/smart_avatar.dart';
 import '../user/avatar_action_menu.dart';
 import 'nested_collapsed_bar.dart';
@@ -738,9 +739,12 @@ class _NestedPostCardState extends ConsumerState<NestedPostCard> {
                           post: post,
                           topicId: widget.topicId,
                         ),
-                    onCopyToast: () => ToastService.showSuccess(
-                      context.l10n.common_copiedToClipboard,
-                    ),
+                    onCopyToast: () {
+                      unawaited(CopySourceTracker.note(post.postNumber));
+                      ToastService.showSuccess(
+                        context.l10n.common_copiedToClipboard,
+                      );
+                    },
                     onDecryptRequest: (plainText) => showCryptoDecryptSheet(
                       context: context,
                       initialCiphertext: plainText,
@@ -822,7 +826,7 @@ class _NestedPostCardState extends ConsumerState<NestedPostCard> {
       children: [
         // 移动端内联头像（点击进主页，长按弹径向操作菜单）
         if (isMobile) ...[
-          RadialLongPressMenu(
+          AvatarLongPressMenu(
             onTap: () => EmbeddedStackScope.openProfile(context, post.username),
             itemsBuilder: () => buildAvatarMenuItems(
               context,
@@ -833,19 +837,12 @@ class _NestedPostCardState extends ConsumerState<NestedPostCard> {
                   ? (u) => widget.onReply(null, initialContent: '@$u ')
                   : null,
             ),
-            pressAreaIndicatorBuilder: (ctx, rect, opacity) => Opacity(
-              opacity: opacity,
-              child: SmartAvatar(
-                imageUrl: post.avatarTemplate.isNotEmpty
-                    ? NestedPostAvatar.resolveUrl(post.avatarTemplate)
-                    : null,
-                radius: rect.shortestSide / 2,
-                fallbackText: post.username,
-                border: Border.all(
-                  color: Theme.of(ctx).colorScheme.primary,
-                  width: 2,
-                ),
-              ),
+            liftedChild: SmartAvatar(
+              imageUrl: post.avatarTemplate.isNotEmpty
+                  ? NestedPostAvatar.resolveUrl(post.avatarTemplate)
+                  : null,
+              radius: _mobileInlineAvatarSize / 2,
+              fallbackText: post.username,
             ),
             child: SmartAvatar(
               imageUrl: post.avatarTemplate.isNotEmpty

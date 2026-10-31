@@ -12,7 +12,6 @@ import '../../../../utils/url_helper.dart';
 import '../../../common/flair_badge.dart';
 import '../../../common/smart_avatar.dart';
 import '../../../common/avatar_glow.dart';
-import '../../../common/radial_long_press_menu.dart';
 import '../../../user/avatar_action_menu.dart';
 import '../../../user/user_card.dart';
 import '../../whisper_indicator.dart';
@@ -121,7 +120,7 @@ class _PostAvatarState extends State<PostAvatar> {
       avatar = AvatarGlow(glowColor: glowColor, child: avatar);
     }
 
-    return RadialLongPressMenu(
+    return AvatarLongPressMenu(
       onTap: _openUserCard,
       itemsBuilder: () => buildAvatarMenuItems(
         context,
@@ -130,18 +129,10 @@ class _PostAvatarState extends State<PostAvatar> {
         postNumber: widget.post.postNumber,
         onMentionUser: widget.onMentionUser,
       ),
-      // 按压替代显示：头像本身 + primary 圆环，语义是"按住的这个人浮在模糊层上"
-      pressAreaIndicatorBuilder: (ctx, rect, opacity) => Opacity(
-        opacity: opacity,
-        child: SmartAvatar(
-          imageUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
-          radius: rect.shortestSide / 2,
-          fallbackText: widget.post.username,
-          border: Border.all(
-            color: Theme.of(ctx).colorScheme.primary,
-            width: 2,
-          ),
-        ),
+      liftedChild: SmartAvatar(
+        imageUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
+        radius: widget.radius,
+        fallbackText: widget.post.username,
       ),
       child: CompositedTransformTarget(link: _link, child: avatar),
     );

@@ -89,6 +89,9 @@ class TopicPostList extends StatefulWidget {
   final void Function(Post? replyToPost, {String? initialContent}) onReply;
   final void Function(Post post) onEdit;
   final void Function(Post post)? onShareAsImage;
+
+  /// 引用整层回复（楼层菜单）
+  final void Function(Post post)? onQuotePost;
   final void Function(int postId) onRefreshPost;
   final void Function(int, bool) onVoteChanged;
   final void Function(int count, bool userCreated)? onSharedIssueChanged;
@@ -172,6 +175,7 @@ class TopicPostList extends StatefulWidget {
     required this.onReply,
     required this.onEdit,
     this.onShareAsImage,
+    this.onQuotePost,
     required this.onRefreshPost,
     required this.onVoteChanged,
     this.onSharedIssueChanged,
@@ -419,6 +423,7 @@ class _TopicPostListState extends State<TopicPostList> {
       widget.onReply;
   void Function(Post post) get onEdit => widget.onEdit;
   void Function(Post post)? get onShareAsImage => widget.onShareAsImage;
+  void Function(Post post)? get onQuotePost => widget.onQuotePost;
   void Function(int postId) get onRefreshPost => widget.onRefreshPost;
   void Function(int, bool) get onVoteChanged => widget.onVoteChanged;
   void Function(int count, bool userCreated)? get onSharedIssueChanged =>
@@ -1462,6 +1467,9 @@ class _TopicPostListState extends State<TopicPostList> {
           onShareAsImage: onShareAsImage != null
               ? () => onShareAsImage!(post)
               : null,
+          onQuotePost: isLoggedIn && onQuotePost != null
+              ? () => onQuotePost!(post)
+              : null,
           onRefreshPost: onRefreshPost,
           onJumpToPost: onJumpToPost,
           onSolutionChanged: onSolutionChanged,
@@ -1601,6 +1609,9 @@ class _TopicPostListState extends State<TopicPostList> {
           onEdit: isLoggedIn && post.canEdit ? () => onEdit(post) : null,
           onShareAsImage: onShareAsImage != null
               ? () => onShareAsImage!(post)
+              : null,
+          onQuotePost: isLoggedIn && onQuotePost != null
+              ? () => onQuotePost!(post)
               : null,
           onRefreshPost: onRefreshPost,
           onJumpToPost: onJumpToPost,

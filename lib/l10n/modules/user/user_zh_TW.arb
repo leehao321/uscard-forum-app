@@ -1,5 +1,7 @@
 {
   "@@locale": "zh_TW",
+  "followList_follow": "＋關注",
+  "followList_followed": "已關注",
   "followList_followers": "粉絲",
   "followList_following": "關注",
   "profileStats_addItems": "點擊新增統計項",

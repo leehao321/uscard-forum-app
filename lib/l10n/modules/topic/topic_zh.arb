@@ -1,4 +1,25 @@
 {
+  "leaderboard_browseMode": "浏览方式",
+  "leaderboard_empty": "榜上还没有帖子",
+  "leaderboard_funny": "难绷",
+  "leaderboard_grantedOn": "获得于 {date}",
+  "@leaderboard_grantedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "leaderboard_great": "精彩",
+  "leaderboard_loginHint": "登录后可能才能查看榜单",
+  "leaderboard_repliesCount": "{count} 回复",
+  "@leaderboard_repliesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "topic_backToBeforeJump": "回到跳转前",
   "topic_backToLastRead": "回到上次阅读位置",
   "topic_editCategoryBar": "编辑分类条",

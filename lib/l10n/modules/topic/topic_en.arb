@@ -1,4 +1,11 @@
 {
+  "leaderboard_browseMode": "Browse",
+  "leaderboard_empty": "Nothing here yet",
+  "leaderboard_funny": "Funny",
+  "leaderboard_grantedOn": "Awarded {date}",
+  "leaderboard_great": "Great",
+  "leaderboard_loginHint": "You may need to log in to see this list",
+  "leaderboard_repliesCount": "{count} replies",
   "topic_backToBeforeJump": "Back to before the jump",
   "topic_backToLastRead": "Back to where I stopped",
   "topic_editCategoryBar": "Edit category bar",

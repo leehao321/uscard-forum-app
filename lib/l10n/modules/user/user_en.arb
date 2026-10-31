@@ -1,5 +1,7 @@
 {
   "@@locale": "en",
+  "followList_follow": "+ Follow",
+  "followList_followed": "Following",
   "followList_followers": "Followers",
   "followList_following": "Following",
   "privateMessages_title": "Messages",

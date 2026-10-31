@@ -967,9 +967,8 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
   Future<void> _submitChecked() async {
     if ((_editorKey.currentState?.hasPendingUploads ?? false) ||
         (_richKey.currentState?.hasPendingUploads ?? false)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(UploadTaskLabels.of(context).pendingSubmit)),
-      );
+      // 上传没传完：Toast 说明原因，不发送
+      ToastService.showInfo(UploadTaskLabels.of(context).pendingSubmit);
       return;
     }
 

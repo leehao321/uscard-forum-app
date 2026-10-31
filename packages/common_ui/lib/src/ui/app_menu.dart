@@ -22,6 +22,8 @@ class AppMenuItem<T> {
     this.submenu,
     this.detail,
     this.onTap,
+    this.rowKey,
+    this.leading,
   });
 
   final String label;
@@ -44,6 +46,12 @@ class AppMenuItem<T> {
   final String? detail;
 
   final VoidCallback? onTap;
+
+  /// 行的 Key（测试和无障碍定位用）
+  final Key? rowKey;
+
+  /// 自定义前导控件（比如转圈）；有它时不再画 [icon]，占 20×20
+  final Widget? leading;
 }
 
 /// 菜单面板（标题菜单 240 / 上下文菜单 260）：r12；浅色 page 底 + 0.5
@@ -178,6 +186,7 @@ class _AppMenuRow<T> extends StatelessWidget {
         : colors.textPrimary;
     final base = Theme.of(context).textTheme.bodyMedium!;
     return AppPressable(
+      key: item.rowKey,
       highlight: true,
       onTap: item.enabled ? () => onTap(item) : null,
       selected: item.checked ? true : null,
@@ -190,7 +199,13 @@ class _AppMenuRow<T> extends StatelessWidget {
           ),
           child: Row(
             children: [
-              if (item.icon != null) ...[
+              if (item.leading != null) ...[
+                SizedBox.square(
+                  dimension: AppSize.iconM,
+                  child: Center(child: item.leading),
+                ),
+                const SizedBox(width: AppSpace.m),
+              ] else if (item.icon != null) ...[
                 Icon(item.icon, size: AppSize.iconM, color: color),
                 const SizedBox(width: AppSpace.m),
               ],
@@ -294,10 +309,21 @@ Future<T?> showAppMenu<T>({
   required List<List<AppMenuItem<T>>> sections,
   double width = AppSize.menuWidth,
   bool useRootNavigator = true,
+
+  /// false 时菜单路由不抢焦点（编辑器里弹菜单，不能收起键盘）
+  bool requestFocus = true,
+
+  /// 菜单打开期间内容会变（草稿状态等）：[refresh] 通知时用 [liveSections]
+  /// 重新取一份内容
+  Listenable? refresh,
+  List<List<AppMenuItem<T>>> Function()? liveSections,
 }) {
   final navigator = Navigator.of(context, rootNavigator: useRootNavigator);
   return navigator.push(
     _AppMenuRoute<T>(
+      requestFocus: requestFocus,
+      refresh: refresh,
+      liveSections: liveSections,
       anchor: anchor,
       sections: sections,
       width: width,
@@ -325,7 +351,13 @@ class _AppMenuRoute<T> extends PopupRoute<T> {
     required this.capturedThemes,
     required this.barrierLabel,
     required this.menuLabel,
+    super.requestFocus,
+    this.refresh,
+    this.liveSections,
   });
+
+  final Listenable? refresh;
+  final List<List<AppMenuItem<T>>> Function()? liveSections;
 
   final Rect anchor;
   final List<List<AppMenuItem<T>>> sections;
@@ -354,10 +386,14 @@ class _AppMenuRoute<T> extends PopupRoute<T> {
     Animation<double> animation,
     Animation<double> secondaryAnimation,
   ) {
-    final padding = MediaQuery.paddingOf(context);
+    // 键盘弹着时菜单避开键盘（编辑器里的菜单）：底边按键盘高度算
+    final safe = MediaQuery.paddingOf(context);
+    final padding = safe.copyWith(
+      bottom: math.max(safe.bottom, MediaQuery.viewInsetsOf(context).bottom),
+    );
     final size = MediaQuery.sizeOf(context);
-    final panel = AppMenuPanel<T>(
-      sections: sections,
+    Widget buildPanel(List<List<AppMenuItem<T>>> current) => AppMenuPanel<T>(
+      sections: current,
       width: width,
       maxHeight: math.max(
         AppSize.hit * 3,
@@ -368,6 +404,13 @@ class _AppMenuRoute<T> extends PopupRoute<T> {
         _runAfterClose(item.onTap);
       },
     );
+    final live = liveSections;
+    final panel = refresh == null || live == null
+        ? buildPanel(sections)
+        : ListenableBuilder(
+            listenable: refresh!,
+            builder: (_, _) => buildPanel(live()),
+          );
     return capturedThemes.wrap(
       Semantics(
         scopesRoute: true,
@@ -379,7 +422,8 @@ class _AppMenuRoute<T> extends PopupRoute<T> {
           child: _MenuTransition(
             animation: animation,
             alignment: _MenuLayout.growAlignment(anchor, size),
-            child: panel,
+            // 点菜单不算点在输入框外：编辑器里弹菜单时输入框保持焦点
+            child: TextFieldTapRegion(child: panel),
           ),
         ),
       ),

@@ -27,7 +27,7 @@
   "createTopic_restoreDraftContent": "An unsent draft was found. Restore it?",
   "createTopic_selectCategory": "Please select a category",
   "createTopic_templateNotModified": "You haven't modified the template. Publish anyway?",
-  "createTopic_title": "Create Topic",
+  "createTopic_title": "New topic",
   "createTopic_titleHint": "Enter an engaging title...",
   "createTopic_titleOrLinkHint": "Type title, or paste a link here",
   "editTopic_editPm": "Edit PM",

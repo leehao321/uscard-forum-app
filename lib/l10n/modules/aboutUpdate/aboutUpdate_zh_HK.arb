@@ -1,6 +1,7 @@
 {
   "@@locale": "zh_HK",
   "about_appLogs": "應用日誌",
+  "about_appName": "美卡論壇",
   "about_checkUpdate": "檢查更新",
   "about_checkUpdateError": "無法檢查更新，請稍後重試。\n錯誤信息: {error}",
   "@about_checkUpdateError": {
@@ -33,6 +34,7 @@
   "about_tapToDisableDeveloperMode": "點擊關閉開發者模式",
   "about_title": "關於",
   "about_uiGallery": "組件樣本",
+  "about_unofficial": "非官方第三方用戶端",
   "deviceInfo_dohOff": "DOH: 關閉",
   "deviceInfo_proxyOff": "代理: 關閉",
   "update_changelog": "更新內容",

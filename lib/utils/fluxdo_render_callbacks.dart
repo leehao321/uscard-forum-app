@@ -37,7 +37,6 @@ import '../utils/link_launcher.dart';
 import '../utils/svg_utils.dart';
 import '../utils/url_helper.dart';
 import '../widgets/common/image_context_menu.dart';
-import '../widgets/common/image_lift_menu.dart';
 import '../widgets/common/smart_avatar.dart';
 import '../widgets/post/quote_image_scope.dart';
 import '../widgets/content/animated_svg_view.dart';

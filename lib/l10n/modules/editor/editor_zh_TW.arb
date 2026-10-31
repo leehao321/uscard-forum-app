@@ -11,6 +11,7 @@
       }
     }
   },
+  "composer_kindTopic": "發新話題",
   "draft_topicTitle": "話題 #{id}",
   "@draft_topicTitle": {
     "placeholders": {
@@ -129,7 +130,6 @@
   "composer_cursorUp": "向上移動",
   "composer_cursorDown": "向下移動",
   "composer_cursorSelect": "擴展選取範圍",
-  "composer_kindTopic": "建立話題",
   "composer_kindQuestion": "建立問答",
   "composer_toolsNavigate": "選擇",
   "composer_toolsApply": "套用",

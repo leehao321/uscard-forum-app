@@ -53,7 +53,7 @@
   "migration_reloginRequired": "本次版本升級優化了 Cookie 儲存機制，已清除舊的登入狀態。請重新登入。",
   "migration_title": "資料升級",
   "oauth_callbackFailed": "授權回調失敗",
-  "onboarding_guestAccess": "遊客訪問",
+  "onboarding_guestAccess": "先逛逛",
   "onboarding_networkSettings": "網絡設置",
   "onboarding_slogan": "真誠 · 友善 · 團結 · 專業"
 }

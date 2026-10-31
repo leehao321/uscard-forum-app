@@ -18,9 +18,7 @@ import '../topic/painted_topic_card.dart';
 import '../../utils/blocked_user_filter.dart';
 import '../../utils/platform_utils.dart';
 import '../../utils/time_utils.dart';
-import 'bookmark_preview_quick_editor.dart';
 import '../common/error_view.dart';
-import '../common/morphing_dialog_anchor.dart';
 import '../common/icon_glyph_span.dart';
 import '../common/paged_list_footer.dart';
 import '../desktop_refresh_indicator.dart';
@@ -28,8 +26,7 @@ import '../../utils/responsive.dart';
 import '../topic/topic_list_skeleton.dart';
 import '../topic/topic_item_builder.dart';
 import '../../providers/discourse_providers.dart';
-import '../../services/topic_preview_preloader.dart';
-import '../topic/topic_preview_dialog.dart';
+import '../topic/preview_action.dart';
 
 class BookmarksListContent extends ConsumerWidget {
   const BookmarksListContent({
@@ -254,71 +251,6 @@ class BookmarksListContent extends ConsumerWidget {
         final reminderExpired =
             reminderAt != null && reminderAt.isBefore(DateTime.now());
 
-        // ── 自绘卡路径(默认):整卡 1 个 RenderObject,排版在
-        // TopicCardLayout 全局缓存里一次算死,挂载帧纯绘制 1~2ms。
-        // widget 版路径保留在 else 分支(kUsePaintedCard=false 一键回退)
-        if (kUsePaintedTopicCard && !topic.pinned) {
-          final isMobile = Responsive.isMobile(context);
-          final cardWidth = topicCardWidthFor(context);
-          final layout = _obtainBookmarkLayout(
-            context,
-            topic,
-            categoryMap,
-            statsAvailableWidth,
-          );
-          Widget card = MorphingDialogAnchor(
-            enabled: enableLongPress,
-            builder: (cardContext) => PaintedTopicCard(
-              key: ValueKey(bookmarkTopicIdentity(topic)),
-              layout: layout,
-              onTap: () => onTap(topic),
-              onMiddleClick: () => onMiddleClick(topic),
-              onLongPress: enableLongPress
-                  ? () => TopicPreviewDialog.show(
-                      context,
-                      topic: topic,
-                      onOpen: () => onTap(topic),
-                      sourceContext: cardContext,
-                      // chat 书签无话题上下文:正文直接用书签 excerpt,
-                      // 不按话题 id 拉详情(那个 id 是书签 id,必 404)
-                      firstPostLoader: topic.isChatMessageBookmark
-                          ? () async => topic.excerpt ?? ''
-                          : null,
-                      actions: topic.bookmarkId != null
-                          ? _buildPreviewActions(context, topic)
-                          : null,
-                      customActionPanelBuilder: topic.bookmarkId != null
-                          ? (_) => BookmarkPreviewQuickEditor(
-                              initialName: topic.bookmarkName,
-                              suggestions: bookmarkNameSuggestions,
-                              suggestionsLoader: bookmarkNameSuggestionsLoader,
-                              onSave: (value) =>
-                                  onQuickRenameBookmark(topic, value),
-                            )
-                          : null,
-                    )
-                  : null,
-              // 长按意图预加载:chat 书签无话题上下文(那个 id 是书签
-              // id,预取必 404),不参与
-              onPreviewIntent: enableLongPress && !topic.isChatMessageBookmark
-                  ? () => TopicPreviewPreloader.preload(
-                      ProviderScope.containerOf(
-                        context,
-                        listen: false,
-                      ).read(discourseServiceProvider),
-                      topic.id,
-                    )
-                  : null,
-            ),
-          );
-          if (!isMobile) {
-            card = Center(
-              child: SizedBox(width: cardWidth, child: card),
-            );
-          }
-          return card;
-        }
-
         // 提醒过期态进签名:色带颜色依赖 now,跨过提醒时刻要重建。
         // 主题恒等也进签名:色带/摘要的颜色在构造参数里烤死(不同于
         // 卡内 build 时现读),深浅色切换必须换代。
@@ -337,7 +269,7 @@ class BookmarksListContent extends ConsumerWidget {
         if (hit != null && hit.sig == sig) {
           return hit.item;
         }
-        final item = buildTopicItem(
+        final rawItem = buildTopicItem(
           context: context,
           topic: topic,
           isSelected: false,
@@ -349,21 +281,34 @@ class BookmarksListContent extends ConsumerWidget {
           categoryMap: categoryMap,
           topWidget: _buildBookmarkTopBar(context, topic),
           middleWidget: _buildBookmarkExcerpt(context, topic),
-          previewCustomActionPanelBuilder: topic.bookmarkId != null
-              ? (_) => BookmarkPreviewQuickEditor(
-                  initialName: topic.bookmarkName,
-                  suggestions: bookmarkNameSuggestions,
-                  suggestionsLoader: bookmarkNameSuggestionsLoader,
-                  onSave: (value) => onQuickRenameBookmark(topic, value),
-                )
-              : null,
           previewActions: topic.bookmarkId != null
               ? _buildPreviewActions(context, topic)
               : null,
         );
+        // v2：左滑露出「编辑」「删除」两个按钮（每个也是 VoiceOver 自定义操作）
+        final item = topic.bookmarkId == null
+            ? rawItem
+            : SwipeActions(
+                actions: [
+                  SwipeActionItem(
+                    label: context.l10n.common_edit,
+                    icon: AppIcons.edit,
+                    onTap: () => onEditBookmark(topic),
+                  ),
+                  SwipeActionItem(
+                    label: context.l10n.common_delete,
+                    icon: AppIcons.delete,
+                    background: context.tokens.colors.textDestructive,
+                    onTap: () => onDeleteBookmark(topic),
+                  ),
+                ],
+                child: rawItem,
+              );
+        // 行的 key：书签身份（测试与列表项复用都靠它）
+        final keyed = KeyedSubtree(key: ValueKey(cacheKey), child: item);
         if (_itemCache.length > 600) _itemCache.clear();
-        _itemCache[cacheKey] = (sig: sig, item: item);
-        return item;
+        _itemCache[cacheKey] = (sig: sig, item: keyed);
+        return keyed;
       },
     );
 

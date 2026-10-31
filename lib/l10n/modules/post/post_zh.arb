@@ -74,6 +74,8 @@
   "post_acceptSolution": "采纳为解决方案",
   "post_collapseReplies": "收起回复",
   "post_contentRequired": "请输入内容",
+  "post_copyFloorLink": "复制楼层链接",
+  "post_copyText": "复制文字",
   "post_deleteReplyConfirm": "确定要删除这条回复吗？此操作可以撤销。",
   "post_deleteReplyTitle": "删除回复",
   "post_deviceSource": "来自 {device}",
@@ -141,6 +143,7 @@
   "post_noReactions": "暂无回应",
   "post_opBadge": "主",
   "post_pendingReview": "你的帖子已提交，正在等待审核",
+  "post_quoteReply": "引用回复",
   "post_reactions": "回应",
   "post_relatedLinks": "相关链接",
   "post_relatedRepliesCount": "相关回复共 {count} 条",
@@ -161,6 +164,7 @@
   },
   "post_replySent": "回复已发送",
   "post_replySentAction": "查看",
+  "post_replyThis": "回复这层",
   "post_replyTo": "回复给",
   "post_replyToTopic": "回复话题",
   "post_replyToUser": "回复 @{username}",
@@ -260,7 +264,9 @@
   "postVoting_answerCount": "{count} 个回答",
   "@postVoting_answerCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "postVoting_sortVotes": "按票数",
@@ -269,7 +275,9 @@
   "postVoting_commentSheetTitle": "评论 @{username} 的帖子",
   "@postVoting_commentSheetTitle": {
     "placeholders": {
-      "username": {"type": "String"}
+      "username": {
+        "type": "String"
+      }
     }
   },
   "postVoting_commentSubmit": "发表",
@@ -278,13 +286,17 @@
   "postVoting_commentTooShort": "至少需要 {count} 个字符",
   "@postVoting_commentTooShort": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "postVoting_commentsMore": "还有 {count} 条评论",
   "@postVoting_commentsMore": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "postVoting_noVoters": "暂无投票",
@@ -293,7 +305,9 @@
   "postVoting_votersMore": "共 {count} 人投票,仅显示最近 20 人",
   "@postVoting_votersMore": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "postVoting_votersTitle": "投票用户",
@@ -348,20 +362,28 @@
   "postRevision_versionLabel": "v{current} / {total}",
   "@postRevision_versionLabel": {
     "placeholders": {
-      "current": {"type": "int"},
-      "total": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "postRevision_editedBy": "由 {user} 编辑",
   "@postRevision_editedBy": {
     "placeholders": {
-      "user": {"type": "String"}
+      "user": {
+        "type": "String"
+      }
     }
   },
   "postRevision_editReason": "原因:{reason}",
   "@postRevision_editReason": {
     "placeholders": {
-      "reason": {"type": "String"}
+      "reason": {
+        "type": "String"
+      }
     }
   },
   "postRevision_editReasonEmpty": "未填写编辑原因",
@@ -384,14 +406,18 @@
   "postRevision_revertConfirmTitle": "回退到版本 {revision}",
   "@postRevision_revertConfirmTitle": {
     "placeholders": {
-      "revision": {"type": "int"}
+      "revision": {
+        "type": "int"
+      }
     }
   },
   "postRevision_revertConfirmBody": "回退会创建一条新的编辑,目标版本的内容将作为最新内容写回。确定继续吗?",
   "postRevision_revertSuccess": "已回退到版本 {revision}",
   "@postRevision_revertSuccess": {
     "placeholders": {
-      "revision": {"type": "int"}
+      "revision": {
+        "type": "int"
+      }
     }
   },
   "postRevision_permanentlyDelete": "永久删除全部历史",
@@ -408,13 +434,17 @@
   "postRevision_hideSuccess": "已隐藏版本 {revision}",
   "@postRevision_hideSuccess": {
     "placeholders": {
-      "revision": {"type": "int"}
+      "revision": {
+        "type": "int"
+      }
     }
   },
   "postRevision_showSuccess": "已显示版本 {revision}",
   "@postRevision_showSuccess": {
     "placeholders": {
-      "revision": {"type": "int"}
+      "revision": {
+        "type": "int"
+      }
     }
   },
   "postRevision_deleteAllSuccess": "已永久删除全部编辑历史",

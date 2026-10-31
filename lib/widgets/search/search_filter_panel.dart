@@ -1,3 +1,4 @@
+import 'date_range_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
@@ -16,6 +17,9 @@ import '../common/topic_badges.dart';
 
 /// 搜索高级过滤器面板
 /// 作为 BottomSheet 显示，支持分类、标签、状态、时间范围过滤
+/// 高级筛选里的几段
+enum SearchFilterSection { status, date, category, tags }
+
 class SearchFilterPanel extends ConsumerStatefulWidget {
   /// 当前过滤条件
   final SearchFilter filter;
@@ -26,11 +30,15 @@ class SearchFilterPanel extends ConsumerStatefulWidget {
   /// 是否隐藏搜索范围类型（主搜索页面不需要显示）
   final bool hideInType;
 
+  /// 打开后滚到哪一段（筛选胶囊各自进入对应的选择器）
+  final SearchFilterSection? initialSection;
+
   const SearchFilterPanel({
     super.key,
     required this.filter,
     required this.onFilterChanged,
     this.hideInType = false,
+    this.initialSection,
   });
 
   @override
@@ -40,11 +48,23 @@ class SearchFilterPanel extends ConsumerStatefulWidget {
 class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
   late SearchFilter _localFilter;
   final ScrollController _scrollController = ScrollController();
+  final Map<SearchFilterSection, GlobalKey> _sectionKeys = {
+    for (final s in SearchFilterSection.values) s: GlobalKey(),
+  };
 
   @override
   void initState() {
     super.initState();
     _localFilter = widget.filter;
+    final target = widget.initialSection;
+    if (target != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ctx = _sectionKeys[target]?.currentContext;
+        if (ctx != null && mounted) {
+          Scrollable.ensureVisible(ctx, duration: Duration.zero);
+        }
+      });
+    }
   }
 
   @override
@@ -145,16 +165,11 @@ class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
       end: _localFilter.beforeDate ?? now,
     );
 
-    final result = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2010),
-      lastDate: now,
-      initialDateRange: initialRange,
-      locale: const Locale('zh', 'CN'),
-      helpText: context.l10n.search_selectDateRange,
-      cancelText: context.l10n.common_cancel,
-      confirmText: context.l10n.common_confirm,
-      saveText: context.l10n.common_confirm,
+    final result = await showDateRangeSheet(
+      context,
+      first: DateTime(2010),
+      last: now,
+      initial: initialRange,
     );
 
     if (result != null && mounted) {
@@ -210,21 +225,30 @@ class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
               padding: const EdgeInsets.only(top: AppSpace.m, bottom: AppSpace.l),
               children: [
                 // 状态选择
-                _sectionTitle(context.l10n.search_status),
+                KeyedSubtree(
+                  key: _sectionKeys[SearchFilterSection.status],
+                  child: _sectionTitle(context.l10n.search_status),
+                ),
                 const SizedBox(height: 12),
                 _buildStatusSection(theme),
 
                 const SizedBox(height: AppSpace.xl),
 
                 // 时间范围
-                _sectionTitle(context.l10n.search_dateRange),
+                KeyedSubtree(
+                  key: _sectionKeys[SearchFilterSection.date],
+                  child: _sectionTitle(context.l10n.search_dateRange),
+                ),
                 const SizedBox(height: 12),
                 _buildDateRangeSection(theme),
 
                 const SizedBox(height: AppSpace.xl),
 
                 // 分类选择
-                _sectionTitle(context.l10n.search_category),
+                KeyedSubtree(
+                  key: _sectionKeys[SearchFilterSection.category],
+                  child: _sectionTitle(context.l10n.search_category),
+                ),
                 const SizedBox(height: 12),
                 categoriesAsync.when(
                   data: (categories) => _buildCategoryGrid(
@@ -245,6 +269,7 @@ class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
 
                 // 标签选择
                 Row(
+                  key: _sectionKeys[SearchFilterSection.tags],
                   children: [
                     _sectionTitle(context.l10n.search_tags),
                     const Spacer(),

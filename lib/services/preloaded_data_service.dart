@@ -557,6 +557,8 @@ class PreloadedDataService {
   }) {
     _currentUser = currentUser;
     _siteSettings = siteSettings;
+    // 标成已加载：测试里不能让页面去请求论坛首页
+    _loaded = true;
   }
 
   void reset() {

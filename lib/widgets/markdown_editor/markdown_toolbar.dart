@@ -1200,7 +1200,7 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
             : _desktopAction(() => tool.onMenuSelected!(this, value)),
         padding: EdgeInsets.zero,
         iconSize: 20,
-        style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
+        style: IconButton.styleFrom(minimumSize: const Size.square(AppSize.hit)),
       );
     }
 

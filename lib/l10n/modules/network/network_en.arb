@@ -47,6 +47,8 @@
   "networkAdapter_viewReason": "View reason",
   "networkSettings_advanced": "Advanced",
   "networkSettings_auxiliary": "Auxiliary",
+  "networkSettings_custom": "Custom",
+  "networkSettings_customFooter": "Concurrency, rate limiting and upload options. You rarely need to change these.",
   "networkSettings_debug": "Debug",
   "networkSettings_engine": "Network Engine",
   "networkSettings_maxConcurrent": "Concurrent requests",
@@ -74,9 +76,15 @@
   "networkSettings_rateLimitSummary": "Up to {maxPerWindow} requests every {windowSeconds}s, {maxConcurrent} in parallel",
   "@networkSettings_rateLimitSummary": {
     "placeholders": {
-      "windowSeconds": { "type": "int" },
-      "maxPerWindow": { "type": "int" },
-      "maxConcurrent": { "type": "int" }
+      "windowSeconds": {
+        "type": "int"
+      },
+      "maxPerWindow": {
+        "type": "int"
+      },
+      "maxConcurrent": {
+        "type": "int"
+      }
     }
   },
   "network_adapterNativeAndroid": "Cronet adapter",

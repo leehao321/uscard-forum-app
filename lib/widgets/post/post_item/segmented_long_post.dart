@@ -1,3 +1,5 @@
+import 'dart:async';
+import '../../../utils/copy_source_tracker.dart';
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -293,8 +295,10 @@ class NewEngineChunkSegment extends ConsumerWidget {
             post: post,
             topicId: topicId,
           ),
-      onCopyToast: () =>
-          ToastService.showSuccess(context.l10n.common_copiedToClipboard),
+      onCopyToast: () {
+        unawaited(CopySourceTracker.note(post.postNumber));
+        ToastService.showSuccess(context.l10n.common_copiedToClipboard);
+      },
     );
 
     // 首 chunk 弹幕层(与 PostItem 的短帖路径同一套开关判定)
@@ -464,6 +468,7 @@ class LongPostFooterSegment extends ConsumerWidget {
   final void Function({String? initialContent})? onReply;
   final VoidCallback? onEdit;
   final VoidCallback? onShareAsImage;
+  final VoidCallback? onQuotePost;
   final void Function(int postId)? onRefreshPost;
   final void Function(int postNumber)? onJumpToPost;
   final void Function(int postId, bool accepted)? onSolutionChanged;
@@ -497,6 +502,7 @@ class LongPostFooterSegment extends ConsumerWidget {
     required this.onReply,
     required this.onEdit,
     required this.onShareAsImage,
+    this.onQuotePost,
     required this.onRefreshPost,
     required this.onJumpToPost,
     required this.onSolutionChanged,
@@ -563,6 +569,7 @@ class LongPostFooterSegment extends ConsumerWidget {
             onReply: onReply,
             onEdit: onEdit,
             onShareAsImage: onShareAsImage,
+            onQuotePost: onQuotePost,
             onRefreshPost: onRefreshPost,
             onJumpToPost: onJumpToPost,
             onSolutionChanged: onSolutionChanged,

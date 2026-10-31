@@ -1,23 +1,24 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 
-/// 通过填色表达状态，沿用原生圆形反馈，点击区域始终保持 48dp。
+/// 工具条按钮（v2）：44×44 热区，图标 20；激活态 brand 色 + 12% 底。
 ButtonStyle composerToolButtonStyle(
   BuildContext context, {
   bool active = false,
 }) {
-  final colors = Theme.of(context).colorScheme;
+  final colors = context.tokens.colors;
   final motion =
       M3eFlags.of(context).enabled && !MediaQuery.disableAnimationsOf(context);
   return IconButton.styleFrom(
-    minimumSize: const Size.square(48),
-    maximumSize: const Size.square(48),
-    padding: const EdgeInsets.all(12),
+    minimumSize: const Size.square(AppSize.hit),
+    maximumSize: const Size.square(AppSize.hit),
+    padding: const EdgeInsets.all(AppSpace.m),
     visualDensity: VisualDensity.standard,
-    foregroundColor: active
-        ? colors.onSecondaryContainer
-        : colors.onSurfaceVariant,
-    backgroundColor: active ? colors.secondaryContainer : Colors.transparent,
+    foregroundColor: active ? colors.brandPrimary : colors.textPrimary,
+    backgroundColor: active
+        ? colors.brandPrimary.withValues(alpha: 0.12)
+        : Colors.transparent,
   ).copyWith(
     animationDuration: motion
         ? const Duration(milliseconds: 150)
@@ -35,10 +36,8 @@ class ComposerEditingControls extends StatelessWidget {
     padding: const EdgeInsets.only(right: 4),
     child: DecoratedBox(
       decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: .42),
-        borderRadius: BorderRadius.circular(22),
+        color: context.tokens.colors.surfaceGrouped,
+        borderRadius: BorderRadius.circular(AppSize.hit / 2),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: children),
     ),

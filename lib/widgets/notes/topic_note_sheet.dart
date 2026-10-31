@@ -1,3 +1,4 @@
+import '../../utils/copy_source_tracker.dart';
 import 'dart:async';
 
 import 'package:app_icons/app_icons.dart';
@@ -171,7 +172,12 @@ class _TopicNoteSheetBodyState extends State<TopicNoteSheetBody>
     setState(() {
       _excerpts.insert(
         0,
-        NoteExcerpt(text: text, createdAt: DateTime.now(), postNumber: _floor),
+        NoteExcerpt(
+          text: text,
+          createdAt: DateTime.now(),
+          // 来源楼层：优先用最近一次从某一楼复制时记下的，对不上再用当前这一楼
+          postNumber: CopySourceTracker.sourceFor(text) ?? _floor,
+        ),
       );
     });
     _scheduleSave();

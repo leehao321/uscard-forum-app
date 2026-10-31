@@ -173,6 +173,11 @@ class SearchCapsule extends StatelessWidget {
             textInputAction: textInputAction,
             cursorColor: colors.brandPrimary,
             style: base.copyWith(color: colors.textPrimary),
+            // 输入区撑满整个胶囊高度，点击区 = 胶囊（不是 20 高的一行字）
+            expands: true,
+            maxLines: null,
+            minLines: null,
+            textAlignVertical: TextAlignVertical.center,
             decoration: InputDecoration.collapsed(
               hintText: placeholder,
               hintStyle: base.copyWith(color: colors.textMeta),

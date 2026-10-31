@@ -1,6 +1,7 @@
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
+import 'package:m3e_ui/m3e_ui.dart' show LoadingSpinner;
 
 import '../services/ai_translation_service.dart';
 import '../services/toast_service.dart';
@@ -85,85 +86,161 @@ class _SavedTopicsPageState extends State<SavedTopicsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final base = Theme.of(context).textTheme.bodyMedium!;
     final items = _filtered;
     return Scaffold(
+      backgroundColor: colors.surfacePage,
       appBar: AppNavBar(
         showDivider: true,
         slotWidth: 100,
         title: '已存帖子',
         trailing: [
           if (_all.isNotEmpty)
-            AppIconButton(icon: AppIcons.delete, semanticLabel: '清空', onPressed: _confirmClear),
+            AppIconButton(
+              icon: AppIcons.delete,
+              semanticLabel: '清空',
+              onPressed: _confirmClear,
+            ),
         ],
       ),
       body: Column(
         children: [
-          SwitchListTile.adaptive(
-            title: const Text('看过就存'),
-            subtitle: const Text('打开并加载过的话题自动保存到本机，不额外联网'),
-            value: _enabled,
-            onChanged: _toggleEnabled,
+          // 开关行：标题 17 + 说明 13 meta
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpace.pageMargin,
+              vertical: AppSpace.s,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '看过就存',
+                        style: base
+                            .merge(tokens.text.control)
+                            .copyWith(color: colors.textPrimary),
+                      ),
+                      Text(
+                        '打开并加载过的话题自动保存到本机，不额外联网',
+                        style: base
+                            .merge(tokens.text.meta)
+                            .copyWith(color: colors.textMeta),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: AppSpace.m),
+                Switch.adaptive(value: _enabled, onChanged: _toggleEnabled),
+              ],
+            ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpace.pageMargin,
+              0,
+              AppSpace.pageMargin,
+              AppSpace.s,
+            ),
             child: TextField(
               controller: _searchController,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(AppIcons.search),
+              style: base
+                  .merge(tokens.text.control)
+                  .copyWith(color: colors.textPrimary),
+              cursorColor: colors.brandPrimary,
+              decoration: InputDecoration(
+                prefixIcon: Icon(
+                  AppIcons.search,
+                  size: AppSize.iconM,
+                  color: colors.textMeta,
+                ),
                 hintText: '搜索标题和正文',
-                border: OutlineInputBorder(),
+                hintStyle: TextStyle(color: colors.textMeta),
+                filled: true,
+                fillColor: colors.surfaceGrouped,
                 isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSpace.m,
+                  vertical: AppSpace.m,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(tokens.radius.field),
+                  borderSide: BorderSide.none,
+                ),
               ),
               onChanged: (v) => setState(() => _query = v),
             ),
           ),
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: LoadingSpinner())
                 : items.isEmpty
-                ? Center(
-                    child: Text(
-                      _all.isEmpty ? '还没有保存的话题' : '没有匹配的话题',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
+                ? AppStateView(
+                    icon: _all.isEmpty ? AppIcons.inbox : AppIcons.searchOff,
+                    title: _all.isEmpty ? '还没有保存的话题' : '没有匹配的话题',
                   )
-                : ListView.separated(
+                : ListView.builder(
                     itemCount: items.length,
-                    separatorBuilder: (_, _) => const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final meta = items[index];
-                      return Dismissible(
-                        key: ValueKey(meta.topicId),
-                        direction: DismissDirection.endToStart,
-                        background: Container(
-                          color: theme.colorScheme.errorContainer,
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 20),
-                          child: Icon(
-                            AppIcons.delete,
-                            color: theme.colorScheme.onErrorContainer,
+                      return SwipeActions(
+                        actions: [
+                          SwipeActionItem(
+                            label: '删除',
+                            icon: AppIcons.delete,
+                            background: colors.textDestructive,
+                            onTap: () => SavedTopicStore.delete(meta.topicId),
                           ),
-                        ),
-                        onDismissed: (_) =>
-                            SavedTopicStore.delete(meta.topicId),
-                        child: ListTile(
-                          title: Text(
-                            meta.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Text(
-                            '${meta.postCount} 个楼层 · 保存于 '
-                            '${TimeUtils.formatShortDate(meta.savedAt)}',
-                          ),
+                        ],
+                        child: AppPressable(
+                          highlight: true,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) =>
                                   SavedTopicViewPage(topicId: meta.topicId),
+                            ),
+                          ),
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: colors.surfacePage,
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: colors.separator,
+                                  width: AppSpace.hairline,
+                                ),
+                              ),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: AppSpace.pageMargin,
+                                vertical: tokens.rowPadV,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    meta.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: base
+                                        .merge(tokens.text.headline)
+                                        .copyWith(color: colors.textPrimary),
+                                  ),
+                                  const SizedBox(height: AppSpace.s),
+                                  Text(
+                                    '${meta.postCount} 个楼层 · 保存于 '
+                                    '${TimeUtils.formatShortDate(meta.savedAt)}',
+                                    style: base
+                                        .merge(tokens.text.meta)
+                                        .copyWith(color: colors.textMeta),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -177,7 +254,8 @@ class _SavedTopicsPageState extends State<SavedTopicsPage> {
   }
 }
 
-/// 离线查看一个已存话题（纯文本显示楼层内容）。
+/// 离线查看一个已存话题：和阅读页同一套楼层样式（作者 13 Semibold、楼号和
+/// 日期 13 meta、正文 17 / 行高档，发丝线分隔），内容是纯文本。
 class SavedTopicViewPage extends StatelessWidget {
   const SavedTopicViewPage({super.key, required this.topicId});
 
@@ -185,43 +263,81 @@ class SavedTopicViewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final base = Theme.of(context).textTheme.bodyMedium!;
     return FutureBuilder<SavedTopic?>(
       future: SavedTopicStore.load(topicId),
       builder: (context, snapshot) {
         final topic = snapshot.data;
         return Scaffold(
-          appBar: AppBar(title: Text(topic?.meta.title ?? '已存帖子')),
+          backgroundColor: colors.surfacePage,
+          appBar: AppNavBar(
+            showDivider: true,
+            title: topic?.meta.title ?? '已存帖子',
+          ),
           body: snapshot.connectionState != ConnectionState.done
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(child: LoadingSpinner())
               : topic == null
-              ? const Center(child: Text('读取失败或已被删除'))
-              : ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: topic.posts.length,
-                  separatorBuilder: (_, _) => const Divider(height: 32),
-                  itemBuilder: (context, index) {
-                    final post = topic.posts[index];
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '#${post.postNumber}  ${post.name?.isNotEmpty == true ? post.name : post.username}'
-                          '${post.createdAt == null ? '' : '  ·  ${TimeUtils.formatShortDate(post.createdAt!)}'}',
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.primary,
+              ? const AppStateView(
+                  icon: AppIcons.dataError,
+                  title: '读取失败或已被删除',
+                )
+              : ReadableColumn(
+                  child: ListView.builder(
+                    itemCount: topic.posts.length,
+                    itemBuilder: (context, index) {
+                      final post = topic.posts[index];
+                      final who = post.name?.isNotEmpty == true
+                          ? post.name!
+                          : post.username;
+                      final date = post.createdAt == null
+                          ? ''
+                          : '  ${TimeUtils.formatShortDate(post.createdAt!)}';
+                      return DecoratedBox(
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: colors.separator,
+                              width: AppSpace.hairline,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        SelectableText(
-                          AiTranslationService.extractPlainText(post.cooked),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            height: 1.55,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: AppSpace.pageMargin,
+                            vertical: tokens.rowPadV,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                who,
+                                style: base
+                                    .merge(tokens.text.metaStrong)
+                                    .copyWith(color: colors.textPrimary),
+                              ),
+                              Text(
+                                '#${post.postNumber}$date',
+                                style: base
+                                    .merge(tokens.text.meta)
+                                    .copyWith(color: colors.textMeta),
+                              ),
+                              const SizedBox(height: AppSpace.s),
+                              SelectableText(
+                                AiTranslationService.extractPlainText(
+                                  post.cooked,
+                                ),
+                                style: base
+                                    .merge(tokens.text.body)
+                                    .copyWith(color: colors.textPrimary),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
         );
       },

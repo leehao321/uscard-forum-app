@@ -47,6 +47,8 @@
   "networkAdapter_viewReason": "查看降級原因",
   "networkSettings_advanced": "高級",
   "networkSettings_auxiliary": "輔助功能",
+  "networkSettings_custom": "自訂",
+  "networkSettings_customFooter": "並行與限流、檔案上傳等技術項目。一般不用更改。",
   "networkSettings_debug": "調試",
   "networkSettings_engine": "網絡引擎",
   "networkSettings_maxConcurrent": "同時請求數",
@@ -74,9 +76,15 @@
   "networkSettings_rateLimitSummary": "每 {windowSeconds} 秒內最多 {maxPerWindow} 個請求，同時進行 {maxConcurrent} 個",
   "@networkSettings_rateLimitSummary": {
     "placeholders": {
-      "windowSeconds": { "type": "int" },
-      "maxPerWindow": { "type": "int" },
-      "maxConcurrent": { "type": "int" }
+      "windowSeconds": {
+        "type": "int"
+      },
+      "maxPerWindow": {
+        "type": "int"
+      },
+      "maxConcurrent": {
+        "type": "int"
+      }
     }
   },
   "network_adapterNativeAndroid": "Cronet 適配器",

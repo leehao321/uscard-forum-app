@@ -2,23 +2,15 @@ import 'package:app_icons/app_icons.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 
-import '../../constants.dart';
 import '../../l10n/s.dart';
 import '../../models/category.dart';
 import '../../models/topic.dart';
-import '../../models/topic_card_style.dart';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../providers/discourse_providers.dart';
-import '../../services/topic_preview_preloader.dart';
 import '../../utils/responsive.dart';
-import '../common/morphing_dialog_anchor.dart';
-import 'painted_topic_card.dart';
-import 'topic_card.dart';
 import 'topic_card_layout.dart';
-import 'topic_expandable_excerpt.dart';
-import 'topic_preview_dialog.dart';
+import 'painted_topic_card.dart' show topicCardEmojiUrlResolver;
+import 'preview_action.dart';
 import 'topic_row.dart';
 
 /// 话题卡排版宽:与 [buildTopicItem] 的壳层约束同源(移动 = 视口宽
@@ -78,164 +70,31 @@ Widget buildTopicItem({
   Color? highlightColor,
   Widget? topWidget,
   Widget? middleWidget,
+  bool showUnreadDot = false,
   bool messageStyle = false,
   Map<int, Category>? categoryMap,
   double? statsAvailableWidth,
   List<PreviewAction>? previewActions,
   WidgetBuilder? previewCustomActionPanelBuilder,
 }) {
-  // 0.4.0 v2：没有自定义顶部 / 中部内容的列表统一画 [TopicRow]（置顶折成
-  // 单行），长按浮起上下文菜单取代预览弹窗。带 topWidget / middleWidget 的
-  // 调用方（书签、搜索）保留旧卡片，等各自的里程碑再换。
-  if (topWidget == null && middleWidget == null) {
-    return _buildV2Row(
-      context: context,
-      topic: topic,
-      isSelected: isSelected,
-      onTap: onTap,
-      onMiddleClick: onMiddleClick,
-      enableLongPress: enableLongPress,
-      highlightColor: highlightColor,
-      messageStyle: messageStyle,
-      categoryMap: categoryMap,
-      previewActions: previewActions,
-    );
-  }
-
-  final isMobile = Responsive.isMobile(context);
-
-  // 一镜到底锚点底色:与各分支卡片外壳底色一致(置顶紧凑卡是半透明
-  // surfaceContainerLow,普通卡是 cardTheme.color;落地高亮瞬时值优先)
-  final theme = Theme.of(context);
-  final anchorColor =
-      highlightColor ??
-      (topic.pinned
-          ? theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.5)
-          : theme.cardTheme.color ?? theme.colorScheme.surfaceContainerLow);
-
-  // 从实际卡身接管画面；桌面的居中约束留在来源外层。
-  VoidCallback? longPressFor(BuildContext cardContext) => enableLongPress
-      ? () => TopicPreviewDialog.show(
-          context,
-          topic: topic,
-          onOpen: onTap,
-          actions: previewActions,
-          customActionPanelBuilder: previewCustomActionPanelBuilder,
-          sourceContext: cardContext,
-          anchorColor: anchorColor,
-        )
-      : null;
-
-  // 长按意图预加载(正文):移动端按住不动 250ms / 桌面右键按下即触发,
-  // 弹窗打开时正文多已在路上。chat 类场景没有话题 id 的不适用(调用
-  // 方会自带 firstPostLoader,不受预加载影响)
-  final previewIntent = enableLongPress
-      ? () => TopicPreviewPreloader.preload(
-          ProviderScope.containerOf(
-            context,
-            listen: false,
-          ).read(discourseServiceProvider),
-          topic.id,
-        )
-      : null;
-
-  // 检查是否启用了正文摘要展示（类 X/推特信息流风格）
-  final currentStyle = messageStyle
-      ? TopicCardStyle.defaults
-      : TopicCardStyleScope.current;
-  final isFullyRead =
-      !topic.unseen && topic.unread == 0 && topic.lastReadPostNumber != null;
-  final effectiveMiddleWidget =
-      middleWidget ??
-      (!messageStyle && (currentStyle.showExcerpt || currentStyle.showImages)
-          ? TopicExpandableExcerpt(
-              topic: topic,
-              showText: currentStyle.showExcerpt,
-              showImages: currentStyle.showImages,
-              maxCollapsedLines: currentStyle.maxCollapsedLines,
-              isFullyRead: isFullyRead,
-              // 站点开关优先：导入的旧备份里可能带着 allowExcerptFetch=true，
-              // 美卡（论坛条款）不允许为列表里的每个话题自动拉首帖
-              allowFetch:
-                  AppConstants.siteCustomization.allowAutoExcerptFetch &&
-                  currentStyle.allowExcerptFetch,
-            )
-          : null);
-
-  // 自绘路径的排版在 Builder 外先取好:入参(context/theme/宽度)与
-  // Builder 内一致,避免逐分支重复。
-  final usePainted =
-      kUsePaintedTopicCard &&
-      topWidget == null &&
-      effectiveMiddleWidget == null;
-  final paintedLayout = usePainted && !topic.pinned
-      ? obtainTopicItemLayout(
-          context: context,
-          topic: topic,
-          categoryMap: categoryMap,
-          statsAvailableWidth: statsAvailableWidth,
-          messageStyle: messageStyle,
-        )
-      : null;
-
-  // 自绘路径:排版全局缓存 + 单渲染对象。宽度口径见
-  // [topicCardWidthFor];分类表由调用方传入(未传时不查,分类行缺分
-  // 类名 —— 各列表页均已传)
-  final Widget child = MorphingDialogAnchor(
-    enabled: enableLongPress,
-    bottomGap: topic.pinned ? 6 : 8,
-    builder: (cardContext) {
-      if (topic.pinned) {
-        return CompactTopicCard(
-          topic: topic,
-          onTap: onTap,
-          onMiddleClick: onMiddleClick,
-          onLongPress: longPressFor(cardContext),
-          onPreviewIntent: previewIntent,
-          isSelected: isSelected,
-          highlightColor: highlightColor,
-          categoryMap: categoryMap,
-        );
-      }
-      if (paintedLayout != null) {
-        return PaintedTopicCard(
-          layout: paintedLayout,
-          onTap: onTap,
-          onMiddleClick: onMiddleClick,
-          onLongPress: longPressFor(cardContext),
-          onPreviewIntent: previewIntent,
-          isSelected: isSelected,
-          highlightColor: highlightColor,
-        );
-      }
-      return TopicCard(
-        topic: topic,
-        onTap: onTap,
-        onMiddleClick: onMiddleClick,
-        onLongPress: longPressFor(cardContext),
-        onPreviewIntent: previewIntent,
-        isSelected: isSelected,
-        highlightColor: highlightColor,
-        topWidget: topWidget,
-        middleWidget: effectiveMiddleWidget,
-        messageStyle: messageStyle,
-        categoryMap: categoryMap,
-        statsAvailableWidth: statsAvailableWidth,
-      );
-    },
+  // 0.4.0 v2：所有话题列表统一画 [TopicRow]（置顶折成单行），长按浮起上下文
+  // 菜单取代旧的预览弹窗；书签等带附加内容的调用方通过 topWidget / middleWidget
+  // 把内容放进行里。
+  return _buildV2Row(
+    context: context,
+    topic: topic,
+    isSelected: isSelected,
+    onTap: onTap,
+    onMiddleClick: onMiddleClick,
+    enableLongPress: enableLongPress,
+    highlightColor: highlightColor,
+    messageStyle: messageStyle,
+    categoryMap: categoryMap,
+    previewActions: previewActions,
+    topWidget: topWidget,
+    middleWidget: middleWidget,
+    showUnreadDot: showUnreadDot,
   );
-
-  if (!isMobile) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: Breakpoints.maxContentWidth,
-        ),
-        child: child,
-      ),
-    );
-  }
-  return child;
 }
 
 /// v2 列表行 + 发丝线；长按浮起「打开 + 调用方给的操作」菜单
@@ -250,9 +109,12 @@ Widget _buildV2Row({
   Color? highlightColor,
   Map<int, Category>? categoryMap,
   List<PreviewAction>? previewActions,
+  Widget? topWidget,
+  Widget? middleWidget,
+  bool showUnreadDot = false,
 }) {
   final category = categoryMap?[int.tryParse(topic.categoryId)];
-  Widget row = topic.pinned
+  Widget row = topic.pinned && topWidget == null && middleWidget == null
       ? PinnedTopicRow(topic: topic, onTap: onTap, isSelected: isSelected)
       : TopicRow(
           topic: topic,
@@ -262,6 +124,9 @@ Widget _buildV2Row({
           showCounts: !messageStyle,
           onTap: onTap,
           onMiddleClick: onMiddleClick,
+          topSlot: topWidget,
+          middleSlot: middleWidget,
+          showUnreadDot: showUnreadDot,
         );
 
   if (enableLongPress) {
@@ -284,13 +149,16 @@ Widget _buildV2Row({
             ),
         ],
       ],
-      liftedBuilder: (_) => topic.pinned
+      liftedBuilder: (_) => topic.pinned && topWidget == null && middleWidget == null
           ? PinnedTopicRow(topic: topic, onTap: () {})
           : TopicRow(
               topic: topic,
               category: category,
               showCounts: !messageStyle,
               onTap: () {},
+              topSlot: topWidget,
+              middleSlot: middleWidget,
+              showUnreadDot: showUnreadDot,
             ),
       onSelected: (v) {
         if (v == -1) {

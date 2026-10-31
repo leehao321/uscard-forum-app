@@ -1,3 +1,5 @@
+import 'dart:async';
+import '../../utils/copy_source_tracker.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
@@ -533,9 +535,10 @@ class _PostRepliesSheetContentState
                       post: post,
                       topicId: widget.topicId,
                     ),
-                onCopyToast: () => ToastService.showSuccess(
-                  S.current.common_copiedToClipboard,
-                ),
+                onCopyToast: () {
+                  unawaited(CopySourceTracker.note(post.postNumber));
+                  ToastService.showSuccess(S.current.common_copiedToClipboard);
+                },
                 onDecryptRequest: (plainText) => showCryptoDecryptSheet(
                   context: context,
                   initialCiphertext: plainText,

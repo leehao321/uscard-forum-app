@@ -191,6 +191,7 @@ abstract final class AppIcons {
   static const error = LucideIcons300.circleAlert;
   static const checkCircle = LucideIcons300.circleCheck;
   static const cancelCircle = LucideIcons300.circleX;
+  static const removeCircle = LucideIcons300.circleMinus;
   static const doNotDisturb = LucideIcons300.circleMinus;
   static const block = LucideIcons300.ban;
   static const wifiOff = LucideIcons300.wifiOff;
@@ -328,6 +329,33 @@ abstract final class AppIcons {
     ({required color, required fill, required strokeWidth}) =>
         ContentActionsPainter(color: color, strokeWidth: strokeWidth),
   );
+
+  // ---- M9 自有功能 ----
+  static const compass = LucideIcons300.compass;
+  static const layers = LucideIcons300.layers;
+  static const restartAlt = LucideIcons300.rotateCcw;
+  static const brain = LucideIcons300.brain;
+  static const typeIcon = LucideIcons300.type;
+  static const stopSquare = LucideIcons300.square;
+  static const bot = LucideIcons300.bot;
+  static const server = LucideIcons300.server;
+  static const volumeUp = LucideIcons300.volume2;
+  static const volumeDown = LucideIcons300.volume1;
+  static const fastForward = LucideIcons300.fastForward;
+  static const rewind = LucideIcons300.rewind;
+  static const cube = LucideIcons300.box;
+  static const database = LucideIcons300.database;
+  static const mapIcon = LucideIcons300.map;
+  static const lightbulb = LucideIcons300.lightbulb;
+  static const hourglass = LucideIcons300.hourglass;
+  static const wrench = LucideIcons300.wrench;
+  static const grid = LucideIcons300.grid3x3;
+  static const listChecks = LucideIcons300.listChecks;
+  static const squareIcon = LucideIcons300.square;
+  static const listIcon = LucideIcons300.list;
+  static const sun = LucideIcons300.sun;
+  static const layoutGrid = LucideIcons300.layoutGrid;
+  static const cameraOff = LucideIcons300.cameraOff;
 
   // 表情 Tab 用的笑脸（更柔和，配合 fill 切实/空）
   static final AppCustomIcon smileyOutline = AppCustomIcon(

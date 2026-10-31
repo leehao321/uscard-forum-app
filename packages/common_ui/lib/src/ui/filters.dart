@@ -192,32 +192,37 @@ class FilterPill extends StatelessWidget {
     final color = selected
         ? tokens.colors.brandPrimary
         : tokens.colors.textPrimary;
+    // 宽度至少 44：「@」「#」这类单字符的胶囊也要满足最小点击区
     final pill = Container(
       height: AppSize.floorPill,
+      constraints: const BoxConstraints(minWidth: AppSize.hit),
       padding: const EdgeInsets.symmetric(horizontal: AppSpace.m),
       decoration: ShapeDecoration(
         color: tokens.colors.surfaceGrouped,
         shape: const StadiumBorder(),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: AppSize.iconS, color: color),
-            const SizedBox(width: AppSpace.xs),
+      child: Center(
+        widthFactor: 1,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: AppSize.iconS, color: color),
+              const SizedBox(width: AppSpace.xs),
+            ],
+            Text(
+              label,
+              maxLines: 1,
+              style: Theme.of(context).textTheme.bodySmall!
+                  .merge(tokens.text.meta)
+                  .copyWith(color: color),
+            ),
+            if (showChevron) ...[
+              const SizedBox(width: AppSpace.xs),
+              Icon(AppIcons.chevronDown, size: AppSize.iconS, color: color),
+            ],
           ],
-          Text(
-            label,
-            maxLines: 1,
-            style: Theme.of(context).textTheme.bodySmall!
-                .merge(tokens.text.meta)
-                .copyWith(color: color),
-          ),
-          if (showChevron) ...[
-            const SizedBox(width: AppSpace.xs),
-            Icon(AppIcons.chevronDown, size: AppSize.iconS, color: color),
-          ],
-        ],
+        ),
       ),
     );
     return MediaQuery.withClampedTextScaling(

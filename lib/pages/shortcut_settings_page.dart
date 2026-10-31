@@ -24,7 +24,7 @@ class ShortcutSettingsPage extends ConsumerWidget {
       maxContentWidth: 860,
       actions: [
         IconButton(
-          icon: const Icon(Symbols.restore_rounded),
+          icon: const Icon(AppIcons.undo),
           tooltip: l10n.shortcuts_resetAll,
           onPressed: () async {
             final confirmed = await showDialog<bool>(

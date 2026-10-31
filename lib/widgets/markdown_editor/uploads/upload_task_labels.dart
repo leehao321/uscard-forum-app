@@ -8,7 +8,7 @@ import 'task_controller.dart';
 class UploadTaskLabels {
   const UploadTaskLabels({
     this.title = '上传任务',
-    this.pendingSubmit = '仍有附件正在上传或上传失败，请等待完成、重试或移除后再发布',
+    this.pendingSubmit = '还有附件没传完，完成或移除后才能发送',
     this.queued = '等待上传',
     this.uploading = '正在上传',
     this.preparing = '正在准备',

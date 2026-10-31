@@ -73,9 +73,9 @@ class _PendingPostsPageState extends ConsumerState<PendingPostsPage> {
 
             return ListView.builder(
               padding: EdgeInsets.fromLTRB(
-                12,
-                12,
-                12,
+                0,
+                0,
+                0,
                 12 + MediaQuery.paddingOf(context).bottom,
               ),
               itemCount: pendingPosts.length,
@@ -294,110 +294,124 @@ class _PendingPostCard extends StatelessWidget {
         ? AppIcons.addCircle
         : AppIcons.reply;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final base = theme.textTheme.bodyMedium!;
+    final metaStyle = base
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
+
+    Widget action(String label, VoidCallback onTap, {bool brand = false}) =>
+        AppPressable(
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: AppSize.hit),
+            child: Padding(
+              padding: const EdgeInsets.only(left: AppSpace.l),
+              child: Center(
+                widthFactor: 1,
+                child: Text(
+                  label,
+                  style: base
+                      .merge(tokens.text.meta)
+                      .copyWith(
+                        color: brand ? colors.brandPrimary : colors.textMeta,
+                      ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+    // v2：平行，不再是卡片（与草稿行同构）；底部「撤回」「撤回并重新编辑」是
+    // 44 高的文字操作
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surfacePage,
+        border: Border(
+          bottom: BorderSide(
+            color: colors.separator,
+            width: AppSpace.hairline,
+          ),
+        ),
+      ),
+      child: AppPressable(
+        highlight: true,
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpace.pageMargin,
+            AppSpace.m,
+            AppSpace.pageMargin,
+            0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 类型标签、等待审核标识、时间
+              // 类型头：图标 + 类型（brand）、等待审核、时间
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.tertiaryContainer,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          typeIcon,
-                          size: 14,
-                          color: theme.colorScheme.onTertiaryContainer,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          typeLabel,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onTertiaryContainer,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
+                  Icon(typeIcon, size: 14, color: colors.brandPrimary),
+                  const SizedBox(width: AppSpace.xs),
+                  Text(
+                    typeLabel,
+                    style: base
+                        .merge(tokens.text.metaStrong)
+                        .copyWith(color: colors.brandPrimary),
                   ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    AppIcons.loading,
-                    size: 14,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 2),
+                  const SizedBox(width: AppSpace.m),
+                  Icon(AppIcons.loading, size: 14, color: colors.textMeta),
+                  const SizedBox(width: AppSpace.xs),
                   Expanded(
                     child: Text(
                       context.l10n.review_awaitingApproval,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      style: metaStyle,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   if (pending.createdAt != null)
                     RelativeTimeText(
                       dateTime: pending.createdAt,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      style: metaStyle,
                     ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpace.s),
 
               // 标题(新主题 = 待审标题,回复 = 所在主题标题)
               if (pending.title != null && pending.title!.isNotEmpty)
                 Text(
                   pending.title!,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: base
+                      .merge(tokens.text.control)
+                      .copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
 
               // 内容预览
               if (pending.raw.isNotEmpty) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpace.xs),
                 Text(
                   pending.raw,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  maxLines: 3,
+                  style: metaStyle,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
 
-              const SizedBox(height: 4),
               // 操作行
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton(
-                    onPressed: onWithdraw,
-                    child: Text(context.l10n.review_withdraw),
-                  ),
-                  TextButton(
-                    onPressed: onWithdrawAndEdit,
-                    child: Text(context.l10n.review_withdrawAndEdit),
+                  action(context.l10n.review_withdraw, onWithdraw),
+                  action(
+                    context.l10n.review_withdrawAndEdit,
+                    onWithdrawAndEdit,
+                    brand: true,
                   ),
                 ],
               ),
@@ -417,32 +431,28 @@ class _PendingListSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Skeleton(
       child: ListView.builder(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.zero,
         itemCount: 4,
-        itemBuilder: (context, index) => Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    SkeletonBox(width: 60, height: 22, borderRadius: 6),
-                    const SizedBox(width: 8),
-                    SkeletonBox(width: 70, height: 14),
-                    const Spacer(),
-                    SkeletonBox(width: 50, height: 14),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                SkeletonBox(width: double.infinity, height: 18),
-                const SizedBox(height: 8),
-                SkeletonBox(width: double.infinity, height: 14),
-                const SizedBox(height: 4),
-                SkeletonBox(width: 200, height: 14),
-              ],
-            ),
+        itemBuilder: (context, index) => Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpace.pageMargin,
+            vertical: AppSpace.m,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  SkeletonBox(width: 60, height: 14),
+                  const SizedBox(width: 12),
+                  SkeletonBox(width: 70, height: 14),
+                ],
+              ),
+              const SizedBox(height: 8),
+              SkeletonBox(width: double.infinity, height: 18),
+              const SizedBox(height: 4),
+              SkeletonBox(width: 200, height: 14),
+            ],
           ),
         ),
       ),

@@ -146,13 +146,15 @@ class _SearchableAppBarState extends State<SearchableAppBar>
 
     return AppBar(
       leading: widget.isSearchMode
-          ? IconButton(
-              icon: const Icon(AppIcons.back),
+          ? AppIconButton(
+              icon: AppIcons.back,
+              semanticLabel: context.l10n.common_back,
               onPressed: widget.onCloseSearch,
             )
           : (widget.onBackPressed != null
-                ? IconButton(
-                    icon: const Icon(AppIcons.back),
+                ? AppIconButton(
+                    icon: AppIcons.back,
+                    semanticLabel: context.l10n.common_back,
                     onPressed: widget.onBackPressed,
                   )
                 : null),
@@ -181,15 +183,23 @@ class _SearchableAppBarState extends State<SearchableAppBar>
                     ? context.l10n.common_searchHint
                     : widget.searchHint,
                 hintStyle: TextStyle(color: context.tokens.colors.textMeta),
-                border: InputBorder.none,
+                filled: true,
+                fillColor: context.tokens.colors.surfaceGrouped,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(
+                    context.tokens.radius.field,
+                  ),
+                  borderSide: BorderSide.none,
+                ),
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 12,
+                  horizontal: AppSpace.m,
+                  vertical: AppSpace.m,
                 ),
                 suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(AppIcons.close, size: 20),
+                    ? AppIconButton(
+                        icon: AppIcons.close,
+                        semanticLabel: context.l10n.common_clear,
                         onPressed: _handleClear,
                       )
                     : null,
@@ -200,19 +210,19 @@ class _SearchableAppBarState extends State<SearchableAppBar>
       ),
       actions: widget.isSearchMode
           ? [
-              IconButton(
-                icon: const Icon(AppIcons.search),
+              AppIconButton(
+                icon: AppIcons.search,
+                semanticLabel: context.l10n.common_search,
                 onPressed: () => _handleSubmit(_searchController.text),
-                tooltip: context.l10n.common_search,
               ),
               if (widget.showFilterButton) _buildFilterButton(theme),
             ]
           : [
               if (widget.showSearchButton)
-                IconButton(
-                  icon: const Icon(AppIcons.search),
+                AppIconButton(
+                  icon: AppIcons.search,
+                  semanticLabel: context.l10n.common_search,
                   onPressed: widget.onSearchPressed,
-                  tooltip: context.l10n.common_search,
                 ),
               if (widget.showFilterButton) _buildFilterButton(theme),
               ...widget.trailingActions,
@@ -223,15 +233,15 @@ class _SearchableAppBarState extends State<SearchableAppBar>
   Widget _buildFilterButton(ThemeData theme) {
     return Stack(
       children: [
-        IconButton(
-          icon: const Icon(AppIcons.tune),
+        AppIconButton(
+          icon: AppIcons.tune,
+          semanticLabel: context.l10n.common_filter,
           onPressed: widget.onFilterPressed,
-          tooltip: context.l10n.common_filter,
         ),
         if (widget.filterActive)
           Positioned(
-            right: 8,
-            top: 8,
+            right: 10,
+            top: 10,
             child: const UnreadDot(),
           ),
       ],

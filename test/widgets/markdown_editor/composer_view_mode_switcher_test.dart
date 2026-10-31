@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -111,8 +112,12 @@ void main() {
       if (folded > 0) {
         await tester.tap(more);
         await tester.pumpAndSettle();
+        // 草稿状态之外，收进菜单的每一项都是一行 AppMenu 项
         expect(
-          find.byWidgetPredicate((widget) => widget is PopupMenuItem),
+          find.descendant(
+            of: find.byType(AppMenuPanel<VoidCallback>),
+            matching: find.byType(AppPressable),
+          ),
           findsNWidgets(folded),
         );
       }

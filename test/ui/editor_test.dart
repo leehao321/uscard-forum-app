@@ -81,6 +81,7 @@ void main() {
         variant: variant,
       );
       expectNoUiException(tester);
+      await uiShot(tester, 'editor_${variant.label}');
       final send = find.byKey(const ValueKey('composer-header-submit'));
       expect(tester.getSize(send).height, 44);
       expect(tester.getSize(send).width, greaterThanOrEqualTo(66));

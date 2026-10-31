@@ -12,7 +12,6 @@ import '../../pages/topic_detail_page/topic_detail_page.dart';
 import 'search_filter_panel.dart';
 import 'search_list_skeleton.dart';
 import 'search_post_card.dart';
-import 'search_preview_dialog.dart';
 import '../../providers/preferences_provider.dart';
 
 /// 用户内容搜索结果视图
@@ -303,23 +302,7 @@ class _UserContentSearchViewState extends ConsumerState<UserContentSearchView> {
                       );
                     }
                   },
-                  onLongPress: enableLongPress
-                      ? (cardContext) => SearchPreviewDialog.show(
-                          context,
-                          post: post,
-                          onOpen: () {
-                            final topic = post.topic;
-                            if (topic != null) {
-                              _openTopic(
-                                topicId: topic.id,
-                                title: topic.title,
-                                scrollToPostNumber: post.postNumber,
-                              );
-                            }
-                          },
-                          sourceContext: cardContext,
-                        )
-                      : null,
+                  enableLongPress: enableLongPress,
                 );
               },
             ),

@@ -1,7 +1,7 @@
 {
   "@@locale": "en",
+  "editorUploads_pendingSubmit": "Some attachments haven't finished uploading. Finish or remove them before sending.",
   "editorUploads_title": "Uploads",
-  "editorUploads_pendingSubmit": "Some uploads are pending or failed. Wait, retry or remove them before posting.",
   "editorUploads_queued": "Queued",
   "editorUploads_preparing": "Preparing",
   "editorUploads_uploading": "Uploading",

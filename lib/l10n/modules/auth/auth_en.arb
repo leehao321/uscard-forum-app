@@ -46,7 +46,7 @@
   "migration_reloginRequired": "Cookie storage has been upgraded. Your login session was cleared. Please log in again.",
   "migration_title": "Data Upgrade",
   "oauth_callbackFailed": "Authorization callback failed",
-  "onboarding_guestAccess": "Guest access",
+  "onboarding_guestAccess": "Just browsing",
   "onboarding_networkSettings": "Network settings",
   "onboarding_slogan": "Sincere · Friendly · United · Professional"
 }

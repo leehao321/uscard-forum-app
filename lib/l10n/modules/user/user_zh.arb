@@ -1,5 +1,7 @@
 {
   "@@locale": "zh",
+  "followList_follow": "＋关注",
+  "followList_followed": "已关注",
   "followList_followers": "粉丝",
   "followList_following": "关注",
   "privateMessages_title": "私信",

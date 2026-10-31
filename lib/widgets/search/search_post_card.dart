@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../l10n/s.dart';
 import '../../models/category.dart';
 import '../../models/search_result.dart';
 import '../../providers/category_provider.dart';
 import '../../utils/number_utils.dart';
 import '../../utils/responsive.dart';
 import '../common/relative_time_text.dart';
-import '../common/morphing_dialog_anchor.dart';
 
 /// 搜索卡排版宽：页边 20×2，桌面同口径再封顶 maxContentWidth。
 double searchCardWidthFor(BuildContext context) {
@@ -44,25 +44,34 @@ class SearchPostCard extends StatelessWidget {
     super.key,
     required this.post,
     this.onTap,
-    this.onLongPress,
+    this.enableLongPress = false,
   });
 
   final SearchPost post;
   final VoidCallback? onTap;
-  final ValueChanged<BuildContext>? onLongPress;
+
+  /// 长按浮起整行并弹出「打开」菜单（v2 取代旧的预览弹窗）
+  final bool enableLongPress;
 
   @override
   Widget build(BuildContext context) {
-    Widget card = MorphingDialogAnchor(
-      enabled: onLongPress != null,
-      builder: (cardContext) => _SearchPostRow(
-        post: post,
-        onTap: onTap,
-        onLongPress: onLongPress == null
-            ? null
-            : () => onLongPress!(cardContext),
-      ),
-    );
+    Widget card = _SearchPostRow(post: post, onTap: onTap);
+    if (enableLongPress && onTap != null) {
+      card = LiftedContextMenu<int>(
+        sectionsBuilder: (_) => [
+          [
+            AppMenuItem(
+              label: context.l10n.topic_rowOpen,
+              icon: AppIcons.article,
+              value: 0,
+            ),
+          ],
+        ],
+        liftedBuilder: (_) => _SearchPostRow(post: post),
+        onSelected: (_) => onTap!(),
+        child: card,
+      );
+    }
     if (!Responsive.isMobile(context)) {
       card = Center(
         child: SizedBox(width: searchCardWidthFor(context) + 2 * AppSpace.pageMargin, child: card),
@@ -106,9 +115,8 @@ List<InlineSpan> _highlightSpans(String html, Color highlight) {
 class _SearchPostRow extends ConsumerWidget {
   final SearchPost post;
   final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
 
-  const _SearchPostRow({required this.post, this.onTap, this.onLongPress});
+  const _SearchPostRow({required this.post, this.onTap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -169,7 +177,6 @@ class _SearchPostRow extends ConsumerWidget {
     return AppPressable(
       highlight: true,
       onTap: onTap,
-      onLongPress: onLongPress,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

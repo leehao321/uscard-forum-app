@@ -35,6 +35,10 @@ class _FollowListPageState extends ConsumerState<FollowListPage> {
   Object? _error;
   StackTrace? _errorStack;
 
+  /// 本页里被取消关注的用户（只在「我的关注」列表里出现，本地即时反映）
+  final Set<String> _unfollowed = {};
+  final Set<String> _busy = {};
+
   @override
   void initState() {
     super.initState();
@@ -71,8 +75,33 @@ class _FollowListPageState extends ConsumerState<FollowListPage> {
     }
   }
 
+  Future<void> _toggleFollow(String username) async {
+    if (_busy.contains(username)) return;
+    final wasUnfollowed = _unfollowed.contains(username);
+    setState(() => _busy.add(username));
+    try {
+      final service = ref.read(discourseServiceProvider);
+      if (wasUnfollowed) {
+        await service.followUser(username);
+      } else {
+        await service.unfollowUser(username);
+      }
+      if (!mounted) return;
+      setState(() {
+        wasUnfollowed ? _unfollowed.remove(username) : _unfollowed.add(username);
+      });
+    } catch (_) {
+      // 失败保持原状，不打扰
+    } finally {
+      if (mounted) setState(() => _busy.remove(username));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final currentUsername = ref.watch(currentUserProvider).value?.username;
+    // 只有在自己的「关注」列表里才能就地取消 / 重新关注
+    final canToggle = widget.isFollowing && currentUsername == widget.username;
     final tokens = context.tokens;
     final colors = tokens.colors;
     final base = Theme.of(context).textTheme.bodyMedium!;
@@ -180,6 +209,12 @@ class _FollowListPageState extends ConsumerState<FollowListPage> {
                                 ],
                               ),
                             ),
+                            if (canToggle)
+                              _FollowPill(
+                                followed: !_unfollowed.contains(user.username),
+                                busy: _busy.contains(user.username),
+                                onTap: () => _toggleFollow(user.username),
+                              ),
                           ],
                         ),
                       ),
@@ -193,6 +228,64 @@ class _FollowListPageState extends ConsumerState<FollowListPage> {
     return MasterDetailPaneHost(
       stackProvider: selectedFollowPaneProvider,
       master: list,
+    );
+  }
+}
+
+/// 「已关注 / ＋关注」胶囊：32 高，已关注是灰底、未关注是品牌色描边
+class _FollowPill extends StatelessWidget {
+  const _FollowPill({
+    required this.followed,
+    required this.busy,
+    required this.onTap,
+  });
+
+  final bool followed;
+  final bool busy;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    final label = followed
+        ? context.l10n.followList_followed
+        : context.l10n.followList_follow;
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: AppPressable(
+        onTap: busy ? null : onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: AppSize.hit),
+          child: Center(
+            child: Container(
+              height: 32,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpace.m),
+              alignment: Alignment.center,
+              decoration: ShapeDecoration(
+                color: followed ? colors.avatarFill : null,
+                shape: StadiumBorder(
+                  side: followed
+                      ? BorderSide.none
+                      : BorderSide(color: colors.brandPrimary),
+                ),
+              ),
+              child: Text(
+                label,
+                style: base
+                    .merge(tokens.text.meta)
+                    .copyWith(
+                      color: followed ? colors.textPrimary : colors.brandPrimary,
+                    ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

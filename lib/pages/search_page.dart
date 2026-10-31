@@ -15,7 +15,6 @@ import '../widgets/common/paged_list_footer.dart';
 import '../widgets/search/search_filter_panel.dart';
 import '../widgets/search/search_list_skeleton.dart';
 import '../widgets/search/search_post_card.dart';
-import '../widgets/search/search_preview_dialog.dart';
 import '../providers/preferences_provider.dart';
 import '../providers/selected_topic_provider.dart';
 import '../providers/shortcut_provider.dart';
@@ -133,6 +132,12 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   bool _hasMorePosts = false;
   bool _hasMoreUsers = false;
   bool _hasError = false;
+
+  /// 独立搜索页自己的平行视界栈（嵌入时为 null）
+  SelectedTopicNotifier? _ownedStackNotifier;
+
+  /// 首页（第 1 页）请求在途；区分「还在加载」和「真的没有结果」
+  bool _initialLoading = false;
   Object? _searchError;
   StackTrace? _searchErrorStack;
   bool _isLoadMoreFailed = false;
@@ -153,6 +158,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.stackProvider == null) {
+      _ownedStackNotifier = ref.read(selectedSearchProvider.notifier);
+    }
     _filter = widget.initialFilter ?? const SearchFilter();
     PreloadedDataService().isAiSemanticSearchEnabled().then((enabled) {
       if (mounted) setState(() => _siteAiSearchAvailable = enabled);
@@ -287,9 +295,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     _shortcutSurfaceBinding.disposeDeferred();
     // 独立搜索页拥有自己的平行视界栈，退出时应清理；嵌入首页左栏时复用
     // selectedTopicProvider，搜索页被信息流/分类替换不代表右栏详情也应消失。
-    if (widget.stackProvider == null) {
-      ref.read(selectedSearchProvider.notifier).clear();
-    }
+    // dispose 里不能再用 ref：栈 notifier 在 initState 里先存下来
+    _ownedStackNotifier?.clear();
     _searchController.dispose();
     _focusNode.dispose();
     _scrollController.dispose();
@@ -403,7 +410,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     }
   }
 
-  void _openFilterPanel() {
+  void _openFilterPanel([SearchFilterSection? section]) {
     showAppBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -417,6 +424,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           filter: _filter,
           onFilterChanged: _onFilterChanged,
           hideInType: true,
+          initialSection: section,
         ),
       ),
     );
@@ -545,6 +553,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       _isLoadMoreFailed = false;
       if (!isLoadMore) {
         _isLoadingMore = false;
+        _initialLoading = true;
       }
     });
 
@@ -588,11 +597,13 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         _hasMorePosts = result.hasMorePosts && result.posts.isNotEmpty;
         _hasMoreUsers = result.hasMoreUsers;
         _isLoadingMore = false;
+        _initialLoading = false;
         _rebuildDisplayPosts();
       });
     } catch (e, s) {
       setState(() {
         _isLoadingMore = false;
+        _initialLoading = false;
         if (isLoadMore) {
           // 加载更多失败：回退页码，显示重试
           _currentPage--;
@@ -1013,8 +1024,12 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                 AppPressable(
                   onTap: _isClearingRecentSearches ? null : _clearRecentSearches,
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: AppSize.hit),
+                    constraints: const BoxConstraints(
+                      minHeight: AppSize.hit,
+                      minWidth: AppSize.hit,
+                    ),
                     child: Center(
+                      widthFactor: 1,
                       child: _isClearingRecentSearches
                           ? const LoadingSpinner(size: 14)
                           : Text(
@@ -1136,7 +1151,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     if (posts.isEmpty && users.isEmpty && !_isLoadingMore) {
       // 只有原始结果也为空才可能是首页请求仍在途；
       // 原始结果非空但过滤后为空 = 全部被本地屏蔽，必须显示空态而非转圈
-      if (_currentPage == 1 && _allPosts.isEmpty && _allUsers.isEmpty) {
+      if (_initialLoading) {
         return const SearchListSkeleton();
       }
       return _buildNoResults();
@@ -1170,14 +1185,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   return SearchPostCard(
                     post: searchPost,
                     onTap: () => _openTopicResult(searchPost),
-                    onLongPress: enableLongPress
-                        ? (cardContext) => SearchPreviewDialog.show(
-                            context,
-                            post: searchPost,
-                            onOpen: () => _openTopicResult(searchPost),
-                            sourceContext: cardContext,
-                          )
-                        : null,
+                    enableLongPress: enableLongPress,
                   );
                 }
 
@@ -1284,25 +1292,25 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           FilterPill(
             label: context.l10n.search_pillTime,
             selected: _filter.beforeDate != null || _filter.afterDate != null,
-            onTap: _openFilterPanel,
+            onTap: () => _openFilterPanel(SearchFilterSection.date),
           ),
           const SizedBox(width: AppSpace.s),
           FilterPill(
             label: _filter.categoryName ?? context.l10n.search_pillCategory,
             selected: _filter.categoryId != null,
-            onTap: _openFilterPanel,
+            onTap: () => _openFilterPanel(SearchFilterSection.category),
           ),
           const SizedBox(width: AppSpace.s),
           FilterPill(
             label: context.l10n.search_pillStatus,
             selected: _filter.status != null,
-            onTap: _openFilterPanel,
+            onTap: () => _openFilterPanel(SearchFilterSection.status),
           ),
           const SizedBox(width: AppSpace.s),
           FilterPill(
             label: context.l10n.search_pillTags,
             selected: _filter.tags.isNotEmpty,
-            onTap: _openFilterPanel,
+            onTap: () => _openFilterPanel(SearchFilterSection.tags),
           ),
         ],
       ),

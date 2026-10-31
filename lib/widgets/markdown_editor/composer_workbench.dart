@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 
 import '../../utils/platform_utils.dart';
@@ -37,7 +38,7 @@ class ComposerWorkbench extends StatefulWidget {
   final ComposerToolsAnchor? toolsAnchor;
   final VoidCallback? onExpandTools;
   static double rowHeight(BuildContext context) =>
-      math.max(48, MediaQuery.textScalerOf(context).scale(14) + 24);
+      math.max(AppSize.hit, MediaQuery.textScalerOf(context).scale(14) + 24);
   static double occupiedHeight(BuildContext context) {
     final row = rowHeight(context);
     return (PlatformUtils.isDesktop

@@ -2,6 +2,16 @@
   "@@locale": "zh",
   "browsingHistory_empty": "暂无浏览历史",
   "browsingHistory_emptySearchHint": "输入关键词搜索浏览历史",
+  "browsingHistory_groupDate": "最后活动 · {date}",
+  "@browsingHistory_groupDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "browsingHistory_groupToday": "最后活动 · 今天",
+  "browsingHistory_groupYesterday": "最后活动 · 昨天",
   "browsingHistory_searchHint": "在浏览历史中搜索...",
   "browsingHistory_title": "浏览历史",
   "myTopics_empty": "暂无话题",

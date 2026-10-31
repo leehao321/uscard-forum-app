@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:m3e_ui/m3e_ui.dart';
@@ -237,7 +238,8 @@ class _ReadLaterOverlayState extends ConsumerState<ReadLaterOverlay> {
   }
 }
 
-/// 单张话题卡片(紧凑版,一屏并列多张)
+/// 单张话题卡片（紧凑版，一屏并列多张）：surface/elevated、r12、菜单同款
+/// 阴影；标题 17 Semibold、摘要和时间 13 meta、进度是 brand 文字。
 class _ReadLaterCard extends StatelessWidget {
   const _ReadLaterCard({
     required this.item,
@@ -251,132 +253,105 @@ class _ReadLaterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    final metaStyle = base
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
     final postNumber = item.scrollToPostNumber;
 
-    return Material(
-      color: colorScheme.surfaceContainerHigh,
-      borderRadius: BorderRadius.circular(24),
-      clipBehavior: Clip.antiAlias,
-      elevation: 6,
-      shadowColor: Colors.black.withValues(alpha: 0.25),
-      child: InkWell(
-        onTap: onOpen,
-        child: Stack(
-          children: [
-            // 右下角大图标水印,给卡片一点层次
-            Positioned(
-              right: -14,
-              bottom: 26,
-              child: Icon(
-                AppIcons.autoStories,
-                size: 96,
-                color: colorScheme.primary.withValues(alpha: 0.05),
-              ),
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        color: colors.surfaceElevated,
+        shadows: const [AppMaterials.floatingShadow],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(tokens.radius.card),
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(tokens.radius.card),
+        child: AppPressable(
+          highlight: true,
+          onTap: onOpen,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpace.l,
+              AppSpace.xs,
+              AppSpace.xs,
+              AppSpace.m,
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 8, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    if (postNumber != null)
+                      Expanded(child: _ProgressPill(postNumber: postNumber))
+                    else
+                      const Spacer(),
+                    AppIconButton(
+                      icon: AppIcons.delete,
+                      semanticLabel: context.l10n.common_remove,
+                      onPressed: onRemove,
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: AppSpace.m),
+                  child: Text(
+                    item.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: base
+                        .merge(tokens.text.headline)
+                        .copyWith(color: colors.textPrimary),
+                  ),
+                ),
+                const SizedBox(height: AppSpace.s),
+                Expanded(
+                  child: item.excerpt == null
+                      ? const SizedBox.shrink()
+                      : Padding(
+                          padding: const EdgeInsets.only(right: AppSpace.m),
+                          child: Text(
+                            item.excerpt!,
+                            maxLines: 5,
+                            overflow: TextOverflow.ellipsis,
+                            style: metaStyle,
+                          ),
+                        ),
+                ),
+                const SizedBox(height: AppSpace.s),
+                Padding(
+                  padding: const EdgeInsets.only(right: AppSpace.m),
+                  child: Row(
                     children: [
-                      if (postNumber != null)
-                        Expanded(child: _ProgressPill(postNumber: postNumber))
-                      else
-                        const Spacer(),
-                      IconButton(
-                        onPressed: onRemove,
-                        tooltip: context.l10n.common_remove,
-                        visualDensity: VisualDensity.compact,
-                        icon: Icon(
-                          AppIcons.delete,
-                          size: 18,
-                          color: colorScheme.onSurfaceVariant,
+                      Icon(AppIcons.clock, size: 14, color: colors.textMeta),
+                      const SizedBox(width: AppSpace.xs),
+                      Expanded(
+                        child: Text(
+                          context.l10n.readLater_addedTime(
+                            TimeUtils.formatRelativeTime(item.addedAt),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: metaStyle,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      height: 1.35,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: item.excerpt == null
-                        ? const SizedBox.shrink()
-                        : Text(
-                            item.excerpt!,
-                            maxLines: 5,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                              height: 1.5,
-                            ),
-                          ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: Row(
-                      children: [
-                        Icon(
-                          AppIcons.clock,
-                          size: 13,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            context.l10n.readLater_addedTime(
-                              TimeUtils.formatRelativeTime(item.addedAt),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        // 继续阅读圆钮(装饰性,整卡可点)
-                        Tooltip(
-                          message: context.l10n.readLater_continueReading,
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: colorScheme.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              AppIcons.forward,
-                              size: 16,
-                              color: colorScheme.onPrimary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-/// 阅读进度胶囊:「读到 #n」
+/// 阅读进度：「读到 #n」，brand 文字，不加底色
 class _ProgressPill extends StatelessWidget {
   const _ProgressPill({required this.postNumber});
 
@@ -384,37 +359,16 @@ class _ProgressPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final tokens = context.tokens;
     return Align(
       alignment: Alignment.centerLeft,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-        decoration: BoxDecoration(
-          color: colorScheme.primaryContainer.withValues(alpha: 0.7),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              AppIcons.autoStories,
-              size: 12,
-              color: colorScheme.onPrimaryContainer,
-            ),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                context.l10n.readLater_readAt(postNumber),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: colorScheme.onPrimaryContainer,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
+      child: Text(
+        context.l10n.readLater_readAt(postNumber),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.bodySmall
+            ?.merge(tokens.text.metaStrong)
+            .copyWith(color: tokens.colors.brandPrimary),
       ),
     );
   }

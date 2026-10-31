@@ -182,7 +182,7 @@ void main() {
       expect(
         find.descendant(
           of: find.byType(AppMenuPanel<VoidCallback>),
-          matching: find.text('回复'),
+          matching: find.text('回复这层'),
         ),
         findsOneWidget,
       );

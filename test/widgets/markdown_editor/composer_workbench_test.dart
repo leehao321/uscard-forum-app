@@ -1406,7 +1406,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));
       expect(
-        find.byKey(const ValueKey('composer-content-actions-grid')),
+        find.byType(AppMenuPanel<VoidCallback>),
         findsOneWidget,
       );
       await tester.tapAt(const Offset(2, 80));
@@ -1904,8 +1904,9 @@ void main() {
           find.byKey(const ValueKey('composer-island-surface')),
           findsOneWidget,
         );
+        // v2：工具条按钮热区 44（设计说明 §2.6）
         final bold = find.byTooltip(S.current.toolPanel_bold);
-        expect(tester.getSize(bold).width, greaterThanOrEqualTo(48));
+        expect(tester.getSize(bold).width, greaterThanOrEqualTo(44));
 
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pump(const Duration(seconds: 1));
@@ -1961,7 +1962,7 @@ void main() {
         );
         expect(rich ? editor!.selection : controller.selection, selection);
         final items = tester.widget(control) is ContentActionsButton
-            ? find.byKey(const ValueKey('composer-content-actions-grid'))
+            ? find.byType(AppMenuPanel<VoidCallback>)
             : find.byType(PopupMenuItem<int>);
         expect(items, findsWidgets);
         expect(tester.getRect(items.first).top, greaterThanOrEqualTo(0));

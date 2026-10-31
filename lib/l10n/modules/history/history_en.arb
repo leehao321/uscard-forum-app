@@ -2,6 +2,16 @@
   "@@locale": "en",
   "browsingHistory_empty": "No browsing history",
   "browsingHistory_emptySearchHint": "Enter keywords to search history",
+  "browsingHistory_groupDate": "Last active · {date}",
+  "@browsingHistory_groupDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "browsingHistory_groupToday": "Last active · Today",
+  "browsingHistory_groupYesterday": "Last active · Yesterday",
   "browsingHistory_searchHint": "Search browsing history...",
   "browsingHistory_title": "Browsing History",
   "myTopics_empty": "No topics",

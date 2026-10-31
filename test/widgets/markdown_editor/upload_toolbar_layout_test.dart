@@ -3,7 +3,6 @@ import 'package:app_icons/app_icons.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:common_ui/common_ui.dart';
 import 'package:fluxdo/widgets/markdown_editor/uploads/upload_task_panel.dart';
 import 'package:fluxdo/widgets/markdown_editor/uploads/task_controller.dart';
 import 'package:fluxdo/services/discourse/discourse_service.dart';
@@ -39,10 +38,10 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(find.byType(GlassSurfaceFrame), findsOneWidget);
+      expect(find.byKey(const ValueKey("source-upload-card")), findsOneWidget);
       expect(find.byType(Card), findsNothing);
       expect(find.byIcon(AppIcons.eraser), findsNothing);
-      final surface = find.byKey(const ValueKey('source-upload-glass'));
+      final surface = find.byKey(const ValueKey('source-upload-card'));
       expect(tester.getSize(surface).width, lessThanOrEqualTo(520));
       expect(tester.takeException(), isNull);
       await tester.tap(find.byIcon(AppIcons.chevronUp));

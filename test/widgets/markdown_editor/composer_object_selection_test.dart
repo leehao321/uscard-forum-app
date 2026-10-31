@@ -699,19 +699,11 @@ void main() {
     controller.dispose();
   });
 
-  testWidgets('图片控件是一整个点击区，玻璃开关切换不重建按钮或丢失选中', (tester) async {
+  testWidgets('图片控件是一整个点击区，重绘不重建按钮或丢失选中（v2 已无玻璃材质）', (tester) async {
     final controller = TextEditingController();
-    final settings = ValueNotifier(
-      const GlassSettings(level: GlassEffectLevel.basic),
-    );
     await _pump(
       tester,
-      ValueListenableBuilder<GlassSettings>(
-        valueListenable: settings,
-        child: RichComposerEditor(controller: controller),
-        builder: (_, value, child) =>
-            GlassSettingsScope(settings: value, child: child!),
-      ),
+      RichComposerEditor(controller: controller),
       desktop: true,
       width: 1200,
     );
@@ -729,19 +721,10 @@ void main() {
       find.descendant(of: surface, matching: find.byType(IconButton)),
       findsNothing,
     );
-    expect(
-      find.descendant(of: surface, matching: find.byType(BackdropFilter)),
-      findsWidgets,
-    );
     final element = tester.element(handle);
     final bounds = tester.getRect(handle);
     final selected = h.state.selection;
-    settings.value = const GlassSettings(enabled: false);
     await tester.pump();
-    expect(
-      find.descendant(of: surface, matching: find.byType(BackdropFilter)),
-      findsNothing,
-    );
     expect(tester.element(handle), same(element));
     expect(tester.getRect(handle), bounds);
     expect(h.state.selection, selected);
@@ -770,7 +753,6 @@ void main() {
     }
     await tester.pumpWidget(const SizedBox.shrink());
     controller.dispose();
-    settings.dispose();
   });
 
   testWidgets('窄窗 630：正文左右留白相等，单控件仍可切换类型', (tester) async {

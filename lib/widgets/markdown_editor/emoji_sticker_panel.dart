@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 
@@ -151,7 +152,6 @@ class _EmojiStickerPanelState extends State<EmojiStickerPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final safeBottom = MediaQuery.viewPaddingOf(context).bottom;
     final tabHeight = widget.compact
         ? floatingTabHeightCompact
@@ -203,26 +203,26 @@ class _EmojiStickerPanelState extends State<EmojiStickerPanel> {
               offset: _tabVisible ? Offset.zero : const Offset(0, 2),
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
-              child: Material(
-                color: theme.colorScheme.surface.withValues(alpha: 0.95),
+              child: CapsuleSurface(
                 shape: const CircleBorder(),
-                elevation: 2,
-                shadowColor: Colors.black.withValues(alpha: 0.1),
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  onTap: widget.onBackspace,
-                  child: SizedBox(
-                    width: 42,
-                    height: 42,
-                    child: Center(
-                      // backspace 字形视觉重心偏右(左侧是箭头尖),
-                      // 几何居中后看着偏右,向左 1px 光学补偿。
-                      child: Transform.translate(
-                        offset: const Offset(-1, 0),
-                        child: Icon(
-                          AppIcons.backspace,
-                          size: 20,
-                          color: theme.colorScheme.onSurfaceVariant,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: widget.onBackspace,
+                    child: SizedBox(
+                      width: 42,
+                      height: 42,
+                      child: Center(
+                        // backspace 字形视觉重心偏右(左侧是箭头尖),
+                        // 几何居中后看着偏右,向左 1px 光学补偿。
+                        child: Transform.translate(
+                          offset: const Offset(-1, 0),
+                          child: Icon(
+                            AppIcons.backspace,
+                            size: 20,
+                            color: context.tokens.colors.textMeta,
+                          ),
                         ),
                       ),
                     ),
@@ -241,86 +241,73 @@ class _EmojiStickerPanelState extends State<EmojiStickerPanel> {
     final buttonWidth = compact ? 76.0 : 90.0;
     const gap = 4.0;
 
-    return Container(
-      padding: EdgeInsets.all(compact ? 3 : 4),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(24),
-        // 紧凑模式在弹层里,弹层自带边框阴影,胶囊影收轻 + 加细边
-        border: compact
-            ? Border.all(
-                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-              )
-            : null,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: compact ? 0.06 : 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: AnimatedBuilder(
-        animation: _pageController,
-        builder: (context, _) {
-          final page = _pageController.hasClients
-              ? (_pageController.page ?? _currentPage.toDouble())
-              : _currentPage.toDouble();
+    return CapsuleSurface(
+      // 紧凑模式在弹层里，弹层自带阴影，胶囊不再加影
+      shadow: !compact,
+      child: Padding(
+        padding: EdgeInsets.all(compact ? 3 : 4),
+        child: AnimatedBuilder(
+          animation: _pageController,
+          builder: (context, _) {
+            final page = _pageController.hasClients
+                ? (_pageController.page ?? _currentPage.toDouble())
+                : _currentPage.toDouble();
 
-          return SizedBox(
-            height: compact ? 30 : 34,
-            child: Stack(
-              children: [
-                // 滑动指示器
-                Positioned(
-                  left: page * (buttonWidth + gap),
-                  top: 0,
-                  bottom: 0,
-                  width: buttonWidth,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer.withValues(
-                        alpha: 0.7,
+            return SizedBox(
+              height: compact ? 30 : 34,
+              child: Stack(
+                children: [
+                  // 滑动指示器
+                  Positioned(
+                    left: page * (buttonWidth + gap),
+                    top: 0,
+                    bottom: 0,
+                    width: buttonWidth,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: context.tokens.colors.brandPrimary.withValues(
+                          alpha: 0.12,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      borderRadius: BorderRadius.circular(20),
                     ),
                   ),
-                ),
-                // 按钮
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildTabLabel(
-                      theme: theme,
-                      icon: AppIcons.smileyOutline,
-                      label: S.current.emoji_tab,
-                      selected: _currentPage == 0,
-                      width: buttonWidth,
-                      onTap: () => _pageController.animateToPage(
-                        0,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
+                  // 按钮
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildTabLabel(
+                        theme: theme,
+                        icon: AppIcons.smileyOutline,
+                        label: S.current.emoji_tab,
+                        selected: _currentPage == 0,
+                        width: buttonWidth,
+                        onTap: () => _pageController.animateToPage(
+                          0,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: gap),
-                    _buildTabLabel(
-                      theme: theme,
-                      icon: AppIcons.stickerOutline,
-                      label: S.current.sticker_tab,
-                      selected: _currentPage == 1,
-                      width: buttonWidth,
-                      onTap: () => _pageController.animateToPage(
-                        1,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
+                      const SizedBox(width: gap),
+                      _buildTabLabel(
+                        theme: theme,
+                        icon: AppIcons.stickerOutline,
+                        label: S.current.sticker_tab,
+                        selected: _currentPage == 1,
+                        width: buttonWidth,
+                        onTap: () => _pageController.animateToPage(
+                          1,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -348,19 +335,24 @@ class _EmojiStickerPanelState extends State<EmojiStickerPanel> {
                 size: compact ? 16 : 18,
                 fill: selected ? 1 : 0,
                 color: selected
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurfaceVariant,
+                    ? context.tokens.colors.brandPrimary
+                    : context.tokens.colors.textMeta,
               ),
               SizedBox(width: compact ? 5 : 6),
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: compact ? 12 : 13,
-                  fontWeight: selected ? FontWeight.w500 : FontWeight.normal,
-                  color: selected
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.onSurfaceVariant,
-                ),
+                // v2 元信息 13（紧凑 12 之外不再另设字号档）
+                style: theme.textTheme.bodySmall
+                    ?.merge(
+                      selected
+                          ? context.tokens.text.metaStrong
+                          : context.tokens.text.meta,
+                    )
+                    .copyWith(
+                      color: selected
+                          ? context.tokens.colors.brandPrimary
+                          : context.tokens.colors.textMeta,
+                    ),
               ),
             ],
           ),

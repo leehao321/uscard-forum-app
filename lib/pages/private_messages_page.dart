@@ -445,6 +445,7 @@ class _PrivateMessageTabViewState extends ConsumerState<_PrivateMessageTabView>
                 onTap: () => _onItemTap(topic),
                 enableLongPress: enableLongPress,
                 // 私信语义同邮件:发件人优先的 Gmail 式布局
+                showUnreadDot: true,
                 messageStyle: true,
               );
             },

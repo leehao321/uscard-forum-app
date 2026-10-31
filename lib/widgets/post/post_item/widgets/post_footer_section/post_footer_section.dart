@@ -4,6 +4,7 @@ import 'package:app_icons/app_icons.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:html/parser.dart' as html_parser;
 import 'package:share_plus/share_plus.dart';
 
 import 'dart:async';
@@ -26,6 +27,7 @@ import '../../../../../services/notion/notion_bookmark_auto_sync.dart';
 import '../../../../../services/toast_service.dart';
 import '../../../post_links.dart';
 import '../post_action_bar.dart';
+import '../../../../../utils/copy_source_tracker.dart';
 import '../../post_menu_controller.dart';
 import '../post_device_source.dart';
 import '../post_voting_control.dart';
@@ -58,6 +60,9 @@ class PostFooterSection extends ConsumerStatefulWidget {
   final void Function({String? initialContent})? onReply;
   final VoidCallback? onEdit;
   final VoidCallback? onShareAsImage;
+
+  /// 引用整层回复；null = 菜单里不出现「引用回复」
+  final VoidCallback? onQuotePost;
   final void Function(int postId)? onRefreshPost;
   final void Function(int postNumber)? onJumpToPost;
   final void Function(int postId, bool accepted)? onSolutionChanged;
@@ -117,6 +122,7 @@ class PostFooterSection extends ConsumerStatefulWidget {
     required this.onReply,
     required this.onEdit,
     required this.onShareAsImage,
+    this.onQuotePost,
     required this.onRefreshPost,
     required this.onJumpToPost,
     required this.onSolutionChanged,
