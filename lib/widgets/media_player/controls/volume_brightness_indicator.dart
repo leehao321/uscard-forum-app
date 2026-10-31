@@ -1,3 +1,4 @@
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 
 import 'media_overlay_style.dart';
@@ -20,10 +21,10 @@ class VolumeBrightnessIndicator extends StatelessWidget {
   final double value;
 
   IconData get _icon {
-    if (!isVolume) return Icons.brightness_6_rounded;
-    if (value <= 0.005) return Icons.volume_off_rounded;
-    if (value < 0.5) return Icons.volume_down_rounded;
-    return Icons.volume_up_rounded;
+    if (!isVolume) return AppIcons.sun;
+    if (value <= 0.005) return AppIcons.volumeOff;
+    if (value < 0.5) return AppIcons.volumeDown;
+    return AppIcons.volumeUp;
   }
 
   @override

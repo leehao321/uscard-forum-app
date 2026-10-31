@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:jovial_svg/jovial_svg.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 
@@ -22,7 +23,9 @@ import '../../../services/toast_service.dart';
 import '../../../widgets/ai/ai_model_select_sheet.dart';
 import '../../../widgets/ai/ai_quick_prompts_bar.dart';
 import '../../../widgets/share/ai_share_image_preview.dart';
+
 import 'package:common_ui/common_ui.dart';
+
 import 'ai_chat_input.dart';
 import 'ai_chat_message_item.dart';
 import 'ai_context_selector.dart';
@@ -354,11 +357,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     final result = await showAppDialog<bool>(
       context: context,
       builder: (ctx) => AppAlertDialog(
-        icon: Icon(
-          Symbols.image_rounded,
-          color: theme.colorScheme.primary,
-          size: 32,
-        ),
+        icon: Icon(AppIcons.image, color: theme.colorScheme.primary, size: 32),
         title: Text(S.current.ai_imageModelMissingTitle),
         content: Text(S.current.ai_imageModelMissingMessage),
         actions: [
@@ -374,9 +373,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       ),
     );
     if (result == true && mounted) {
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => const AiProvidersPage()));
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => const AiProvidersPage()));
     }
   }
 
@@ -716,24 +714,15 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     TopicAiChatNotifier chatNotifier,
   ) {
     return [
-      Consumer(
-        builder: (context, ref, _) {
-          final scope = ref.watch(topicAiContextScopeProvider(widget.topicId));
-          return AiContextSelector(
-            currentScope: scope,
-            onChanged: _onScopeChanged,
-          );
-        },
-      ),
       if (chatState.messages.isNotEmpty)
         IconButton(
-          icon: const Icon(Symbols.check_box_rounded),
+          icon: const Icon(AppIcons.checkBox),
           tooltip: context.l10n.ai_multiSelectExport,
           iconSize: 20,
           onPressed: _enterSelectionMode,
         ),
       SwipeDismissiblePopupMenuButton<String>(
-        icon: const Icon(Symbols.more_vert_rounded),
+        icon: const Icon(AppIcons.moreVert),
         tooltip: context.l10n.ai_moreTooltip,
         iconSize: 20,
         onSelected: (value) {
@@ -750,7 +739,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           PopupMenuItem(
             value: 'new_session',
             child: ListTile(
-              leading: const Icon(Symbols.add_comment_rounded),
+              leading: const Icon(AppIcons.addComment),
               title: Text(context.l10n.ai_newSession),
               dense: true,
               contentPadding: EdgeInsets.zero,
@@ -760,7 +749,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
             PopupMenuItem(
               value: 'history',
               child: ListTile(
-                leading: const Icon(Symbols.history_rounded),
+                leading: const Icon(AppIcons.history),
                 title: Text(context.l10n.ai_sessionHistory),
                 dense: true,
                 contentPadding: EdgeInsets.zero,
@@ -770,7 +759,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
             PopupMenuItem(
               value: 'clear',
               child: ListTile(
-                leading: const Icon(Symbols.delete_rounded),
+                leading: const Icon(AppIcons.delete),
                 title: Text(context.l10n.ai_clearChat),
                 dense: true,
                 contentPadding: EdgeInsets.zero,
@@ -792,8 +781,31 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       children: [
         // 上下文加载提示
         if (_isLoadingContext)
-          M3eLinearProgress(
-            color: theme.colorScheme.primary,
+          M3eLinearProgress(color: theme.colorScheme.primary),
+
+        // v2 筛选胶囊行：上下文范围（设计说明 §5.3「AI 对话」）
+        if (!_selectionMode)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpace.pageMargin,
+              AppSpace.xs,
+              AppSpace.pageMargin,
+              AppSpace.s,
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final scope = ref.watch(
+                    topicAiContextScopeProvider(widget.topicId),
+                  );
+                  return AiContextSelector(
+                    currentScope: scope,
+                    onChanged: _onScopeChanged,
+                  );
+                },
+              ),
+            ),
           ),
 
         // 聊天主要内容区
@@ -918,9 +930,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         final accent = isImage
             ? const Color(0xFFEA580C)
             : theme.colorScheme.primary;
-        final iconData = isImage
-            ? Symbols.palette_rounded
-            : Symbols.chat_bubble_rounded;
+        final iconData = isImage ? AppIcons.palette : AppIcons.chatBubble;
         final title = isImage
             ? context.l10n.ai_imageGenTitle
             : context.l10n.ai_askTitle;
@@ -1061,7 +1071,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: const Icon(Symbols.close_rounded),
+              icon: const Icon(AppIcons.close),
               iconSize: 20,
               onPressed: _exitSelectionMode,
             ),
@@ -1076,7 +1086,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           onPressed: _selectedMessageIds.isEmpty
               ? null
               : _exportSelectedMessages,
-          icon: const Icon(Symbols.image_rounded, size: 18),
+          icon: const Icon(AppIcons.image, size: 18),
           label: Text(context.l10n.ai_exportImage),
           style: FilledButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1239,7 +1249,9 @@ class _SessionHistorySheetState extends State<_SessionHistorySheet> {
           final isCurrent = session.id == widget.currentSessionId;
 
           return ListTile(
-            leading: Icon(Symbols.chat_bubble_rounded, fill: isCurrent ? 1 : 0,
+            leading: Icon(
+              AppIcons.chatBubble,
+              fill: isCurrent ? 1 : 0,
               size: 20,
               color: isCurrent
                   ? theme.colorScheme.primary
@@ -1263,7 +1275,7 @@ class _SessionHistorySheetState extends State<_SessionHistorySheet> {
                 ? null
                 : IconButton(
                     icon: Icon(
-                      Symbols.delete_rounded,
+                      AppIcons.delete,
                       size: 18,
                       color: theme.colorScheme.error,
                     ),
@@ -1412,7 +1424,7 @@ class _ThinkingButton extends StatelessWidget {
         ),
       ),
       trailing: isSelected
-          ? Icon(Symbols.check_rounded, color: cs.primary, size: 20)
+          ? Icon(AppIcons.check, color: cs.primary, size: 20)
           : null,
       onTap: () {
         _setConfig(ref.read(aiThinkingConfigProvider).copyWith(level: level));
@@ -1426,7 +1438,7 @@ class _ThinkingButton extends StatelessWidget {
     final isSelected = current.level == ThinkingLevel.custom;
     return ListTile(
       leading: Icon(
-        Symbols.tune_rounded,
+        AppIcons.tune,
         size: 22,
         color: isSelected ? cs.primary : cs.onSurfaceVariant,
       ),

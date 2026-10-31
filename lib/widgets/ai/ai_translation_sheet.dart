@@ -202,7 +202,7 @@ class _AiTranslationSheetBodyState
         Row(
           children: [
             Icon(
-              Symbols.translate_rounded,
+              AppIcons.language,
               size: 20,
               color: theme.colorScheme.primary,
             ),
@@ -301,13 +301,13 @@ class _AiTranslationSheetBodyState
               ),
               TextButton.icon(
                 onPressed: _stop,
-                icon: const Icon(Symbols.stop_rounded, size: 18),
+                icon: const Icon(AppIcons.stopSquare, size: 18),
                 label: Text(l10n.ai_stopGenerate),
               ),
             ],
             TextButton.icon(
               onPressed: _result.isEmpty ? null : _copy,
-              icon: const Icon(Symbols.content_copy_rounded, size: 18),
+              icon: const Icon(AppIcons.copy, size: 18),
               label: Text(l10n.common_copy),
             ),
           ],

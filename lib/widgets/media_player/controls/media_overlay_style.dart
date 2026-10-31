@@ -7,7 +7,8 @@ import 'package:flutter/material.dart';
 /// 每帧重做高斯模糊是已知卡顿源,浮层质感全部用零开销手段构成)。
 abstract final class MediaOverlayStyle {
   /// 强调色(倍速非 1x、菜单选中项):暖琥珀,黑底上的唯一彩色信号。
-  static const Color accent = Color(0xFFFFD54F);
+  // v2：视频控件叠在画面上，只用白色系；强调色不再用黄色
+  static const Color accent = Colors.white;
 
   /// 主文字/图标。
   static const Color foreground = Colors.white;

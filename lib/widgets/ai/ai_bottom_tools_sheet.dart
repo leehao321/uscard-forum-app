@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 
@@ -54,7 +55,7 @@ class _AiBottomToolsSheet extends StatelessWidget {
       child: Row(
         children: [
           _ToolCard(
-            icon: Symbols.camera_alt_rounded,
+            icon: AppIcons.camera,
             label: S.current.ai_toolsCamera,
             onTap: onCamera == null
                 ? null
@@ -65,7 +66,7 @@ class _AiBottomToolsSheet extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           _ToolCard(
-            icon: Symbols.photo_library_rounded,
+            icon: AppIcons.gallery,
             label: S.current.ai_toolsPhotos,
             onTap: onPhotos == null
                 ? null
@@ -76,7 +77,7 @@ class _AiBottomToolsSheet extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           _ToolCard(
-            icon: Symbols.brush_rounded,
+            icon: AppIcons.brush,
             label: imageMode
                 ? S.current.ai_modeBackToChat
                 : S.current.ai_modeSwitchToImage,
@@ -119,10 +120,9 @@ class _ToolCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final baseColor = active
-        ? theme.colorScheme.primaryContainer
-        : (isDark ? Colors.white10 : const Color(0xFFF2F3F5));
+        ? context.tokens.colors.brandPrimary.withValues(alpha: 0.12)
+        : context.tokens.colors.surfaceGrouped;
     final fg = active
         ? theme.colorScheme.onPrimaryContainer
         : (dimmed

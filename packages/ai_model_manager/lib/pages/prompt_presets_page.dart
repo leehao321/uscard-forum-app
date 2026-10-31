@@ -52,13 +52,14 @@ class _PromptPresetsPageState extends ConsumerState<PromptPresetsPage> {
       appBar: AppBar(
         title: Text(AiL10n.current.quickPromptsManageTitle),
         actions: [
-          IconButton(
-            tooltip: AiL10n.current.quickPromptsAddNew,
-            icon: const Icon(Symbols.add_rounded),
+          AppIconButton(
+            icon: AppIcons.add,
+            semanticLabel: AiL10n.current.quickPromptsAddNew,
             onPressed: _addNew,
           ),
-          SwipeDismissiblePopupMenuButton<String>(
-            clipBehavior: Clip.antiAlias,
+          AppMenuButton<String>(
+            icon: AppIcons.moreHoriz,
+            semanticLabel: AiL10n.current.manage,
             onSelected: (v) {
               switch (v) {
                 case 'reset':
@@ -69,35 +70,25 @@ class _PromptPresetsPageState extends ConsumerState<PromptPresetsPage> {
                   _importFromClipboard();
               }
             },
-            itemBuilder: (_) => [
-              PopupMenuItem(
-                value: 'import',
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
-                  leading: const Icon(Symbols.content_paste_rounded, size: 20),
-                  title: Text(AiL10n.current.presetImport),
+            sectionsBuilder: (_) => [
+              [
+                AppMenuItem<String>(
+                  label: AiL10n.current.presetImport,
+                  value: 'import',
+                  icon: AppIcons.paste,
                 ),
-              ),
-              if (customs.isNotEmpty)
-                PopupMenuItem(
-                  value: 'export_all',
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
-                    leading: const Icon(Symbols.file_upload_rounded, size: 20),
-                    title: Text(AiL10n.current.presetExportAll),
+                if (customs.isNotEmpty)
+                  AppMenuItem<String>(
+                    label: AiL10n.current.presetExportAll,
+                    value: 'export_all',
+                    icon: AppIcons.upload,
                   ),
+                AppMenuItem<String>(
+                  label: AiL10n.current.quickPromptsResetBuiltIns,
+                  value: 'reset',
+                  icon: AppIcons.restartAlt,
                 ),
-              PopupMenuItem(
-                value: 'reset',
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
-                  leading: const Icon(Symbols.restart_alt_rounded, size: 20),
-                  title: Text(AiL10n.current.quickPromptsResetBuiltIns),
-                ),
-              ),
+              ],
             ],
           ),
         ],
@@ -111,12 +102,12 @@ class _PromptPresetsPageState extends ConsumerState<PromptPresetsPage> {
                 ButtonSegment(
                   value: PromptType.image,
                   label: Text(AiL10n.current.quickPromptsImageTab),
-                  icon: const Icon(Symbols.image_rounded),
+                  icon: const Icon(AppIcons.image),
                 ),
                 ButtonSegment(
                   value: PromptType.text,
                   label: Text(AiL10n.current.quickPromptsTextTab),
-                  icon: const Icon(Symbols.chat_rounded),
+                  icon: const Icon(AppIcons.message),
                 ),
               ],
               selected: {_type},
@@ -395,7 +386,7 @@ class _ReorderableGroupState extends ConsumerState<_ReorderableGroup> {
             trailingActions: [
               if (!preset.builtIn)
                 SwipeAction(
-                  icon: Symbols.edit_rounded,
+                  icon: AppIcons.edit,
                   color: Colors.blue,
                   label: AiL10n.current.edit,
                   onPressed: () => widget.onEdit(preset),
@@ -403,8 +394,8 @@ class _ReorderableGroupState extends ConsumerState<_ReorderableGroup> {
               if (preset.builtIn)
                 SwipeAction(
                   icon: preset.hidden
-                      ? Symbols.visibility_rounded
-                      : Symbols.visibility_off_rounded,
+                      ? AppIcons.visibility
+                      : AppIcons.visibilityOff,
                   color: Colors.orange,
                   label: preset.hidden
                       ? AiL10n.current.quickPromptsUnhide
@@ -421,14 +412,14 @@ class _ReorderableGroupState extends ConsumerState<_ReorderableGroup> {
                 ),
               if (!preset.builtIn)
                 SwipeAction(
-                  icon: Symbols.content_copy_rounded,
+                  icon: AppIcons.copy,
                   color: Colors.teal,
                   label: AiL10n.current.presetExport,
                   onPressed: () => _PromptPresetsPageState.exportPreset(preset),
                 ),
               if (!preset.builtIn)
                 SwipeAction(
-                  icon: Symbols.delete_rounded,
+                  icon: AppIcons.delete,
                   color: Colors.red,
                   label: AiL10n.current.delete,
                   onPressed: () async {
@@ -457,7 +448,7 @@ class _ReorderableGroupState extends ConsumerState<_ReorderableGroup> {
                         child: Padding(
                           padding: const EdgeInsets.all(8),
                           child: Icon(
-                            Symbols.drag_indicator_rounded,
+                            AppIcons.grip,
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
@@ -499,7 +490,7 @@ class _ReorderableGroupState extends ConsumerState<_ReorderableGroup> {
                                 if (preset.hidden) ...[
                                   const SizedBox(width: 6),
                                   Icon(
-                                    Symbols.visibility_off_rounded,
+                                    AppIcons.visibilityOff,
                                     size: 14,
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),
@@ -528,7 +519,7 @@ class _ReorderableGroupState extends ConsumerState<_ReorderableGroup> {
                             ? AiL10n.current.quickPromptsUnpin
                             : AiL10n.current.quickPromptsPin,
                         icon: Icon(
-                          Symbols.push_pin_rounded,
+                          AppIcons.pushPin,
                           fill: preset.pinned ? 1 : 0,
                           size: 18,
                           color: preset.pinned

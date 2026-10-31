@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,8 +20,10 @@ class OfflineIndicator extends ConsumerWidget {
     final isConnected = connAsync.value ?? true;
 
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final tokens = context.tokens;
+    final colors = tokens.colors;
 
+    // v2：13 meta 一行 + 44 刷新钮，不再用色块
     return AnimatedSize(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutCubic,
@@ -28,37 +31,30 @@ class OfflineIndicator extends ConsumerWidget {
       child: isConnected
           ? const SizedBox.shrink()
           : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              padding: const EdgeInsets.only(
+                left: AppSpace.pageMargin,
+                right: AppSpace.xs,
+              ),
               child: Row(
                 children: [
                   Icon(
-                    Symbols.wifi_off_rounded,
-                    size: 14,
-                    color: colorScheme.onSurfaceVariant,
+                    AppIcons.wifiOff,
+                    size: AppSize.iconS,
+                    color: colors.textMeta,
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    context.l10n.common_networkDisconnected,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+                  const SizedBox(width: AppSpace.s),
+                  Expanded(
+                    child: Text(
+                      context.l10n.common_networkDisconnected,
+                      style: theme.textTheme.bodySmall
+                          ?.merge(tokens.text.meta)
+                          .copyWith(color: colors.textMeta),
                     ),
                   ),
-                  const Spacer(),
-                  SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: IconButton(
-                      onPressed: () => ConnectivityService().check(),
-                      padding: EdgeInsets.zero,
-                      iconSize: 16,
-                      style: IconButton.styleFrom(
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      icon: Icon(
-                        Symbols.refresh_rounded,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
+                  AppIconButton(
+                    icon: AppIcons.refresh,
+                    semanticLabel: context.l10n.common_refresh,
+                    onPressed: () => ConnectivityService().check(),
                   ),
                 ],
               ),

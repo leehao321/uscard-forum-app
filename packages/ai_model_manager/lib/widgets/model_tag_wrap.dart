@@ -26,7 +26,7 @@ class ModelTagWrap extends StatelessWidget {
     if (model.abilities.contains(ModelAbility.tool)) {
       chips.add(_buildAbilityPill(
         context,
-        icon: Symbols.handyman_rounded,
+        icon: AppIcons.wrench,
         label: AiL10n.current.modelDetailToolAbility,
         color: cs.primary,
         isDark: isDark,
@@ -35,7 +35,7 @@ class ModelTagWrap extends StatelessWidget {
     if (model.abilities.contains(ModelAbility.reasoning)) {
       chips.add(_buildAbilityPill(
         context,
-        icon: Symbols.psychology_rounded,
+        icon: AppIcons.brain,
         label: AiL10n.current.modelDetailReasoningAbility,
         color: cs.secondary,
         isDark: isDark,
@@ -95,8 +95,8 @@ class ModelTagWrap extends StatelessWidget {
                     padding: const EdgeInsets.only(right: 2),
                     child: Icon(
                       mod == Modality.text
-                          ? Symbols.text_fields_rounded
-                          : Symbols.image_rounded,
+                          ? AppIcons.typeIcon
+                          : AppIcons.image,
                       size: 12,
                       color: isDark
                           ? color
@@ -104,7 +104,7 @@ class ModelTagWrap extends StatelessWidget {
                     ),
                   ),
                 Icon(
-                  Symbols.chevron_right_rounded,
+                  AppIcons.chevronRight,
                   size: 12,
                   color: isDark ? color : color.withValues(alpha: 0.9),
                 ),
@@ -113,8 +113,8 @@ class ModelTagWrap extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 2),
                     child: Icon(
                       mod == Modality.text
-                          ? Symbols.text_fields_rounded
-                          : Symbols.image_rounded,
+                          ? AppIcons.typeIcon
+                          : AppIcons.image,
                       size: 12,
                       color: isDark
                           ? color

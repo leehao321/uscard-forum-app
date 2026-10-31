@@ -9,6 +9,7 @@ import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../constants.dart';
 import 'network/cookie/boundary_sync_service.dart';
 import 'network/cookie/cookie_jar_service.dart';
@@ -21,8 +22,6 @@ import 'webview_settings.dart';
 import 'windows_webview_environment_service.dart';
 import '../l10n/s.dart';
 import '../providers/preferences_provider.dart';
-import '../utils/blur_config.dart';
-import '../widgets/draggable_floating_pill.dart';
 
 CookieManager get _cfCookieManager =>
     WindowsWebViewEnvironmentService.instance.cookieManager;
@@ -327,9 +326,9 @@ class CfChallengeService {
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     visualDensity: VisualDensity.compact,
                   ),
-                  onPressed: () => Navigator.of(
-                    dialogContext,
-                  ).pop(_CompatPromptChoice.disableAutoVerify),
+                  onPressed: () =>
+                      Navigator.of(dialogContext)
+                          .pop(_CompatPromptChoice.disableAutoVerify),
                   child: Text(
                     S.current.cf_sessionCompatDisableAuto,
                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -351,9 +350,9 @@ class CfChallengeService {
               ),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(
-                dialogContext,
-              ).pop(_CompatPromptChoice.enableCompat),
+              onPressed: () =>
+                  Navigator.of(dialogContext)
+                      .pop(_CompatPromptChoice.enableCompat),
               child: Text(S.current.cf_sessionCompatEnable),
             ),
           ],
@@ -1793,8 +1792,7 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
 
         try {
           final html = await controller.evaluateJavascript(
-            source:
-                'document.documentElement ? document.documentElement.innerHTML : ""',
+            source: 'document.documentElement ? document.documentElement.innerHTML : ""',
           );
           if (_hasPopped || !mounted || _finishingFromVerifyResponse) return;
           if (watcherGeneration != _revealStateWatchGeneration) return;
@@ -1858,29 +1856,29 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
           _checkCount <= _activeMaxCheckCount);
 
   Widget _buildStatusBanner(ThemeData theme) {
-    final colorScheme = theme.colorScheme;
-    late final Color backgroundColor;
+    final tokens =
+        theme.extension<AppTokens>() ??
+        AppTokens.resolve(brightness: theme.brightness);
+    final colors = tokens.colors;
+    final backgroundColor = colors.surfaceGrouped;
     late final Color foregroundColor;
     late final IconData icon;
     late final String title;
     late final String message;
 
     if (_hasTimedOut) {
-      backgroundColor = colorScheme.errorContainer;
-      foregroundColor = colorScheme.onErrorContainer;
-      icon = Symbols.error_rounded;
+      foregroundColor = colors.textDestructive;
+      icon = AppIcons.error;
       title = context.l10n.cf_verifyTimedOutTitle;
       message = context.l10n.cf_verifyTimedOutMessage;
     } else if (_needsManualAttention) {
-      backgroundColor = colorScheme.secondaryContainer;
-      foregroundColor = colorScheme.onSecondaryContainer;
-      icon = Symbols.touch_app_rounded;
+      foregroundColor = colors.brandPrimary;
+      icon = AppIcons.touchApp;
       title = context.l10n.cf_manualVerifyBannerTitle;
       message = context.l10n.cf_manualVerifyBannerMessage;
     } else {
-      backgroundColor = colorScheme.tertiaryContainer;
-      foregroundColor = colorScheme.onTertiaryContainer;
-      icon = Symbols.hourglass_bottom_rounded;
+      foregroundColor = colors.textMeta;
+      icon = AppIcons.hourglass;
       title = context.l10n.cf_manualVerifyBannerTitle;
       message = context.l10n.cf_verifyLonger(
         _activeMaxCheckCount - _checkCount,
@@ -1889,10 +1887,10 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
 
     return Material(
       color: backgroundColor,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(tokens.radius.card),
       clipBehavior: Clip.antiAlias,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.all(AppSpace.m),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1900,25 +1898,24 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(icon, color: foregroundColor, size: 18),
-                const SizedBox(width: 8),
+                Icon(icon, color: foregroundColor, size: AppSize.iconM),
+                const SizedBox(width: AppSpace.s),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         title,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: foregroundColor,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: theme.textTheme.bodySmall
+                            ?.merge(tokens.text.metaStrong)
+                            .copyWith(color: colors.textPrimary),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: AppSpace.xxs),
                       Text(
                         message,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: foregroundColor,
-                        ),
+                        style: theme.textTheme.bodySmall
+                            ?.merge(tokens.text.meta)
+                            .copyWith(color: colors.textMeta),
                       ),
                     ],
                   ),
@@ -2004,8 +2001,7 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
     if (generation != _loadGeneration) return;
     try {
       final html = await controller.evaluateJavascript(
-        source:
-            'document.documentElement ? document.documentElement.innerHTML : ""',
+        source: 'document.documentElement ? document.documentElement.innerHTML : ""',
       );
       if (_hasPopped ||
           !mounted ||
@@ -2226,52 +2222,49 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
   }
 
   Widget _buildPanelHeader(ThemeData theme) {
-    final colorScheme = theme.colorScheme;
-    final iconColor = colorScheme.onSurfaceVariant;
+    final tokens =
+        theme.extension<AppTokens>() ??
+        AppTokens.resolve(brightness: theme.brightness);
+    final colors = tokens.colors;
 
     return SizedBox(
-      height: 44,
+      height: AppSize.navBar,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpace.xs),
         child: Row(
           children: [
-            IconButton(
-              icon: const Icon(Symbols.close_rounded, size: 20),
-              color: iconColor,
-              padding: EdgeInsets.zero,
-              visualDensity: VisualDensity.compact,
-              tooltip: context.l10n.common_exit,
+            AppIconButton(
+              icon: AppIcons.close,
+              semanticLabel: context.l10n.common_exit,
               onPressed: showExitConfirmation,
             ),
-            const SizedBox(width: 4),
-            Icon(Symbols.shield_rounded, size: 16, color: colorScheme.primary),
-            const SizedBox(width: 6),
+            Icon(
+              AppIcons.verifiedUser,
+              size: AppSize.iconM,
+              color: colors.brandPrimary,
+            ),
+            const SizedBox(width: AppSpace.s),
             Expanded(
               child: Text(
                 context.l10n.cf_securityVerifyTitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w500,
-                  color: colorScheme.onSurface,
-                  letterSpacing: 0.1,
-                ),
+                style: theme.textTheme.bodyLarge
+                    ?.merge(tokens.text.control)
+                    .copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colors.textPrimary,
+                    ),
               ),
             ),
-            IconButton(
-              icon: const Icon(Symbols.refresh_rounded, size: 20),
-              color: iconColor,
-              padding: EdgeInsets.zero,
-              visualDensity: VisualDensity.compact,
-              tooltip: context.l10n.common_refresh,
+            AppIconButton(
+              icon: AppIcons.refresh,
+              semanticLabel: context.l10n.common_refresh,
               onPressed: _refresh,
             ),
-            IconButton(
-              icon: const Icon(Symbols.help_rounded, size: 20),
-              color: iconColor,
-              padding: EdgeInsets.zero,
-              visualDensity: VisualDensity.compact,
-              tooltip: context.l10n.common_help,
+            AppIconButton(
+              icon: AppIcons.help,
+              semanticLabel: context.l10n.common_help,
               onPressed: _showHelp,
             ),
           ],
@@ -2281,36 +2274,48 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
   }
 
   Widget _buildVerifyPanel(ThemeData theme) {
-    final colorScheme = theme.colorScheme;
+    final tokens =
+        theme.extension<AppTokens>() ??
+        AppTokens.resolve(brightness: theme.brightness);
+    final colors = tokens.colors;
 
     return Material(
-      color: colorScheme.surface,
+      color: colors.surfaceElevated,
       elevation: 0,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(tokens.radius.sheet),
+      ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
+          // 拖拽条 36×5
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpace.s),
+            child: Container(
+              width: 36,
+              height: 5,
+              decoration: BoxDecoration(
+                color: colors.quoteRule,
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+          ),
           _buildPanelHeader(theme),
           SizedBox(
-            height: 2,
+            height: 4,
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 220),
               child: _isLoading
                   ? LinearProgressIndicator(
                       key: const ValueKey('loading'),
                       value: _progress > 0 ? _progress : null,
-                      minHeight: 2,
-                      backgroundColor: colorScheme.surfaceContainerHighest
-                          .withValues(alpha: 0.4),
-                      color: colorScheme.primary.withValues(alpha: 0.75),
+                      minHeight: 4,
+                      backgroundColor: colors.avatarFill,
+                      color: colors.brandPrimary,
                     )
                   : SizedBox.shrink(
                       key: const ValueKey('idle'),
-                      child: ColoredBox(
-                        color: colorScheme.outlineVariant.withValues(
-                          alpha: 0.35,
-                        ),
-                      ),
+                      child: ColoredBox(color: colors.separator),
                     ),
             ),
           ),
@@ -2367,9 +2372,9 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
                     ),
                     if (!coverWebView && _shouldShowStatusBanner)
                       Positioned(
-                        left: 12,
-                        right: 12,
-                        bottom: 12,
+                        left: AppSpace.m,
+                        right: AppSpace.m,
+                        bottom: AppSpace.m,
                         child: _buildStatusBanner(theme),
                       ),
                   ],
@@ -2383,21 +2388,11 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
   }
 
   Widget _buildContextualBarrier(ThemeData theme, bool dialogBlur) {
-    final barrierColor = dialogBlur
-        ? blurBarrierColor(theme.brightness)
-        : Colors.black.withValues(
-            alpha: theme.brightness == Brightness.dark ? 0.42 : 0.24,
-          );
-    final barrier = ModalBarrier(dismissible: false, color: barrierColor);
-
-    if (!dialogBlur) return barrier;
-
-    return BackdropFilter(filter: createBlurFilter(blurSigma), child: barrier);
+    // v2：遮罩是 32% 纯色，对话框模糊固定关闭
+    return const ModalBarrier(dismissible: false, color: AppMaterials.scrim);
   }
 
   Widget _buildContextualVerifyLayer(ThemeData theme) {
-    final colorScheme = theme.colorScheme;
-
     return Consumer(
       builder: (context, ref, _) {
         final dialogBlur = ref.watch(
@@ -2412,20 +2407,27 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
                 child: _buildContextualBarrier(theme, dialogBlur),
               ),
               SafeArea(
+                // 窄屏半屏贴到屏幕底，底部安全区由面板自己让出
+                bottom:
+                    MediaQuery.sizeOf(context).width >= kCfSheetCompactWidth,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final isCompact = constraints.maxWidth < 640;
-                    final horizontalMargin = isCompact ? 12.0 : 24.0;
-                    final verticalMargin = isCompact ? 12.0 : 24.0;
+                    final isCompact =
+                        constraints.maxWidth < kCfSheetCompactWidth;
+                    final horizontalMargin = isCompact ? 0.0 : 24.0;
+                    final verticalMargin = isCompact ? 0.0 : 24.0;
                     final availableHeight = math.max(
                       360.0,
                       constraints.maxHeight - verticalMargin * 2,
                     );
+                    // 窄屏：半屏顶边在屏幕 y = 112（设计说明 §5.4「Cloudflare 安全验证」）
                     final targetHeight = isCompact
-                        ? availableHeight * 0.88
+                        ? MediaQuery.sizeOf(context).height - kCfSheetTop
                         : math.min(720.0, availableHeight);
                     final minHeight = math.min(460.0, availableHeight);
-                    final panelHeight = math.max(minHeight, targetHeight);
+                    final panelHeight = isCompact
+                        ? targetHeight
+                        : math.max(minHeight, targetHeight);
 
                     return Align(
                       alignment: isCompact
@@ -2445,22 +2447,8 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
                             height: panelHeight,
                             child: DecoratedBox(
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(
-                                      alpha: theme.brightness == Brightness.dark
-                                          ? 0.45
-                                          : 0.12,
-                                    ),
-                                    blurRadius: 32,
-                                    offset: const Offset(0, 12),
-                                  ),
-                                ],
-                                border: Border.all(
-                                  color: colorScheme.outlineVariant.withValues(
-                                    alpha: 0.35,
-                                  ),
+                                borderRadius: BorderRadius.circular(
+                                  isCompact ? 0 : 16,
                                 ),
                               ),
                               child: _buildVerifyPanel(theme),
@@ -2538,7 +2526,7 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
               GestureDetector(
                 onTap: _dismissExitConfirmation,
                 child: Container(
-                  color: Colors.black54,
+                  color: AppMaterials.scrim,
                   width: double.infinity,
                   height: double.infinity,
                 ),
@@ -2556,7 +2544,9 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
                       onPressed: _confirmExit,
                       child: Text(
                         context.l10n.common_exit,
-                        style: TextStyle(color: theme.colorScheme.error),
+                        style: TextStyle(
+                          color: context.tokens.colors.textDestructive,
+                        ),
                       ),
                     ),
                   ],
@@ -2571,7 +2561,7 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
               GestureDetector(
                 onTap: _dismissHelp,
                 child: Container(
-                  color: Colors.black54,
+                  color: AppMaterials.scrim,
                   width: double.infinity,
                   height: double.infinity,
                 ),
@@ -2593,12 +2583,80 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
 
         // 悬浮验证胶囊：默认收起，点击展开，再次点击进入前台
         if (_isBackground)
-          DraggableFloatingPill(
-            initialTop: 100,
-            onTap: _promoteToForeground,
-            child: Text(S.current.cf_backgroundVerifying),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom:
+                MediaQuery.paddingOf(context).bottom +
+                AppSize.toolbar +
+                AppSpace.l,
+            child: Center(
+              child: _BackgroundVerifyCapsule(
+                label: S.current.cf_backgroundVerifying,
+                onTap: _promoteToForeground,
+              ),
+            ),
           ),
       ],
+    );
+  }
+}
+
+/// 半屏顶边到屏幕顶的距离（窄屏）
+const double kCfSheetTop = 112;
+
+/// 小于它按手机处理（贴底半屏）
+const double kCfSheetCompactWidth = 640;
+
+/// 后台验证胶囊（设计说明 §5.4）：底部居中、Toast 材质、44 高；
+/// 「系统菊花 + 正在自动验证，点此查看」，点击进入前台验证页。
+class _BackgroundVerifyCapsule extends StatelessWidget {
+  const _BackgroundVerifyCapsule({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: AppPressable(
+        onTap: onTap,
+        child: Container(
+          height: AppSize.hit,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpace.l),
+          decoration: ShapeDecoration(
+            color: tokens.colors.surfaceElevated,
+            shape: StadiumBorder(
+              side: BorderSide(
+                color: tokens.colors.separator,
+                width: AppSpace.hairline,
+              ),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator.adaptive(strokeWidth: 2),
+              ),
+              const SizedBox(width: AppSpace.s),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium
+                    ?.merge(tokens.text.meta)
+                    .copyWith(color: tokens.colors.textPrimary),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -2773,7 +2831,7 @@ class _ChallengeFallbackOverlayState extends State<_ChallengeFallbackOverlay>
             ),
             alignment: Alignment.center,
             child: Icon(
-              Symbols.verified_user_rounded,
+              AppIcons.verifiedUser,
               size: 28,
               color: colorScheme.primary,
             ),
@@ -2808,7 +2866,7 @@ class _ChallengeFallbackOverlayState extends State<_ChallengeFallbackOverlay>
               FilledButton.icon(
                 style: AppButtonStyles.secondary(context),
                 onPressed: widget.onRetry,
-                icon: const Icon(Symbols.refresh_rounded, size: 18),
+                icon: const Icon(AppIcons.refresh, size: 18),
                 label: Text(l10n.cf_retryVerificationAction),
               ),
               TextButton(

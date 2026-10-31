@@ -93,12 +93,12 @@ class _PromptPresetEditPageState
                 ButtonSegment(
                   value: PromptType.image,
                   label: Text(AiL10n.current.quickPromptsTypeImage),
-                  icon: const Icon(Symbols.image_rounded),
+                  icon: const Icon(AppIcons.image),
                 ),
                 ButtonSegment(
                   value: PromptType.text,
                   label: Text(AiL10n.current.quickPromptsTypeText),
-                  icon: const Icon(Symbols.chat_rounded),
+                  icon: const Icon(AppIcons.message),
                 ),
               ],
               selected: {_type},
@@ -224,7 +224,7 @@ class _PromptPresetEditPageState
                 child: Row(
                   children: [
                     Icon(
-                      Symbols.info_rounded,
+                      AppIcons.info,
                       size: 16,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -319,6 +319,6 @@ class _DisabledIconPreview extends StatelessWidget {
     if (iconRaw.isNotEmpty && iconRaw.runes.first >= 0x80) {
       return Text(iconRaw, style: const TextStyle(fontSize: 22));
     }
-    return const Icon(Symbols.auto_awesome_rounded, size: 22);
+    return const Icon(AppIcons.autoAwesome, size: 22);
   }
 }

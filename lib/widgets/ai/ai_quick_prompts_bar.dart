@@ -1,4 +1,5 @@
 import 'package:ai_model_manager/ai_model_manager.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,22 +37,27 @@ class AiQuickPromptsBar extends ConsumerWidget {
     Map<String, String>? dimensionValues,
     String renderedPrompt,
     String? aspectRatio,
-  ) onPick;
+  )
+  onPick;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pinned = ref.watch(pinnedPromptPresetsProvider(type));
     final chips = <Widget>[
       for (final p in pinned)
-        ActionChip(
-          avatar: PresetIcon(iconRaw: p.iconRaw, size: 16),
-          label: Text(p.name),
-          onPressed: () => _handlePick(context, p),
+        _PromptPill(
+          leading: PresetIcon(iconRaw: p.iconRaw, size: 16),
+          label: p.name,
+          onTap: () => _handlePick(context, p),
         ),
-      ActionChip(
-        avatar: const Icon(Symbols.more_horiz_rounded, size: 16),
-        label: Text(S.current.ai_quickPromptsMore),
-        onPressed: () => _openSheet(context),
+      _PromptPill(
+        leading: Icon(
+          AppIcons.moreHoriz,
+          size: 16,
+          color: context.tokens.colors.textMeta,
+        ),
+        label: S.current.ai_quickPromptsMore,
+        onTap: () => _openSheet(context),
       ),
     ];
 
@@ -68,11 +74,18 @@ class AiQuickPromptsBar extends ConsumerWidget {
         ],
       );
     }
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      alignment: WrapAlignment.center,
-      children: chips,
+    // v2：快捷词胶囊单行横向滚动
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpace.pageMargin),
+      child: Row(
+        children: [
+          for (var i = 0; i < chips.length; i++) ...[
+            if (i > 0) const SizedBox(width: AppSpace.s),
+            chips[i],
+          ],
+        ],
+      ),
     );
   }
 
@@ -118,8 +131,7 @@ class AiQuickPromptsBar extends ConsumerWidget {
         final rendered = preset.hasDimensions
             ? appendDimensionFragments(base, preset.dimensions, dimensionValues)
             : base;
-        final aspectValue =
-            dimensionValues?['aspect'] ?? preset.aspectRatio;
+        final aspectValue = dimensionValues?['aspect'] ?? preset.aspectRatio;
         onPick(preset, dimensionValues, rendered, aspectValue);
       },
     );
@@ -128,5 +140,52 @@ class AiQuickPromptsBar extends ConsumerWidget {
   String _safeTitle() {
     final trimmed = topicTitle.trim();
     return trimmed.isEmpty ? S.current.ai_title : trimmed;
+  }
+}
+
+/// 快捷词胶囊：32 高、surface/grouped、13 文字，点击区纵向扩到 44
+class _PromptPill extends StatelessWidget {
+  const _PromptPill({
+    required this.leading,
+    required this.label,
+    required this.onTap,
+  });
+
+  final Widget leading;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return AppPressable(
+      onTap: onTap,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: AppSize.hit),
+        child: Center(
+          child: Container(
+            height: AppSize.floorPill,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpace.m),
+            decoration: ShapeDecoration(
+              color: tokens.colors.surfaceGrouped,
+              shape: const StadiumBorder(),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                leading,
+                const SizedBox(width: AppSpace.xs),
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.merge(tokens.text.meta)
+                      .copyWith(color: tokens.colors.textPrimary),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

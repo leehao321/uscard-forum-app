@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,11 +30,12 @@ class AiModelConfigPage extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
           _ModelCard(
-            icon: Symbols.chat_rounded,
+            icon: AppIcons.message,
             title: AiL10n.current.defaultChatModel,
             current: textDefault,
             onPick: () => _showPicker(
-              context, ref,
+              context,
+              ref,
               allModels
                   .where((m) => m.model.output.contains(Modality.text))
                   .toList(),
@@ -46,13 +48,14 @@ class AiModelConfigPage extends ConsumerWidget {
                 ? () => clearDefaultAiModel(ref, isImageMode: false)
                 : null,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpace.xl),
           _ModelCard(
-            icon: Symbols.image_rounded,
+            icon: AppIcons.image,
             title: AiL10n.current.defaultImageModel,
             current: imageDefault,
             onPick: () => _showPicker(
-              context, ref,
+              context,
+              ref,
               allModels
                   .where((m) => m.model.output.contains(Modality.image))
                   .toList(),
@@ -65,14 +68,16 @@ class AiModelConfigPage extends ConsumerWidget {
                 ? () => clearDefaultAiModel(ref, isImageMode: true)
                 : null,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpace.xl),
           _ModelCard(
-            icon: Symbols.title_rounded,
+            icon: AppIcons.heading,
             title: AiL10n.current.titleGenerationModel,
             subtitle: AiL10n.current.autoGenerateTitleSubtitle,
             current: titleModel,
             onPick: () => _showPicker(
-              context, ref, allModels,
+              context,
+              ref,
+              allModels,
               current: titleModel,
               clearLabel: AiL10n.current.noAutoGenerateTitle,
               onSelect: (p, m) => setAiTitleModel(ref, p, m),
@@ -82,23 +87,22 @@ class AiModelConfigPage extends ConsumerWidget {
                 ? () => setAiTitleModel(ref, null, null)
                 : null,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpace.xl),
           _ModelCard(
-            icon: Symbols.auto_fix_high_rounded,
+            icon: AppIcons.autoFixHigh,
             title: AiL10n.current.imagePromptOptimizerModel,
             subtitle: AiL10n.current.imagePromptOptimizerSubtitle,
             current: optimizer,
             onPick: () => _showPicker(
-              context, ref,
+              context,
+              ref,
               allModels
                   .where((m) => m.model.output.contains(Modality.text))
                   .toList(),
               current: optimizer,
               clearLabel: AiL10n.current.optimizerNotSet,
-              onSelect: (p, m) =>
-                  setAiImagePromptOptimizerModel(ref, p, m),
-              onClear: () =>
-                  setAiImagePromptOptimizerModel(ref, null, null),
+              onSelect: (p, m) => setAiImagePromptOptimizerModel(ref, p, m),
+              onClear: () => setAiImagePromptOptimizerModel(ref, null, null),
             ),
             onReset: optimizer != null
                 ? () => setAiImagePromptOptimizerModel(ref, null, null)
@@ -145,7 +149,7 @@ class AiModelConfigPage extends ConsumerWidget {
             ListTile(
               title: Text(clearLabel ?? AiL10n.current.notSet),
               trailing: (currentKey == null && current == null)
-                  ? const Icon(Symbols.check_rounded)
+                  ? const Icon(AppIcons.check)
                   : null,
               onTap: () {
                 onClear();
@@ -170,7 +174,7 @@ class AiModelConfigPage extends ConsumerWidget {
                 ),
                 title: Text(item.model.name ?? item.model.id),
                 subtitle: Text(item.provider.name),
-                trailing: isCurrent ? const Icon(Symbols.check_rounded) : null,
+                trailing: isCurrent ? const Icon(AppIcons.check) : null,
                 onTap: () {
                   onSelect(item.provider.id, item.model.id);
                   Navigator.pop(ctx);
@@ -184,7 +188,8 @@ class AiModelConfigPage extends ConsumerWidget {
   }
 }
 
-/// 参考 Kelivo _ModelCard：圆角卡片，标题行 + 描述 + 模型选择行
+/// v2：每项一组。页眉写用途（标题 + 说明，13 meta），组里一行 =
+/// 34 方块 + 模型名 + 服务商 13 meta + 重置 + chevron；未设置显示 meta「未设置」。
 class _ModelCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -204,128 +209,103 @@ class _ModelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final meta = theme.textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
+    final model = current;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? Colors.white10 : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: cs.outlineVariant.withValues(alpha: isDark ? 0.08 : 0.06),
-          width: 0.6,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpace.l,
+            0,
+            AppSpace.l,
+            AppSpace.s,
+          ),
+          child: Text(
+            subtitle == null ? title : '$title · $subtitle',
+            style: meta,
+          ),
         ),
-      ),
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 标题行
-          Row(
+        Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: colors.surfaceGrouped,
+            borderRadius: BorderRadius.circular(tokens.radius.card),
+          ),
+          child: Row(
             children: [
-              Icon(icon, size: 18, color: cs.onSurface),
-              const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
+                child: InkWell(
+                  onTap: onPick,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: AppSize.row48),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpace.l,
+                        vertical: AppSpace.s,
+                      ),
+                      child: Row(
+                        children: [
+                          if (model != null)
+                            ModelIcon(
+                              providerName: model.provider.name,
+                              modelName: model.model.name ?? model.model.id,
+                            )
+                          else
+                            Icon(icon,
+                                size: AppSize.iconM, color: colors.textMeta),
+                          const SizedBox(width: AppSpace.m),
+                          Expanded(
+                            child: model != null
+                                ? Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        model.model.name ?? model.model.id,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: theme.textTheme.bodyLarge
+                                            ?.merge(tokens.text.control)
+                                            .copyWith(
+                                              color: colors.textPrimary,
+                                            ),
+                                      ),
+                                      Text(model.provider.name, style: meta),
+                                    ],
+                                  )
+                                : Text(AiL10n.current.notSet, style: meta),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
-              SizedBox(
-                width: 32,
-                height: 32,
-                child: onReset != null
-                    ? IconButton(
-                        icon: Icon(Symbols.restart_alt_rounded,
-                            size: 18, color: cs.onSurfaceVariant),
-                        tooltip: AiL10n.current.modelDetailResetAuto,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        onPressed: onReset,
-                      )
-                    : null,
+              if (onReset != null)
+                AppIconButton(
+                  icon: AppIcons.restartAlt,
+                  semanticLabel: AiL10n.current.modelDetailResetAuto,
+                  onPressed: onReset,
+                ),
+              Padding(
+                padding: const EdgeInsets.only(right: AppSpace.l),
+                child: Icon(
+                  AppIcons.chevronRight,
+                  size: AppSize.iconM,
+                  color: colors.textMeta,
+                ),
               ),
             ],
           ),
-          // 描述
-          if (subtitle != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              subtitle!,
-              style: TextStyle(
-                fontSize: 12,
-                color: cs.onSurface.withValues(alpha: 0.6),
-              ),
-            ),
-          ],
-          const SizedBox(height: 10),
-          // 模型选择行
-          Material(
-            color: isDark ? Colors.white10 : const Color(0xFFF2F3F5),
-            borderRadius: BorderRadius.circular(12),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: onPick,
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                child: Row(
-                  children: [
-                    if (current != null) ...[
-                      ModelIcon(
-                        providerName: current!.provider.name,
-                        modelName:
-                            current!.model.name ?? current!.model.id,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 10),
-                    ],
-                    Expanded(
-                      child: current != null
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  current!.model.name ?? current!.model.id,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                Text(
-                                  current!.provider.name,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: cs.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Text(
-                              AiL10n.current.notSet,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color:
-                                    cs.onSurface.withValues(alpha: 0.4),
-                              ),
-                            ),
-                    ),
-                    Icon(Symbols.chevron_right_rounded,
-                        size: 18, color: cs.onSurfaceVariant),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

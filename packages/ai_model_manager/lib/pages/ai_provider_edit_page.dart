@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,8 +15,7 @@ import '../widgets/model_detail_sheet.dart';
 import '../widgets/model_icon.dart';
 import '../widgets/model_tag_wrap.dart';
 
-bool _showRail(BuildContext context) =>
-    MediaQuery.sizeOf(context).width >= 600;
+bool _showRail(BuildContext context) => MediaQuery.sizeOf(context).width >= 600;
 
 class AiProviderEditPage extends ConsumerStatefulWidget {
   final AiProvider? provider;
@@ -89,8 +89,7 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
     final apiKey = _apiKeyCtrl.text.trim();
     final baseUrl = _baseUrlCtrl.text.trim();
     if (apiKey.isEmpty || baseUrl.isEmpty) {
-      AiToastDelegate.showInfo(
-          AiL10n.current.pleaseEnterBaseUrlAndApiKeyFirst);
+      AiToastDelegate.showInfo(AiL10n.current.pleaseEnterBaseUrlAndApiKeyFirst);
       return;
     }
     setState(() {
@@ -140,8 +139,8 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
                 AiL10n.current.selectModelToTest,
-                style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w500),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
             ),
             Flexible(
@@ -184,8 +183,7 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
     }
 
     final service = ref.read(aiProviderApiServiceProvider);
-    final fetchFuture =
-        service.fetchModels(_selectedType, baseUrl, apiKey);
+    final fetchFuture = service.fetchModels(_selectedType, baseUrl, apiKey);
 
     await showAppBottomSheet<void>(
       context: context,
@@ -261,8 +259,8 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
-        AiToastDelegate.showError(AiL10n.current
-            .saveFailed(AiProviderApiService.friendlyError(e)));
+        AiToastDelegate.showError(
+            AiL10n.current.saveFailed(AiProviderApiService.friendlyError(e)));
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -321,35 +319,34 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
             ? AiL10n.current.editProvider
             : AiL10n.current.addProvider),
         actions: [
-          // 测试模型快捷入口:放 AppBar 避免在配置表单中段塞按钮显得割裂,
+          // 测试模型快捷入口:放导航栏避免在配置表单中段塞按钮显得割裂,
           // 两个 tab(配置 / 模型)都能用同一个入口。
-          IconButton(
-            tooltip: AiL10n.current.testModel,
-            onPressed: _testingModelId != null ? null : _showTestModelPicker,
-            icon: _testingModelId != null
-                ? SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Theme.of(context).colorScheme.primary),
-                  )
-                : const Icon(Symbols.bolt_rounded),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 8, left: 4),
-            child: FilledButton(
-              onPressed: _isSaving ? null : _save,
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
-                    )
-                  : Text(AiL10n.current.save),
+          if (_testingModelId != null)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppSpace.m),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator.adaptive(strokeWidth: 2),
+              ),
+            )
+          else
+            AppIconButton(
+              icon: AppIcons.zap,
+              semanticLabel: AiL10n.current.testModel,
+              onPressed: _showTestModelPicker,
             ),
+          TextButton(
+            onPressed: _isSaving ? null : _save,
+            child: _isSaving
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator.adaptive(strokeWidth: 2),
+                  )
+                : Text(AiL10n.current.save),
           ),
+          const SizedBox(width: AppSpace.xs),
         ],
       ),
       body: Row(
@@ -379,8 +376,8 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
   Widget _buildRail(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final destinations = <(IconData, String)>[
-      (Symbols.settings_rounded, AiL10n.current.configTab),
-      (Symbols.layers_rounded, AiL10n.current.modelsTab),
+      (AppIcons.settings, AiL10n.current.configTab),
+      (AppIcons.layers, AiL10n.current.modelsTab),
     ];
 
     return SafeArea(
@@ -397,9 +394,7 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 child: Material(
-                  color: selected
-                      ? cs.secondaryContainer
-                      : Colors.transparent,
+                  color: selected ? cs.secondaryContainer : Colors.transparent,
                   borderRadius: BorderRadius.circular(16),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(16),
@@ -434,13 +429,13 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
       onDestinationSelected: _switchTab,
       destinations: [
         NavigationDestination(
-          icon: const Icon(Symbols.settings_rounded),
-          selectedIcon: const Icon(Symbols.settings_rounded, fill: 1),
+          icon: const Icon(AppIcons.settings),
+          selectedIcon: const Icon(AppIcons.settings, fill: 1),
           label: AiL10n.current.configTab,
         ),
         NavigationDestination(
-          icon: const Icon(Symbols.layers_rounded),
-          selectedIcon: const Icon(Symbols.layers_rounded, fill: 1),
+          icon: const Icon(AppIcons.layers),
+          selectedIcon: const Icon(AppIcons.layers, fill: 1),
           label: AiL10n.current.modelsTab,
         ),
       ],
@@ -451,56 +446,144 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
 
   Widget _buildConfigTab() {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final meta = theme.textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
+    final fieldStyle = theme.textTheme.bodyLarge!
+        .merge(tokens.text.control)
+        .copyWith(color: colors.textPrimary);
 
-    InputDecoration inputDeco(String label, {String? hint, Widget? suffix}) =>
-        InputDecoration(
-          labelText: label,
-          hintText: hint,
-          filled: true,
-          fillColor: isDark ? Colors.white10 : cs.surfaceContainerLow,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide:
-                BorderSide(color: cs.outlineVariant.withValues(alpha: 0.4)),
+    Widget row({required String label, required Widget child}) =>
+        ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: AppSize.row48),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpace.l),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 96,
+                  child: Text(label, style: fieldStyle),
+                ),
+                Expanded(child: child),
+              ],
+            ),
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide:
-                BorderSide(color: cs.outlineVariant.withValues(alpha: 0.4)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide:
-                BorderSide(color: cs.primary.withValues(alpha: 0.5)),
-          ),
-          suffixIcon: suffix,
         );
 
+    InputDecoration deco(String hint, {Widget? suffix}) => InputDecoration(
+          hintText: hint,
+          hintStyle: fieldStyle.copyWith(color: colors.textMeta),
+          isDense: true,
+          filled: false,
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: AppSpace.m),
+          suffixIcon: suffix,
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: AppSize.hit,
+            minHeight: AppSize.hit,
+          ),
+        );
+
+    Widget field(TextEditingController c, String hint,
+            {Widget? suffix, bool obscure = false}) =>
+        TextField(
+          controller: c,
+          obscureText: obscure,
+          textAlign: TextAlign.end,
+          style: fieldStyle,
+          cursorColor: colors.brandPrimary,
+          decoration: deco(hint, suffix: suffix),
+        );
+
+    final typeRow = Builder(
+      builder: (rowContext) => AppPressable(
+        onTap: () async {
+          final picked = await showAppMenu<AiProviderType>(
+            context: rowContext,
+            anchor: globalRectOf(rowContext),
+            sections: [
+              [
+                for (final t in AiProviderType.values)
+                  AppMenuItem<AiProviderType>(
+                    label: t.label,
+                    value: t,
+                    checked: t == _selectedType,
+                  ),
+              ],
+            ],
+          );
+          if (picked != null) _onTypeChanged(picked);
+        },
+        child: row(
+          label: AiL10n.current.providerType,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Flexible(
+                child: Text(
+                  _selectedType.label,
+                  style: fieldStyle.copyWith(color: colors.textMeta),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: AppSpace.xs),
+              Icon(AppIcons.expandMore,
+                  size: AppSize.iconS, color: colors.textMeta),
+            ],
+          ),
+        ),
+      ),
+    );
+
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpace.pageMargin,
+        AppSpace.l,
+        AppSpace.pageMargin,
+        AppSpace.xxl,
+      ),
       children: [
-        TextField(
-          controller: _nameCtrl,
-          decoration: inputDeco(AiL10n.current.name,
-              hint: AiL10n.current.nameHint),
+        Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: colors.surfaceGrouped,
+            borderRadius: BorderRadius.circular(tokens.radius.card),
+          ),
+          child: Column(
+            children: [
+              row(
+                label: AiL10n.current.name,
+                child: field(_nameCtrl, AiL10n.current.nameHint),
+              ),
+              const AppHairline(indent: AppSpace.l),
+              typeRow,
+              const AppHairline(indent: AppSpace.l),
+              row(label: 'Base URL', child: field(_baseUrlCtrl, 'https://')),
+              const AppHairline(indent: AppSpace.l),
+              row(
+                label: 'API Key',
+                child: field(
+                  _apiKeyCtrl,
+                  'sk-…',
+                  obscure: _obscureApiKey,
+                  suffix: AppIconButton(
+                    icon: _obscureApiKey
+                        ? AppIcons.visibility
+                        : AppIcons.visibilityOff,
+                    semanticLabel: _obscureApiKey ? '显示 API Key' : '隐藏 API Key',
+                    onPressed: () =>
+                        setState(() => _obscureApiKey = !_obscureApiKey),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 14),
-        DropdownButtonFormField<AiProviderType>(
-          initialValue: _selectedType,
-          decoration: inputDeco(AiL10n.current.providerType),
-          items: AiProviderType.values
-              .map((t) => DropdownMenuItem(value: t, child: Text(t.label)))
-              .toList(),
-          onChanged: _onTypeChanged,
-        ),
-        const SizedBox(height: 14),
-        TextField(
-          controller: _baseUrlCtrl,
-          decoration: inputDeco('Base URL'),
-        ),
-        // 实时预览实际请求路径,让用户看清自己配的 baseUrl 在补 /v1 后
+        // 页脚：实时预览实际请求路径,让用户看清自己配的 baseUrl 在补 /v1 后
         // 会拼成什么。借鉴 Cherry Studio 的 host preview。
         // 跟 SDK 行为一致:OpenAI / Anthropic 走 /v1,Gemini 走 /v1beta。
         ValueListenableBuilder<TextEditingValue>(
@@ -508,9 +591,8 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
           builder: (context, value, _) {
             final raw = value.text.trim();
             if (raw.isEmpty) return const SizedBox.shrink();
-            final apiVersion = _selectedType == AiProviderType.gemini
-                ? 'v1beta'
-                : 'v1';
+            final apiVersion =
+                _selectedType == AiProviderType.gemini ? 'v1beta' : 'v1';
             final formatted = ApiHostFormatter.format(
               raw,
               apiVersion: apiVersion,
@@ -522,34 +604,19 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
               AiProviderType.gemini => '/models/{model}:generateContent',
             };
             return Padding(
-              padding: const EdgeInsets.only(top: 6, left: 4),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpace.l,
+                AppSpace.s,
+                AppSpace.l,
+                0,
+              ),
               child: Text(
                 AiL10n.current.baseUrlPreview('$formatted$endpoint'),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.6),
-                    ),
+                style: meta,
               ),
             );
           },
         ),
-        const SizedBox(height: 14),
-        TextField(
-          controller: _apiKeyCtrl,
-          obscureText: _obscureApiKey,
-          decoration: inputDeco('API Key',
-              suffix: IconButton(
-                icon: Icon(_obscureApiKey
-                    ? Symbols.visibility_off_rounded
-                    : Symbols.visibility_rounded),
-                onPressed: () =>
-                    setState(() => _obscureApiKey = !_obscureApiKey),
-              )),
-        ),
-        // 测试模型按钮挪到 AppBar 右上角(闪电图标),避免表单中段塞按钮
-        // 显得割裂,且两个 tab 都能复用同一个入口。
       ],
     );
   }
@@ -559,7 +626,6 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
   Widget _buildModelsTab() {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
 
     return Stack(
       children: [
@@ -569,7 +635,7 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Symbols.layers_rounded,
+                    Icon(AppIcons.layers,
                         size: 48,
                         color: cs.onSurfaceVariant.withValues(alpha: 0.4)),
                     const SizedBox(height: 12),
@@ -607,29 +673,21 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
           child: Center(
             child: Container(
               decoration: BoxDecoration(
-                color: isDark
-                    ? Color.alphaBlend(
-                        Colors.white.withValues(alpha: 0.12),
-                        cs.surface,
-                      )
-                    : const Color(0xFFF2F3F5),
+                // v2：工具栏材质的胶囊
+                color: context.tokens.colors.surfaceElevated,
                 borderRadius: BorderRadius.circular(999),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                border: Border.all(
+                  color: context.tokens.colors.separator,
+                  width: AppSpace.hairline,
+                ),
               ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // 获取模型
                   _FloatingPill(
-                    icon: Symbols.cloud_download_rounded,
+                    icon: AppIcons.download,
                     label: AiL10n.current.fetchModels,
                     outlined: true,
                     onTap: _fetchAndSelectModels,
@@ -637,7 +695,7 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
                   const SizedBox(width: 6),
                   // 手动添加
                   _FloatingPill(
-                    icon: Symbols.add_rounded,
+                    icon: AppIcons.add,
                     label: AiL10n.current.manuallyAdd,
                     filled: true,
                     onTap: _addModelManually,
@@ -660,10 +718,10 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Material(
-        color: cs.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(14),
+        color: context.tokens.colors.surfaceGrouped,
+        borderRadius: BorderRadius.circular(context.tokens.radius.card),
         child: InkWell(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(context.tokens.radius.card),
           onTap: () => _editModel(index),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 8, 10),
@@ -708,12 +766,11 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Symbols.delete_rounded,
+                  icon: Icon(AppIcons.delete,
                       color: cs.error.withValues(alpha: 0.7), size: 20),
                   tooltip: AiL10n.current.remove,
                   visualDensity: VisualDensity.compact,
-                  onPressed: () =>
-                      setState(() => _removeModelAt(index)),
+                  onPressed: () => setState(() => _removeModelAt(index)),
                 ),
               ],
             ),
@@ -751,8 +808,7 @@ class _FloatingPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
         onTap: onTap,
         child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: outlined
               ? BoxDecoration(
                   borderRadius: BorderRadius.circular(999),
@@ -831,8 +887,7 @@ class _FetchedModelsSelectorState extends State<_FetchedModelsSelector> {
   final Set<String> _collapsed = {};
   String _search = '';
 
-  Set<String> get _activeIds =>
-      widget.currentModels.map((m) => m.id).toSet();
+  Set<String> get _activeIds => widget.currentModels.map((m) => m.id).toSet();
 
   @override
   void initState() {
@@ -925,7 +980,8 @@ class _FetchedModelsSelectorState extends State<_FetchedModelsSelector> {
           children: [
             const SizedBox(height: 8),
             Container(
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
                 color: cs.onSurface.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(999),
@@ -939,7 +995,7 @@ class _FetchedModelsSelectorState extends State<_FetchedModelsSelector> {
                   onChanged: (v) => setState(() => _search = v),
                   decoration: InputDecoration(
                     hintText: AiL10n.current.searchModelsHint,
-                    prefixIcon: const Icon(Symbols.search_rounded, size: 20),
+                    prefixIcon: const Icon(AppIcons.search, size: 20),
                     isDense: true,
                     filled: true,
                     fillColor:
@@ -951,9 +1007,7 @@ class _FetchedModelsSelectorState extends State<_FetchedModelsSelector> {
                     suffixIcon: filtered.isNotEmpty
                         ? IconButton(
                             icon: Icon(
-                              allActive
-                                  ? Symbols.deselect_rounded
-                                  : Symbols.select_all_rounded,
+                              allActive ? AppIcons.close : AppIcons.checkAll,
                               size: 22,
                               color: cs.onSurface.withValues(alpha: 0.7),
                             ),
@@ -982,9 +1036,10 @@ class _FetchedModelsSelectorState extends State<_FetchedModelsSelector> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Symbols.error_rounded, size: 48, color: cs.error),
+              Icon(AppIcons.error, size: 48, color: cs.error),
               const SizedBox(height: 12),
-              Text(_error!, textAlign: TextAlign.center,
+              Text(_error!,
+                  textAlign: TextAlign.center,
                   style: TextStyle(color: cs.error)),
             ],
           ),
@@ -1043,14 +1098,11 @@ class _FetchedModelsSelectorState extends State<_FetchedModelsSelector> {
                 }
               }),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                 child: Row(
                   children: [
                     Icon(
-                      isCollapsed
-                          ? Symbols.chevron_right_rounded
-                          : Symbols.expand_more_rounded,
+                      isCollapsed ? AppIcons.chevronRight : AppIcons.expandMore,
                       size: 20,
                       color: cs.onSurfaceVariant,
                     ),
@@ -1079,10 +1131,10 @@ class _FetchedModelsSelectorState extends State<_FetchedModelsSelector> {
                             horizontal: 8, vertical: 2),
                         child: Icon(
                           groupAllActive
-                              ? Symbols.check_box_rounded
+                              ? AppIcons.checkBox
                               : (groupActiveCount > 0
-                                  ? Symbols.indeterminate_check_box_rounded
-                                  : Symbols.check_box_outline_blank_rounded),
+                                  ? AppIcons.checkBox
+                                  : AppIcons.squareIcon),
                           size: 20,
                           color: groupAllActive || groupActiveCount > 0
                               ? cs.primary
@@ -1125,8 +1177,7 @@ class _FetchedModelsSelectorState extends State<_FetchedModelsSelector> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     m.name ?? m.id,

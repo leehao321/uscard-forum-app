@@ -8,7 +8,7 @@ import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:m3e_ui/m3e_ui.dart';
+
 import '../constants.dart';
 import '../providers/preferences_provider.dart';
 import '../services/credential_store_service.dart';
@@ -25,7 +25,9 @@ import '../services/webview_session_cookie_refresh_service.dart';
 import '../services/windows_webview_environment_service.dart';
 import '../services/log/log_writer.dart';
 import '../services/login_ready_coordinator.dart';
+
 import 'package:common_ui/common_ui.dart';
+
 import '../l10n/s.dart';
 import '../utils/dialog_utils.dart';
 
@@ -100,68 +102,78 @@ class _WebViewLoginPageState extends ConsumerState<WebViewLoginPage> {
       appBar: AppBar(
         title: Text(context.l10n.webviewLogin_title),
         actions: [
-          IconButton(
-            icon: const Icon(Symbols.content_paste_rounded),
-            tooltip: context.l10n.webviewLogin_emailLoginPaste,
+          AppIconButton(
+            icon: AppIcons.paste,
+            semanticLabel: context.l10n.webviewLogin_emailLoginPaste,
             onPressed: _pasteEmailLoginLink,
           ),
           if (_savedUsername != null)
-            SwipeDismissiblePopupMenuButton<String>(
-              icon: const Icon(Symbols.key_rounded),
-              tooltip: context.l10n.webviewLogin_savedPassword,
+            AppMenuButton<String>(
+              icon: AppIcons.key,
+              semanticLabel: context.l10n.webviewLogin_savedPassword,
               onSelected: (value) {
                 if (value == 'clear') {
                   _clearCredentials();
                 }
               },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  enabled: false,
-                  child: Text(
-                    context.l10n.webviewLogin_lastLogin(_savedUsername!),
+              sectionsBuilder: (context) => [
+                [
+                  AppMenuItem<String>(
+                    label: context.l10n.webviewLogin_lastLogin(_savedUsername!),
+                    enabled: false,
                   ),
-                ),
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'clear',
-                  child: Row(
-                    children: [
-                      const Icon(Symbols.delete_rounded, size: 20),
-                      const SizedBox(width: 8),
-                      Text(context.l10n.webviewLogin_clearSaved),
-                    ],
+                ],
+                [
+                  AppMenuItem<String>(
+                    label: context.l10n.webviewLogin_clearSaved,
+                    value: 'clear',
+                    icon: AppIcons.delete,
+                    destructive: true,
                   ),
-                ),
+                ],
               ],
             ),
-          IconButton(
-            icon: const Icon(Symbols.refresh_rounded),
+          AppIconButton(
+            icon: AppIcons.refresh,
+            semanticLabel: context.l10n.common_refresh,
             onPressed: () => _controller?.reload(),
-            tooltip: context.l10n.common_refresh,
           ),
         ],
       ),
       body: Column(
         children: [
-          if (_isLoading || _isCompletingLogin)
-            M3eLinearProgress(
-              value: _isCompletingLogin ? null : _progress,
-            ),
+          // 4 高进度条（brand / avatar-fill）
+          SizedBox(
+            height: 4,
+            child: (_isLoading || _isCompletingLogin)
+                ? LinearProgressIndicator(
+                    value: _isCompletingLogin ? null : _progress,
+                    minHeight: 4,
+                    color: context.tokens.colors.brandPrimary,
+                    backgroundColor: context.tokens.colors.avatarFill,
+                  )
+                : ColoredBox(color: context.tokens.colors.separator),
+          ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpace.m,
+              vertical: AppSpace.s,
+            ),
+            color: context.tokens.colors.surfaceGrouped,
             child: Row(
               children: [
                 Icon(
-                  Symbols.lock_rounded,
+                  AppIcons.lock,
                   size: 14,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: context.tokens.colors.brandPrimary,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpace.s),
                 Expanded(
                   child: Text(
                     _url,
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.merge(context.tokens.text.meta)
+                        .copyWith(color: context.tokens.colors.textMeta),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -253,9 +265,8 @@ class _WebViewLoginPageState extends ConsumerState<WebViewLoginPage> {
                         // Android: 启用 WebAuthn/PassKey 支持
                         if (Platform.isAndroid) {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
-                            const MethodChannel(
-                              'com.fluxdo/webauthn',
-                            ).invokeMethod('enableWebAuthentication');
+                            const MethodChannel('com.fluxdo/webauthn')
+                                .invokeMethod('enableWebAuthentication');
                           });
                         }
                       },
@@ -312,9 +323,8 @@ class _WebViewLoginPageState extends ConsumerState<WebViewLoginPage> {
                 if (_isCompletingLogin)
                   Positioned.fill(
                     child: ColoredBox(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surface.withValues(alpha: 0.88),
+                      color: Theme.of(context).colorScheme.surface
+                          .withValues(alpha: 0.88),
                       child: Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -548,11 +558,9 @@ class _WebViewLoginPageState extends ConsumerState<WebViewLoginPage> {
       );
       String? pageHtml;
       try {
-        pageHtml =
-            await controller.evaluateJavascript(
-                  source: 'window.__rawPreloaded || null',
-                )
-                as String?;
+        pageHtml = await controller.evaluateJavascript(
+          source: 'window.__rawPreloaded || null',
+        ) as String?;
       } catch (_) {}
 
       await _finalizeLoginBootstrap(

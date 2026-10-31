@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:ai_model_manager/ai_model_manager.dart';
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,7 +45,7 @@ void main() {
     await tester.enterText(find.byType(TextField).at(2), 'test-key');
     await tester.pump();
 
-    await tester.tap(find.byIcon(Icons.layers_outlined));
+    await tester.tap(find.byIcon(AppIcons.layers));
     await tester.pumpAndSettle();
 
     final modelAFinder = find.text('Model A');

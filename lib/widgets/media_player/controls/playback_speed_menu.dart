@@ -1,3 +1,4 @@
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 
 import '../../../l10n/s.dart';
@@ -68,7 +69,7 @@ Future<double?> showPlaybackSpeedMenu(
               SizedBox(
                 width: 24,
                 child: speed == current
-                    ? Icon(Icons.check_rounded, size: 18, color: checkColor)
+                    ? Icon(AppIcons.check, size: 18, color: checkColor)
                     : null,
               ),
               Text(

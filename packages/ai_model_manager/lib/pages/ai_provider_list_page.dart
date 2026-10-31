@@ -32,7 +32,7 @@ class _AiProviderListPageState extends ConsumerState<AiProviderListPage> {
       appBar: AppBar(
         leading: _manageMode
             ? IconButton(
-                icon: const Icon(Symbols.close_rounded),
+                icon: const Icon(AppIcons.close),
                 tooltip: AiL10n.current.cancel,
                 onPressed: _exitManageMode,
               )
@@ -58,7 +58,8 @@ class _AiProviderListPageState extends ConsumerState<AiProviderListPage> {
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                     children: [
                       if (pinned.isNotEmpty) ...[
-                        _SectionLabel(text: AiL10n.current.pinnedProvidersSection),
+                        _SectionLabel(
+                            text: AiL10n.current.pinnedProvidersSection),
                         _ProviderReorderSection(
                           providers: pinned,
                           pinned: true,
@@ -72,7 +73,8 @@ class _AiProviderListPageState extends ConsumerState<AiProviderListPage> {
                         if (others.isNotEmpty) const SizedBox(height: 16),
                       ],
                       if (others.isNotEmpty) ...[
-                        _SectionLabel(text: AiL10n.current.otherProvidersSection),
+                        _SectionLabel(
+                            text: AiL10n.current.otherProvidersSection),
                         _ProviderReorderSection(
                           providers: others,
                           pinned: false,
@@ -97,24 +99,25 @@ class _AiProviderListPageState extends ConsumerState<AiProviderListPage> {
     if (_manageMode) {
       return [
         IconButton(
-          icon: const Icon(Symbols.delete_rounded),
+          icon: const Icon(AppIcons.delete),
           tooltip: AiL10n.current.deleteSelectedProviders,
-          onPressed: _selectedIds.isEmpty ? null : () => _confirmBatchDelete(context),
+          onPressed:
+              _selectedIds.isEmpty ? null : () => _confirmBatchDelete(context),
         ),
       ];
     }
 
     return [
       if (providers.isNotEmpty)
-        IconButton(
+        AppIconButton(
           key: const ValueKey('provider_manage_button'),
-          icon: const Icon(Symbols.checklist_rounded),
-          tooltip: AiL10n.current.manage,
+          icon: AppIcons.listChecks,
+          semanticLabel: AiL10n.current.manage,
           onPressed: _enterManageMode,
         ),
-      IconButton(
-        icon: const Icon(Symbols.add_rounded),
-        tooltip: AiL10n.current.addProvider,
+      AppIconButton(
+        icon: AppIcons.add,
+        semanticLabel: AiL10n.current.addProvider,
         onPressed: () => _navigateToEdit(context),
       ),
     ];
@@ -126,9 +129,8 @@ class _AiProviderListPageState extends ConsumerState<AiProviderListPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Symbols.dns_rounded,
-              size: 64,
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
+          Icon(AppIcons.server,
+              size: 48, color: context.tokens.colors.textMeta),
           const SizedBox(height: 16),
           Text(
             AiL10n.current.noProviderConfigured,
@@ -146,7 +148,7 @@ class _AiProviderListPageState extends ConsumerState<AiProviderListPage> {
           const SizedBox(height: 24),
           FilledButton.icon(
             onPressed: () => _navigateToEdit(context),
-            icon: const Icon(Symbols.add_rounded),
+            icon: const Icon(AppIcons.add),
             label: Text(AiL10n.current.addProvider),
           ),
         ],
@@ -226,7 +228,9 @@ class _AiProviderListPageState extends ConsumerState<AiProviderListPage> {
       ),
     );
     if (confirmed == true) {
-      await ref.read(aiProviderListProvider.notifier).removeProvider(provider.id);
+      await ref
+          .read(aiProviderListProvider.notifier)
+          .removeProvider(provider.id);
     }
   }
 
@@ -254,7 +258,9 @@ class _AiProviderListPageState extends ConsumerState<AiProviderListPage> {
       ),
     );
     if (confirmed == true) {
-      await ref.read(aiProviderListProvider.notifier).removeProviders(_selectedIds);
+      await ref
+          .read(aiProviderListProvider.notifier)
+          .removeProviders(_selectedIds);
       if (mounted) {
         _exitManageMode();
       }
@@ -274,14 +280,16 @@ class _ProviderReorderSection extends StatelessWidget {
 
   final List<AiProvider> providers;
   final bool pinned;
-  final Future<void> Function(bool pinned, int oldIndex, int newIndex) onReorder;
+  final Future<void> Function(bool pinned, int oldIndex, int newIndex)
+      onReorder;
   final ValueChanged<AiProvider> onEdit;
   final ValueChanged<AiProvider> onDelete;
   final ValueChanged<AiProvider> onTogglePin;
 
   @override
   Widget build(BuildContext context) {
-    return ReorderableListView.builder(
+    return _GroupBox(
+        child: ReorderableListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       buildDefaultDragHandles: false,
@@ -295,20 +303,20 @@ class _ProviderReorderSection extends StatelessWidget {
           key: ValueKey(provider.id),
           index: index,
           child: Padding(
-            padding: EdgeInsets.only(bottom: index < providers.length - 1 ? 8 : 0),
+            padding: EdgeInsets.zero,
             child: SwipeActionCell(
               key: ValueKey('swipe_${provider.id}'),
               enableLongPressMenu: false,
               trailingActions: [
                 SwipeAction(
-                  icon: Symbols.edit_rounded,
-                  color: Colors.blue,
+                  icon: AppIcons.edit,
+                  color: context.tokens.colors.brandButton,
                   label: AiL10n.current.edit,
                   onPressed: () => onEdit(provider),
                 ),
                 SwipeAction(
-                  icon: Symbols.delete_rounded,
-                  color: Colors.red,
+                  icon: AppIcons.delete,
+                  color: context.tokens.colors.textDestructive,
                   label: AiL10n.current.delete,
                   onPressed: () => onDelete(provider),
                 ),
@@ -316,6 +324,7 @@ class _ProviderReorderSection extends StatelessWidget {
               child: _ProviderCard(
                 provider: provider,
                 showSelection: false,
+                showSeparator: index < providers.length - 1,
                 onTap: () => onEdit(provider),
                 onTogglePin: () => onTogglePin(provider),
               ),
@@ -323,7 +332,7 @@ class _ProviderReorderSection extends StatelessWidget {
           ),
         );
       },
-    );
+    ));
   }
 }
 
@@ -360,17 +369,41 @@ class _ManageProviderList extends StatelessWidget {
 
   List<Widget> _buildSectionItems(List<AiProvider> providers) {
     return [
-      for (var index = 0; index < providers.length; index++)
-        Padding(
-          padding: EdgeInsets.only(bottom: index < providers.length - 1 ? 8 : 0),
-          child: _ProviderCard(
-            provider: providers[index],
-            selected: selectedIds.contains(providers[index].id),
-            showSelection: true,
-            onTap: () => onToggleSelection(providers[index].id),
-          ),
+      _GroupBox(
+        child: Column(
+          children: [
+            for (var index = 0; index < providers.length; index++)
+              _ProviderCard(
+                provider: providers[index],
+                selected: selectedIds.contains(providers[index].id),
+                showSelection: true,
+                showSeparator: index < providers.length - 1,
+                onTap: () => onToggleSelection(providers[index].id),
+              ),
+          ],
         ),
+      ),
     ];
+  }
+}
+
+/// v2 分组容器：surface/grouped、r12、裁切；行之间的分隔线由行自己画
+class _GroupBox extends StatelessWidget {
+  const _GroupBox({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: tokens.colors.surfaceGrouped,
+        borderRadius: BorderRadius.circular(tokens.radius.card),
+      ),
+      child: child,
+    );
   }
 }
 
@@ -383,14 +416,12 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+      padding: const EdgeInsets.fromLTRB(AppSpace.l, 0, AppSpace.l, AppSpace.s),
       child: Text(
         text,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.5,
-        ),
+        style: theme.textTheme.bodySmall
+            ?.merge(context.tokens.text.meta)
+            .copyWith(color: context.tokens.colors.textMeta),
       ),
     );
   }
@@ -403,6 +434,7 @@ class _ProviderCard extends StatelessWidget {
     this.selected = false,
     this.showSelection = false,
     this.onTogglePin,
+    this.showSeparator = true,
   });
 
   final AiProvider provider;
@@ -411,108 +443,92 @@ class _ProviderCard extends StatelessWidget {
   final bool showSelection;
   final VoidCallback? onTogglePin;
 
+  /// 行下方的发丝分隔线（分组里最后一行不画）
+  final bool showSeparator;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     final enabledCount = provider.models.where((model) => model.enabled).length;
     final totalCount = provider.models.length;
+    final meta = theme.textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
 
     return Material(
       color: selected
-          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.45)
-          : theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(16),
+          ? colors.brandPrimary.withValues(alpha: 0.12)
+          : Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              ModelIcon(
-                providerName: provider.name,
-                modelName: provider.name,
-                size: 44,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpace.l,
+                vertical: AppSpace.s,
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      provider.name,
-                      style: theme.textTheme.titleSmall
-                          ?.copyWith(fontWeight: FontWeight.w500),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
+              child: Row(
+                children: [
+                  ModelIcon(
+                    providerName: provider.name,
+                    modelName: provider.name,
+                  ),
+                  const SizedBox(width: AppSpace.m),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(
-                              color: theme.colorScheme.outlineVariant
-                                  .withValues(alpha: 0.5),
-                            ),
-                          ),
-                          child: Text(
-                            provider.type.label,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontSize: 10,
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
                         Text(
-                          AiL10n.current.modelCount(enabledCount, totalCount),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontSize: 12,
-                          ),
+                          provider.name,
+                          style: theme.textTheme.bodyLarge
+                              ?.merge(tokens.text.control)
+                              .copyWith(color: colors.textPrimary),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          '${provider.type.label} · '
+                          '${AiL10n.current.modelCount(enabledCount, totalCount)}',
+                          style: meta,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              if (showSelection)
-                Checkbox(
-                  value: selected,
-                  onChanged: (_) => onTap(),
-                )
-              else ...[
-                IconButton(
-                  key: ValueKey('pin_${provider.id}'),
-                  tooltip: provider.pinned
-                      ? AiL10n.current.unpinProvider
-                      : AiL10n.current.pinProvider,
-                  onPressed: onTogglePin,
-                  icon: Icon(
-                    Symbols.push_pin_rounded,
-                    fill: provider.pinned ? 1 : 0,
-                    size: 20,
-                    color: provider.pinned
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurfaceVariant,
                   ),
-                ),
-                Icon(
-                  Symbols.chevron_right_rounded,
-                  color: theme.colorScheme.outline.withValues(alpha: 0.4),
-                  size: 20,
-                ),
-              ],
-            ],
-          ),
+                  if (showSelection)
+                    Icon(
+                      selected ? AppIcons.checkCircle : AppIcons.radioButtonOff,
+                      size: AppSize.iconM,
+                      color: selected ? colors.brandPrimary : colors.textMeta,
+                    )
+                  else ...[
+                    AppIconButton(
+                      key: ValueKey('pin_${provider.id}'),
+                      icon: AppIcons.pushPin,
+                      semanticLabel: provider.pinned
+                          ? AiL10n.current.unpinProvider
+                          : AiL10n.current.pinProvider,
+                      selected: provider.pinned,
+                      color: provider.pinned ? colors.brandPrimary : null,
+                      onPressed: onTogglePin,
+                    ),
+                    Icon(
+                      AppIcons.chevronRight,
+                      color: colors.textMeta,
+                      size: AppSize.iconM,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (showSeparator) const AppHairline(indent: 62),
+          ],
         ),
       ),
     );

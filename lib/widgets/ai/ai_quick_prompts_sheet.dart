@@ -66,7 +66,7 @@ class _PromptPresetsSheet extends ConsumerWidget {
       maxHeightFactor: 0.75,
       actions: [
         TextButton.icon(
-          icon: const Icon(Symbols.tune_rounded, size: 16),
+          icon: const Icon(AppIcons.tune, size: 16),
           label: Text(S.current.ai_quickPromptsManage),
           onPressed: () {
             Navigator.of(context).pop();
@@ -208,7 +208,7 @@ class _PresetTile extends ConsumerWidget {
               tooltip: preset.pinned
                   ? S.current.ai_quickPromptsUnpin
                   : S.current.ai_quickPromptsPin,
-              icon: Icon(Symbols.push_pin_rounded, fill: preset.pinned ? 1 : 0,
+              icon: Icon(AppIcons.pushPin, fill: preset.pinned ? 1 : 0,
                 size: 18,
                 color: preset.pinned
                     ? theme.colorScheme.primary
@@ -256,7 +256,7 @@ class _PresetTile extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Symbols.push_pin_rounded, fill: preset.pinned ? 1 : 0,
+              leading: Icon(AppIcons.pushPin, fill: preset.pinned ? 1 : 0,
               ),
               title: Text(
                 preset.pinned
@@ -272,7 +272,7 @@ class _PresetTile extends ConsumerWidget {
             ),
             if (!preset.builtIn)
               ListTile(
-                leading: const Icon(Symbols.edit_rounded),
+                leading: const Icon(AppIcons.edit),
                 title: Text(S.current.common_edit),
                 onTap: () {
                   Navigator.of(ctx).pop();
@@ -286,7 +286,7 @@ class _PresetTile extends ConsumerWidget {
             if (!preset.builtIn)
               ListTile(
                 leading: Icon(
-                  Symbols.delete_rounded,
+                  AppIcons.delete,
                   color: Theme.of(context).colorScheme.error,
                 ),
                 title: Text(
@@ -307,8 +307,8 @@ class _PresetTile extends ConsumerWidget {
               ListTile(
                 leading: Icon(
                   preset.hidden
-                      ? Symbols.visibility_rounded
-                      : Symbols.visibility_off_rounded,
+                      ? AppIcons.visibility
+                      : AppIcons.visibilityOff,
                 ),
                 title: Text(
                   preset.hidden

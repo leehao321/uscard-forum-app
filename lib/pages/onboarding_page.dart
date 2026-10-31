@@ -1,33 +1,37 @@
-// ignore_for_file: deprecated_member_use
-import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
+import 'package:common_ui/common_ui.dart';
+import 'package:flutter/material.dart';
+
 import '../l10n/s.dart';
 import '../services/deep_link_service.dart';
-import '../widgets/common/ambient_background.dart';
-import '../widgets/common/floating_logo.dart';
+import '../widgets/common/app_mark.dart';
 import 'login_page.dart';
 import 'network_settings_page/network_settings_page.dart';
 
+/// 引导页（v2，设计说明 §5.4「引导页」）：App 图标 96、名称、四字口号、
+/// 三条说明、主按钮「登录」、透明按钮「先逛逛」、右上网络设置。无极光背景。
 class OnboardingPage extends StatefulWidget {
   final VoidCallback onComplete;
 
-  const OnboardingPage({super.key, required this.onComplete});
+  /// 初始化邮箱链接登录的 Deep Link 监听（测试里关掉，不碰平台通道）
+  final bool initializeDeepLink;
+
+  const OnboardingPage({
+    super.key,
+    required this.onComplete,
+    this.initializeDeepLink = true,
+  });
 
   @override
   State<OnboardingPage> createState() => _OnboardingPageState();
 }
 
-class _OnboardingPageState extends State<OnboardingPage> with TickerProviderStateMixin {
-  late AnimationController _entryAnimationController;
-  final List<Animation<double>> _fadeAnimations = [];
-  final List<Animation<Offset>> _slideAnimations = [];
-
+class _OnboardingPageState extends State<OnboardingPage> {
   @override
   void initState() {
     super.initState();
-    _setupEntryAnimations();
     // 初始化 Deep Link 服务以处理邮箱链接登录
+    if (!widget.initializeDeepLink) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       DeepLinkService.instance.onEmailLoginSuccess = () {
         if (mounted) widget.onComplete();
@@ -36,202 +40,132 @@ class _OnboardingPageState extends State<OnboardingPage> with TickerProviderStat
     });
   }
 
-  void _setupEntryAnimations() {
-    _entryAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500), // Slightly slower for elegance
-    );
-
-    // Staggered animations
-    for (int i = 0; i < 5; i++) {
-      final start = i * 0.12;
-      final end = start + 0.6;
-      
-      _fadeAnimations.add(
-        Tween<double>(begin: 0.0, end: 1.0).animate(
-          CurvedAnimation(
-            parent: _entryAnimationController,
-            curve: Interval(start, end > 1.0 ? 1.0 : end, curve: Curves.easeOut),
-          ),
-        ),
-      );
-
-      _slideAnimations.add(
-        Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _entryAnimationController,
-            curve: Interval(start, end > 1.0 ? 1.0 : end, curve: Curves.easeOutCubic),
-          ),
-        ),
-      );
-    }
-
-    _entryAnimationController.forward();
-  }
-
   @override
   void dispose() {
-    DeepLinkService.instance.onEmailLoginSuccess = null;
-    _entryAnimationController.dispose();
+    if (widget.initializeDeepLink) {
+      DeepLinkService.instance.onEmailLoginSuccess = null;
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final theme = Theme.of(context);
+    final large = AppButtonStyles.large.merge(
+      FilledButton.styleFrom(
+        minimumSize: const Size(double.infinity, AppSize.replyButton),
+      ),
+    );
+
     return Scaffold(
-      body: Stack(
-        children: [
-          // 1. Ambient Background (Aurora Effect)
-          const AmbientBackground(),
-          
-          // 2. Content
-          SafeArea(
-            child: Stack(
-              children: [
-                _buildNetworkButton(context),
-                _buildMainContent(context),
+      backgroundColor: colors.surfacePage,
+      body: SafeArea(
+        child: Column(
+          children: [
+            AppNavBar(
+              automaticallyImplyLeading: false,
+              trailing: [
+                AppIconButton(
+                  icon: AppIcons.globe,
+                  semanticLabel: context.l10n.onboarding_networkSettings,
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const NetworkSettingsPage(),
+                    ),
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNetworkButton(BuildContext context) {
-    return Positioned(
-      top: 16,
-      right: 16,
-      child: FadeTransition(
-        opacity: _fadeAnimations[0],
-        child: AmbientIconButton(
-          icon: Symbols.network_check_rounded,
-          tooltip: context.l10n.onboarding_networkSettings,
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const NetworkSettingsPage()),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMainContent(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Spacer(flex: 3),
-            
-            // Logo - Floating without background
-            _AnimatedEntry(
-              fadeAnimation: _fadeAnimations[0],
-              slideAnimation: _slideAnimations[0],
-              child: const FloatingLogo(),
-            ),
-            
-            const SizedBox(height: 48),
-            
-            // Title - Clean and Premium
-            _AnimatedEntry(
-              fadeAnimation: _fadeAnimations[1],
-              slideAnimation: _slideAnimations[1],
-              child: Text(
-                'USCard Forum',
-                style: theme.textTheme.displayMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -1.5,
-                  color: theme.colorScheme.onSurface,
-                  height: 1.0,
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpace.pageMargin,
                 ),
-              ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Slogan - Elegant Typography
-            _AnimatedEntry(
-              fadeAnimation: _fadeAnimations[2],
-              slideAnimation: _slideAnimations[2],
-              child: Text(
-                context.l10n.onboarding_slogan,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha:0.8),
-                  letterSpacing: 2.0,
-                  fontWeight: FontWeight.w400,
-                  height: 1.5,
-                ),
-              ),
-            ),
-            
-            const Spacer(flex: 4),
-            
-            // Login Button - Modern Pill Shape
-            _AnimatedEntry(
-              fadeAnimation: _fadeAnimations[3],
-              slideAnimation: _slideAnimations[3],
-              child: FilledButton(
-                onPressed: () => _navigateToLogin(context),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
-                  ),
-                  elevation: 0,
-                  backgroundColor: theme.colorScheme.primary,
-                  foregroundColor: theme.colorScheme.onPrimary,
-                ).copyWith(
-                  shadowColor: MaterialStateProperty.all(
-                    theme.colorScheme.primary.withValues(alpha:0.4),
-                  ),
-                  elevation: MaterialStateProperty.resolveWith((states) {
-                    if (states.contains(MaterialState.pressed)) return 2;
-                    return 8; // Soft glow shadow
-                  }),
-                ),
-                child: Text(
-                  context.l10n.common_login,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 1.0,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 440),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: AppSpace.xxl),
+                        const AppMark(size: 96),
+                        const SizedBox(height: AppSpace.xl),
+                        Semantics(
+                          header: true,
+                          child: Text(
+                            '美卡论坛',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.headlineSmall
+                                ?.merge(tokens.text.title)
+                                .copyWith(color: colors.textPrimary),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpace.s),
+                        Text(
+                          context.l10n.onboarding_slogan,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodySmall
+                              ?.merge(tokens.text.meta)
+                              .copyWith(color: colors.textMeta),
+                        ),
+                        const SizedBox(height: AppSpace.x32),
+                        const _Point(
+                          icon: AppIcons.visibility,
+                          title: '不登录也能浏览',
+                          body: '公开话题可直接阅读，登录后才能回复和收藏。',
+                        ),
+                        const _Point(
+                          icon: AppIcons.globe,
+                          title: '连不上就先设置网络',
+                          body: '右上角可以配置代理或 DNS。',
+                        ),
+                        const _Point(
+                          icon: AppIcons.lock,
+                          title: '笔记和统计只在本机',
+                          body: '不会上传到论坛。',
+                        ),
+                        const SizedBox(height: AppSpace.l),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-            
-            const SizedBox(height: 20),
-            
-            // Guest Button - Subtle
-            _AnimatedEntry(
-              fadeAnimation: _fadeAnimations[4],
-              slideAnimation: _slideAnimations[4],
-              child: TextButton(
-                onPressed: () => _continueAsGuest(context),
-                style: TextButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
-                  ),
-                  foregroundColor: theme.colorScheme.onSurfaceVariant,
-                ),
-                child: Text(
-                  context.l10n.onboarding_guestAccess,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.5,
-                  ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpace.pageMargin,
+                AppSpace.s,
+                AppSpace.pageMargin,
+                AppSpace.l,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    FilledButton(
+                      onPressed: () => _navigateToLogin(context),
+                      style: large,
+                      child: Text(context.l10n.common_login),
+                    ),
+                    const SizedBox(height: AppSpace.xs),
+                    TextButton(
+                      onPressed: () => _continueAsGuest(context),
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(
+                          double.infinity,
+                          AppSize.replyButton,
+                        ),
+                      ),
+                      child: Text(context.l10n.onboarding_guestAccess),
+                    ),
+                  ],
                 ),
               ),
             ),
-            
-            const Spacer(),
           ],
         ),
       ),
@@ -254,24 +188,53 @@ class _OnboardingPageState extends State<OnboardingPage> with TickerProviderStat
   }
 }
 
-class _AnimatedEntry extends StatelessWidget {
-  final Animation<double> fadeAnimation;
-  final Animation<Offset> slideAnimation;
-  final Widget child;
+/// 一条说明：图标 20 brand + 标题 17 + 说明 13
+class _Point extends StatelessWidget {
+  const _Point({required this.icon, required this.title, required this.body});
 
-  const _AnimatedEntry({
-    required this.fadeAnimation,
-    required this.slideAnimation,
-    required this.child,
-  });
+  final IconData icon;
+  final String title;
+  final String body;
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: fadeAnimation,
-      child: SlideTransition(
-        position: slideAnimation,
-        child: child,
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpace.m),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(icon, size: AppSize.iconM, color: colors.brandPrimary),
+          ),
+          const SizedBox(width: AppSpace.m),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.bodyLarge
+                      ?.merge(tokens.text.control)
+                      .copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const SizedBox(height: AppSpace.xs),
+                Text(
+                  body,
+                  style: theme.textTheme.bodySmall
+                      ?.merge(tokens.text.meta)
+                      .copyWith(color: colors.textMeta),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,6 +1,8 @@
 import '../constants.dart';
+
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/s.dart';
@@ -12,13 +14,11 @@ import '../services/network/cookie/boundary_sync_service.dart';
 import '../services/network/cookie/cookie_jar_service.dart';
 import '../services/toast_service.dart';
 import '../services/user_api_key_login_flow.dart';
-import '../utils/blur_config.dart';
 import '../widgets/auth/webview_login_dialog.dart';
 import '../widgets/auth/login_form.dart';
+import '../widgets/common/app_mark.dart';
+import 'network_settings_page/network_settings_page.dart';
 import '../widgets/auth/two_factor_dialog.dart';
-import '../widgets/common/ambient_background.dart';
-import '../widgets/common/floating_logo.dart';
-import 'package:m3e_ui/m3e_ui.dart';
 import 'qr_login_scan_page.dart';
 import 'webview_login_page.dart';
 
@@ -40,66 +40,61 @@ import 'webview_login_page.dart';
 /// 上游 linux.do 的 hcaptcha sitekey 写死, 只在启用 hCaptcha 的站点配置下使用;
 /// 后续可从 PreloadedDataService 动态拿。
 const String _kLinuxDoHcaptchaSiteKey = 'a776b4ac-8c4c-441e-986a-c6ee9ed8cf08';
+
+/// 登录页依赖的外部服务。生产环境全部用默认实现；测试里注入假的，
+/// 这样不碰钥匙串、WebView 和论坛。
+class LoginPageServices {
+  const LoginPageServices({
+    this.loadCredentials,
+    this.clearCredentials,
+    this.submit,
+  });
+
+  /// 读已保存的账号密码
+  final Future<({String? username, String? password})> Function()?
+  loadCredentials;
+
+  /// 清除已保存的账号密码
+  final Future<void> Function()? clearCredentials;
+
+  /// 表单提交（默认走 WebView 登录对话框全流程）
+  final Future<bool> Function({
+    required String identifier,
+    required String password,
+    required bool rememberCredentials,
+  })?
+  submit;
+}
+
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({super.key, this.services});
+
+  final LoginPageServices? services;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage>
-    with TickerProviderStateMixin {
+class _LoginPageState extends State<LoginPage> {
   String? _savedUsername;
   String? _savedPassword;
   bool _credentialsLoaded = false;
   bool _browserAuthLaunching = false;
 
-  late final AnimationController _entryController;
-  final List<Animation<double>> _fade = [];
-  final List<Animation<Offset>> _slide = [];
-
   @override
   void initState() {
     super.initState();
-    _setupEntryAnimations();
     _loadSavedCredentials();
-  }
-
-  /// staggered 入场动画 (对齐 onboarding 的节奏)
-  void _setupEntryAnimations() {
-    _entryController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    );
-    for (var i = 0; i < 5; i++) {
-      final start = i * 0.12;
-      final end = (start + 0.6).clamp(0.0, 1.0);
-      _fade.add(
-        Tween<double>(begin: 0, end: 1).animate(
-          CurvedAnimation(
-            parent: _entryController,
-            curve: Interval(start, end, curve: Curves.easeOut),
-          ),
-        ),
-      );
-      _slide.add(
-        Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _entryController,
-            curve: Interval(start, end, curve: Curves.easeOutCubic),
-          ),
-        ),
-      );
-    }
-    _entryController.forward();
   }
 
   @override
   void dispose() {
-    if (identical(UserApiKeyLoginFlow.instance.onFlowFinished, _onBrowserAuthFinished)) {
+    if (identical(
+      UserApiKeyLoginFlow.instance.onFlowFinished,
+      _onBrowserAuthFinished,
+    )) {
       UserApiKeyLoginFlow.instance.onFlowFinished = null;
     }
-    _entryController.dispose();
     super.dispose();
   }
 
@@ -129,7 +124,9 @@ class _LoginPageState extends State<LoginPage>
 
   Future<void> _loadSavedCredentials() async {
     try {
-      final saved = await CredentialStoreService().load();
+      final saved =
+          await (widget.services?.loadCredentials ??
+              CredentialStoreService().load)();
       if (!mounted) return;
       setState(() {
         _savedUsername = saved.username;
@@ -213,9 +210,7 @@ class _LoginPageState extends State<LoginPage>
       hcaptchaCreateEndpoint: hcaptchaEndpoint,
       onNeedSecondFactor: (need) => showTwoFactorDialog(
         context,
-        hint: need.totpEnabled
-            ? '请输入身份验证器 App 显示的 6 位验证码'
-            : '此账号需要二步验证',
+        hint: need.totpEnabled ? '请输入身份验证器 App 显示的 6 位验证码' : '此账号需要二步验证',
         onUseBackupCode: () => _loginWithWebView(),
       ),
     );
@@ -256,8 +251,7 @@ class _LoginPageState extends State<LoginPage>
     final msg = switch (f.kind) {
       LoginErrorKind.invalidCredentials => '用户名或密码错误',
       LoginErrorKind.secondFactorRequired => f.message ?? '二步验证失败',
-      LoginErrorKind.notActivated =>
-        '账号未激活,请到邮箱 ${f.sentToEmail ?? ''} 完成激活',
+      LoginErrorKind.notActivated => '账号未激活,请到邮箱 ${f.sentToEmail ?? ''} 完成激活',
       LoginErrorKind.notApproved => '账号尚未通过审核',
       LoginErrorKind.passwordExpired => '密码已过期,请用浏览器登录重设密码',
       LoginErrorKind.network => f.message ?? '网络异常',
@@ -278,7 +272,8 @@ class _LoginPageState extends State<LoginPage>
   }
 
   Future<void> _clearSavedCredentials() async {
-    await CredentialStoreService().clear();
+    await (widget.services?.clearCredentials ??
+        CredentialStoreService().clear)();
     if (!mounted) return;
     setState(() {
       _savedUsername = null;
@@ -289,226 +284,149 @@ class _LoginPageState extends State<LoginPage>
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
 
+    // v2 登录（设计说明 §5.4）：导航左返回 / 右网络设置；App 图标 64；
+    // 分组输入；主按钮 48；「或」分隔；次按钮 48；文字按钮；页脚说明。无极光背景。
     return Scaffold(
-      body: Stack(
-        children: [
-          const AmbientBackground(),
-          SafeArea(
-            child: Stack(
-              children: [
-                // 左上返回
-                Positioned(
-                  top: 4,
-                  left: 4,
-                  child: _entry(
-                    0,
-                    AmbientIconButton(
-                      icon: Symbols.arrow_back_rounded,
-                      tooltip: '返回',
-                      onPressed: () => Navigator.of(context).maybePop(),
-                    ),
-                  ),
-                ),
-                // 右上清除保存的账号
+      backgroundColor: colors.surfacePage,
+      body: SafeArea(
+        child: Column(
+          children: [
+            AppNavBar(
+              slotWidth: 100,
+              trailing: [
                 if (_credentialsLoaded && _savedUsername != null)
-                  Positioned(
-                    top: 4,
-                    right: 4,
-                    child: _entry(
-                      0,
-                      AmbientIconButton(
-                        icon: Symbols.delete_rounded,
-                        tooltip: '清除保存的账号',
-                        onPressed: _clearSavedCredentials,
-                      ),
-                    ),
+                  AppIconButton(
+                    icon: AppIcons.delete,
+                    semanticLabel: '清除保存的账号',
+                    onPressed: _clearSavedCredentials,
                   ),
-                // 主内容
-                Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 28,
-                      vertical: 32,
-                    ),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 440),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _entry(
-                            0,
-                            const Center(
-                              child: FloatingLogo(size: 88, glowSize: 80),
-                            ),
-                          ),
-                          const SizedBox(height: 28),
-                          _entry(
-                            1,
-                            Text(
-                              '美卡论坛',
-                              textAlign: TextAlign.center,
-                              style: theme.textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.5,
-                                color: scheme.onSurface,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          _entry(
-                            2,
-                            Text(
-                              context.l10n.login_slogan,
-                              textAlign: TextAlign.center,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: scheme.onSurfaceVariant.withValues(
-                                  alpha: 0.85,
-                                ),
-                                letterSpacing: 2,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          _entry(3, _buildFormCard(theme, scheme)),
-                          const SizedBox(height: 24),
-                          _entry(4, _buildAltLogin(context, scheme)),
-                        ],
-                      ),
+                AppIconButton(
+                  icon: AppIcons.globe,
+                  semanticLabel: '网络设置',
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const NetworkSettingsPage(),
                     ),
                   ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// staggered 入场包装 (index 对应 _fade/_slide)
-  Widget _entry(int i, Widget child) {
-    return FadeTransition(
-      opacity: _fade[i],
-      child: SlideTransition(position: _slide[i], child: child),
-    );
-  }
-
-  /// 磨砂玻璃表单卡片
-  Widget _buildFormCard(ThemeData theme, ColorScheme scheme) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(
-              alpha: theme.brightness == Brightness.dark ? 0.4 : 0.1,
-            ),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: createBlurFilter(blurSigma),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainer.withValues(alpha: 0.72),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: scheme.outlineVariant.withValues(alpha: 0.4),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpace.pageMargin,
+                  AppSpace.xxl,
+                  AppSpace.pageMargin,
+                  AppSpace.x32,
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 440),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Center(child: AppMark(size: 64)),
+                        const SizedBox(height: AppSpace.l),
+                        Semantics(
+                          header: true,
+                          child: Text(
+                            '登录美卡论坛',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.titleLarge
+                                ?.merge(tokens.text.title)
+                                .copyWith(color: colors.textPrimary),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpace.xs),
+                        Text(
+                          context.l10n.login_slogan,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodySmall
+                              ?.merge(tokens.text.meta)
+                              .copyWith(color: colors.textMeta),
+                        ),
+                        const SizedBox(height: AppSpace.xxl),
+                        if (!_credentialsLoaded)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 48),
+                            child: Center(
+                              child: CircularProgressIndicator.adaptive(),
+                            ),
+                          )
+                        else
+                          LoginForm(
+                            onSubmit: widget.services?.submit ?? _handleSubmit,
+                            onForgotPassword: () => _loginWithWebView(
+                              '${AppConstants.baseUrl}/password-reset',
+                            ),
+                            savedUsername: _savedUsername,
+                            savedPassword: _savedPassword,
+                          ),
+                        const SizedBox(height: AppSpace.l),
+                        _buildAltLogin(context),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
-            child: !_credentialsLoaded
-                ? const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 48),
-                    child: Center(child: LoadingSpinner(size: 40)),
-                  )
-                : LoginForm(
-                    onSubmit: _handleSubmit,
-                    onForgotPassword: () =>
-                        _loginWithWebView('${AppConstants.baseUrl}/password-reset'),
-                    savedUsername: _savedUsername,
-                    savedPassword: _savedPassword,
-                  ),
-          ),
+          ],
         ),
       ),
     );
   }
 
-  /// 分割线 + 其他方式登录 (扫码 / 浏览器授权 / OAuth 等)
-  Widget _buildAltLogin(BuildContext context, ColorScheme scheme) {
+  /// 「或」分隔 + 次按钮（浏览器授权 / 扫码）+ 文字按钮 + 页脚说明
+  Widget _buildAltLogin(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     final theme = Theme.of(context);
+    final secondary = AppButtonStyles.secondary(context).merge(
+      FilledButton.styleFrom(
+        minimumSize: const Size(double.infinity, AppSize.replyButton),
+        iconColor: colors.textPrimary,
+      ),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const _DividerWithLabel(label: '或'),
-        const SizedBox(height: 16),
-        OutlinedButton.icon(
-          onPressed: _loginWithQrScan,
-          icon: const Icon(Symbols.qr_code_scanner_rounded, size: 20),
-          label: Text(context.l10n.login_scanToLogin),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 52),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
-            ),
-            side: BorderSide(
-              color: scheme.outlineVariant.withValues(alpha: 0.6),
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        OutlinedButton.icon(
+        const SizedBox(height: AppSpace.l),
+        FilledButton.icon(
           onPressed: _browserAuthLaunching ? null : _loginWithBrowserAuth,
           icon: _browserAuthLaunching
               ? const SizedBox(
                   width: 20,
                   height: 20,
-                  child: LoadingSpinner(size: 20),
+                  child: CircularProgressIndicator.adaptive(strokeWidth: 2),
                 )
-              : const Icon(Symbols.verified_user_rounded, size: 20),
-          label: const Text('浏览器授权登录'),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 52),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
-            ),
-            side: BorderSide(
-              color: scheme.outlineVariant.withValues(alpha: 0.6),
-            ),
-          ),
+              : const Icon(AppIcons.openInNew, size: AppSize.iconM),
+          label: const Text('用浏览器授权登录'),
+          style: secondary,
         ),
-        const SizedBox(height: 10),
-        OutlinedButton.icon(
+        const SizedBox(height: AppSpace.s),
+        FilledButton.icon(
+          onPressed: _loginWithQrScan,
+          icon: const Icon(AppIcons.qrCode, size: AppSize.iconM),
+          label: Text(context.l10n.login_scanToLogin),
+          style: secondary,
+        ),
+        const SizedBox(height: AppSpace.s),
+        TextButton(
           onPressed: () => _loginWithWebView(),
-          icon: const Icon(Symbols.open_in_browser_rounded, size: 20),
-          label: const Text('其他方式登录 (OAuth / Passkey / 注册)'),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 52),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
-            ),
-            side: BorderSide(
-              color: scheme.outlineVariant.withValues(alpha: 0.6),
-            ),
-          ),
+          child: const Text('其他方式（OAuth / Passkey / 注册）'),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpace.s),
         Text(
           context.l10n.login_browserHint,
           textAlign: TextAlign.center,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
-          ),
+          style: theme.textTheme.bodySmall
+              ?.merge(tokens.text.meta)
+              .copyWith(color: colors.textMeta),
         ),
       ],
     );
@@ -516,9 +434,8 @@ class _LoginPageState extends State<LoginPage>
 
   /// 扫码登录:跳转扫码页,成功后 pop 登录页
   Future<void> _loginWithQrScan() async {
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => const QrLoginScanPage()),
-    );
+    final result = await Navigator.of(context)
+        .push<bool>(MaterialPageRoute(builder: (_) => const QrLoginScanPage()));
     if (result == true && mounted) {
       Navigator.of(context).pop(true);
     }
@@ -533,17 +450,17 @@ class _DividerWithLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Expanded(child: Divider()),
+        const Expanded(child: AppHairline()),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpace.m),
           child: Text(
             label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+            style: Theme.of(context).textTheme.bodySmall
+                ?.merge(context.tokens.text.meta)
+                .copyWith(color: context.tokens.colors.textMeta),
           ),
         ),
-        const Expanded(child: Divider()),
+        const Expanded(child: AppHairline()),
       ],
     );
   }

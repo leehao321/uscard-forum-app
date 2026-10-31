@@ -4,6 +4,7 @@
 /// 支持 ENC1（自动识别内嵌算法）/ OpenSSL Salted / 裸 base64 / 编码文本。
 library;
 
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter/services.dart';
@@ -189,7 +190,7 @@ class _CryptoDecryptSheetState extends ConsumerState<CryptoDecryptSheet> {
             child: FilledButton.icon(
               key: const ValueKey('crypto-decrypt-action'),
               onPressed: _decrypt,
-              icon: const Icon(Icons.lock_open_rounded, size: 18),
+              icon: const Icon(AppIcons.lockOpen, size: 18),
               label: Text(s.crypto_decrypt),
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
@@ -201,7 +202,7 @@ class _CryptoDecryptSheetState extends ConsumerState<CryptoDecryptSheet> {
             const SizedBox(height: 12),
             _buildMessageCard(
               theme,
-              icon: Icons.error_outline_rounded,
+              icon: AppIcons.error,
               color: theme.colorScheme.error,
               text: _error!,
             ),
@@ -280,12 +281,12 @@ class _CryptoDecryptSheetState extends ConsumerState<CryptoDecryptSheet> {
               decoration: cryptoSheetInputDecoration(
                 theme,
                 labelText: s.crypto_password,
-                prefixIcon: const Icon(Icons.key_rounded, size: 18),
+                prefixIcon: const Icon(AppIcons.key, size: 18),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
+                        ? AppIcons.visibility
+                        : AppIcons.visibilityOff,
                   ),
                   onPressed: () => setState(
                       () => _obscurePassword = !_obscurePassword),
@@ -356,7 +357,7 @@ class _CryptoDecryptSheetState extends ConsumerState<CryptoDecryptSheet> {
             padding: const EdgeInsets.only(top: 4),
             child: _buildMessageCard(
               theme,
-              icon: Icons.info_outline_rounded,
+              icon: AppIcons.info,
               color: theme.colorScheme.tertiary,
               text: s.crypto_hashOneWay,
             ),
@@ -403,7 +404,7 @@ class _CryptoDecryptSheetState extends ConsumerState<CryptoDecryptSheet> {
             Clipboard.setData(ClipboardData(text: result));
             ToastService.showSuccess(s.common_copiedToClipboard);
           },
-          icon: const Icon(Icons.copy_rounded, size: 18),
+          icon: const Icon(AppIcons.copy, size: 18),
           label: Text(s.common_copy),
         ),
         if (widget.onQuoteReply != null)
@@ -414,7 +415,7 @@ class _CryptoDecryptSheetState extends ConsumerState<CryptoDecryptSheet> {
               widget.onQuoteReply!.call(result);
               Navigator.of(context).pop();
             },
-            icon: const Icon(Icons.format_quote_rounded, size: 18),
+            icon: const Icon(AppIcons.formatQuote, size: 18),
             label: Text(s.crypto_quoteReply),
           ),
       ],

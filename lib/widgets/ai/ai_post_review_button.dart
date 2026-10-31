@@ -110,7 +110,8 @@ class AiPostReviewButton extends ConsumerStatefulWidget {
     BuildContext anchorContext,
     bool isReviewing,
     VoidCallback? trigger,
-  )? builder;
+  )?
+  builder;
 
   @override
   ConsumerState<AiPostReviewButton> createState() => _AiPostReviewButtonState();
@@ -426,7 +427,7 @@ class _AiPostReviewPopover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final result = cached.result;
-    final tone = _toneFor(result.level);
+    final tone = _toneFor(context, result.level);
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 360, maxHeight: 500),
       child: SingleChildScrollView(
@@ -447,14 +448,14 @@ class _AiPostReviewPopover extends StatelessWidget {
             if (isStaleForCurrentInput) ...[
               const SizedBox(height: 10),
               _NoticeBox(
-                icon: Symbols.history_rounded,
+                icon: AppIcons.history,
                 text: context.l10n.aiPostReview_previousResultNotice,
               ),
             ],
             if (result.usedCachedGuidelines) ...[
               const SizedBox(height: 12),
               _NoticeBox(
-                icon: Symbols.info_rounded,
+                icon: AppIcons.info,
                 text: context.l10n.aiPostReview_cachedGuidelines,
               ),
             ],
@@ -466,7 +467,7 @@ class _AiPostReviewPopover extends StatelessWidget {
               child: FilledButton.icon(
                 style: AppButtonStyles.secondary(context),
                 onPressed: onReviewAgain,
-                icon: const Icon(Symbols.refresh_rounded, size: 18),
+                icon: const Icon(AppIcons.refresh, size: 18),
                 label: Text(context.l10n.aiPostReview_reviewAgain),
               ),
             ),
@@ -476,19 +477,21 @@ class _AiPostReviewPopover extends StatelessWidget {
     );
   }
 
-  _ReviewTone _toneFor(AiPostReviewLevel level) {
+  // v2 只有 11 色：低风险用 brand，中风险用 meta，高风险用 destructive
+  _ReviewTone _toneFor(BuildContext context, AiPostReviewLevel level) {
+    final colors = context.tokens.colors;
     return switch (level) {
-      AiPostReviewLevel.low => const _ReviewTone(
-        color: Color(0xFF2E7D32),
-        icon: Symbols.check_circle_rounded,
+      AiPostReviewLevel.low => _ReviewTone(
+        color: colors.brandPrimary,
+        icon: AppIcons.checkCircle,
       ),
-      AiPostReviewLevel.medium => const _ReviewTone(
-        color: Color(0xFFF57C00),
-        icon: Symbols.error_rounded,
+      AiPostReviewLevel.medium => _ReviewTone(
+        color: colors.textMeta,
+        icon: AppIcons.error,
       ),
-      AiPostReviewLevel.high => const _ReviewTone(
-        color: Color(0xFFC62828),
-        icon: Symbols.warning_amber_rounded,
+      AiPostReviewLevel.high => _ReviewTone(
+        color: colors.textDestructive,
+        icon: AppIcons.warning,
       ),
     };
   }
@@ -513,11 +516,7 @@ class _ModelInfoRow extends StatelessWidget {
     final theme = Theme.of(context);
     return Row(
       children: [
-        Icon(
-          Symbols.smart_toy_rounded,
-          size: 16,
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
+        Icon(AppIcons.bot, size: 16, color: theme.colorScheme.onSurfaceVariant),
         const SizedBox(width: 6),
         Expanded(
           child: Text(

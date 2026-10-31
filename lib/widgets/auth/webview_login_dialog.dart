@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -81,7 +82,7 @@ Future<WebViewLoginDialogResult?> showWebViewLoginDialog(
 }) {
   return showDialog<WebViewLoginDialogResult>(
     context: context,
-    barrierColor: Colors.black54,
+    barrierColor: AppMaterials.scrim,
     barrierDismissible: false,
     builder: (_) => _WebViewLoginDialog(
       siteKey: siteKey,
@@ -656,9 +657,8 @@ document.close();
     if (_finished) return;
     _finished = true;
     if (mounted) {
-      Navigator.of(
-        context,
-      ).pop(WebViewLoginDialogResult.failure(kind, message));
+      Navigator.of(context)
+          .pop(WebViewLoginDialogResult.failure(kind, message));
     }
   }
 
@@ -705,18 +705,15 @@ document.close();
                     height: panelHeight,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: scheme.surface,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 24,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
+                        color: context.tokens.colors.surfaceElevated,
+                        borderRadius: BorderRadius.circular(
+                          context.tokens.radius.sheet,
+                        ),
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(
+                          context.tokens.radius.sheet,
+                        ),
                         child: Column(
                           children: [
                             _Header(onClose: _finishCanceled, scheme: scheme),
@@ -803,31 +800,26 @@ document.close();
                                   if (_loading)
                                     Positioned.fill(
                                       child: ColoredBox(
-                                        color: scheme.surface,
+                                        color: context
+                                            .tokens
+                                            .colors
+                                            .surfaceElevated,
                                         child: const Center(
-                                          child: CircularProgressIndicator(),
+                                          child:
+                                              CircularProgressIndicator.adaptive(),
                                         ),
                                       ),
                                     ),
                                   if (_processing)
                                     Positioned.fill(
                                       child: ColoredBox(
-                                        color: scheme.surface.withValues(
-                                          alpha: 0.92,
-                                        ),
-                                        child: Center(
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const CircularProgressIndicator(),
-                                              const SizedBox(height: 16),
-                                              Text(
-                                                '正在登录…',
-                                                style:
-                                                    theme.textTheme.bodyMedium,
-                                              ),
-                                            ],
-                                          ),
+                                        color: context
+                                            .tokens
+                                            .colors
+                                            .surfaceElevated
+                                            .withValues(alpha: 0.92),
+                                        child: const Center(
+                                          child: WaitingHint(label: '正在登录…'),
                                         ),
                                       ),
                                     ),
@@ -857,32 +849,39 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+      height: AppSize.navBar,
+      padding: const EdgeInsets.only(left: AppSpace.l, right: AppSpace.xs),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(
-            color: scheme.outlineVariant.withValues(alpha: 0.5),
-          ),
+          bottom: BorderSide(color: colors.separator, width: AppSpace.hairline),
         ),
       ),
       child: Row(
         children: [
-          Icon(Symbols.verified_user_rounded, size: 20, color: scheme.primary),
-          const SizedBox(width: 8),
+          Icon(
+            AppIcons.verifiedUser,
+            size: AppSize.iconM,
+            color: colors.brandPrimary,
+          ),
+          const SizedBox(width: AppSpace.s),
           Expanded(
             child: Text(
               '完成人机验证',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(context).textTheme.bodyLarge
+                  ?.merge(tokens.text.control)
+                  .copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colors.textPrimary,
+                  ),
             ),
           ),
-          IconButton(
-            icon: const Icon(Symbols.close_rounded, size: 22),
-            tooltip: '取消',
+          AppIconButton(
+            icon: AppIcons.close,
+            semanticLabel: '取消',
             onPressed: onClose,
-            visualDensity: VisualDensity.compact,
           ),
         ],
       ),

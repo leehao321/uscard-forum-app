@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../l10n/s.dart';
 import '../pages/about_page.dart';
 import '../pages/network_settings_page/network_settings_page.dart';
@@ -16,9 +17,8 @@ import '../services/log/log_writer.dart';
 import '../services/migration_service.dart';
 import '../utils/app_version.dart';
 import '../utils/dialog_utils.dart';
-import '../widgets/common/ambient_background.dart';
+import '../widgets/common/app_mark.dart';
 import '../widgets/common/error_view.dart';
-import 'preheat_logo.dart';
 
 class PreheatGate extends StatefulWidget {
   final Widget child;
@@ -195,32 +195,18 @@ class _PreheatLoadingState extends State<_PreheatLoading> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final hasAcrylic = Platform.isMacOS || Platform.isWindows;
 
+    // v2 预热页：App 图标 96 居中（静态，D23）+ 版本号 13 meta；10 秒后出现「跳过」
     return Scaffold(
-      backgroundColor: hasAcrylic ? Colors.transparent : colorScheme.surface,
+      backgroundColor: hasAcrylic ? Colors.transparent : colors.surfacePage,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                PreheatLogo(style: widget.iconStyle, size: 128),
-                const SizedBox(height: 24),
-                Text(
-                  'USCard Forum',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    color: colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const Center(child: AppMark(size: 96)),
           Positioned(
             left: 0,
             right: 0,
@@ -242,26 +228,19 @@ class _PreheatLoadingState extends State<_PreheatLoading> {
                         curve: Curves.easeOutCubic,
                         child: TextButton(
                           onPressed: widget.onSkip,
-                          child: Text(
-                            context.l10n.common_skip,
-                            style: TextStyle(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
+                          child: Text(context.l10n.common_skip),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpace.s),
                   Text(
                     _version != null ? 'v$_version' : '',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant.withValues(
-                        alpha: 0.6,
-                      ),
-                    ),
+                    style: theme.textTheme.bodySmall
+                        ?.merge(tokens.text.meta)
+                        .copyWith(color: colors.textMeta),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpace.l),
                 ],
               ),
             ),
@@ -279,15 +258,13 @@ class _PreheatFailed extends StatelessWidget {
   const _PreheatFailed({super.key, required this.onRetry, this.error});
 
   void _openAbout(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const AboutPage()));
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const AboutPage()));
   }
 
   void _openNetworkSettings(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const NetworkSettingsPage()));
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const NetworkSettingsPage()));
   }
 
   Future<void> _confirmLogout(BuildContext context) async {
@@ -324,36 +301,34 @@ class _PreheatFailed extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colors = context.tokens.colors;
     final hasAcrylic = Platform.isMacOS || Platform.isWindows;
 
     return Scaffold(
-      backgroundColor: hasAcrylic ? Colors.transparent : colorScheme.surface,
+      backgroundColor: hasAcrylic ? Colors.transparent : colors.surfacePage,
       body: SafeArea(
         child: Stack(
           children: [
-            // 右上角：关于 + 网络设置 + 退出登录
+            // 右上角：网络设置 + 关于 + 退出登录（各 44）
             Positioned(
-              top: 16,
-              right: 16,
+              top: AppSpace.s,
+              right: AppSpace.xs,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  AmbientIconButton(
-                    icon: Symbols.info_rounded,
-                    tooltip: context.l10n.common_about,
-                    onPressed: () => _openAbout(context),
-                  ),
-                  const SizedBox(width: 8),
-                  AmbientIconButton(
-                    icon: Symbols.network_check_rounded,
-                    tooltip: context.l10n.preheat_networkSettings,
+                  AppIconButton(
+                    icon: AppIcons.globe,
+                    semanticLabel: context.l10n.preheat_networkSettings,
                     onPressed: () => _openNetworkSettings(context),
                   ),
-                  const SizedBox(width: 8),
-                  AmbientIconButton(
-                    icon: Symbols.logout_rounded,
-                    tooltip: context.l10n.common_logout,
+                  AppIconButton(
+                    icon: AppIcons.info,
+                    semanticLabel: context.l10n.common_about,
+                    onPressed: () => _openAbout(context),
+                  ),
+                  AppIconButton(
+                    icon: AppIcons.logout,
+                    semanticLabel: context.l10n.common_logout,
                     onPressed: () => _confirmLogout(context),
                   ),
                 ],

@@ -4,6 +4,7 @@
 /// 对称算法输出 ENC1（默认）或 OpenSSL 兼容格式；编码/哈希/经典直接输出。
 library;
 
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter/services.dart';
@@ -173,7 +174,7 @@ class _CryptoEncryptSheetState extends ConsumerState<CryptoEncryptSheet> {
             decoration: cryptoSheetInputDecoration(
               theme,
               labelText: s.crypto_plaintext,
-              prefixIcon: const Icon(Icons.edit_note_rounded, size: 20),
+              prefixIcon: const Icon(AppIcons.note, size: 20),
             ),
           ),
           const SizedBox(height: 12),
@@ -197,7 +198,7 @@ class _CryptoEncryptSheetState extends ConsumerState<CryptoEncryptSheet> {
             child: FilledButton.icon(
               key: const ValueKey('crypto-encrypt-action'),
               onPressed: _encrypt,
-              icon: const Icon(Icons.key_rounded, size: 18),
+              icon: const Icon(AppIcons.key, size: 18),
               label: Text(s.crypto_encrypt),
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
@@ -253,12 +254,12 @@ class _CryptoEncryptSheetState extends ConsumerState<CryptoEncryptSheet> {
               decoration: cryptoSheetInputDecoration(
                 theme,
                 labelText: s.crypto_password,
-                prefixIcon: const Icon(Icons.key_rounded, size: 18),
+                prefixIcon: const Icon(AppIcons.key, size: 18),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
+                        ? AppIcons.visibility
+                        : AppIcons.visibilityOff,
                   ),
                   onPressed: () => setState(
                       () => _obscurePassword = !_obscurePassword),
@@ -352,7 +353,7 @@ class _CryptoEncryptSheetState extends ConsumerState<CryptoEncryptSheet> {
                 children: [
                   if (selected) ...[
                     Icon(
-                      Icons.check_circle_rounded,
+                      AppIcons.checkCircle,
                       size: 16,
                       color: theme.colorScheme.primary,
                     ),
@@ -442,13 +443,13 @@ class _CryptoEncryptSheetState extends ConsumerState<CryptoEncryptSheet> {
             Clipboard.setData(ClipboardData(text: result));
             ToastService.showSuccess(s.common_copiedToClipboard);
           },
-          icon: const Icon(Icons.copy_rounded, size: 18),
+          icon: const Icon(AppIcons.copy, size: 18),
           label: Text(s.common_copy),
         ),
         FilledButton.icon(
           key: const ValueKey('crypto-encrypt-use'),
           onPressed: () => Navigator.of(context).pop(result),
-          icon: const Icon(Icons.check_rounded, size: 18),
+          icon: const Icon(AppIcons.check, size: 18),
           label: Text(s.crypto_insertToEditor),
         ),
       ],
@@ -457,7 +458,7 @@ class _CryptoEncryptSheetState extends ConsumerState<CryptoEncryptSheet> {
 
   Widget _buildErrorCard(ThemeData theme, String text) {
     return CryptoSheetMessageCard(
-      icon: Icons.error_outline_rounded,
+      icon: AppIcons.error,
       color: theme.colorScheme.error,
       text: text,
     );

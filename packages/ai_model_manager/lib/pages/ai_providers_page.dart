@@ -31,7 +31,7 @@ class AiProvidersPage extends ConsumerWidget {
             children: [
               // 供应商管理
               _SettingsEntry(
-                icon: Symbols.dns_rounded,
+                icon: AppIcons.server,
                 title: AiL10n.current.addProvider.replaceAll('添加', '').trim().isEmpty
                     ? 'Providers'
                     : AiL10n.current.addProvider.replaceAll('添加', '').trim(),
@@ -46,7 +46,7 @@ class AiProvidersPage extends ConsumerWidget {
               // 模型配置
               if (hasModels)
                 _SettingsEntry(
-                  icon: Symbols.tune_rounded,
+                  icon: AppIcons.tune,
                   title: AiL10n.current.modelConfig,
                   onTap: () => Navigator.push(
                     context,
@@ -56,7 +56,7 @@ class AiProvidersPage extends ConsumerWidget {
                 ),
               // 聊天记录
               _SettingsEntry(
-                icon: Symbols.history_rounded,
+                icon: AppIcons.history,
                 title: AiL10n.current.chatHistory,
                 onTap: () => Navigator.push(
                   context,
@@ -68,7 +68,7 @@ class AiProvidersPage extends ConsumerWidget {
               ),
               // 快捷词管理
               _SettingsEntry(
-                icon: Symbols.flash_on_rounded,
+                icon: AppIcons.zap,
                 title: AiL10n.current.quickPromptsManageTitle,
                 subtitle: AiL10n.current.quickPromptsManageHint,
                 onTap: () => Navigator.push(
@@ -79,7 +79,7 @@ class AiProvidersPage extends ConsumerWidget {
               ),
               // 高级设置
               _SettingsEntry(
-                icon: Symbols.settings_rounded,
+                icon: AppIcons.settings,
                 title: AiL10n.current.advancedSettings,
                 onTap: () => Navigator.push(
                   context,
@@ -126,7 +126,7 @@ class _SettingsEntry extends StatelessWidget {
             )
           : null,
       trailing: Icon(
-        Symbols.chevron_right_rounded,
+        AppIcons.chevronRight,
         color: theme.colorScheme.outline.withValues(alpha: 0.4),
         size: 20,
       ),

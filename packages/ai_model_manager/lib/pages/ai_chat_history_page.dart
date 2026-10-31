@@ -51,9 +51,9 @@ class _AiChatHistoryPageState extends ConsumerState<AiChatHistoryPage> {
         title: Text(AiL10n.current.sessionHistory),
         actions: [
           if (_groups.isNotEmpty)
-            IconButton(
-              icon: const Icon(Symbols.delete_sweep_rounded),
-              tooltip: AiL10n.current.clearAllConversations,
+            AppIconButton(
+              icon: AppIcons.delete,
+              semanticLabel: AiL10n.current.clearAllConversations,
               onPressed: () => _confirmDeleteAll(context),
             ),
         ],
@@ -86,7 +86,7 @@ class _AiChatHistoryPageState extends ConsumerState<AiChatHistoryPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Symbols.chat_bubble_rounded,
+            AppIcons.chatBubble,
             size: 48,
             color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
           ),
@@ -119,7 +119,8 @@ class _AiChatHistoryPageState extends ConsumerState<AiChatHistoryPage> {
       context: context,
       builder: (ctx) => AppAlertDialog(
         title: Text(AiL10n.current.clearAllConversations),
-        content: Text(AiL10n.current.confirmDeleteAllSessions(_totalSessionCount)),
+        content:
+            Text(AiL10n.current.confirmDeleteAllSessions(_totalSessionCount)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -164,11 +165,12 @@ class _TopicGroupTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final topicTitle = group.topicTitle ?? AiL10n.current.topicWithId(group.topicId);
+    final topicTitle =
+        group.topicTitle ?? AiL10n.current.topicWithId(group.topicId);
 
     return ExpansionTile(
       leading: Icon(
-        Symbols.topic_rounded,
+        AppIcons.article,
         size: 20,
         color: theme.colorScheme.primary,
       ),
@@ -189,21 +191,21 @@ class _TopicGroupTile extends StatelessWidget {
         children: [
           IconButton(
             icon: Icon(
-              Symbols.delete_rounded,
+              AppIcons.delete,
               size: 18,
               color: theme.colorScheme.error,
             ),
             tooltip: AiL10n.current.deleteAllTopicSessions,
             onPressed: () => _confirmDeleteTopic(context, topicTitle),
           ),
-          const Icon(Symbols.expand_more_rounded, size: 20),
+          const Icon(AppIcons.expandMore, size: 20),
         ],
       ),
       children: group.sessions.map((session) {
         return ListTile(
           contentPadding: const EdgeInsets.only(left: 56, right: 16),
           leading: Icon(
-            Symbols.chat_bubble_rounded,
+            AppIcons.chatBubble,
             size: 16,
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -221,7 +223,7 @@ class _TopicGroupTile extends StatelessWidget {
           ),
           trailing: IconButton(
             icon: Icon(
-              Symbols.close_rounded,
+              AppIcons.close,
               size: 16,
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -297,7 +299,7 @@ class _MaxSessionsRow extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(Symbols.storage_rounded,
+              Icon(AppIcons.database,
                   size: 20, color: theme.colorScheme.onSurfaceVariant),
               const SizedBox(width: 12),
               Expanded(
@@ -352,7 +354,7 @@ class _MaxSessionsRow extends StatelessWidget {
               .map((v) => ListTile(
                     title: Text('$v'),
                     trailing:
-                        v == currentValue ? const Icon(Symbols.check_rounded) : null,
+                        v == currentValue ? const Icon(AppIcons.check) : null,
                     onTap: () {
                       storageService.setMaxSessions(v);
                       Navigator.pop(ctx);

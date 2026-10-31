@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/gestures.dart';
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 import 'package:video_player/video_player.dart';
@@ -417,7 +418,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
                         ? Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.close_rounded,
+                              const Icon(AppIcons.close,
                                   color: MediaOverlayStyle.foreground,
                                   size: 18),
                               const SizedBox(width: 8),
@@ -436,8 +437,8 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
                             children: [
                               Icon(
                                 _seekPreviewForward
-                                    ? Icons.fast_forward_rounded
-                                    : Icons.fast_rewind_rounded,
+                                    ? AppIcons.fastForward
+                                    : AppIcons.rewind,
                                 color: MediaOverlayStyle.foreground,
                                 size: 18,
                               ),
@@ -501,7 +502,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.history_rounded,
+                          const Icon(AppIcons.history,
                               color: Colors.white70, size: 15),
                           const SizedBox(width: 6),
                           Text(
@@ -650,8 +651,8 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
                     padding: const EdgeInsets.all(11),
                     child: Icon(
                       _locked
-                          ? Icons.lock_rounded
-                          : Icons.lock_open_rounded,
+                          ? AppIcons.lock
+                          : AppIcons.lockOpen,
                       color: MediaOverlayStyle.foreground,
                       size: 22,
                       semanticLabel: _locked
@@ -677,7 +678,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
         child: Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.arrow_back_rounded),
+              icon: const Icon(AppIcons.back),
               color: MediaOverlayStyle.foreground,
               tooltip: S.current.mediaPlayer_exitFullscreen,
               onPressed: widget.onFullscreenToggle,
@@ -711,7 +712,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
           children: [
             _CompactIconButton(
               icon: value.isCompleted && !value.isPlaying
-                  ? const Icon(Icons.replay_rounded)
+                  ? const Icon(AppIcons.refresh)
                   : AnimatedIcon(
                       icon: AnimatedIcons.play_pause,
                       progress: _playPauseIcon,
@@ -749,7 +750,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
             ],
             const SizedBox(width: 4),
             _CompactIconButton(
-              icon: const Icon(Icons.fullscreen_rounded),
+              icon: const Icon(AppIcons.maximize),
               size: 22,
               tooltip: S.current.mediaPlayer_fullscreen,
               onTap: widget.onFullscreenToggle,
@@ -834,7 +835,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
       {required double iconSize}) {
     return IconButton(
       icon: value.isCompleted && !value.isPlaying
-          ? const Icon(Icons.replay_rounded)
+          ? const Icon(AppIcons.refresh)
           : AnimatedIcon(
               icon: AnimatedIcons.play_pause,
               progress: _playPauseIcon,
@@ -881,8 +882,8 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
           IconButton(
             icon: Icon(
               value.volume > 0
-                  ? Icons.volume_up_rounded
-                  : Icons.volume_off_rounded,
+                  ? AppIcons.volumeUp
+                  : AppIcons.volumeOff,
             ),
             color: MediaOverlayStyle.foreground,
             iconSize: 22,
@@ -923,8 +924,8 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
     return IconButton(
       icon: Icon(
         widget.isFullscreen
-            ? Icons.fullscreen_exit_rounded
-            : Icons.fullscreen_rounded,
+            ? AppIcons.minimize
+            : AppIcons.maximize,
       ),
       color: MediaOverlayStyle.foreground,
       iconSize: iconSize,
@@ -1075,8 +1076,8 @@ class _CenterPlayButtonState extends State<_CenterPlayButton> {
               ),
               child: Icon(
                 widget.isCompleted
-                    ? Icons.replay_rounded
-                    : Icons.play_arrow_rounded,
+                    ? AppIcons.refresh
+                    : AppIcons.play,
                 color: MediaOverlayStyle.foreground,
                 size: expressive ? 32 : 36,
               ),
@@ -1214,7 +1215,7 @@ class _FastForwardBadge extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    Icon(Icons.fast_forward_rounded,
+                    Icon(AppIcons.fastForward,
                         color: MediaOverlayStyle.foreground, size: 16),
                   ],
                 ),

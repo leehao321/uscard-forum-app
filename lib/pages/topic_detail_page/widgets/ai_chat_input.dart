@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:ai_model_manager/ai_model_manager.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:image_picker/image_picker.dart';
+
 import '../../../l10n/s.dart';
 
 /// 输入框 onSend 回调，携带文本和可选附件
@@ -101,7 +103,9 @@ class _AiChatInputState extends State<AiChatInput> {
   void _handleSend() {
     final text = _controller.text.trim();
     if (text.isEmpty && _pendingAttachments.isEmpty) return;
-    final attachments = List<AiChatAttachment>.unmodifiable(_pendingAttachments);
+    final attachments = List<AiChatAttachment>.unmodifiable(
+      _pendingAttachments,
+    );
     widget.onSend(text, attachments);
     _controller.clear();
     setState(_pendingAttachments.clear);
@@ -118,10 +122,12 @@ class _AiChatInputState extends State<AiChatInput> {
       if (picked == null || !mounted) return;
       final bytes = await File(picked.path).readAsBytes();
       setState(() {
-        _pendingAttachments.add(AiChatAttachment(
-          mimeType: _inferMimeType(picked.path),
-          base64Data: base64Encode(bytes),
-        ));
+        _pendingAttachments.add(
+          AiChatAttachment(
+            mimeType: _inferMimeType(picked.path),
+            base64Data: base64Encode(bytes),
+          ),
+        );
       });
     } catch (_) {
       // 用户取消或权限被拒，静默处理
@@ -155,8 +161,13 @@ class _AiChatInputState extends State<AiChatInput> {
         bottom: 4 + bottomPadding,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        color: context.tokens.colors.surfaceElevated,
+        border: Border(
+          top: BorderSide(
+            color: context.tokens.colors.separator,
+            width: AppSpace.hairline,
+          ),
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -191,8 +202,9 @@ class _AiChatInputState extends State<AiChatInput> {
             decoration: InputDecoration(
               hintText: context.l10n.ai_inputHint,
               hintStyle: TextStyle(
-                color: theme.colorScheme.onSurfaceVariant
-                    .withValues(alpha: 0.5),
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.5,
+                ),
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -212,7 +224,7 @@ class _AiChatInputState extends State<AiChatInput> {
               ),
               isDense: true,
               filled: true,
-              fillColor: theme.colorScheme.surface,
+              fillColor: context.tokens.colors.surfaceGrouped,
               hoverColor: Colors.transparent,
             ),
             onChanged: (_) => setState(() {}),
@@ -234,7 +246,7 @@ class _AiChatInputState extends State<AiChatInput> {
                 icon: AnimatedRotation(
                   turns: _toolsExpanded ? 0.125 : 0,
                   duration: const Duration(milliseconds: 200),
-                  child: const Icon(Symbols.add_rounded, size: 20),
+                  child: const Icon(AppIcons.add, size: 20),
                 ),
                 tooltip: _toolsExpanded
                     ? context.l10n.common_close
@@ -251,28 +263,26 @@ class _AiChatInputState extends State<AiChatInput> {
               widget.isGenerating
                   ? IconButton.filled(
                       onPressed: widget.onStop,
-                      icon: const Icon(Symbols.stop_rounded, size: 20),
+                      icon: const Icon(AppIcons.stopSquare, size: 20),
                       style: IconButton.styleFrom(
-                        backgroundColor: theme.colorScheme.errorContainer,
-                        foregroundColor: theme.colorScheme.onErrorContainer,
-                        minimumSize: const Size(36, 36),
+                        backgroundColor: context.tokens.colors.avatarFill,
+                        foregroundColor: context.tokens.colors.textDestructive,
+                        minimumSize: const Size(AppSize.hit, AppSize.hit),
                         padding: EdgeInsets.zero,
                       ),
                       tooltip: context.l10n.ai_stopGenerate,
                     )
                   : IconButton.filled(
+                      // v2：44 圆形发送钮，brand/button 底
                       onPressed: _canSend ? _handleSend : null,
-                      icon: const Icon(Symbols.arrow_upward_rounded, size: 20),
+                      icon: const Icon(AppIcons.up, size: 20),
                       style: IconButton.styleFrom(
-                        backgroundColor: _canSend
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurface
-                                .withValues(alpha: 0.1),
-                        foregroundColor: _canSend
-                            ? theme.colorScheme.onPrimary
-                            : theme.colorScheme.onSurfaceVariant
-                                .withValues(alpha: 0.4),
-                        minimumSize: const Size(36, 36),
+                        backgroundColor: context.tokens.colors.brandButton,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor:
+                            context.tokens.colors.avatarFill,
+                        disabledForegroundColor: context.tokens.colors.textMeta,
+                        minimumSize: const Size(AppSize.hit, AppSize.hit),
                         padding: EdgeInsets.zero,
                       ),
                       tooltip: context.l10n.ai_sendTooltip,
@@ -290,7 +300,7 @@ class _AiChatInputState extends State<AiChatInput> {
                     child: Row(
                       children: [
                         _ToolCard(
-                          icon: Symbols.camera_alt_rounded,
+                          icon: AppIcons.camera,
                           label: context.l10n.ai_toolsCamera,
                           // 非多模态模型 → 视觉置灰（onTap 也是 null 不响应）
                           dimmed: !widget.allowAttachments,
@@ -303,7 +313,7 @@ class _AiChatInputState extends State<AiChatInput> {
                         ),
                         const SizedBox(width: 10),
                         _ToolCard(
-                          icon: Symbols.photo_library_rounded,
+                          icon: AppIcons.gallery,
                           label: context.l10n.ai_toolsPhotos,
                           dimmed: !widget.allowAttachments,
                           onTap: widget.allowAttachments && !widget.isGenerating
@@ -316,14 +326,14 @@ class _AiChatInputState extends State<AiChatInput> {
                         const SizedBox(width: 10),
                         _ToolCard(
                           icon: widget.isImageMode
-                              ? Symbols.brush_rounded
-                              : Symbols.brush_rounded,
+                              ? AppIcons.brush
+                              : AppIcons.brush,
                           label: widget.isImageMode
                               ? context.l10n.ai_modeBackToChat
                               : context.l10n.ai_modeSwitchToImage,
                           active: widget.isImageMode,
-                          dimmed: !widget.canEnterImageMode &&
-                              !widget.isImageMode,
+                          dimmed:
+                              !widget.canEnterImageMode && !widget.isImageMode,
                           onTap: widget.onToggleImageMode == null
                               ? null
                               : () {
@@ -368,8 +378,8 @@ class _ToolCard extends StatelessWidget {
     final fg = active
         ? theme.colorScheme.onPrimaryContainer
         : (dimmed
-            ? theme.colorScheme.onSurface.withValues(alpha: 0.4)
-            : theme.colorScheme.onSurface);
+              ? theme.colorScheme.onSurface.withValues(alpha: 0.4)
+              : theme.colorScheme.onSurface);
     return Expanded(
       child: SizedBox(
         height: 72,
@@ -432,7 +442,7 @@ class _PendingAttachmentTile extends StatelessWidget {
               customBorder: const CircleBorder(),
               child: const Padding(
                 padding: EdgeInsets.all(2),
-                child: Icon(Symbols.close_rounded, size: 12, color: Colors.white),
+                child: Icon(AppIcons.close, size: 12, color: Colors.white),
               ),
             ),
           ),
@@ -451,7 +461,9 @@ class _PendingAttachmentTile extends StatelessWidget {
           height: size,
           fit: BoxFit.cover,
         );
-      } catch (_) {/* fall through */}
+      } catch (_) {
+        /* fall through */
+      }
     }
     final localPath = attachment.localPath;
     if (localPath != null && localPath.isNotEmpty) {
@@ -466,7 +478,7 @@ class _PendingAttachmentTile extends StatelessWidget {
       width: size,
       height: size,
       color: Colors.black12,
-      child: const Icon(Symbols.image_rounded),
+      child: const Icon(AppIcons.image),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 
 import '../storage/reading_stats_store.dart';
@@ -46,19 +47,36 @@ class _ReadingStatsPageState extends State<ReadingStatsPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final muted = theme.colorScheme.onSurfaceVariant;
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final meta = theme.textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
+    final caption = theme.textTheme.labelSmall!
+        .merge(tokens.text.caption)
+        .copyWith(color: colors.textMeta);
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('阅读统计')),
-        body: const Center(child: CircularProgressIndicator()),
+        backgroundColor: colors.surfacePage,
+        body: const SafeArea(
+          child: Column(
+            children: [
+              AppNavBar(title: '阅读统计'),
+              Expanded(
+                child: Center(child: CircularProgressIndicator.adaptive()),
+              ),
+            ],
+          ),
+        ),
       );
     }
     final today = _days.last;
     final week = _days.sublist(_days.length - 7);
     Duration sum(Iterable<ReadingDay> ds) =>
         ds.fold(Duration.zero, (a, d) => a + d.duration);
-    Set<int> topics(Iterable<ReadingDay> ds) =>
-        {for (final d in ds) ...d.topics};
+    Set<int> topics(Iterable<ReadingDay> ds) => {
+      for (final d in ds) ...d.topics,
+    };
     final weekTotal = sum(week);
     final monthTotal = sum(_days);
     final activeDays = _days.where((d) => d.millis >= 60 * 1000).length;
@@ -69,115 +87,162 @@ class _ReadingStatsPageState extends State<ReadingStatsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(value, style: theme.textTheme.titleLarge),
-          const SizedBox(height: 2),
-          Text(label, style: theme.textTheme.bodySmall?.copyWith(color: muted)),
+          Text(
+            value,
+            style: theme.textTheme.titleMedium
+                ?.merge(tokens.text.control)
+                .copyWith(
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(height: AppSpace.xxs),
+          Text(label, style: meta),
         ],
       ),
     );
 
+    Widget card(Widget child) => Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpace.l),
+      decoration: BoxDecoration(
+        color: colors.surfaceGrouped,
+        borderRadius: BorderRadius.circular(tokens.radius.card),
+      ),
+      child: child,
+    );
+
+    // 柱：今天 brand，其余 avatar/fill（设计说明 §5.3）
     return Scaffold(
-      appBar: AppBar(title: const Text('阅读统计')),
-      body: RefreshIndicator.adaptive(
-        onRefresh: _load,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+      backgroundColor: colors.surfacePage,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
+            const AppNavBar(title: '阅读统计'),
+            Expanded(
+              child: RefreshIndicator.adaptive(
+                onRefresh: _load,
+                child: ListView(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpace.pageMargin,
+                    AppSpace.m,
+                    AppSpace.pageMargin,
+                    AppSpace.xxl + MediaQuery.paddingOf(context).bottom,
+                  ),
                   children: [
-                    stat('今天', _fmt(today.duration)),
-                    stat('今天读过', '${today.topics.length} 个话题'),
-                    stat('连续阅读', '$_streak 天'),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('最近 7 天', style: theme.textTheme.titleSmall),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      // 数字 + 柱（最高 100）+ 星期，系统字号调大时柱子自己让出空间
-                      height: 150,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                    card(
+                      Row(
                         children: [
-                          for (final d in week)
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    d.millis >= 60 * 1000
-                                        ? '${d.duration.inMinutes}'
-                                        : '',
-                                    style: theme.textTheme.labelSmall,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Flexible(
-                                    child: Container(
-                                      width: 18,
-                                      height: 4 + 96 * d.millis / maxMs,
-                                      decoration: BoxDecoration(
-                                        color: d == today
-                                            ? theme.colorScheme.primary
-                                            : theme.colorScheme.primary
-                                                  .withValues(alpha: 0.45),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    weekdays[d.date.weekday - 1],
-                                    style: theme.textTheme.labelSmall
-                                        ?.copyWith(color: muted),
-                                  ),
-                                ],
-                              ),
-                            ),
+                          stat('今天', _fmt(today.duration)),
+                          stat('今天读过', '${today.topics.length} 个话题'),
+                          stat('连续阅读', '$_streak 天'),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpace.m),
+                    card(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '最近 7 天',
+                            style: theme.textTheme.bodyMedium
+                                ?.merge(tokens.text.metaStrong)
+                                .copyWith(color: colors.textPrimary),
+                          ),
+                          const SizedBox(height: AppSpace.m),
+                          SizedBox(
+                            // 数字 + 柱（最高 100）+ 星期，系统字号调大时柱子自己让出空间
+                            height: 150,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                for (final d in week)
+                                  Expanded(
+                                    child: Semantics(
+                                      label:
+                                          '${d == today ? '今天' : '星期${weekdays[d.date.weekday - 1]}'}，${_fmt(d.duration)}',
+                                      excludeSemantics: true,
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            d.millis >= 60 * 1000
+                                                ? '${d.duration.inMinutes}'
+                                                : '',
+                                            style: caption,
+                                          ),
+                                          const SizedBox(height: AppSpace.xs),
+                                          Flexible(
+                                            child: Container(
+                                              width: 24,
+                                              height: 4 + 96 * d.millis / maxMs,
+                                              decoration: BoxDecoration(
+                                                color: d == today
+                                                    ? colors.brandPrimary
+                                                    : colors.avatarFill,
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      tokens.radius.tag,
+                                                    ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: AppSpace.xs),
+                                          Text(
+                                            d == today
+                                                ? '今天'
+                                                : weekdays[d.date.weekday - 1],
+                                            style: d == today
+                                                ? caption.copyWith(
+                                                    color: colors.brandPrimary,
+                                                  )
+                                                : caption,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: AppSpace.s),
+                          Text(
+                            '共 ${_fmt(weekTotal)}，读过 ${topics(week).length} 个话题（柱上数字为分钟）',
+                            style: meta,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpace.m),
+                    card(
+                      Row(
+                        children: [
+                          stat('30 天合计', _fmt(monthTotal)),
+                          stat('读过话题', '${topics(_days).length}'),
+                          stat(
+                            '日均',
+                            _fmt(
+                              Duration(
+                                milliseconds: monthTotal.inMilliseconds ~/ 30,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpace.m),
                     Text(
-                      '共 ${_fmt(weekTotal)}，读过 ${topics(week).length} 个话题（柱上数字为分钟）',
-                      style: theme.textTheme.bodySmall?.copyWith(color: muted),
+                      '统计的是话题页里实际停留阅读的时间（三分钟不滚动会暂停计时），'
+                      '30 天里有 $activeDays 天读了至少 1 分钟。数据只保存在本机，最多保留 '
+                      '${ReadingStatsStore.keepDays} 天。',
+                      style: meta,
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    stat('30 天合计', _fmt(monthTotal)),
-                    stat('读过话题', '${topics(_days).length}'),
-                    stat(
-                      '日均',
-                      _fmt(Duration(milliseconds: monthTotal.inMilliseconds ~/ 30)),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              '统计的是话题页里实际停留阅读的时间（三分钟不滚动会暂停计时），'
-              '30 天里有 $activeDays 天读了至少 1 分钟。数据只保存在本机，最多保留 '
-              '${ReadingStatsStore.keepDays} 天。',
-              style: theme.textTheme.bodySmall?.copyWith(color: muted),
             ),
           ],
         ),

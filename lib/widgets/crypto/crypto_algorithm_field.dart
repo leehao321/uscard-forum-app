@@ -9,6 +9,7 @@
 /// - 「最近使用」横向 chips（历史图标），支持列表/网格展示切换
 library;
 
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -136,8 +137,8 @@ class _CryptoAlgorithmPickerSheetState
                 visualDensity: VisualDensity.compact,
                 icon: Icon(
                   gridMode
-                      ? Icons.view_list_rounded
-                      : Icons.grid_view_rounded,
+                      ? AppIcons.listIcon
+                      : AppIcons.layoutGrid,
                   size: 20,
                 ),
                 onPressed: () => setState(() => _gridMode = !_gridMode),
@@ -165,14 +166,14 @@ class _CryptoAlgorithmPickerSheetState
       decoration: InputDecoration(
         hintText: s.crypto_searchHint,
         prefixIcon: Icon(
-          Icons.search_rounded,
+          AppIcons.search,
           size: 20,
           color: theme.colorScheme.onSurfaceVariant,
         ),
         suffixIcon: _query.isEmpty
             ? null
             : IconButton(
-                icon: const Icon(Icons.close_rounded, size: 18),
+                icon: const Icon(AppIcons.close, size: 18),
                 visualDensity: VisualDensity.compact,
                 onPressed: () {
                   _searchController.clear();
@@ -204,7 +205,7 @@ class _CryptoAlgorithmPickerSheetState
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.search_off_rounded,
+              AppIcons.searchOff,
               size: 40,
               color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
             ),
@@ -246,7 +247,7 @@ class _CryptoAlgorithmPickerSheetState
                 return ActionChip(
                   key: ValueKey('crypto-recent-${algo.id}'),
                   avatar: Icon(
-                    Icons.history_rounded,
+                    AppIcons.history,
                     size: 16,
                     color: theme.colorScheme.primary,
                   ),
@@ -382,7 +383,7 @@ class _CryptoAlgorithmPickerSheetState
                 ),
                 if (selected)
                   Icon(
-                    Icons.check_rounded,
+                    AppIcons.check,
                     size: 18,
                     color: theme.colorScheme.primary,
                   ),
@@ -439,7 +440,7 @@ class CryptoAlgorithmTile extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                Icons.enhanced_encryption_rounded,
+                AppIcons.lock,
                 size: 18,
                 color: theme.colorScheme.primary,
               ),
@@ -470,7 +471,7 @@ class CryptoAlgorithmTile extends StatelessWidget {
                 const SizedBox(width: 6),
               ],
               Icon(
-                Icons.unfold_more_rounded,
+                AppIcons.chevronsUpDown,
                 size: 18,
                 color: theme.colorScheme.outline,
               ),
