@@ -151,6 +151,21 @@ void main() {
     });
   });
 
+  group('7 tool_choice 被拒两次后：请求里完全不发 tool_choice', () {
+    test('四种协议', () async {
+      for (final t in AiProviderType.values) {
+        final s = Sent();
+        try {
+          await run(replay('', s), t, choice: AiToolChoice.unspecified);
+        } catch (_) {}
+        final b = s.body;
+        expect(b.containsKey('tool_choice'), isFalse, reason: '$t');
+        expect(b.containsKey('toolConfig'), isFalse, reason: '$t');
+        expect(b['tools'], isNotEmpty, reason: '$t');
+      }
+    });
+  });
+
   group('4 收到任何数据都发一个进度事件', () {
     test('OpenAI reasoning_content、工具参数分片', () async {
       final s = Sent();

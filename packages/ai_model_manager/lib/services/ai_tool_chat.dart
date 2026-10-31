@@ -96,7 +96,8 @@ class AiToolResultTurn extends AiToolTurn {
   final bool isError;
 }
 
-enum AiToolChoice { auto, required, none }
+/// [unspecified]：请求里不带 tool_choice（有的服务商连 auto 也不认）
+enum AiToolChoice { auto, required, none, unspecified }
 
 /// 工具对话的流事件。
 sealed class AiToolEvent {
@@ -399,6 +400,7 @@ class AiToolChatService {
         AiToolChoice.auto => auto,
         AiToolChoice.required => req,
         AiToolChoice.none => none,
+        AiToolChoice.unspecified => auto,
       };
 
   // ───────────────────────── OpenAI Chat Completions ─────────────────────────
@@ -474,7 +476,8 @@ class AiToolChatService {
               },
             },
         ],
-        'tool_choice': _choiceName(choice, 'auto', 'required', 'none'),
+        if (choice != AiToolChoice.unspecified)
+          'tool_choice': _choiceName(choice, 'auto', 'required', 'none'),
       },
     };
     return _post(_join(base, '/chat/completions'), body, {
@@ -670,7 +673,8 @@ class AiToolChatService {
               'parameters': s.parameters,
             },
         ],
-        'tool_choice': _choiceName(choice, 'auto', 'required', 'none'),
+        if (choice != AiToolChoice.unspecified)
+          'tool_choice': _choiceName(choice, 'auto', 'required', 'none'),
       },
     };
     return _post(_join(base, '/responses'), body, {'Authorization': 'Bearer $apiKey'}, abort);
@@ -859,7 +863,8 @@ class AiToolChatService {
               'input_schema': s.parameters,
             },
         ],
-        'tool_choice': {'type': _choiceName(choice, 'auto', 'any', 'none')},
+        if (choice != AiToolChoice.unspecified)
+          'tool_choice': {'type': _choiceName(choice, 'auto', 'any', 'none')},
       },
     };
     return _post(_join(base, '/messages'), body, {
@@ -1113,11 +1118,12 @@ class AiToolChatService {
             ],
           },
         ],
-        'toolConfig': {
-          'functionCallingConfig': {
-            'mode': _choiceName(choice, 'AUTO', 'ANY', 'NONE'),
+        if (choice != AiToolChoice.unspecified)
+          'toolConfig': {
+            'functionCallingConfig': {
+              'mode': _choiceName(choice, 'AUTO', 'ANY', 'NONE'),
+            },
           },
-        },
       },
     };
     return _post(
