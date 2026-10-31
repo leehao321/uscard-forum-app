@@ -1,22 +1,30 @@
 import '../../constants.dart';
 import '../../services/ai_translation_service.dart';
 import '../../storage/saved_topic_store.dart';
+
 import 'package:ai_model_manager/ai_model_manager.dart';
+
 import '../../widgets/notes/topic_note_sheet.dart';
 import '../../widgets/ai/ai_topic_summary_sheet.dart';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+
 import '../../services/app_error_handler.dart';
 import '../../services/app_lock_service.dart';
 import '../../services/notion/notion_bookmark_auto_sync.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderSliver, RenderViewport;
 import 'package:flutter/services.dart';
+
 import '../../utils/idle_task.dart';
+
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:share_plus/share_plus.dart';
+
 import '../../l10n/s.dart';
 import '../../utils/frame_jank_monitor.dart';
 import '../../utils/html_text_mapper.dart';
@@ -25,11 +33,14 @@ import '../../utils/code_selection_context.dart';
 import '../../utils/link_launcher.dart';
 import '../../utils/quote_builder.dart';
 import '../../utils/scroll_jump.dart';
+
 import 'package:fluxdo_render/fluxdo_render.dart'
     show SelectionCoordinator, TocEntry;
 import 'package:uuid/uuid.dart';
+
 import 'dart:async';
 import 'dart:math' as math;
+
 import '../../models/draft.dart';
 import '../../models/nested_topic.dart';
 import '../../models/nested_reading_position.dart';
@@ -61,8 +72,10 @@ import '../../widgets/post/post_replies_sheet.dart';
 import '../../widgets/post/post_revision/revision_modal.dart';
 import '../../widgets/post/reply_sheet.dart';
 import '../../widgets/topic/topic_notification_button.dart';
+
 import 'package:common_ui/common_ui.dart';
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../../widgets/common/emoji_text.dart';
 import '../../widgets/common/error_view.dart';
 import '../../providers/nested_topic_provider.dart';
@@ -333,7 +346,8 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
     _isParentActive = widget.parentActive;
     _providerPostNumber = widget.scrollToPostNumber;
     _nestedReadingStore = ref.read(nestedReadingStoreProvider);
-    _hadNestedSession = _nestedReadingStore.existingSession(_instanceId) != null;
+    _hadNestedSession =
+        _nestedReadingStore.existingSession(_instanceId) != null;
     _nestedReadingSession = _nestedReadingStore.session(_instanceId);
     if (!_hadNestedSession) {
       _nestedReadingSession.sort = _nestedReadingStore.sort;
@@ -353,7 +367,8 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
     _nestedTargetPostNumber = _hadNestedSession
         ? _nestedReadingSession.contextTarget
         : (widget.scrollToPostNumber != null && widget.scrollToPostNumber! > 1
-            ? widget.scrollToPostNumber : null);
+              ? widget.scrollToPostNumber
+              : null);
     _searchFocusNode = FocusNode(onKeyEvent: _handleSearchKeyEvent);
 
     _expandController = AnimationController(
@@ -1181,7 +1196,9 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
       if (mounted &&
           _nestedTargetPostNumber == saved.postNumber &&
           data.sort != saved.sort) {
-        await ref.read(nestedTopicProvider(params).notifier).changeSort(saved.sort);
+        await ref
+            .read(nestedTopicProvider(params).notifier)
+            .changeSort(saved.sort);
       }
     } catch (_) {
       // 定位接口失败由树形视图的错误/平铺回落入口处理。
@@ -1611,9 +1628,8 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
     final hasAiModel = ref.watch(hasAvailableAiModelProvider);
     final isAiGenerating = hasAiModel
         ? ref.watch(
-            topicAiChatProvider(
-              widget.topicId,
-            ).select((state) => state.isGenerating),
+            topicAiChatProvider(widget.topicId)
+                .select((state) => state.isGenerating),
           )
         : false;
 
@@ -1683,108 +1699,119 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
     }
 
     void onSelected(String value) {
-        // 行内展开的订阅子项：value 形如 'subscribe_level_<int>'
-        const subscribePrefix = 'subscribe_level_';
-        if (value.startsWith(subscribePrefix)) {
-          final levelValue = int.tryParse(
-            value.substring(subscribePrefix.length),
+      // 行内展开的订阅子项：value 形如 'subscribe_level_<int>'
+      const subscribePrefix = 'subscribe_level_';
+      if (value.startsWith(subscribePrefix)) {
+        final levelValue = int.tryParse(
+          value.substring(subscribePrefix.length),
+        );
+        if (levelValue != null) {
+          final level = TopicNotificationLevel.values.firstWhere(
+            (e) => e.value == levelValue,
+            orElse: () => detail.notificationLevel,
           );
-          if (levelValue != null) {
-            final level = TopicNotificationLevel.values.firstWhere(
-              (e) => e.value == levelValue,
-              orElse: () => detail.notificationLevel,
-            );
-            _handleNotificationLevelChanged(notifier, level);
-          }
-          return;
+          _handleNotificationLevelChanged(notifier, level);
         }
-        if (value == 'notes') {
-          Future<void>.delayed(Duration.zero, () {
-            if (!mounted) return;
-            showTopicNoteSheet(
-              context,
-              topicId: widget.topicId,
-              title: detail.title,
-            );
-          });
-          return;
-        }
-        if (value == 'ai_summary') {
-          // 同 assign：隔一个 tick 再开新弹层，避开菜单关闭动画的转场重叠
-          Future<void>.delayed(Duration.zero, () {
-            if (!mounted) return;
-            showAiTopicSummarySheet(
-              context,
-              title: detail.title,
-              posts: detail.postStream.posts,
-            );
-          });
-          return;
-        }
-        if (value == 'assign') {
-          // 弹菜单本身的关闭动画(PopupMenuButton onSelected 触发时它还没
-          // 收完)跟紧接着开的新 modal route 同一帧抢 GPU 合成——聊天那边
-          // 悬浮面板同款场景(_runPanelAction)踩过一次原生层崩溃,靠隔一
-          // 个 tick 再开新 UI 避开两段转场重叠,这里抄同样的套路。
-          Future<void>.delayed(Duration.zero, () {
-            if (!mounted) return;
-            unawaited(showAssignSheet(context, ref, topicId: widget.topicId));
-          });
-          return;
-        }
-        final bookmarkTraceTarget = value == 'bookmark'
-            ? _bookmarkEditTarget(detail)
-            : null;
-        final bookmarkTraceId = value == 'bookmark'
-            ? createBookmarkEditTraceId()
-            : null;
-        if (bookmarkTraceId != null) {
-          writeBookmarkEditTrace(
-            phase: 'menu_selected',
+        return;
+      }
+      if (value == 'notes') {
+        Future<void>.delayed(Duration.zero, () {
+          if (!mounted) return;
+          showTopicNoteSheet(
+            context,
+            topicId: widget.topicId,
+            title: detail.title,
+          );
+        });
+        return;
+      }
+      if (value == 'toc') {
+        Future<void>.delayed(Duration.zero, () {
+          if (!mounted) return;
+          unawaited(
+            showTocBottomSheet(
+              context: context,
+              controller: _tocController,
+              onEntryTap: _handleTocEntryTap,
+            ),
+          );
+        });
+        return;
+      }
+      if (value == 'ai_summary') {
+        // 同 assign：隔一个 tick 再开新弹层，避开菜单关闭动画的转场重叠
+        Future<void>.delayed(Duration.zero, () {
+          if (!mounted) return;
+          showAiTopicSummarySheet(
+            context,
+            title: detail.title,
+            posts: detail.postStream.posts,
+          );
+        });
+        return;
+      }
+      if (value == 'assign') {
+        // 弹菜单本身的关闭动画(PopupMenuButton onSelected 触发时它还没
+        // 收完)跟紧接着开的新 modal route 同一帧抢 GPU 合成——聊天那边
+        // 悬浮面板同款场景(_runPanelAction)踩过一次原生层崩溃,靠隔一
+        // 个 tick 再开新 UI 避开两段转场重叠,这里抄同样的套路。
+        Future<void>.delayed(Duration.zero, () {
+          if (!mounted) return;
+          unawaited(showAssignSheet(context, ref, topicId: widget.topicId));
+        });
+        return;
+      }
+      final bookmarkTraceTarget = value == 'bookmark'
+          ? _bookmarkEditTarget(detail)
+          : null;
+      final bookmarkTraceId = value == 'bookmark'
+          ? createBookmarkEditTraceId()
+          : null;
+      if (bookmarkTraceId != null) {
+        writeBookmarkEditTrace(
+          phase: 'menu_selected',
+          traceId: bookmarkTraceId,
+          source: 'topic_detail_topic_menu',
+          message: '详情页更多菜单已选中编辑书签',
+          topicId: widget.topicId,
+          postId: bookmarkTraceTarget?.postId,
+          bookmarkId: bookmarkTraceTarget?.bookmarkId ?? detail.bookmarkId,
+          bookmarkName: bookmarkTraceTarget?.initialName ?? detail.bookmarkName,
+          bookmarked: detail.bookmarked,
+          hasReminder:
+              bookmarkTraceTarget?.initialReminderAt != null ||
+              detail.bookmarkReminderAt != null,
+          selectedAction: value,
+        );
+      }
+      handleTopicDetailMoreMenuSelection(
+        value,
+        onEditTopic: () => unawaited(_handleEditTopic()),
+        onBookmark: () => unawaited(
+          _handleBookmark(
+            notifier,
             traceId: bookmarkTraceId,
             source: 'topic_detail_topic_menu',
-            message: '详情页更多菜单已选中编辑书签',
-            topicId: widget.topicId,
-            postId: bookmarkTraceTarget?.postId,
-            bookmarkId: bookmarkTraceTarget?.bookmarkId ?? detail.bookmarkId,
-            bookmarkName:
-                bookmarkTraceTarget?.initialName ?? detail.bookmarkName,
-            bookmarked: detail.bookmarked,
-            hasReminder:
-                bookmarkTraceTarget?.initialReminderAt != null ||
-                detail.bookmarkReminderAt != null,
-            selectedAction: value,
-          );
-        }
-        handleTopicDetailMoreMenuSelection(
-          value,
-          onEditTopic: () => unawaited(_handleEditTopic()),
-          onBookmark: () => unawaited(
-            _handleBookmark(
-              notifier,
-              traceId: bookmarkTraceId,
-              source: 'topic_detail_topic_menu',
-            ),
           ),
-          onReadLater: _handleReadLater,
-          onSubscribe: doSubscribe,
-          onMarkUnread: () => unawaited(_handleMarkUnread(detail)),
-          onMarkUnreadAll: () =>
-              unawaited(_handleMarkUnread(detail, all: true)),
-          onShareLink: _shareTopic,
-          onShareImage: _shareAsImage,
-          onExport: _showExportSheet,
-          onOpenInBrowser: _openInBrowser,
-          onFilter: _showFilterSheet,
-          onToggleArchiveMessage: () =>
-              unawaited(_handleToggleArchiveMessage(notifier)),
-          onReadingSettings: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ReadingSettingsPage()),
-            );
-          },
-        );
+        ),
+        onReadLater: _handleReadLater,
+        onSubscribe: doSubscribe,
+        onMarkUnread: () => unawaited(_handleMarkUnread(detail)),
+        onMarkUnreadAll: () => unawaited(_handleMarkUnread(detail, all: true)),
+        onShareLink: _shareTopic,
+        onShareImage: _shareAsImage,
+        onExport: _showExportSheet,
+        onOpenInBrowser: _openInBrowser,
+        onFilter: _showFilterSheet,
+        onToggleArchiveMessage: () =>
+            unawaited(_handleToggleArchiveMessage(notifier)),
+        onReadingSettings: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ReadingSettingsPage()),
+          );
+        },
+      );
     }
 
     AppMenuItem<String> item(
@@ -1882,6 +1909,9 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
       onSelected: onSelected,
       sectionsBuilder: (context) => [
         [
+          // 窄屏的目录入口（P12）：宽屏仍是右侧常驻面板
+          if (_tocController.hasToc && _tocInMenu(context))
+            item(context.l10n.topicDetail_toc, 'toc', AppIcons.menu),
           AppMenuItem<String>(
             label: isInReadLater
                 ? context.l10n.topicDetail_removeFromReadLater
@@ -1926,7 +1956,11 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
         ],
         [
           if (canEditTopic)
-            item(context.l10n.topicDetail_editTopic, 'edit_topic', AppIcons.edit),
+            item(
+              context.l10n.topicDetail_editTopic,
+              'edit_topic',
+              AppIcons.edit,
+            ),
           // 私信归档双态入口:对齐官方 topic footer 的 archive 按钮
           if (detail.isPrivateMessage)
             item(
@@ -2084,8 +2118,10 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
       Breakpoints.maxContentWidth +
       2 * (TopicTocSidePanel.expandedWidth + 12 + 16);
 
+  bool _tocInMenu(BuildContext context) =>
+      Responsive.isMobile(context) || widget.embeddedMode;
+
   Widget _buildTocLayer(BuildContext context, bool panelVisible) {
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
     // 显隐门控(对齐 DiscoTOC:仅当前阅读位置是 1 楼时可见,
     // 滚过 1 楼即隐、回到 1 楼复显;点击跳转途中 isJumping 冻结防闪隐)。
     // hasToc 由 _tocController 通知,eyeline 位置走 viewportPostNumberNotifier。
@@ -2109,32 +2145,8 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
       );
     }
 
-    if (Responsive.isMobile(context) || widget.embeddedMode) {
-      return ValueListenableBuilder<bool>(
-        valueListenable: _controller.showBottomBarNotifier,
-        builder: (context, showBottomBar, _) {
-          // 叠在阅读工具栏上方（展开 64 / 收起 44，再加底部安全区）
-          final replyBottom =
-              (showBottomBar
-                  ? ReadingToolbar.expandedHeight
-                  : ReadingToolbar.collapsedHeight) +
-              bottomPadding -
-              56;
-          return AnimatedPositioned(
-            key: const ValueKey('toc_fab'),
-            duration: const Duration(milliseconds: 200),
-            right: 16,
-            bottom: replyBottom + 56 + 12,
-            child: gateVisibility(
-              child: TopicTocFab(
-                controller: _tocController,
-                onEntryTap: _handleTocEntryTap,
-              ),
-            ),
-          );
-        },
-      );
-    }
+    // 窄屏没有浮动按钮：目录在 ⋮ 菜单里（见 _tocInMenu）
+    if (_tocInMenu(context)) return const SizedBox.shrink();
     return Positioned(
       right: 12,
       top: 88,
@@ -3035,18 +3047,22 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
               : null,
           restorePosition: _nestedRestorePosition,
           fullTargetPostNumber: _nestedFullTarget,
-          active: _isRouteVisible &&
+          active:
+              _isRouteVisible &&
               _isParentActive &&
               !ref.read(topicSearchProvider(widget.topicId)).isSearchMode,
           onViewportPostChanged: (postNumber) {
             if (!_controller.isPositioned) _controller.markPositioned();
             _controller.updateViewportPostNumber(postNumber);
             ref
-                .read(detailScrollPositionProvider((
-                  topicId: widget.topicId,
-                  instanceId: _instanceId,
-                )).notifier)
-                .state = postNumber;
+                    .read(
+                      detailScrollPositionProvider((
+                        topicId: widget.topicId,
+                        instanceId: _instanceId,
+                      )).notifier,
+                    )
+                    .state =
+                postNumber;
           },
           onPositionChanged: (position) =>
               _nestedReadingStore.save(widget.topicId, position),

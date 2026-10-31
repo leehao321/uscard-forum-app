@@ -54,287 +54,147 @@ extension _PostFooterMenuActions on _PostFooterSectionState {
     );
   }
 
-  void _showMoreMenu(BuildContext context, ThemeData theme) {
+  /// 楼层菜单（⋯ 按钮与长按浮起共用，设计说明 §3.2）：
+  /// 常用操作一组，举报 / 恢复 / 删除单独一组。
+  List<List<AppMenuItem<VoidCallback>>> _menuSections(BuildContext context) {
     final isGuest = ref.read(currentUserProvider).value == null;
-
-    showAppBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) => AppSheetScaffold(
-        showCloseButton: false,
-        maxHeightFactor: 0.7,
-        contentPadding: EdgeInsets.zero,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (widget.onShowPostDetail != null)
-                ListTile(
-                  leading: Icon(
-                    widget.postDetailLabel != null
-                        ? Symbols.open_in_new_rounded
-                        : Symbols.article_rounded,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                  title: Text(
-                    widget.postDetailLabel ?? context.l10n.post_detail,
-                  ),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    widget.onShowPostDetail!();
-                  },
-                ),
-              if (widget.onReply != null)
-                ListTile(
-                  leading: Icon(
-                    Symbols.reply_rounded,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                  title: Text(context.l10n.common_reply),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    widget.onReply!();
-                  },
-                ),
-              if (widget.post.canEdit && widget.onEdit != null)
-                ListTile(
-                  leading: Icon(
-                    Symbols.edit_rounded,
-                    color: theme.colorScheme.primary,
-                  ),
-                  title: Text(
-                    context.l10n.common_edit,
-                    style: TextStyle(color: theme.colorScheme.primary),
-                  ),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    widget.onEdit!();
-                  },
-                ),
-              // 菜单点击后才构建，用 read 避免给楼层常驻树增加监听。
-              if (ref.read(preferencesProvider).aiTranslationEnabled &&
-                  ref.read(aiTranslationSelectedModelProvider) != null)
-                ListTile(
-                  leading: Icon(
-                    Symbols.translate_rounded,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                  title: Text(context.l10n.ai_translationMenuLabel),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    showAiTranslationSheet(
-                      context,
-                      cookedHtml: widget.post.cooked,
-                    );
-                  },
-                ),
-              ListTile(
-                leading: Icon(
-                  Symbols.share_rounded,
-                  color: theme.colorScheme.onSurface,
-                ),
-                title: Text(context.l10n.common_shareLink),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _sharePost();
-                },
-              ),
-              if (widget.onShareAsImage != null)
-                ListTile(
-                  leading: Icon(
-                    Symbols.image_rounded,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                  title: Text(context.l10n.post_generateShareImage),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    widget.onShareAsImage!();
-                  },
-                ),
-              if (!isGuest &&
-                  (widget.post.canAcceptAnswer ||
-                      widget.post.canUnacceptAnswer))
-                ListTile(
-                  leading: Icon(
-                    _isAcceptedAnswer
-                        ? Symbols.check_box_rounded
-                        : Symbols.check_box_outline_blank_rounded,
-                    color: _isAcceptedAnswer
-                        ? Colors.green
-                        : theme.colorScheme.onSurface,
-                  ),
-                  title: Text(
-                    _isAcceptedAnswer
-                        ? context.l10n.post_unacceptSolution
-                        : context.l10n.post_acceptSolution,
-                    style: TextStyle(
-                      color: _isAcceptedAnswer
-                          ? Colors.green
-                          : theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  onTap: _isTogglingAnswer
-                      ? null
-                      : () {
-                          Navigator.pop(ctx);
-                          _toggleSolution();
-                        },
-                ),
-              if (!isGuest)
-                ListTile(
-                  leading: Icon(
-                    Symbols.bookmark_rounded,
-                    fill: _isBookmarked ? 1 : 0,
-                    color: _isBookmarked
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface,
-                  ),
-                  title: Text(
-                    _isBookmarked
-                        ? context.l10n.bookmark_editBookmark
-                        : context.l10n.common_addBookmark,
-                  ),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    if (_isBookmarked) {
-                      _editBookmark();
-                    } else {
-                      _addBookmark();
-                    }
-                  },
-                ),
-              if (widget.canAssignPost && widget.onAssignPost != null)
-                ListTile(
-                  leading: Icon(
-                    Icons.assignment_ind_outlined,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                  title: const Text('指定帖子'),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    widget.onAssignPost!();
-                  },
-                ),
-              if (!isGuest)
-                ListTile(
-                  leading: Icon(
-                    Symbols.flag_rounded,
-                    color: theme.colorScheme.error,
-                  ),
-                  title: Text(
-                    context.l10n.common_report,
-                    style: TextStyle(color: theme.colorScheme.error),
-                  ),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _showFlagDialog(context);
-                  },
-                ),
-              if (!isGuest && widget.post.canRecover)
-                ListTile(
-                  leading: Icon(
-                    Symbols.restore_rounded,
-                    color: theme.colorScheme.primary,
-                  ),
-                  title: Text(
-                    context.l10n.common_restore,
-                    style: TextStyle(color: theme.colorScheme.primary),
-                  ),
-                  onTap: _isDeleting
-                      ? null
-                      : () {
-                          Navigator.pop(ctx);
-                          _recoverPost();
-                        },
-                ),
-              if (!isGuest && widget.post.canDelete && !widget.post.isDeleted)
-                ListTile(
-                  leading: Icon(
-                    Symbols.delete_rounded,
-                    color: theme.colorScheme.error,
-                  ),
-                  title: Text(
-                    context.l10n.common_delete,
-                    style: TextStyle(color: theme.colorScheme.error),
-                  ),
-                  onTap: _isDeleting
-                      ? null
-                      : () {
-                          Navigator.pop(ctx);
-                          _showDeleteConfirmDialog(context, theme);
-                        },
-                ),
-              // 仅 debug build:复制 cooked HTML(给渲染引擎调试用)
-              if (kDebugMode) ...[
-                const Divider(height: 1, indent: 16, endIndent: 16),
-                ListTile(
-                  leading: Icon(
-                    Symbols.bug_report_rounded,
-                    color: theme.colorScheme.tertiary,
-                  ),
-                  title: Text(
-                    'Copy cooked HTML',
-                    style: TextStyle(color: theme.colorScheme.tertiary),
-                  ),
-                  subtitle: Text(
-                    'debug: ${widget.post.cooked.length} chars',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  onTap: () async {
-                    Navigator.pop(ctx);
-                    await Clipboard.setData(
-                      ClipboardData(text: widget.post.cooked),
-                    );
-                    ToastService.showSuccess(
-                      'cooked HTML 已复制 (${widget.post.cooked.length} chars)',
-                    );
-                  },
-                ),
-                // 复制签名(user_signature:advanced 模式为 HTML,否则为图片 URL)
-                if (widget.post.effectiveSignature != null)
-                  ListTile(
-                    leading: Icon(
-                      Symbols.bug_report_rounded,
-                      color: theme.colorScheme.tertiary,
-                    ),
-                    title: Text(
-                      'Copy signature',
-                      style: TextStyle(color: theme.colorScheme.tertiary),
-                    ),
-                    subtitle: Text(
-                      'debug: ${widget.post.effectiveSignature!.length} chars',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    onTap: () async {
-                      Navigator.pop(ctx);
-                      final signature = widget.post.effectiveSignature!;
-                      await Clipboard.setData(ClipboardData(text: signature));
-                      ToastService.showSuccess(
-                        '签名已复制 (${signature.length} chars)',
-                      );
-                    },
-                  ),
-              ],
-              const Divider(height: 1, indent: 16, endIndent: 16),
-              ListTile(
-                title: Text(
-                  context.l10n.common_cancel,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-                ),
-                onTap: () => Navigator.pop(ctx),
-              ),
-            ],
-          ),
+    final l10n = context.l10n;
+    final main = <AppMenuItem<VoidCallback>>[
+      if (widget.onShowPostDetail != null)
+        AppMenuItem(
+          label: widget.postDetailLabel ?? l10n.post_detail,
+          icon: widget.postDetailLabel != null
+              ? AppIcons.openInNew
+              : AppIcons.article,
+          onTap: widget.onShowPostDetail,
+        ),
+      if (widget.onReply != null)
+        AppMenuItem(
+          label: l10n.common_reply,
+          icon: AppIcons.reply,
+          onTap: () => widget.onReply!(),
+        ),
+      if (widget.post.canEdit && widget.onEdit != null)
+        AppMenuItem(
+          label: l10n.common_edit,
+          icon: AppIcons.edit,
+          onTap: widget.onEdit,
+        ),
+      // 菜单打开时才构建，用 read 避免给楼层常驻树增加监听。
+      if (ref.read(preferencesProvider).aiTranslationEnabled &&
+          ref.read(aiTranslationSelectedModelProvider) != null)
+        AppMenuItem(
+          label: l10n.ai_translationMenuLabel,
+          icon: AppIcons.language,
+          onTap: () =>
+              showAiTranslationSheet(context, cookedHtml: widget.post.cooked),
+        ),
+      AppMenuItem(
+        label: l10n.common_shareLink,
+        icon: AppIcons.share,
+        onTap: _sharePost,
+      ),
+      if (widget.onShareAsImage != null)
+        AppMenuItem(
+          label: l10n.post_generateShareImage,
+          icon: AppIcons.image,
+          onTap: widget.onShareAsImage,
+        ),
+      if (!isGuest &&
+          (widget.post.canAcceptAnswer || widget.post.canUnacceptAnswer))
+        AppMenuItem(
+          label: _isAcceptedAnswer
+              ? l10n.post_unacceptSolution
+              : l10n.post_acceptSolution,
+          icon: AppIcons.checkCircle,
+          checked: _isAcceptedAnswer,
+          enabled: !_isTogglingAnswer,
+          onTap: _toggleSolution,
+        ),
+      if (!isGuest)
+        AppMenuItem(
+          label: _isBookmarked
+              ? l10n.bookmark_editBookmark
+              : l10n.common_addBookmark,
+          icon: AppIcons.bookmark,
+          onTap: () => _isBookmarked ? _editBookmark() : _addBookmark(),
+        ),
+      // 笔记按楼层（P9）：笔记存在本机，访客也能记
+      AppMenuItem(
+        label: '添加笔记',
+        icon: AppIcons.note,
+        onTap: () => showTopicNoteSheet(
+          context,
+          topicId: widget.topicId,
+          title: widget.topicTitle ?? '',
+          postNumber: widget.post.postNumber,
         ),
       ),
+      if (widget.canAssignPost && widget.onAssignPost != null)
+        AppMenuItem(
+          label: '指定帖子',
+          icon: AppIcons.assign,
+          onTap: widget.onAssignPost,
+        ),
+    ];
+    final danger = <AppMenuItem<VoidCallback>>[
+      if (!isGuest)
+        AppMenuItem(
+          label: l10n.common_report,
+          icon: AppIcons.flag,
+          destructive: true,
+          onTap: () => _showFlagDialog(context),
+        ),
+      if (!isGuest && widget.post.canRecover)
+        AppMenuItem(
+          label: l10n.common_restore,
+          icon: AppIcons.undo,
+          enabled: !_isDeleting,
+          onTap: _recoverPost,
+        ),
+      if (!isGuest && widget.post.canDelete && !widget.post.isDeleted)
+        AppMenuItem(
+          label: l10n.common_delete,
+          icon: AppIcons.delete,
+          destructive: true,
+          enabled: !_isDeleting,
+          onTap: () => _showDeleteConfirmDialog(context, Theme.of(context)),
+        ),
+    ];
+    // 仅 debug build：复制 cooked HTML / 签名（给渲染引擎调试用）
+    final debug = <AppMenuItem<VoidCallback>>[
+      if (kDebugMode) ...[
+        AppMenuItem(
+          label: 'Copy cooked HTML (${widget.post.cooked.length})',
+          icon: AppIcons.code,
+          onTap: () async {
+            await Clipboard.setData(ClipboardData(text: widget.post.cooked));
+            ToastService.showSuccess(
+              'cooked HTML 已复制 (${widget.post.cooked.length} chars)',
+            );
+          },
+        ),
+        if (widget.post.effectiveSignature != null)
+          AppMenuItem(
+            label: 'Copy signature',
+            icon: AppIcons.code,
+            onTap: () async {
+              final signature = widget.post.effectiveSignature!;
+              await Clipboard.setData(ClipboardData(text: signature));
+              ToastService.showSuccess('签名已复制 (${signature.length} chars)');
+            },
+          ),
+      ],
+    ];
+    return [main, if (danger.isNotEmpty) danger, if (debug.isNotEmpty) debug];
+  }
+
+  Future<void> _showMoreMenu(BuildContext context, Rect anchor) async {
+    final run = await showAppMenu<VoidCallback>(
+      context: context,
+      anchor: anchor,
+      sections: _menuSections(context),
     );
+    run?.call();
   }
 }

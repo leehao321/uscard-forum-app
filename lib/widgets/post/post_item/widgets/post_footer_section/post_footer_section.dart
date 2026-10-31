@@ -5,7 +5,9 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
+
 import 'dart:async';
+
 import '../../../../../l10n/s.dart';
 import '../../../../../models/topic.dart';
 import '../../../../../providers/discourse_providers.dart';
@@ -14,7 +16,9 @@ import '../../../../../providers/preferences_provider.dart';
 import '../../../../../utils/blocked_user_filter.dart';
 import '../../../../../utils/share_utils.dart';
 import '../../../../../utils/frame_jank_monitor.dart';
+
 import 'package:dio/dio.dart';
+
 import '../../../../../services/app_error_handler.dart';
 import '../../../../../services/discourse/discourse_service.dart';
 import '../../../../../services/log/bookmark_edit_trace.dart';
@@ -22,6 +26,7 @@ import '../../../../../services/notion/notion_bookmark_auto_sync.dart';
 import '../../../../../services/toast_service.dart';
 import '../../../post_links.dart';
 import '../post_action_bar.dart';
+import '../../post_menu_controller.dart';
 import '../post_device_source.dart';
 import '../post_voting_control.dart';
 import '../post_voting_comments_view.dart';
@@ -35,6 +40,7 @@ import '../post_replies_list.dart';
 import '../post_solution_banner.dart';
 import '../../../../post/post_replies_sheet.dart';
 import '../../../../../utils/dialog_utils.dart';
+import '../../../../notes/topic_note_sheet.dart';
 import '../../../../ai/ai_translation_sheet.dart';
 
 part 'actions/bookmark_actions.dart';
@@ -98,6 +104,9 @@ class PostFooterSection extends ConsumerStatefulWidget {
   /// (只留评论区);长帖分段无左列,保留 footer 胶囊。
   final bool showVotingControl;
 
+  /// 长按菜单桥：把 [_menuSections] 登记给楼层外层
+  final PostMenuController? menuController;
+
   const PostFooterSection({
     super.key,
     required this.post,
@@ -127,6 +136,7 @@ class PostFooterSection extends ConsumerStatefulWidget {
     this.isPostVotingTopic = false,
     this.topicClosed = false,
     this.showVotingControl = true,
+    this.menuController,
   });
 
   @override
@@ -161,11 +171,16 @@ class _PostFooterSectionState extends ConsumerState<PostFooterSection> {
   void initState() {
     super.initState();
     _syncState();
+    widget.menuController?.builder = _menuSections;
   }
 
   @override
   void didUpdateWidget(PostFooterSection oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.menuController != widget.menuController) {
+      oldWidget.menuController?.builder = null;
+      widget.menuController?.builder = _menuSections;
+    }
     if (oldWidget.post != widget.post) {
       _syncState();
     }
@@ -173,6 +188,9 @@ class _PostFooterSectionState extends ConsumerState<PostFooterSection> {
 
   @override
   void dispose() {
+    if (widget.menuController?.builder == _menuSections) {
+      widget.menuController?.builder = null;
+    }
     _isLoadingRepliesNotifier.dispose();
     _showRepliesNotifier.dispose();
     super.dispose();
@@ -194,9 +212,7 @@ class _PostFooterSectionState extends ConsumerState<PostFooterSection> {
   /// 无活跃实例时静默跳过,footer 本地 state 仍保证当场显示)。
   /// 弹幕层/action bar 读的是 provider 的 post.boosts —— 此前只写本地
   /// state,弹幕模式下自己刚发的 boost 直接不可见。
-  void _syncBoostToProvider(
-    void Function(TopicDetailNotifier notifier) apply,
-  ) {
+  void _syncBoostToProvider(void Function(TopicDetailNotifier notifier) apply) {
     final params = TopicDetailNotifier.activeParamsFor(widget.topicId);
     if (params == null) return;
     try {
@@ -317,7 +333,6 @@ class _PostFooterSectionState extends ConsumerState<PostFooterSection> {
     // 帖内构成归因:与 pHdr 配对,点名单帖固定成本的大头(操作栏/boost
     // 列表在 footer;监控关闭零开销)
     FrameJankMonitor.noteBuild('pFtr#${widget.post.postNumber}');
-    final theme = Theme.of(context);
     final currentUser = ref.read(currentUserProvider).value;
     final isOwnPost =
         currentUser != null && currentUser.username == widget.post.username;
@@ -370,7 +385,7 @@ class _PostFooterSectionState extends ConsumerState<PostFooterSection> {
             onShowReactionUsers: (reactionId) =>
                 _showReactionUsers(context, reactionId: reactionId),
             onReply: widget.onReply == null ? null : () => widget.onReply!(),
-            onShowMoreMenu: () => _showMoreMenu(context, theme),
+            onShowMoreMenu: (anchor) => _showMoreMenu(context, anchor),
             onToggleReplies: _toggleReplies,
             onAddBoost: _openBoostInput,
             canBoost: _canBoost,

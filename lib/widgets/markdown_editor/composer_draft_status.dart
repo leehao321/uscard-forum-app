@@ -89,9 +89,9 @@ class _ComposerDraftMenuEntryState<T> extends State<ComposerDraftMenuEntry<T>> {
       final label = composerDraftStatusLabel(context, status);
       final color = error ? colors.error : colors.onSurfaceVariant;
       final icon = switch (status) {
-        DraftSaveStatus.error => Symbols.cloud_off_rounded,
-        DraftSaveStatus.saved => Symbols.cloud_done_rounded,
-        _ => Symbols.cloud_upload_rounded,
+        DraftSaveStatus.error => AppIcons.cloudOff,
+        DraftSaveStatus.saved => AppIcons.cloudDone,
+        _ => AppIcons.cloudUpload,
       };
       return PopupMenuItem<T>(
         key: const ValueKey('composer-draft-status-item'),

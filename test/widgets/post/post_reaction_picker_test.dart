@@ -67,7 +67,7 @@ class _ActionBarHarness {
       onToggleLike: () => likes++,
       onReactionSelected: selected.add,
       onShowReactionUsers: (_) {},
-      onShowMoreMenu: () {},
+      onShowMoreMenu: (_) {},
       onToggleReplies: () {},
     );
     return TranslationProvider(

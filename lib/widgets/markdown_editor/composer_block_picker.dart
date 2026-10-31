@@ -1,4 +1,7 @@
+import 'package:app_icons/app_icons.dart';
+
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 import 'package:flutter/services.dart';
@@ -418,7 +421,7 @@ class _ComposerBlockPickerState extends State<ComposerBlockPicker> {
                         width: 48,
                         height: 48,
                         child: Icon(
-                          Icons.search_rounded,
+                          AppIcons.search,
                           key: ValueKey('composer-block-search-icon'),
                           size: 20,
                         ),
@@ -447,7 +450,7 @@ class _ComposerBlockPickerState extends State<ComposerBlockPicker> {
                           maximumSize: const Size.square(48),
                           visualDensity: VisualDensity.standard,
                         ),
-                        icon: const Icon(Icons.close_rounded, size: 18),
+                        icon: const Icon(AppIcons.close, size: 18),
                         onPressed: () => controller.dismiss(),
                       ),
                     ],
@@ -521,9 +524,8 @@ class _ComposerBlockPickerState extends State<ComposerBlockPicker> {
                         TargetPlatform.fuchsia => '输入名称查找，点选插入',
                         _ => '↑↓ 选择   Enter 确认   Esc 关闭',
                       },
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
+                      style: Theme.of(context).textTheme.labelSmall
+                          ?.copyWith(color: colors.onSurfaceVariant),
                     ),
                   ),
               ],
@@ -592,7 +594,7 @@ class _ComposerBlockPickerState extends State<ComposerBlockPicker> {
                 ),
                 if (item.id == widget.controller.selectedId)
                   Icon(
-                    Icons.check_rounded,
+                    AppIcons.check,
                     size: 16,
                     color: colors.onSurfaceVariant,
                   ),

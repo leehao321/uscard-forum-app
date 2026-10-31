@@ -1,9 +1,10 @@
 import 'dart:math' as math;
+
 import 'package:chat_bottom_container/listener_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import '../common/progressive_top_blur.dart';
+import 'package:common_ui/common_ui.dart';
 
 /// 顶栏与底栏共享阅读态显隐；输入或面板交互期间保持可见。
 class ComposerChromeController extends ChangeNotifier {
@@ -327,7 +328,7 @@ class ComposerAutoHideAppBar extends StatelessWidget
       ComposerChromeVisibility(top: true, child: child);
 }
 
-/// 顶栏收起后保留窄幅渐变，让滚出画面的文字自然消失。
+/// 顶栏背景（工具栏材质 + 底部 0.5 分隔线）；收起时只留状态栏高度。
 class ComposerTopFade extends StatelessWidget {
   const ComposerTopFade({
     super.key,
@@ -337,6 +338,11 @@ class ComposerTopFade extends StatelessWidget {
   final double height;
   // 从 Scaffold 外传入；body 内的 MediaQuery 已移除顶部安全区。
   final double statusBarHeight;
+
+  /// 顶栏总高：状态栏 + 导航栏（v2 顶栏是实心工具栏材质，不再有渐变尾巴）
+  static double heightFor(BuildContext context) =>
+      MediaQuery.paddingOf(context).top + kToolbarHeight;
+
   @override
   Widget build(BuildContext context) {
     final hidden = ComposerChromeScope.maybeOf(context)?.hidden ?? false;
@@ -346,7 +352,11 @@ class ComposerTopFade extends StatelessWidget {
           ? Duration.zero
           : const Duration(milliseconds: 180),
       curve: Curves.easeOutCubic,
-      builder: (context, value, _) => ProgressiveTopBlur(height: value),
+      builder: (context, value, _) => SizedBox(
+        key: const ValueKey('composer-top-bar'),
+        height: value,
+        child: const BarSurface(edge: BarEdge.bottom, child: SizedBox.expand()),
+      ),
     );
   }
 }

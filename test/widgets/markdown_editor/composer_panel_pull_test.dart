@@ -1,3 +1,4 @@
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -74,7 +75,7 @@ Future<(ComposerToolsAnchor, List<String>)> _openTools(
                 child: IconButton(
                   tooltip: 'Open tools',
                   onPressed: open,
-                  icon: const Icon(Icons.expand_less),
+                  icon: const Icon(AppIcons.expandLess),
                 ),
               ),
             );

@@ -7,8 +7,8 @@ const double kComposerIslandRadius = 20;
 const double kComposerIslandInset = 8;
 const double kComposerIslandBottomGap = 10;
 
-/// 只负责玻璃与裁切；覆盖正文的布局由 ComposerEditorLayout 提供。
-/// 材质遵循全局玻璃开关和档位，高对比度实色策略由 GlassSurface 统一处理。
+/// 编辑器底部工具岛：v2 工具栏材质（胶囊底色 + 模糊 + 0.5 描边），只负责材质与裁切；
+/// 覆盖正文的布局由 ComposerEditorLayout 提供。
 class ComposerIsland extends StatelessWidget {
   const ComposerIsland({
     super.key,
@@ -37,15 +37,15 @@ class ComposerIsland extends StatelessWidget {
       padding: padding,
       child: KeyedSubtree(
         key: toolsAnchor?.surfaceKey,
-        child: GlassSurfaceFrame(
+        child: ClipRRect(
           key: const ValueKey('composer-island-surface'),
-          radius: radius,
-          recipe: GlassRecipe.lerp(
-            GlassRecipe.toolbar,
-            GlassRecipe.sheet,
-            expansion,
+          borderRadius: BorderRadius.circular(radius),
+          child: CapsuleSurface(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(radius),
+            ),
+            child: Material(color: Colors.transparent, child: child),
           ),
-          child: Material(color: Colors.transparent, child: child),
         ),
       ),
     );

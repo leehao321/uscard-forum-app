@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
+import 'package:common_ui/common_ui.dart';
+import 'package:ai_model_manager/ai_model_manager.dart' show AiProvidersPage;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../models/topic.dart';
 import '../../pages/topic_detail_page/topic_detail_page.dart';
 import '../../providers/discourse_providers.dart';
@@ -10,7 +13,14 @@ import '../../providers/selected_topic_provider.dart';
 import '../common/error_view.dart';
 import '../common/relative_time_text.dart';
 import '../markdown_editor/markdown_renderer.dart';
+import 'ai_segment_summary_card.dart';
 import '../../../../../l10n/s.dart';
+
+/// v2 颜色 token（theme 里没挂扩展时按亮度解析）
+AppColors _c(ThemeData theme) =>
+    (theme.extension<AppTokens>() ??
+            AppTokens.resolve(brightness: theme.brightness))
+        .colors;
 
 /// 话题 AI 摘要组件
 class TopicSummaryWidget extends ConsumerWidget {
@@ -99,7 +109,7 @@ class TopicSummaryWidget extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
+        color: _c(theme).surfaceGrouped,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -109,14 +119,14 @@ class TopicSummaryWidget extends ConsumerWidget {
             height: 16,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: theme.colorScheme.primary,
+              color: _c(theme).brandPrimary,
             ),
           ),
           const SizedBox(width: 12),
           Text(
             S.current.topic_generatingSummary,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+              color: _c(theme).textMeta,
             ),
           ),
         ],
@@ -128,21 +138,17 @@ class TopicSummaryWidget extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
+        color: _c(theme).surfaceGrouped,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          Icon(
-            Symbols.info_rounded,
-            size: 20,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
+          Icon(AppIcons.info, size: 20, color: _c(theme).textMeta),
           const SizedBox(width: 12),
           Text(
             S.current.topic_noSummary,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+              color: _c(theme).textMeta,
             ),
           ),
         ],
@@ -159,12 +165,8 @@ class TopicSummaryWidget extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
+        color: _c(theme).surfaceGrouped,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha:0.5),
-          width: 0.5,
-        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,16 +175,16 @@ class TopicSummaryWidget extends ConsumerWidget {
           Row(
             children: [
               Icon(
-                Symbols.auto_awesome_rounded,
+                AppIcons.autoAwesome,
                 size: 18,
-                color: theme.colorScheme.primary,
+                color: _c(theme).brandPrimary,
               ),
               const SizedBox(width: 8),
               Text(
                 S.current.topic_aiSummary,
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w500,
-                  color: theme.colorScheme.primary,
+                  color: _c(theme).brandPrimary,
                 ),
               ),
               const Spacer(),
@@ -193,29 +195,34 @@ class TopicSummaryWidget extends ConsumerWidget {
                   height: 12,
                   child: CircularProgressIndicator(
                     strokeWidth: 1.8,
-                    color: theme.colorScheme.primary,
+                    color: _c(theme).brandPrimary,
                   ),
                 ),
                 const SizedBox(width: 6),
                 Text(
                   S.current.topic_generatingSummary,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                    color: _c(theme).textMeta,
                   ),
                 ),
               ] else
               // 过期提示
               if (summary.outdated)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.tertiaryContainer,
+                    color: _c(theme).brandPrimary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    S.current.topic_newRepliesSinceSummary(summary.newPostsSinceSummary),
+                    S.current.topic_newRepliesSinceSummary(
+                      summary.newPostsSinceSummary,
+                    ),
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onTertiaryContainer,
+                      color: _c(theme).brandPrimary,
                     ),
                   ),
                 ),
@@ -228,7 +235,9 @@ class TopicSummaryWidget extends ConsumerWidget {
             text: summary.summarizedText,
             isStreaming: summary.isStreaming,
             onInternalLinkTap: (linkTopicId, topicSlug, postNumber) {
-              if (linkTopicId == topicId && postNumber != null && onJumpToPost != null) {
+              if (linkTopicId == topicId &&
+                  postNumber != null &&
+                  onJumpToPost != null) {
                 // 当前话题链接 → 跳转到对应帖子
                 onJumpToPost!(postNumber);
               } else {
@@ -265,7 +274,7 @@ class TopicSummaryWidget extends ConsumerWidget {
                     displayStyle: TimeDisplayStyle.prefixed,
                     prefix: S.current.topic_updatedAt,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                      color: _c(theme).textMeta,
                     ),
                   ),
                 const Spacer(),
@@ -273,7 +282,7 @@ class TopicSummaryWidget extends ConsumerWidget {
                 if (summary.canRegenerate && summary.outdated)
                   TextButton.icon(
                     onPressed: onRegenerate ?? () => _refreshSummary(ref),
-                    icon: const Icon(Symbols.refresh_rounded, size: 16),
+                    icon: const Icon(AppIcons.refresh, size: 16),
                     label: Text(S.current.common_refresh),
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -304,7 +313,7 @@ class _StreamingMarkdownBody extends StatefulWidget {
   final String text;
   final bool isStreaming;
   final void Function(int topicId, String? topicSlug, int? postNumber)?
-      onInternalLinkTap;
+  onInternalLinkTap;
 
   const _StreamingMarkdownBody({
     super.key,
@@ -314,8 +323,7 @@ class _StreamingMarkdownBody extends StatefulWidget {
   });
 
   @override
-  State<_StreamingMarkdownBody> createState() =>
-      _StreamingMarkdownBodyState();
+  State<_StreamingMarkdownBody> createState() => _StreamingMarkdownBodyState();
 }
 
 class _StreamingMarkdownBodyState extends State<_StreamingMarkdownBody> {
@@ -412,7 +420,8 @@ class _StreamingMarkdownBodyState extends State<_StreamingMarkdownBody> {
         if (nextLength < _targetText.length) {
           final currentCodeUnit = _targetText.codeUnitAt(nextLength - 1);
           final nextCodeUnit = _targetText.codeUnitAt(nextLength);
-          final splitsSurrogatePair = currentCodeUnit >= 0xD800 &&
+          final splitsSurrogatePair =
+              currentCodeUnit >= 0xD800 &&
               currentCodeUnit <= 0xDBFF &&
               nextCodeUnit >= 0xDC00 &&
               nextCodeUnit <= 0xDFFF;
@@ -445,7 +454,7 @@ class _StreamingMarkdownBodyState extends State<_StreamingMarkdownBody> {
 /// 可折叠的话题摘要组件（懒加载：点击时才请求）
 class CollapsibleTopicSummary extends ConsumerStatefulWidget {
   final int topicId;
-  final TopicDetail? topicDetail;  // 新增：传入话题详情以检查 summarizable
+  final TopicDetail? topicDetail; // 新增：传入话题详情以检查 summarizable
   final Widget? headerExtra; // 新增：头部额外组件（如订阅按钮）
   /// 跳转到当前话题的指定帖子
   final void Function(int postNumber)? onJumpToPost;
@@ -477,8 +486,13 @@ class _CollapsibleTopicSummaryState
   void initState() {
     super.initState();
     _controller = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 300));
-    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
@@ -494,11 +508,11 @@ class _CollapsibleTopicSummaryState
 
     // 🔑 关键控制逻辑：检查是否应该显示摘要按钮
     if (topicDetail != null && !topicDetail.summarizable) {
-      // 即使不可摘要，如果有 headerExtra 也要显示 headerExtra
-      if (widget.headerExtra != null) {
-         return widget.headerExtra!;
-      }
-      return const SizedBox.shrink();
+      // 站点没有总结：只留订阅按钮和本地 AI 卡
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [?widget.headerExtra, _buildLocalCard(topicDetail)],
+      );
     }
 
     // 只有在已请求后才 watch provider。重生成使用独立 Provider，
@@ -515,7 +529,8 @@ class _CollapsibleTopicSummaryState
       _scheduleFinishRegeneration();
     }
 
-    final isLoading = summaryAsync?.isLoading == true ||
+    final isLoading =
+        summaryAsync?.isLoading == true ||
         summaryAsync?.value?.isStreaming == true;
     final isOutdated = summaryAsync?.value?.outdated == true;
     final hasCachedSummary =
@@ -530,26 +545,31 @@ class _CollapsibleTopicSummaryState
             // 摘要按钮
             InkWell(
               onTap: _toggleExpand,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(16),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(alpha:0.3),
-                  borderRadius: BorderRadius.circular(8),
+                  color: _c(theme).surfaceGrouped,
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Symbols.auto_awesome_rounded,
+                      AppIcons.autoAwesome,
                       size: 16,
-                      color: theme.colorScheme.primary,
+                      color: _c(theme).brandPrimary,
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      hasCachedSummary ? S.current.topic_aiSummary : S.current.topic_generateAiSummary,
+                      hasCachedSummary
+                          ? S.current.topic_aiSummary
+                          : S.current.topic_generateAiSummary,
                       style: theme.textTheme.labelMedium?.copyWith(
-                        color: theme.colorScheme.primary,
+                        color: _c(theme).brandPrimary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -560,9 +580,9 @@ class _CollapsibleTopicSummaryState
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeOutCubic,
                       child: Icon(
-                        Symbols.expand_more_rounded,
+                        AppIcons.expandMore,
                         size: 18,
-                        color: theme.colorScheme.primary,
+                        color: _c(theme).brandPrimary,
                       ),
                     ),
                     // 加载指示器
@@ -573,7 +593,7 @@ class _CollapsibleTopicSummaryState
                         height: 12,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: theme.colorScheme.primary,
+                          color: _c(theme).brandPrimary,
                         ),
                       ),
                     ],
@@ -584,7 +604,7 @@ class _CollapsibleTopicSummaryState
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.tertiary,
+                          color: _c(theme).brandPrimary,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -599,6 +619,7 @@ class _CollapsibleTopicSummaryState
             ],
           ],
         ),
+        if (topicDetail != null) _buildLocalCard(topicDetail),
         // 展开的摘要内容，使用 SizeTransition 优化展开动画
         SizeTransition(
           sizeFactor: _animation,
@@ -619,6 +640,16 @@ class _CollapsibleTopicSummaryState
       ],
     );
   }
+
+  /// 本机 AI 局部总结卡（P6）：总结已加载的楼层，点了才请求
+  Widget _buildLocalCard(TopicDetail detail) => AiSegmentSummaryCard(
+    title: detail.title,
+    posts: detail.postStream.posts,
+    onJumpToPost: widget.onJumpToPost,
+    onOpenSettings: () =>
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const AiProvidersPage())),
+  );
 
   void _startRegeneration() {
     if (_isRegenerating) return;

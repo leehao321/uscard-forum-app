@@ -125,12 +125,12 @@ class ComposerToolsToggle extends StatelessWidget {
     return IconButton(
       icon: Icon(
         done
-            ? Symbols.check_rounded
+            ? AppIcons.check
             : axis == Axis.vertical
             ? (expanded ? AppIcons.chevronRight : AppIcons.chevronLeft)
             : expanded
-            ? Symbols.expand_more_rounded
-            : Symbols.expand_less_rounded,
+            ? AppIcons.expandMore
+            : AppIcons.expandLess,
       ),
       tooltip: done
           ? S.current.common_done
@@ -222,9 +222,7 @@ class ComposerCompactTools extends StatelessWidget {
                     child: TextButton.icon(
                       onPressed: controller.toggleCustomizing,
                       icon: Icon(
-                        controller.customizing
-                            ? Icons.check
-                            : Icons.edit_outlined,
+                        controller.customizing ? AppIcons.check : AppIcons.edit,
                         size: 16,
                       ),
                       label: Text(

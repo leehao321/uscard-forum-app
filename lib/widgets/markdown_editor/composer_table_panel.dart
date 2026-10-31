@@ -1,3 +1,4 @@
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxdo_render/editor.dart';
@@ -85,11 +86,11 @@ class _ComposerTablePanelState extends State<ComposerTablePanel> {
                   : null,
             ),
             icon: Icon(switch (action) {
-              EditorTableAction.rowBefore => Icons.arrow_upward,
-              EditorTableAction.rowAfter => Icons.arrow_downward,
-              EditorTableAction.columnBefore => Icons.arrow_back,
-              EditorTableAction.columnAfter => Icons.arrow_forward,
-              _ => Icons.delete_outline,
+              EditorTableAction.rowBefore => AppIcons.up,
+              EditorTableAction.rowAfter => AppIcons.down,
+              EditorTableAction.columnBefore => AppIcons.back,
+              EditorTableAction.columnAfter => AppIcons.forward,
+              _ => AppIcons.delete,
             }),
             label: Text(label(action)),
             onPressed: !valid || _busy || !table.enabled(action)
@@ -126,7 +127,7 @@ class _ComposerTablePanelState extends State<ComposerTablePanel> {
                     IconButton(
                       tooltip: t.table_close,
                       onPressed: _busy ? null : widget.onClose,
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(AppIcons.close),
                     ),
                   ],
                 ),
@@ -215,10 +216,7 @@ class ComposerTableControls extends StatelessWidget {
                 final box = context.findRenderObject() as RenderBox;
                 onOpen(row, box.localToGlobal(Offset.zero) & box.size);
               },
-        icon: Icon(
-          row ? Icons.table_rows_outlined : Icons.view_column_outlined,
-          size: 20,
-        ),
+        icon: Icon(row ? AppIcons.rows : AppIcons.columns, size: 20),
         label: Text(
           row
               ? t.table_row_target(number: (cell?.$1 ?? 0) + 1)

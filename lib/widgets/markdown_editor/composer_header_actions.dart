@@ -13,10 +13,9 @@ import 'composer_page_chrome.dart';
 import 'composer_view_mode_switcher.dart';
 import 'composer_submit_button.dart';
 
-typedef ComposerReviewBuilder =
-    Widget Function(
-      Widget Function(bool reviewing, VoidCallback? trigger) builder,
-    );
+typedef ComposerReviewBuilder = Widget Function(
+  Widget Function(bool reviewing, VoidCallback? trigger) builder,
+);
 
 enum _HeaderAction { preview, review, discard, draft }
 
@@ -61,7 +60,7 @@ class ComposerHeaderActions extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scaler = MediaQuery.textScalerOf(context);
-    const submitWidth = 48.0;
+    const submitWidth = 66.0;
     final actions = [
       _HeaderAction.preview,
       if (reviewBuilder != null) _HeaderAction.review,
@@ -109,9 +108,9 @@ class ComposerHeaderActions extends StatelessWidget {
     };
     Object icon(_HeaderAction action) => switch (action) {
       _HeaderAction.preview => previewing ? AppIcons.edit : AppIcons.openBook,
-      _HeaderAction.review => Symbols.auto_awesome_rounded,
-      _HeaderAction.discard => Symbols.delete_rounded,
-      _HeaderAction.draft => Symbols.cloud_upload_rounded,
+      _HeaderAction.review => AppIcons.sparkles,
+      _HeaderAction.discard => AppIcons.delete,
+      _HeaderAction.draft => AppIcons.cloudUpload,
     };
     VoidCallback? callback(_HeaderAction action, VoidCallback? onReview) =>
         switch (action) {
@@ -138,10 +137,10 @@ class ComposerHeaderActions extends StatelessWidget {
       position: PopupMenuPosition.under,
       offset: const Offset(0, 4),
       icon: draftStatus == null
-          ? const Icon(Symbols.more_horiz_rounded, size: 21)
+          ? const Icon(AppIcons.moreHoriz, size: 21)
           : ComposerDraftAttention(
               status: draftStatus!,
-              child: const Icon(Symbols.more_horiz_rounded, size: 21),
+              child: const Icon(AppIcons.moreHoriz, size: 21),
             ),
       style: ComposerActionButton.buttonStyle,
       onSelected: (action) => callback(action, onReview)?.call(),
@@ -203,7 +202,7 @@ class ComposerHeaderActions extends StatelessWidget {
             ? more(reviewing, trigger)
             : ComposerActionButton(
                 key: const ValueKey('composer-header-review-inline'),
-                icon: Symbols.auto_awesome_rounded,
+                icon: AppIcons.sparkles,
                 label: label(_HeaderAction.review, reviewing),
                 busy: reviewing,
                 onPressed: trigger,
@@ -228,7 +227,7 @@ class ComposerHeaderActions extends StatelessWidget {
                 _HeaderAction.review => reviewHost(folded: false),
                 _HeaderAction.discard => ComposerActionButton(
                   key: const ValueKey('composer-header-discard-inline'),
-                  icon: Symbols.delete_rounded,
+                  icon: AppIcons.delete,
                   label: S.current.common_discard,
                   onPressed: onDiscard,
                 ),

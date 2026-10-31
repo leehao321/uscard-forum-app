@@ -1,6 +1,9 @@
 import 'package:fluxdo/providers/draft_store_provider.dart';
+
 import '../helpers/memory_draft_store.dart';
+
 import 'dart:convert';
+
 import 'package:chat_bottom_container/listener_manager.dart';
 
 import 'package:app_icons/app_icons.dart';
@@ -24,7 +27,6 @@ import 'package:fluxdo/widgets/markdown_editor/composer_page_chrome.dart';
 import 'package:fluxdo/widgets/markdown_editor/composer_header_actions.dart';
 import 'package:fluxdo/services/draft_controller.dart';
 import 'package:fluxdo/widgets/markdown_editor/composer_chrome.dart';
-import 'package:fluxdo/widgets/common/progressive_top_blur.dart';
 import 'package:fluxdo/widgets/markdown_editor/composer_view_mode_switcher.dart';
 import 'package:fluxdo/widgets/markdown_editor/composer_workbench.dart';
 import 'package:fluxdo/widgets/markdown_editor/rich_composer/rich_composer_editor.dart';
@@ -147,9 +149,7 @@ void main() {
                       initialCategoryId: 1,
                       initialTags: ['flutter', '体验'],
                       initialTitle: empty ? '123123' : '分享最近的开发体验',
-                      initialContent: empty
-                          ? ''
-                          : '最近重新整理了写作环境。\n\n常用工具应该留在手边，需要的时候能直接找到。\n\n大家平时更习惯怎样的编辑器？',
+                      initialContent: empty ? '' : '最近重新整理了写作环境。\n\n常用工具应该留在手边，需要的时候能直接找到。\n\n大家平时更习惯怎样的编辑器？',
                     ),
                   ),
                 },
@@ -233,18 +233,16 @@ void main() {
         final appbar = find.byType(AppBar);
         final publish = find.byKey(const ValueKey('composer-header-submit'));
         expect(width - tester.getRect(publish).right, 16);
-        expect(tester.getSize(publish), const Size(48, 48));
+        expect(tester.getSize(publish), const Size(66, 44));
         expect(find.byTooltip(S.current.common_publish), findsOneWidget);
         final chrome = ComposerChromeScope.maybeOf(tester.element(appbar))!;
         chrome.hide();
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 200));
         expect(
-          tester
-              .widget<ProgressiveTopBlur>(find.byType(ProgressiveTopBlur))
-              .height,
+          tester.getSize(find.byKey(const ValueKey('composer-top-bar'))).height,
           statusBarHeight + 24,
-          reason: '收起后的渐变仍应覆盖完整状态栏和消散尾巴',
+          reason: '收起后的顶栏背景仍应覆盖完整状态栏',
         );
         chrome.reveal();
         await tester.pump();
@@ -262,7 +260,7 @@ void main() {
         if (width < 480) {
           expect(tester.getSize(more), const Size(44, 44));
           expect(tester.getRect(publish).left - tester.getRect(more).right, 8);
-          expect(find.byIcon(Symbols.delete_rounded), findsNothing);
+          expect(find.byIcon(AppIcons.delete), findsNothing);
           await tester.tap(more);
           await tester.pump();
           await tester.pump(const Duration(milliseconds: 250));
@@ -576,9 +574,7 @@ void main() {
           );
           expect(
             island.top,
-            greaterThanOrEqualTo(
-              statusBarHeight + kToolbarHeight + ProgressiveTopBlur.tail,
-            ),
+            greaterThanOrEqualTo(statusBarHeight + kToolbarHeight),
           );
           expect(island.bottom, lessThanOrEqualTo(460));
           final toolsScroll = tester

@@ -255,7 +255,7 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
       child: text.trim().isEmpty
           ? Text(
               S.current.editor_noContent,
-              style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+              style: TextStyle(color: context.tokens.colors.textMeta),
             )
           : MarkdownBody(data: text),
     );
@@ -301,13 +301,13 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
     final target = widget.replyToPost;
     final title = widget.topicTitle?.trim();
     final (label, icon) = _isEditMode
-        ? ('#${widget.editPost!.postNumber}', Symbols.edit_rounded)
+        ? ('#${widget.editPost!.postNumber}', AppIcons.edit)
         : _isPrivateMessage && _recipients.isNotEmpty
-        ? (_recipients.map((name) => '@$name').join(', '), Symbols.mail_rounded)
+        ? (_recipients.map((name) => '@$name').join(', '), AppIcons.mail)
         : target != null
-        ? ('@${target.username} · #${target.postNumber}', Symbols.reply_rounded)
+        ? ('@${target.username} · #${target.postNumber}', AppIcons.reply)
         : title != null && title.isNotEmpty
-        ? (title, Symbols.reply_rounded)
+        ? (title, AppIcons.reply)
         : (_viewMode.label, _viewMode.icon);
     return Tooltip(
       message: label,
@@ -315,17 +315,16 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Row(
           children: [
-            AppIcon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
+            AppIcon(icon, size: 16, color: context.tokens.colors.textMeta),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+                style: theme.textTheme.labelMedium
+                    ?.merge(context.tokens.text.meta)
+                    .copyWith(color: context.tokens.colors.textMeta),
               ),
             ),
           ],
@@ -421,7 +420,7 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
                 : null,
             radius: 14,
             fallbackText: target.username,
-            backgroundColor: theme.colorScheme.primaryContainer,
+            backgroundColor: context.tokens.colors.avatarFill,
           ),
           const SizedBox(width: 8),
         ],
@@ -451,8 +450,10 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
         !_isPrivateMessage &&
         target != null;
     final style = compactTarget
-        ? theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)
-        : null;
+        ? theme.textTheme.titleMedium?.merge(context.tokens.text.headline)
+        : theme.textTheme.titleMedium
+              ?.merge(context.tokens.text.headline)
+              .copyWith(color: context.tokens.colors.textPrimary);
     double? titleWidth;
     if (compactTarget) {
       final painter = TextPainter(
@@ -481,8 +482,12 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
             primary: false,
             centerTitle: false,
             automaticallyImplyLeading: false,
-            leading: CloseButton(
-              onPressed: () => Navigator.of(context).maybePop(),
+            leading: Center(
+              child: AppIconButton(
+                icon: AppIcons.close,
+                semanticLabel: context.l10n.common_close,
+                onPressed: () => Navigator.of(context).maybePop(),
+              ),
             ),
             title: separateTarget
                 ? Text(context.l10n.common_reply)
@@ -526,7 +531,7 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
   bool _reloadingDraft = false;
 
   // 表情面板高度
-  static const double _emojiPanelHeight = 280.0;
+  static const double _emojiPanelHeight = 336.0;
 
   // 草稿控制器（仅在回复话题或创建私信时使用，编辑模式不使用）
   DraftController? _draftController;
@@ -1168,9 +1173,9 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
               children: [
                 Container(
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(16),
+                    color: context.tokens.colors.surfaceElevated,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(context.tokens.radius.sheet),
                     ),
                   ),
                   child: Column(
@@ -1185,8 +1190,10 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
                             height: 4,
                             margin: const EdgeInsets.only(top: 12, bottom: 8),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.outlineVariant,
-                              borderRadius: BorderRadius.circular(2),
+                              color: context.tokens.colors.quoteRule,
+                              borderRadius: BorderRadius.circular(
+                                context.tokens.radius.handle,
+                              ),
                             ),
                           ),
 
@@ -1195,12 +1202,7 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
                                 _buildResponsiveHeader(theme, bounds.maxWidth),
                           ),
 
-                          Divider(
-                            height: 1,
-                            color: theme.colorScheme.outlineVariant.withValues(
-                              alpha: 0.5,
-                            ),
-                          ),
+                          const AppHairline(),
                         ],
                       ),
 
@@ -1238,12 +1240,7 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
                             },
                           ),
                         ),
-                        Divider(
-                          height: 1,
-                          color: theme.colorScheme.outlineVariant.withValues(
-                            alpha: 0.2,
-                          ),
-                        ),
+                        const AppHairline(),
                       ],
 
                       // 2. 编辑器区域(feature flag:富文本 / markdown;
@@ -1358,9 +1355,11 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.surface.withValues(alpha: 0.7),
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16),
+                        color: context.tokens.colors.surfaceElevated.withValues(
+                          alpha: 0.7,
+                        ),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(context.tokens.radius.sheet),
                         ),
                       ),
                       child: const Center(child: LoadingSpinner()),

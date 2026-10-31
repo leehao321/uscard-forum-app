@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:pangutext/pangutext.dart';
@@ -66,9 +67,8 @@ class SmartListHandler {
     final prevLine = currentText.substring(prevLineStart, selection.start - 1);
 
     // 检测无序列表
-    final unorderedMatch = RegExp(
-      r'^(\s*)([-*+])\s+(.*)$',
-    ).firstMatch(prevLine);
+    final unorderedMatch = RegExp(r'^(\s*)([-*+])\s+(.*)$')
+        .firstMatch(prevLine);
     if (unorderedMatch != null) {
       final indent = unorderedMatch.group(1)!;
       final marker = unorderedMatch.group(2)!;
@@ -306,7 +306,7 @@ class CategoryTrigger extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Symbols.category_rounded,
+                  AppIcons.category,
                   size: 18,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -326,7 +326,7 @@ class CategoryTrigger extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Icon(
-                  Symbols.arrow_drop_down_rounded,
+                  AppIcons.dropdown,
                   size: 18,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -383,7 +383,7 @@ class CategoryTrigger extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              Icon(Symbols.arrow_drop_down_rounded, size: 18, color: color),
+              Icon(AppIcons.dropdown, size: 18, color: color),
             ],
           ),
         ),
@@ -487,7 +487,7 @@ class TagsArea extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Symbols.tag_rounded,
+                  AppIcons.hash,
                   size: 14,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -504,7 +504,7 @@ class TagsArea extends StatelessWidget {
                     onTagsChanged(newTags);
                   },
                   child: Icon(
-                    Symbols.close_rounded,
+                    AppIcons.close,
                     size: 14,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -538,9 +538,7 @@ class TagsArea extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    selectedTags.isEmpty
-                        ? Symbols.add_rounded
-                        : Symbols.edit_rounded,
+                    selectedTags.isEmpty ? AppIcons.add : AppIcons.edit,
                     size: 16,
                     color: isSatisfied
                         ? theme.colorScheme.primary
@@ -596,6 +594,11 @@ class TagsArea extends StatelessWidget {
 /// composer 底部属性条(编辑区与工具栏之间):分类 pill + 标签 pill +
 /// 字数。元数据常驻可见可改,写作滚动流只留标题+正文。
 /// MD3 assist-chip 语汇:细描边小 pill,高 28,全圆角。
+AppColors _tk(ThemeData theme) =>
+    (theme.extension<AppTokens>() ??
+            AppTokens.resolve(brightness: theme.brightness))
+        .colors;
+
 class ComposerMetaBar extends StatelessWidget {
   final Category? category;
   final List<Category> categories;
@@ -689,18 +692,12 @@ class ComposerMetaBar extends StatelessWidget {
               heightFactor: 1,
               child: DecoratedBox(
                 decoration: ShapeDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest.withValues(
-                    alpha: .42,
-                  ),
+                  // v2 筛选胶囊：avatar/fill 底、无描边（未选分类时用品牌色描边引导）
+                  color: _tk(theme).avatarFill,
                   shape: StadiumBorder(
-                    side: BorderSide(
-                      color:
-                          borderColor ??
-                          theme.colorScheme.outlineVariant.withValues(
-                            alpha: .55,
-                          ),
-                      width: .6,
-                    ),
+                    side: borderColor == null
+                        ? BorderSide.none
+                        : BorderSide(color: borderColor, width: 1),
                   ),
                 ),
                 child: Padding(
@@ -771,7 +768,7 @@ class ComposerMetaBar extends StatelessWidget {
         key: const ValueKey('composer-category-chip'),
         tooltip: S.current.topic_selectCategory,
         onTap: () => _pickCategory(context),
-        borderColor: theme.colorScheme.primary.withValues(alpha: 0.5),
+        borderColor: _tk(theme).brandPrimary,
         children: [
           Flexible(
             child: Text(
@@ -784,11 +781,7 @@ class ComposerMetaBar extends StatelessWidget {
               ),
             ),
           ),
-          Icon(
-            Symbols.arrow_drop_down_rounded,
-            size: 16,
-            color: theme.colorScheme.primary,
-          ),
+          Icon(AppIcons.dropdown, size: 16, color: theme.colorScheme.primary),
         ],
       );
     }
@@ -814,7 +807,7 @@ class ComposerMetaBar extends StatelessWidget {
         ),
         const SizedBox(width: 2),
         Icon(
-          Symbols.arrow_drop_down_rounded,
+          AppIcons.dropdown,
           size: 16,
           color: theme.colorScheme.onSurfaceVariant,
         ),
@@ -869,11 +862,11 @@ class ComposerMetaBar extends StatelessWidget {
           : theme.colorScheme.error.withValues(alpha: 0.5),
       children: [
         if (desktop) ...[
-          Icon(Symbols.sell_rounded, size: 14, color: color),
+          Icon(AppIcons.tag, size: 14, color: color),
           const SizedBox(width: 6),
         ] else ...[
           Icon(
-            selectedTags.isEmpty ? Symbols.add_rounded : Symbols.sell_rounded,
+            selectedTags.isEmpty ? AppIcons.add : AppIcons.tag,
             size: 14,
             color: color,
           ),
@@ -896,7 +889,7 @@ class ComposerMetaBar extends StatelessWidget {
         ],
         if (desktop) ...[
           const SizedBox(width: 6),
-          Icon(Symbols.expand_more_rounded, size: 16, color: color),
+          Icon(AppIcons.expandMore, size: 16, color: color),
         ],
       ],
     );
@@ -989,7 +982,7 @@ class ComposerMetaBar extends StatelessWidget {
           ? theme.colorScheme.primary.withValues(alpha: 0.5)
           : null,
       children: [
-        Icon(Symbols.thumbs_up_down_rounded, size: 14, color: color),
+        Icon(AppIcons.thumbUp, size: 14, color: color),
         const SizedBox(width: 4),
         Text(
           S.current.createTopic_postVoting,
@@ -1002,7 +995,7 @@ class ComposerMetaBar extends StatelessWidget {
         ),
         if (postVotingLocked) ...[
           const SizedBox(width: 2),
-          Icon(Symbols.lock_rounded, size: 12, color: color),
+          Icon(AppIcons.lock, size: 12, color: color),
         ],
       ],
     );

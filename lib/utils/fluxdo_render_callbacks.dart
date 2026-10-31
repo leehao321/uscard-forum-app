@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:common_ui/common_ui.dart';
 import 'package:archive/archive.dart' show ZLibEncoder;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -283,13 +284,15 @@ class FluxdoRenderCallbacks {
     )) {
       return;
     }
-    Navigator.of(ctx).push(MaterialPageRoute(
-      builder: (_) => TopicDetailPage(
-        topicId: topicId,
-        initialTitle: topicSlug,
-        scrollToPostNumber: postNumber,
+    Navigator.of(ctx).push(
+      MaterialPageRoute(
+        builder: (_) => TopicDetailPage(
+          topicId: topicId,
+          initialTitle: topicSlug,
+          scrollToPostNumber: postNumber,
+        ),
       ),
-    ));
+    );
   }
 
   // ==========================================================================
@@ -366,7 +369,8 @@ class FluxdoRenderCallbacks {
           imageUrl: resolvedUrl,
           radius: size / 2,
           fallbackText: username,
-          backgroundColor: Theme.of(ctx).colorScheme.surfaceContainerHighest,
+          // RenderTheme 把 surfaceContainerHighest 映射成透明，头像底色直接取 token
+          backgroundColor: ctx.tokens.colors.avatarFill,
         );
       };
 
@@ -387,9 +391,8 @@ class FluxdoRenderCallbacks {
               node.latex,
               style: TextStyle(
                 fontFamily: 'monospace',
-                color: Theme.of(
-                  ctx,
-                ).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: Theme.of(ctx).colorScheme.onSurface
+                    .withValues(alpha: 0.7),
               ),
             ),
           ),
@@ -482,9 +485,7 @@ class FluxdoRenderCallbacks {
           errorBuilder: (c, failedUrl, error) =>
               _VideoErrorFallback(url: failedUrl, error: error),
           loadingBuilder: (c, _, child) => Center(
-            child: posterUrl != null
-                ? child
-                : const LoadingSpinner(size: 24),
+            child: posterUrl != null ? child : const LoadingSpinner(size: 24),
           ),
         ),
       ),
@@ -752,7 +753,8 @@ class FluxdoRenderCallbacks {
   /// 端渲染等价;解码纹理量不变(ResizeImage 仍按显示宽 × dpr cap)。
   static String? _pickSrcsetUrl(ImageRun image, double dpr) {
     if (image.srcset.isEmpty) return null;
-    final sorted = [...image.srcset]..sort((a, b) => a.scale.compareTo(b.scale));
+    final sorted = [...image.srcset]
+      ..sort((a, b) => a.scale.compareTo(b.scale));
     for (final c in sorted) {
       if (c.scale >= dpr - 0.01) return c.url;
     }
@@ -1280,8 +1282,7 @@ class FluxdoRenderCallbacks {
               // 档位影响。
               final srcsetUrl = DiscourseImageUtils.isUploadUrl(image.src)
                   ? null
-                  : _pickSrcsetUrl(
-                      image, MediaQuery.devicePixelRatioOf(ctx));
+                  : _pickSrcsetUrl(image, MediaQuery.devicePixelRatioOf(ctx));
               final displayUrl = srcsetUrl == null
                   ? resolvedUrl
                   : UrlHelper.resolveUrlWithCdn(srcsetUrl);
@@ -1319,14 +1320,14 @@ class FluxdoRenderCallbacks {
                   // 风险,能不用就不用)。
                   final hasLightbox = image.lightboxUrl != null;
                   final fullUrl = image.lightboxUrl ?? resolvedUrl;
-                  var resolvedFullUrl =
-                      DiscourseImageUtils.isUploadUrl(fullUrl)
+                  var resolvedFullUrl = DiscourseImageUtils.isUploadUrl(fullUrl)
                       ? (DiscourseImageUtils.getCachedUploadUrl(fullUrl) ??
                             fullUrl)
                       : UrlHelper.resolveUrlWithCdn(fullUrl);
                   if (!hasLightbox) {
-                    resolvedFullUrl =
-                        DiscourseImageUtils.getOriginalUrl(resolvedFullUrl);
+                    resolvedFullUrl = DiscourseImageUtils.getOriginalUrl(
+                      resolvedFullUrl,
+                    );
                   }
                   // 画廊数据在点击时才解析(长帖懒解析场景首次点图会触发
                   // 全 chunk parse,离散动作可接受;之后命中缓存)。
@@ -1351,7 +1352,9 @@ class FluxdoRenderCallbacks {
                     galleryImages: hasGallery ? gallery.urls : null,
                     thumbnailUrls: hasGallery ? gallery.thumbs : null,
                     heroTags: hasGallery ? gallery.heroTags : null,
-                    filenames: hasGallery ? gallery.filenames : [image.filename],
+                    filenames: hasGallery
+                        ? gallery.filenames
+                        : [image.filename],
                     initialIndex: hasGallery ? galleryIndex : 0,
                     heroSourceFit: inGridTile ? BoxFit.cover : null,
                     heroSourceRadius: inGridTile ? 4 : 0,
@@ -1495,7 +1498,8 @@ class FluxdoRenderCallbacks {
     final base62Sha1 = image.base62Sha1;
     if (base62Sha1 != null && base62Sha1.isNotEmpty) {
       src = 'upload://$base62Sha1';
-      final ext = HtmlToMarkdown.extensionFromUrl(image.src) ??
+      final ext =
+          HtmlToMarkdown.extensionFromUrl(image.src) ??
           HtmlToMarkdown.extensionFromUrl(image.lightboxUrl) ??
           HtmlToMarkdown.extensionFromUrl(image.origSrc);
       if (ext != null) src = '$src.$ext';

@@ -191,7 +191,7 @@ class RichComposerEditor extends StatefulWidget {
     this.header,
     this.metaBar,
     this.bodyOverlay,
-    this.emojiPanelHeight = 280.0,
+    this.emojiPanelHeight = 336.0,
     this.onEmojiPanelChanged,
     this.mentionDataSource,
     this.onFallbackToPlain,
@@ -970,7 +970,7 @@ class RichComposerEditorState extends State<RichComposerEditor> {
         ComposerToolAction(
           id: 'undo',
           label: S.current.toolbar_undo,
-          icon: const Icon(Icons.undo),
+          icon: const Icon(AppIcons.undo),
           enabled: _contentActions.canUndo,
           shortcut: composerShortcutHint('undo'),
           searchText: 'undo',
@@ -980,7 +980,7 @@ class RichComposerEditorState extends State<RichComposerEditor> {
         ComposerToolAction(
           id: 'redo',
           label: S.current.toolbar_redo,
-          icon: const Icon(Icons.redo),
+          icon: const Icon(AppIcons.redo),
           enabled: _contentActions.canRedo,
           shortcut: composerShortcutHint('redo'),
           searchText: 'redo',
@@ -1041,7 +1041,7 @@ class RichComposerEditorState extends State<RichComposerEditor> {
             id: 'switch-mode',
             label:
                 '${S.current.composerView_switch}: ${S.current.composerView_source}',
-            icon: const Icon(Icons.swap_horiz_rounded),
+            icon: const Icon(AppIcons.swapHoriz),
             searchText: 'markdown source',
             group: ComposerToolGroup.editing,
             run: () {
@@ -1352,68 +1352,68 @@ class RichComposerEditorState extends State<RichComposerEditor> {
     (
       ['paragraph', 'text', '正文', '段落'],
       '正文',
-      Icons.title_rounded,
+      AppIcons.heading,
       () async => _applyBlockCommand((s) => s.setHeading(null)),
     ),
     (
       ['h1', 'heading', '标题', 'bt'],
       '标题 1',
-      Icons.title_rounded,
+      AppIcons.heading,
       () async => _applyBlockCommand((s) => s.setHeading(1)),
     ),
     (
       ['h2', '标题2'],
       '标题 2',
-      Icons.title_rounded,
+      AppIcons.heading,
       () async => _applyBlockCommand((s) => s.setHeading(2)),
     ),
     (
       ['h3', '标题3'],
       '标题 3',
-      Icons.title_rounded,
+      AppIcons.heading,
       () async => _applyBlockCommand((s) => s.setHeading(3)),
     ),
     (
       ['h4', '标题4'],
       '标题 4',
-      Icons.title_rounded,
+      AppIcons.heading,
       () async => _applyBlockCommand((s) => s.setHeading(4)),
     ),
     (
       ['ul', 'list', '列表', 'lb', 'wxlb'],
       '无序列表',
-      Icons.format_list_bulleted_rounded,
+      AppIcons.listBulleted,
       () async => _applyBlockCommand((s) => s.toggleList(ordered: false)),
     ),
     (
       ['ol', '有序', 'yxlb'],
       '有序列表',
-      Icons.format_list_numbered_rounded,
+      AppIcons.listNumbered,
       () async => _applyBlockCommand((s) => s.toggleList(ordered: true)),
     ),
     (
       ['quote', '引用', 'yy'],
       '引用',
-      Icons.format_quote_rounded,
+      AppIcons.formatQuote,
       () async => _applyBlockCommand((s) => s.toggleQuote()),
     ),
     (
       ['table', '表格', 'bg'],
       '表格',
-      Icons.table_chart_outlined,
+      AppIcons.table,
       () async =>
           insertMarkdownSnippet('| 列 1 | 列 2 |\n|---|---|\n| 内容 | 内容 |'),
     ),
     (
       ['code', '代码', 'dm'],
       '代码块',
-      Icons.code_rounded,
+      AppIcons.code,
       () async => insertMarkdownSnippet('```dart\n// 代码\n```'),
     ),
     (
       ['math', '公式', 'gs'],
       '公式块',
-      Icons.functions_rounded,
+      AppIcons.sigma,
       () async => insertMarkdownSnippet(
         r'$$'
         '\nE=mc^2\n'
@@ -1423,73 +1423,68 @@ class RichComposerEditorState extends State<RichComposerEditor> {
     (
       ['hr', 'divider', '分隔', 'fgx'],
       '分隔线',
-      Icons.horizontal_rule_rounded,
+      AppIcons.remove,
       () async => insertMarkdownSnippet('---'),
     ),
     (
       ['details', '折叠', 'zd'],
       '折叠详情',
-      Icons.expand_circle_down_outlined,
+      AppIcons.circleChevronDown,
       () async => insertMarkdownSnippet('[details="点开看"]\n折叠内容\n[/details]'),
     ),
     (
       ['spoiler', '剧透', 'jt'],
       '剧透遮罩',
-      Icons.blur_on_rounded,
+      AppIcons.visibilityOff,
       () async => insertMarkdownSnippet('[spoiler]\n剧透内容\n[/spoiler]'),
     ),
     (
       ['date', '日期', '时间', 'rq', 'sj'],
       '日期时间',
-      Icons.event_rounded,
+      AppIcons.calendar,
       () async => _insertLocalDate(),
     ),
     (
       ['image', '图片', 'tp'],
       '上传图片',
-      Icons.image_outlined,
+      AppIcons.image,
       () async => _pickAndUploadImages(),
     ),
     (
       ['callout', '标注', 'bz', 'note'],
       '标注 Callout',
-      Icons.sticky_note_2_outlined,
+      AppIcons.note,
       () async => _insertCallout(),
     ),
-    (
-      ['link', '链接', 'lj'],
-      '插入链接',
-      Icons.link_rounded,
-      () async => _insertLink(),
-    ),
+    (['link', '链接', 'lj'], '插入链接', AppIcons.link, () async => _insertLink()),
     (
       ['audio', '音频', 'yp'],
       '上传音频',
-      Icons.audiotrack_rounded,
+      AppIcons.audio,
       () async => _pickAndInsertMedia(isAudio: true),
     ),
     (
       ['video', '视频', 'sp'],
       '上传视频',
-      Icons.videocam_outlined,
+      AppIcons.videoLibrary,
       () async => _pickAndInsertMedia(isAudio: false),
     ),
     (
       ['voice', '语音', 'luyin'],
       '语音消息',
-      Icons.mic_rounded,
+      AppIcons.mic,
       () async => _recordAndInsertVoice(),
     ),
     (
       ['poll', '投票', 'vote', 'tp2'],
       '投票',
-      Icons.poll_rounded,
+      AppIcons.poll,
       () async => _insertPoll(),
     ),
     (
       ['template', '模板', 'mb'],
       '我的模板',
-      Icons.assignment_outlined,
+      AppIcons.clipboardList,
       () async => _insertTemplate(),
     ),
   ];
@@ -2557,27 +2552,19 @@ class RichComposerEditorState extends State<RichComposerEditor> {
   /// 覆盖编辑白名单外的全部常用块 —— 验证任何类型不再需要手写语法。
   List<ComposerToolAction> _buildInsertActions() {
     final entries = <(String, String, IconData)>[
-      (
-        '表格',
-        '| 列 1 | 列 2 |\n|---|---|\n| 内容 | 内容 |',
-        Icons.table_chart_outlined,
-      ),
-      ('代码块', '```dart\n// 代码\n```', Icons.code_rounded),
+      ('表格', '| 列 1 | 列 2 |\n|---|---|\n| 内容 | 内容 |', AppIcons.table),
+      ('代码块', '```dart\n// 代码\n```', AppIcons.code),
       (
         '公式块',
         r'$$'
             '\nE=mc^2\n'
             r'$$',
-        Icons.functions_rounded,
+        AppIcons.sigma,
       ),
-      ('分隔线', '---', Icons.horizontal_rule_rounded),
-      (
-        '折叠详情',
-        '[details="点开看"]\n折叠内容\n[/details]',
-        Icons.expand_circle_down_outlined,
-      ),
-      ('剧透遮罩', '[spoiler]\n剧透内容\n[/spoiler]', Icons.blur_on_rounded),
-      ('引用卡', '[quote]\n引用内容\n[/quote]', Icons.format_quote_rounded),
+      ('分隔线', '---', AppIcons.remove),
+      ('折叠详情', '[details="点开看"]\n折叠内容\n[/details]', AppIcons.circleChevronDown),
+      ('剧透遮罩', '[spoiler]\n剧透内容\n[/spoiler]', AppIcons.visibilityOff),
+      ('引用卡', '[quote]\n引用内容\n[/quote]', AppIcons.formatQuote),
     ];
 
     const aliases = [
@@ -2601,70 +2588,70 @@ class RichComposerEditorState extends State<RichComposerEditor> {
       ComposerToolAction(
         group: ComposerToolGroup.insert,
         label: '标注 Callout',
-        icon: const Icon(Icons.sticky_note_2_outlined),
+        icon: const Icon(AppIcons.note),
         searchText: 'callout',
         run: () => _runInsertAction('__callout__'),
       ),
       ComposerToolAction(
         group: ComposerToolGroup.insert,
         label: '日期时间',
-        icon: const Icon(Icons.event_rounded),
+        icon: const Icon(AppIcons.calendar),
         searchText: 'date time',
         run: () => _runInsertAction('__date__'),
       ),
       ComposerToolAction(
         group: ComposerToolGroup.insert,
         label: '投票',
-        icon: const Icon(Icons.poll_rounded),
+        icon: const Icon(AppIcons.poll),
         searchText: 'poll vote',
         run: () => _runInsertAction('__poll__'),
       ),
       ComposerToolAction(
         group: ComposerToolGroup.insert,
         label: '加密内容',
-        icon: const Icon(Icons.enhanced_encryption_rounded),
+        icon: const Icon(AppIcons.lockKeyhole),
         searchText: 'encrypt',
         run: () => _runInsertAction('__encrypt__'),
       ),
       ComposerToolAction(
         group: ComposerToolGroup.insert,
         label: '上传音频',
-        icon: const Icon(Icons.audiotrack_rounded),
+        icon: const Icon(AppIcons.audio),
         searchText: 'audio',
         run: () => _runInsertAction('__audio__'),
       ),
       ComposerToolAction(
         group: ComposerToolGroup.insert,
         label: '上传视频',
-        icon: const Icon(Icons.videocam_outlined),
+        icon: const Icon(AppIcons.videoLibrary),
         searchText: 'video',
         run: () => _runInsertAction('__video__'),
       ),
       ComposerToolAction(
         group: ComposerToolGroup.insert,
         label: '语音消息',
-        icon: const Icon(Icons.mic_rounded),
+        icon: const Icon(AppIcons.mic),
         searchText: 'voice',
         run: () => _runInsertAction('__voice__'),
       ),
       ComposerToolAction(
         group: ComposerToolGroup.insert,
         label: '上传文件',
-        icon: const Icon(Icons.attach_file_rounded),
+        icon: const Icon(AppIcons.paperclip),
         searchText: 'file attachment',
         run: () => _runInsertAction('__file__'),
       ),
       ComposerToolAction(
         group: ComposerToolGroup.insert,
         label: '我的模板',
-        icon: const Icon(Icons.assignment_outlined),
+        icon: const Icon(AppIcons.clipboardList),
         searchText: 'template',
         run: () => _runInsertAction('__template__'),
       ),
       ComposerToolAction(
         group: ComposerToolGroup.insert,
         label: 'Markdown 片段',
-        icon: const Icon(Icons.data_object_rounded),
+        icon: const Icon(AppIcons.braces),
         searchText: 'markdown snippet',
         run: () => _runInsertAction('__custom__'),
       ),
@@ -2832,7 +2819,11 @@ class RichComposerEditorState extends State<RichComposerEditor> {
     });
   }
 
-  Future<void> _showTableStructureMenu(String tableId, bool row, Rect anchor) async {
+  Future<void> _showTableStructureMenu(
+    String tableId,
+    bool row,
+    Rect anchor,
+  ) async {
     final target = _tableContext.value;
     if (target == null || target.tableId != tableId) return;
     final releaseChrome = ComposerChromeScope.maybeOf(context)?.hold();
@@ -3152,8 +3143,8 @@ class RichComposerEditorState extends State<RichComposerEditor> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        btn(Icons.edit_rounded, '编辑链接', _editLinkAtCaret),
-                        btn(Icons.copy_rounded, '复制链接', () {
+                        btn(AppIcons.edit, '编辑链接', _editLinkAtCaret),
+                        btn(AppIcons.copy, '复制链接', () {
                           Clipboard.setData(ClipboardData(text: href));
                           ScaffoldMessenger.maybeOf(this.context)?.showSnackBar(
                             const SnackBar(
@@ -3162,10 +3153,10 @@ class RichComposerEditorState extends State<RichComposerEditor> {
                             ),
                           );
                         }),
-                        btn(Icons.link_off_rounded, '移除链接', _unlinkAtCaret),
+                        btn(AppIcons.linkOff, '移除链接', _unlinkAtCaret),
                         if (_linkIsWholeParagraph(info))
                           btn(
-                            Icons.expand_rounded,
+                            AppIcons.chevronsUpDown,
                             '加载预览',
                             _convertLinkToPreview,
                           ),
@@ -3191,7 +3182,7 @@ class RichComposerEditorState extends State<RichComposerEditor> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    Icons.open_in_new_rounded,
+                                    AppIcons.openInNew,
                                     size: 15,
                                     color: scheme.primary,
                                   ),
@@ -3566,7 +3557,7 @@ class RichComposerEditorState extends State<RichComposerEditor> {
         additionalActions: [
           if (request.target is EditorBlockTarget &&
               _editor?.textBlockById(request.target.blockId) != null)
-            ComposerObjectAction('切换块类型', Icons.text_fields_rounded, () {
+            ComposerObjectAction('切换块类型', AppIcons.textType, () {
               final anchor =
                   request.globalAnchorRect ??
                   ((request.globalPosition ?? session.menu.rect.topLeft) &
@@ -3949,19 +3940,18 @@ class RichComposerEditorState extends State<RichComposerEditor> {
                                                       radius: 8,
                                                       child: child,
                                                     ),
-                                            caretViewportInsets:
-                                                EdgeInsets.only(
-                                                  // 创建/编辑页的顶栏覆盖在滚动区上方。
-                                                  top:
-                                                      ComposerChromeScope.topInsetOf(
-                                                        context,
-                                                      ),
-                                                  bottom:
-                                                      bottomInset +
-                                                      _toolsAnchor
-                                                          .contextExtent
-                                                          .value,
-                                                ),
+                                            caretViewportInsets: EdgeInsets.only(
+                                              // 创建/编辑页的顶栏覆盖在滚动区上方。
+                                              top:
+                                                  ComposerChromeScope.topInsetOf(
+                                                    context,
+                                                  ),
+                                              bottom:
+                                                  bottomInset +
+                                                  _toolsAnchor
+                                                      .contextExtent
+                                                      .value,
+                                            ),
                                             showTrailingParagraph: true,
                                             emptyParagraphHint:
                                                 isEmpty &&
@@ -4006,8 +3996,18 @@ class RichComposerEditorState extends State<RichComposerEditor> {
                                             // cook 替换
                                             onTableEdited: _onTableEdited,
                                             onTableCommit: _onTableEdited,
-                                            tableStructureControlsBuilder: _isDesktop ? null : (context, cell, open) => ComposerTableControls(cell: cell, onOpen: open),
-                                            onTableStructureMenuRequested: _isDesktop ? null : _showTableStructureMenu,
+                                            tableStructureControlsBuilder:
+                                                _isDesktop
+                                                ? null
+                                                : (context, cell, open) =>
+                                                      ComposerTableControls(
+                                                        cell: cell,
+                                                        onOpen: open,
+                                                      ),
+                                            onTableStructureMenuRequested:
+                                                _isDesktop
+                                                ? null
+                                                : _showTableStructureMenu,
                                             onTableContextChanged: _isDesktop
                                                 ? null
                                                 : _updateTableContext,
@@ -4410,8 +4410,8 @@ class _RichToolbarState extends State<_RichToolbar> {
     final button = IconButton(
       icon: Icon(
         widget.isEmojiPanelVisible && widget.emojiPopover == null
-            ? Symbols.keyboard_rounded
-            : Symbols.sentiment_satisfied_rounded,
+            ? AppIcons.keyboard
+            : AppIcons.smile,
       ),
       tooltip: S.current.emoji_tab,
       onPressed: widget.onToggleEmoji,
@@ -4515,19 +4515,27 @@ class _RichToolbarState extends State<_RichToolbar> {
             ? child!
             : Tooltip(
                 message: context.l10n.editor.table_format_unavailable,
-                child: ExcludeFocus(child: AbsorbPointer(
-                  child: Opacity(opacity: .45, child: Row(
-                    key: const ValueKey('table-format-tools'),
-                    children: [
-                      _buildEmojiButton(theme),
-                      Expanded(child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(children: _buildMiddleTools(theme)),
-                      )),
-                      if (widget.onToggleTools != null) _buildToolsButton(theme),
-                    ],
-                  )),
-                )),
+                child: ExcludeFocus(
+                  child: AbsorbPointer(
+                    child: Opacity(
+                      opacity: .45,
+                      child: Row(
+                        key: const ValueKey('table-format-tools'),
+                        children: [
+                          _buildEmojiButton(theme),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(children: _buildMiddleTools(theme)),
+                            ),
+                          ),
+                          if (widget.onToggleTools != null)
+                            _buildToolsButton(theme),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
         child: ValueListenableBuilder<ComposerObjectSelection?>(
           valueListenable: widget.objectSelection,
@@ -4998,11 +5006,7 @@ class _EmojiMoreRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: Row(
               children: [
-                Icon(
-                  Symbols.more_horiz_rounded,
-                  size: 20,
-                  color: scheme.primary,
-                ),
+                Icon(AppIcons.moreHoriz, size: 20, color: scheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   S.current.emoji_more,

@@ -7,6 +7,7 @@ import 'package:common_ui/common_ui.dart';
 import 'package:extended_image_lite/extended_image_lite.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 import 'package:super_clipboard/super_clipboard.dart';
+
 import '../services/discourse_cache_manager.dart';
 import '../services/dynamic_content_suspension_service.dart';
 import '../services/image_decode_spec_memo.dart';
@@ -16,18 +17,22 @@ import '../utils/image_save_utils.dart';
 import '../utils/screenshot_utils.dart';
 import '../utils/svg_utils.dart';
 import '../widgets/content/animated_svg_view.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/shortcut_binding.dart';
 import '../providers/shortcut_provider.dart';
 import '../services/toast_service.dart';
 import '../utils/platform_utils.dart';
 import '../utils/share_utils.dart';
-import '../widgets/common/app_bottom_sheet.dart';
 import '../widgets/common/hero_image.dart';
 import '../widgets/common/image_context_menu.dart';
+
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../l10n/s.dart';
+import 'viewer_chrome.dart';
 
 class ImageViewerPage extends ConsumerStatefulWidget {
   final String? imageUrl;
@@ -840,9 +845,8 @@ class _ImageViewerPageState extends ConsumerState<ImageViewerPage>
     if (widget.imageBytes == null) return;
 
     if (PlatformUtils.isDesktop && position != null) {
-      final overlayRenderObject = Overlay.of(
-        context,
-      ).context.findRenderObject();
+      final overlayRenderObject = Overlay.of(context).context
+          .findRenderObject();
       if (overlayRenderObject is RenderBox && overlayRenderObject.hasSize) {
         final relativeRect = RelativeRect.fromRect(
           position & Size.zero,
@@ -890,42 +894,24 @@ class _ImageViewerPageState extends ConsumerState<ImageViewerPage>
       }
     }
 
-    AppBottomSheet.show(
-      context: context,
-      contentPadding: EdgeInsets.zero,
-      builder: (ctx) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Symbols.save_alt_rounded),
-              title: Text(ImageSaveUtils.actionLabel),
-              onTap: () {
-                Navigator.pop(ctx);
-                _saveMemoryImage();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Symbols.content_copy_rounded),
-              title: Text(S.current.image_copyImage),
-              onTap: () {
-                Navigator.pop(ctx);
-                _copyMemoryImage();
-              },
-            ),
-            if (ShareUtils.canShareFiles)
-              ListTile(
-                leading: const Icon(Symbols.share_rounded),
-                title: Text(S.current.common_shareImage),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _shareMemoryImage();
-                },
-              ),
-          ],
-        );
-      },
-    );
+    showViewerActionSheet(context, [
+      ViewerAction(
+        icon: AppIcons.saveAlt,
+        label: ImageSaveUtils.actionLabel,
+        onTap: _saveMemoryImage,
+      ),
+      ViewerAction(
+        icon: AppIcons.copy,
+        label: S.current.image_copyImage,
+        onTap: _copyMemoryImage,
+      ),
+      if (ShareUtils.canShareFiles)
+        ViewerAction(
+          icon: AppIcons.share,
+          label: S.current.common_shareImage,
+          onTap: _shareMemoryImage,
+        ),
+    ]);
   }
 
   /// 分享当前图片
@@ -1042,64 +1028,24 @@ class _ImageViewerPageState extends ConsumerState<ImageViewerPage>
                       duration: const Duration(milliseconds: 200),
                       child: Stack(
                         children: [
-                          // Top Gradient for status bar visibility
-                          Positioned(
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            height: 100,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Colors.black.withValues(alpha: 0.6),
-                                    Colors.transparent,
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-
+                          const ViewerGradient(),
                           Positioned(
                             top: MediaQuery.of(context).padding.top + 10,
                             right: 20,
-                            child: CircleAvatar(
-                              backgroundColor: Colors.black.withValues(
-                                alpha: 0.5,
-                              ),
-                              child: IconButton(
-                                icon: const Icon(
-                                  Symbols.close_rounded,
-                                  color: Colors.white,
-                                ),
-                                onPressed: () => Navigator.of(context).pop(),
-                              ),
+                            child: ViewerCircleButton(
+                              icon: AppIcons.close,
+                              semanticLabel: '关闭',
+                              onPressed: () => Navigator.of(context).pop(),
                             ),
                           ),
                           Positioned(
                             top: MediaQuery.of(context).padding.top + 10,
                             left: 20,
-                            child: CircleAvatar(
-                              backgroundColor: Colors.black.withValues(
-                                alpha: 0.5,
-                              ),
-                              child: _isSaving
-                                  ? const Padding(
-                                      padding: EdgeInsets.all(12),
-                                      child: LoadingSpinner(
-                                        size: 20,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : IconButton(
-                                      icon: const Icon(
-                                        Symbols.save_alt_rounded,
-                                        color: Colors.white,
-                                      ),
-                                      onPressed: _saveMemoryImage,
-                                    ),
+                            child: ViewerCircleButton(
+                              icon: AppIcons.saveAlt,
+                              semanticLabel: ImageSaveUtils.actionLabel,
+                              busy: _isSaving,
+                              onPressed: _saveMemoryImage,
                             ),
                           ),
                         ],
@@ -1303,161 +1249,57 @@ class _ImageViewerPageState extends ConsumerState<ImageViewerPage>
                     duration: const Duration(milliseconds: 200),
                     child: Stack(
                       children: [
-                        // Top Gradient for status bar visibility
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          height: 100,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.black.withValues(alpha: 0.6),
-                                  Colors.transparent,
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
+                        const ViewerGradient(),
 
-                        // 顶部指示器 (仅画廊模式)
+                        // 顶部页码胶囊（仅画廊模式）
                         if (isGallery)
                           Positioned(
-                            top: MediaQuery.of(context).padding.top + 15,
+                            top: MediaQuery.of(context).padding.top + 6,
                             left: 0,
                             right: 0,
                             child: Center(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.5),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  "${currentIndex + 1} / ${images.length}",
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                  ),
-                                ),
+                              child: ViewerPageCapsule(
+                                index: currentIndex,
+                                total: images.length,
                               ),
                             ),
                           ),
 
-                        // Close button
                         Positioned(
                           top: MediaQuery.of(context).padding.top + 10,
                           right: 20,
-                          child: CircleAvatar(
-                            backgroundColor: Colors.black.withValues(
-                              alpha: 0.5,
-                            ),
-                            child: IconButton(
-                              icon: const Icon(
-                                Symbols.close_rounded,
-                                color: Colors.white,
-                              ),
-                              onPressed: () => Navigator.of(context).pop(),
-                            ),
+                          child: ViewerCircleButton(
+                            icon: AppIcons.close,
+                            semanticLabel: '关闭',
+                            onPressed: () => Navigator.of(context).pop(),
                           ),
                         ),
-
-                        // Save button
                         Positioned(
                           top: MediaQuery.of(context).padding.top + 10,
                           left: 20,
-                          child: CircleAvatar(
-                            backgroundColor: Colors.black.withValues(
-                              alpha: 0.5,
-                            ),
-                            child: _isSaving
-                                ? const Padding(
-                                    padding: EdgeInsets.all(12),
-                                    child: LoadingSpinner(
-                                      size: 20,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : IconButton(
-                                    icon: const Icon(
-                                      Symbols.save_alt_rounded,
-                                      color: Colors.white,
-                                    ),
-                                    onPressed: _saveCurrentImage,
-                                  ),
+                          child: ViewerCircleButton(
+                            icon: AppIcons.saveAlt,
+                            semanticLabel: ImageSaveUtils.actionLabel,
+                            busy: _isSaving,
+                            onPressed: _saveCurrentImage,
                           ),
                         ),
-
-                        // Share button（Linux 上 share_plus 不支持分享文件）
+                        // Linux 上 share_plus 不支持分享文件
                         if (widget.enableShare && ShareUtils.canShareFiles)
                           Positioned(
                             top: MediaQuery.of(context).padding.top + 10,
-                            left: 70, // 保存按钮右侧 (20 + 40 + 10)
-                            child: CircleAvatar(
-                              backgroundColor: Colors.black.withValues(
-                                alpha: 0.5,
-                              ),
-                              child: _isSharing
-                                  ? const Padding(
-                                      padding: EdgeInsets.all(12),
-                                      child: LoadingSpinner(
-                                        size: 20,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : IconButton(
-                                      icon: const Icon(
-                                        Symbols.share_rounded,
-                                        color: Colors.white,
-                                      ),
-                                      onPressed: _shareImage,
-                                    ),
+                            left: 20 + AppSize.hit + AppSpace.s,
+                            child: ViewerCircleButton(
+                              icon: AppIcons.share,
+                              semanticLabel: S.current.common_shareImage,
+                              busy: _isSharing,
+                              onPressed: _shareImage,
                             ),
                           ),
 
-                        // 底部文件名栏
                         if (_currentFilename != null &&
                             _currentFilename!.isNotEmpty)
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: Container(
-                              padding: EdgeInsets.only(
-                                left: 16,
-                                right: 16,
-                                top: 12,
-                                bottom:
-                                    MediaQuery.of(context).padding.bottom + 12,
-                              ),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [
-                                    Colors.black.withValues(alpha: 0.6),
-                                    Colors.transparent,
-                                  ],
-                                ),
-                              ),
-                              child: Text(
-                                _currentFilename!,
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                          ),
+                          ViewerFilename(name: _currentFilename!),
                       ],
                     ),
                   ),
@@ -1470,9 +1312,8 @@ class _ImageViewerPageState extends ConsumerState<ImageViewerPage>
     );
   }
 
-  /// 原图下载进度：服务端给出 Content-Length 时显示确定进度，否则显示
-  /// 不定态。M3eCircularProgress 内部读取全局 M3E 开关，开启时为波浪环，
-  /// 关闭时自动回退经典 CircularProgressIndicator。
+  /// 原图下载进度：服务端给出 Content-Length 时显示「原图加载中 62%」，
+  /// 否则只显示「原图加载中」。
   Widget _buildImageLoadingProgress(
     BuildContext context,
     ImageChunkEvent? event,
@@ -1481,24 +1322,7 @@ class _ImageViewerPageState extends ConsumerState<ImageViewerPage>
     final value = total != null && total > 0
         ? (event!.cumulativeBytesLoaded / total).clamp(0.0, 1.0)
         : null;
-    return Center(
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          color: Color(0x66000000),
-          shape: BoxShape.circle,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: M3eCircularProgress(
-            value: value,
-            size: 32,
-            strokeWidth: 3,
-            color: Colors.white,
-            trackColor: Colors.white24,
-          ),
-        ),
-      ),
-    );
+    return ViewerLoadingPill(progress: value);
   }
 
   /// 获取指定索引的缩略图 URL。

@@ -295,7 +295,7 @@ class _StickerPickerState extends ConsumerState<StickerPicker>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Symbols.sticky_note_2_rounded,
+            AppIcons.note,
             size: 48,
             color: theme.colorScheme.outline.withValues(alpha: 0.5),
           ),
@@ -308,7 +308,7 @@ class _StickerPickerState extends ConsumerState<StickerPicker>
           FilledButton.icon(
             style: AppButtonStyles.secondary(context),
             onPressed: _openMarket,
-            icon: const Icon(Symbols.add_rounded, size: 18),
+            icon: const Icon(AppIcons.add, size: 18),
             label: Text(S.current.sticker_addFromMarket),
           ),
         ],
@@ -414,7 +414,7 @@ class _StickerPickerState extends ConsumerState<StickerPicker>
                               builder: (_, raw, _) {
                                 final activeIndex = raw.clamp(0, totalTabs - 1);
                                 return Icon(
-                                  Symbols.access_time_rounded,
+                                  AppIcons.clock,
                                   size: 20,
                                   color: activeIndex == index
                                       ? theme.colorScheme.primary
@@ -454,7 +454,7 @@ class _StickerPickerState extends ConsumerState<StickerPicker>
           ),
           IconButton(
             icon: Icon(
-              Symbols.add_circle_rounded,
+              AppIcons.addCircle,
               size: 20,
               color: theme.colorScheme.primary,
             ),
@@ -638,7 +638,7 @@ class _StickerGroupSliverContent extends ConsumerWidget {
                 ),
                 IconButton(
                   icon: Icon(
-                    Symbols.info_rounded,
+                    AppIcons.info,
                     size: 18,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -748,7 +748,7 @@ class _StickerItemWidget extends StatelessWidget {
                 ),
               ),
               errorBuilder: (_, _, _) => Icon(
-                Symbols.broken_image_rounded,
+                AppIcons.imageBroken,
                 size: 24,
                 color: Theme.of(context).colorScheme.outline,
               ),
@@ -864,7 +864,7 @@ class _StickerPreviewPopup extends StatelessWidget {
                       // 不传 memCacheWidth → AVIF 完整解码（含动画）
                       bucket: BlobImageCache.stickerOriginalBucket,
                       errorBuilder: (_, _, _) => Icon(
-                        Symbols.broken_image_rounded,
+                        AppIcons.imageBroken,
                         size: 48,
                         color: theme.colorScheme.outline,
                       ),

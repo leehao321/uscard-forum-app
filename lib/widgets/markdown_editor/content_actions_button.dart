@@ -102,36 +102,36 @@ class ContentActionsButton extends StatelessWidget {
     final s = S.current;
     final items = [
       RadialMenuItem(
-        icon: Symbols.undo_rounded,
+        icon: AppIcons.undo,
         label: s.toolbar_undo,
         onSelected: provider.undo,
         enabled: provider.canUndo,
       ),
       RadialMenuItem(
-        icon: Symbols.redo_rounded,
+        icon: AppIcons.redo,
         label: s.toolbar_redo,
         onSelected: provider.redo,
         enabled: provider.canRedo,
       ),
       RadialMenuItem(
-        icon: Symbols.select_all_rounded,
+        icon: AppIcons.selectAll,
         label: s.toolbar_selectAll,
         onSelected: provider.selectAll,
       ),
       RadialMenuItem(
-        icon: Symbols.content_copy_rounded,
+        icon: AppIcons.copy,
         label: s.common_copy,
         onSelected: provider.copy,
         enabled: provider.hasSelection,
       ),
       RadialMenuItem(
-        icon: Symbols.content_cut_rounded,
+        icon: AppIcons.cut,
         label: s.toolbar_cut,
         onSelected: provider.cut,
         enabled: provider.hasSelection,
       ),
       RadialMenuItem(
-        icon: Symbols.content_paste_rounded,
+        icon: AppIcons.paste,
         label: s.common_paste,
         onSelected: provider.paste,
       ),
@@ -145,9 +145,8 @@ class ContentActionsButton extends StatelessWidget {
     if (items.isEmpty) return;
 
     final width = composerActionMenuWidth(context);
-    final labelStyle = Theme.of(
-      context,
-    ).textTheme.labelLarge!.copyWith(height: 1.25);
+    final labelStyle = Theme.of(context).textTheme.labelLarge!
+        .copyWith(height: 1.25);
     var rowHeight = 76.0;
     for (final item in items) {
       final painter = TextPainter(
@@ -233,9 +232,9 @@ class _ContentActionsGridEntryState extends State<_ContentActionsGridEntry> {
                                       'composer-content-action-${row * 3 + col}',
                                     ),
                                     onPressed: items[row * 3 + col].enabled
-                                        ? () => Navigator.of(
-                                            context,
-                                          ).pop(row * 3 + col)
+                                        ? () =>
+                                              Navigator.of(context)
+                                                  .pop(row * 3 + col)
                                         : null,
                                     style: TextButton.styleFrom(
                                       foregroundColor: colors.onSurface,

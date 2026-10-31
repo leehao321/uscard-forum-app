@@ -1,3 +1,4 @@
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluxdo_render/editor.dart';
@@ -231,14 +232,10 @@ class ComposerObjectController extends ValueNotifier<ComposerObjectSelection?> {
       after: () => beside(true),
       primary: primary,
       actions: [
-        ComposerObjectAction(
-          '在前面输入',
-          Icons.vertical_align_top_rounded,
-          () => beside(false),
-        ),
+        ComposerObjectAction('在前面输入', AppIcons.toTop, () => beside(false)),
         ComposerObjectAction(
           '在后面输入',
-          Icons.keyboard_return_rounded,
+          AppIcons.cornerReturn,
           () => beside(true),
         ),
         ?primary,
@@ -246,22 +243,22 @@ class ComposerObjectController extends ValueNotifier<ComposerObjectSelection?> {
         for (final parent in parents)
           ComposerObjectAction(
             parent.$1,
-            Icons.select_all_rounded,
+            AppIcons.selectAll,
             () => contentActions.selectObject(parent.$2, showMenu: true),
           ),
         ComposerObjectAction(
           '复制',
-          Icons.content_copy_rounded,
+          AppIcons.copy,
           copyable ? () => _copy(target, cut: false) : null,
         ),
         ComposerObjectAction(
           '剪切',
-          Icons.content_cut_rounded,
+          AppIcons.cut,
           copyable ? () => _copy(target, cut: true) : null,
         ),
         ComposerObjectAction(
           '删除${object.image == null ? adapter.label : '图片'}',
-          Icons.delete_outline_rounded,
+          AppIcons.delete,
           () {
             if (_resolve(target) == null) return;
             dismiss();
@@ -291,39 +288,27 @@ class ComposerObjectController extends ValueNotifier<ComposerObjectSelection?> {
     ComposerObjectCommand command,
     ResolvedEditorObject object,
   ) => switch (command) {
-    ComposerObjectCommand.viewImage => ('查看', Icons.open_in_full_rounded),
-    ComposerObjectCommand.imageSize => (
-      '图片尺寸',
-      Icons.photo_size_select_large_rounded,
-    ),
-    ComposerObjectCommand.imageAlt => ('替代文本', Icons.text_fields_rounded),
-    ComposerObjectCommand.joinGrid => ('加入网格', Icons.grid_view_rounded),
-    ComposerObjectCommand.moveOutOfGrid => ('移出网格', Icons.grid_off_rounded),
-    ComposerObjectCommand.gridMovePrevious => (
-      '前移一张',
-      Icons.arrow_back_rounded,
-    ),
-    ComposerObjectCommand.gridMoveNext => ('后移一张', Icons.arrow_forward_rounded),
+    ComposerObjectCommand.viewImage => ('查看', AppIcons.maximize),
+    ComposerObjectCommand.imageSize => ('图片尺寸', AppIcons.scaling),
+    ComposerObjectCommand.imageAlt => ('替代文本', AppIcons.textType),
+    ComposerObjectCommand.joinGrid => ('加入网格', AppIcons.gridView),
+    ComposerObjectCommand.moveOutOfGrid => ('移出网格', AppIcons.gridOff),
+    ComposerObjectCommand.gridMovePrevious => ('前移一张', AppIcons.back),
+    ComposerObjectCommand.gridMoveNext => ('后移一张', AppIcons.forward),
     ComposerObjectCommand.gridLayout => (
       ((object.block as IslandBlock).node as ImageGridNode).mode ==
               ImageGridMode.grid
           ? '切换为轮播'
           : '切换为网格',
-      Icons.view_carousel_outlined,
+      AppIcons.carousel,
     ),
-    ComposerObjectCommand.splitGrid => ('拆分图片网格', Icons.grid_off_rounded),
-    ComposerObjectCommand.openLink => ('打开', Icons.open_in_new_rounded),
-    ComposerObjectCommand.removePreview => (
-      '移除预览',
-      Icons.close_fullscreen_rounded,
-    ),
-    ComposerObjectCommand.editSource => ('编辑', Icons.edit_outlined),
-    ComposerObjectCommand.editText => ('编辑', Icons.edit_outlined),
-    ComposerObjectCommand.editContainer => ('编辑标题', Icons.edit_outlined),
-    ComposerObjectCommand.unwrapContainer => (
-      '移除外框，保留内容',
-      Icons.layers_clear_outlined,
-    ),
+    ComposerObjectCommand.splitGrid => ('拆分图片网格', AppIcons.gridOff),
+    ComposerObjectCommand.openLink => ('打开', AppIcons.openInNew),
+    ComposerObjectCommand.removePreview => ('移除预览', AppIcons.minimize),
+    ComposerObjectCommand.editSource => ('编辑', AppIcons.edit),
+    ComposerObjectCommand.editText => ('编辑', AppIcons.edit),
+    ComposerObjectCommand.editContainer => ('编辑标题', AppIcons.edit),
+    ComposerObjectCommand.unwrapContainer => ('移除外框，保留内容', AppIcons.eraser),
   };
 
   void _run(ComposerObjectCommand command, EditorObjectTarget target) {
@@ -453,7 +438,7 @@ class ComposerObjectController extends ValueNotifier<ComposerObjectSelection?> {
                   children: [
                     Expanded(child: Text('$size%')),
                     if ((before!.image!.scale ?? 100).round() == size)
-                      const Icon(Icons.check_rounded),
+                      const Icon(AppIcons.check),
                   ],
                 ),
               ),

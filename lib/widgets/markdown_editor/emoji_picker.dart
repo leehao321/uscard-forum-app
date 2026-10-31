@@ -4,13 +4,16 @@ import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../models/emoji.dart';
 import '../../providers/discourse_providers.dart';
 import '../../services/emoji_handler.dart';
 import '../../services/discourse_cache_manager.dart';
 import '../../utils/dialog_utils.dart';
 import '../common/app_bottom_sheet.dart';
+
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../../../../../l10n/s.dart';
 
 /// 常用表情的 Key
@@ -266,7 +269,7 @@ class _EmojiPickerState extends ConsumerState<EmojiPicker>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Symbols.error_rounded,
+                    AppIcons.error,
                     size: 48,
                     color: Theme.of(context).colorScheme.outline,
                   ),
@@ -378,7 +381,7 @@ class _EmojiPickerState extends ConsumerState<EmojiPicker>
         children: [
           IconButton(
             icon: Icon(
-              Symbols.search_rounded,
+              AppIcons.search,
               size: 20,
               color: theme.colorScheme.primary,
             ),
@@ -435,7 +438,7 @@ class _EmojiPickerState extends ConsumerState<EmojiPicker>
                               builder: (_, raw, _) {
                                 final activeIndex = raw.clamp(0, totalTabs - 1);
                                 return Icon(
-                                  Symbols.access_time_rounded,
+                                  AppIcons.clock,
                                   size: 20,
                                   color: activeIndex == index
                                       ? theme.colorScheme.primary
@@ -635,9 +638,8 @@ class _EmojiCell extends StatelessWidget {
         if (wasSynchronouslyLoaded || frame != null) return child;
         return DecoratedBox(
           decoration: BoxDecoration(
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.06),
+            color: Theme.of(context).colorScheme.onSurfaceVariant
+                .withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(8),
           ),
           child: SizedBox(width: width, height: height),
@@ -712,7 +714,7 @@ class _EmojiSearchViewState extends State<_EmojiSearchView> {
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Symbols.arrow_back_rounded, size: 20),
+                icon: const Icon(AppIcons.back, size: 20),
                 color: theme.colorScheme.onSurfaceVariant,
                 visualDensity: VisualDensity.compact,
                 onPressed: widget.onClose,
@@ -742,16 +744,13 @@ class _EmojiSearchViewState extends State<_EmojiSearchView> {
                       isDense: true,
                       contentPadding: const EdgeInsets.only(right: 12),
                       prefixIcon: Icon(
-                        Symbols.search_rounded,
+                        AppIcons.search,
                         size: 18,
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                       suffixIcon: _query.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(
-                                Symbols.cancel_rounded,
-                                size: 16,
-                              ),
+                              icon: const Icon(AppIcons.cancelCircle, size: 16),
                               color: theme.colorScheme.onSurfaceVariant,
                               onPressed: () => _searchController.clear(),
                             )
@@ -912,14 +911,14 @@ class _EmojiSearchSheetState extends State<_EmojiSearchSheet> {
                           right: 12,
                         ),
                         prefixIcon: Icon(
-                          Symbols.search_rounded,
+                          AppIcons.search,
                           size: 20,
                           color: theme.colorScheme.onSurface,
                         ),
                         suffixIcon: _query.isNotEmpty
                             ? IconButton(
                                 icon: const Icon(
-                                  Symbols.cancel_rounded,
+                                  AppIcons.cancelCircle,
                                   size: 18,
                                 ),
                                 color: theme.colorScheme.onSurfaceVariant,
@@ -954,7 +953,7 @@ class _EmojiSearchSheetState extends State<_EmojiSearchSheet> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Symbols.emoji_emotions_rounded,
+                          AppIcons.smile,
                           size: 48,
                           color: theme.colorScheme.outline.withValues(
                             alpha: 0.5,

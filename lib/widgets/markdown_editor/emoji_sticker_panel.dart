@@ -153,8 +153,9 @@ class _EmojiStickerPanelState extends State<EmojiStickerPanel> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final safeBottom = MediaQuery.viewPaddingOf(context).bottom;
-    final tabHeight =
-        widget.compact ? floatingTabHeightCompact : floatingTabHeight;
+    final tabHeight = widget.compact
+        ? floatingTabHeightCompact
+        : floatingTabHeight;
     final totalBottomPadding = tabHeight + safeBottom;
 
     return Stack(
@@ -219,7 +220,7 @@ class _EmojiStickerPanelState extends State<EmojiStickerPanel> {
                       child: Transform.translate(
                         offset: const Offset(-1, 0),
                         child: Icon(
-                          Symbols.backspace_rounded,
+                          AppIcons.backspace,
                           size: 20,
                           color: theme.colorScheme.onSurfaceVariant,
                         ),

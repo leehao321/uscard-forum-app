@@ -23,7 +23,7 @@ void main() {
                   ComposerHeaderActions(
                     availableWidth: 390,
                     submitLabel: '保存',
-                    submitIcon: Symbols.check_rounded,
+                    submitIcon: AppIcons.check,
                     submitting: submitting,
                     onSubmit: () => setState(() {
                       calls++;
@@ -42,7 +42,7 @@ void main() {
     final button = find.byKey(const ValueKey('composer-header-submit'));
     final bounds = tester.getRect(button);
     expect(find.byTooltip('保存'), findsOneWidget);
-    expect(find.byIcon(Symbols.check_rounded), findsOneWidget);
+    expect(find.byIcon(AppIcons.check), findsOneWidget);
     expect(tester.getSemantics(button).label, '保存');
     await tester.tap(button);
     await tester.pump();
@@ -59,7 +59,7 @@ void main() {
     (320.0, 1, 0),
     (320.0, 2, 2),
     (700.0, 2, 0),
-    (390.0, 3, 2),
+    (390.0, 3, 3), // 发送胶囊 66 宽，窄屏全部收进菜单
     (420.0, 3, 2),
     (700.0, 3, 0),
   ]) {
@@ -103,20 +103,9 @@ void main() {
         ),
       );
       final send = find.byKey(const ValueKey('composer-header-submit'));
-      final surface = find.descendant(
-        of: send,
-        matching: find.byType(Material),
-      );
-      expect(tester.getSize(send).height, 48, reason: '视觉变轻仍保留触控高度');
-      expect(tester.getSize(surface), const Size.square(40));
-      expect(tester.widget<Material>(surface).shape, isA<CircleBorder>());
+      expect(tester.getSize(send).height, 44, reason: 'v2 发送是 44 高胶囊');
       expect(find.byTooltip('发送'), findsOneWidget);
-      expect(
-        find.byWidgetPredicate(
-          (w) => w is AppIcon && w.icon == AppIcons.paperPlane,
-        ),
-        findsOneWidget,
-      );
+      expect(find.text('发送'), findsOneWidget);
       final more = find.byKey(const ValueKey('composer-header-more'));
       expect(more, folded == 0 ? findsNothing : findsOneWidget);
       if (folded > 0) {

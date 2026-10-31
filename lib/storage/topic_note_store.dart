@@ -6,23 +6,32 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// 帖子里摘出来的一段文字
 @immutable
 class NoteExcerpt {
-  const NoteExcerpt({required this.text, required this.createdAt});
+  const NoteExcerpt({
+    required this.text,
+    required this.createdAt,
+    this.postNumber,
+  });
 
   final String text;
   final DateTime createdAt;
 
+  /// 摘自第几楼（v2 起记录；v1 迁移来的摘录没有）
+  final int? postNumber;
+
   Map<String, dynamic> toJson() => {
     'text': text,
     'at': createdAt.millisecondsSinceEpoch,
+    if (postNumber != null) 'post': postNumber,
   };
 
   factory NoteExcerpt.fromJson(Map<String, dynamic> j) => NoteExcerpt(
     text: j['text'] as String? ?? '',
     createdAt: DateTime.fromMillisecondsSinceEpoch(j['at'] as int? ?? 0),
+    postNumber: j['post'] as int?,
   );
 }
 
-/// 一个话题的笔记：自由文字 + 摘录
+/// 一个话题的笔记：话题级自由文字 + 按楼层的笔记（v2）+ 摘录
 @immutable
 class TopicNote {
   const TopicNote({
@@ -30,6 +39,7 @@ class TopicNote {
     required this.title,
     this.text = '',
     this.excerpts = const [],
+    this.floorNotes = const {},
     required this.updatedAt,
   });
 
@@ -37,23 +47,41 @@ class TopicNote {
   final String title;
   final String text;
   final List<NoteExcerpt> excerpts;
+
+  /// 按楼层的笔记：楼层号 → 文字（v2）
+  final Map<int, String> floorNotes;
   final DateTime updatedAt;
 
-  bool get isEmpty => text.trim().isEmpty && excerpts.isEmpty;
+  bool get isEmpty =>
+      text.trim().isEmpty &&
+      excerpts.isEmpty &&
+      floorNotes.values.every((t) => t.trim().isEmpty);
 
   /// 搜索用的小写全文
   String get searchText =>
-      '$title\n$text\n${excerpts.map((e) => e.text).join('\n')}'.toLowerCase();
+      '$title\n$text\n${floorNotes.values.join('\n')}\n'
+              '${excerpts.map((e) => e.text).join('\n')}'
+          .toLowerCase();
+
+  /// 有笔记的楼层，从小到大
+  List<int> get floors =>
+      floorNotes.entries
+          .where((e) => e.value.trim().isNotEmpty)
+          .map((e) => e.key)
+          .toList()
+        ..sort();
 
   TopicNote copyWith({
     String? title,
     String? text,
     List<NoteExcerpt>? excerpts,
+    Map<int, String>? floorNotes,
   }) => TopicNote(
     topicId: topicId,
     title: title ?? this.title,
     text: text ?? this.text,
     excerpts: excerpts ?? this.excerpts,
+    floorNotes: floorNotes ?? this.floorNotes,
     updatedAt: DateTime.now(),
   );
 
@@ -62,6 +90,8 @@ class TopicNote {
     'title': title,
     'text': text,
     'excerpts': [for (final e in excerpts) e.toJson()],
+    if (floorNotes.isNotEmpty)
+      'floors': {for (final e in floorNotes.entries) '${e.key}': e.value},
     'updated': updatedAt.millisecondsSinceEpoch,
   };
 
@@ -73,40 +103,68 @@ class TopicNote {
       for (final e in (j['excerpts'] as List? ?? const []))
         if (e is Map<String, dynamic>) NoteExcerpt.fromJson(e),
     ],
+    floorNotes: {
+      for (final e in (j['floors'] as Map? ?? const {}).entries)
+        if (int.tryParse('${e.key}') != null && e.value is String)
+          int.parse('${e.key}'): e.value as String,
+    },
     updatedAt: DateTime.fromMillisecondsSinceEpoch(j['updated'] as int? ?? 0),
   );
 }
 
 /// 话题笔记的本机存储，不同步到论坛。
+///
+/// v2（0.4.0）：存 `topic_notes_v2`，格式 `{"v":2,"notes":[...]}`，笔记可以
+/// 挂在某一楼上。第一次读 v2 时若还没有，就把 v1 迁过来；v1 的键原样保留
+/// （回退到旧版本时笔记还在），迁移之后只读写 v2。
 class TopicNoteStore {
   TopicNoteStore._();
 
-  static const _prefsKey = 'topic_notes_v1';
+  static const _prefsKey = 'topic_notes_v2';
+  static const _legacyKey = 'topic_notes_v1';
   static final ValueNotifier<int> changes = ValueNotifier(0);
+
+  static List<TopicNote> _decode(Object? decoded) {
+    final list = decoded is Map ? decoded['notes'] : decoded;
+    if (list is! List) return const [];
+    return [
+      for (final e in list)
+        if (e is Map<String, dynamic>) TopicNote.fromJson(e),
+    ];
+  }
 
   static Future<Map<int, TopicNote>> _readAll() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_prefsKey);
+    var raw = prefs.getString(_prefsKey);
+    var migrating = false;
+    if (raw == null || raw.isEmpty) {
+      raw = prefs.getString(_legacyKey);
+      migrating = true;
+    }
     if (raw == null || raw.isEmpty) return {};
     try {
-      final list = jsonDecode(raw) as List;
-      return {
-        for (final e in list)
-          if (e is Map<String, dynamic>)
-            (e['id'] as int? ?? 0): TopicNote.fromJson(e),
-      }..remove(0);
+      final all = {
+        for (final n in _decode(jsonDecode(raw)))
+          if (n.topicId != 0) n.topicId: n,
+      };
+      if (migrating && all.isNotEmpty) {
+        await prefs.setString(_prefsKey, _encode(all));
+      }
+      return all;
     } catch (e) {
       debugPrint('[TopicNoteStore] 读取失败: $e');
       return {};
     }
   }
 
+  static String _encode(Map<int, TopicNote> all) => jsonEncode({
+    'v': 2,
+    'notes': [for (final n in all.values) n.toJson()],
+  });
+
   static Future<void> _writeAll(Map<int, TopicNote> all) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      _prefsKey,
-      jsonEncode([for (final n in all.values) n.toJson()]),
-    );
+    await prefs.setString(_prefsKey, _encode(all));
     changes.value++;
   }
 

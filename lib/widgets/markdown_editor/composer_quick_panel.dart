@@ -1,6 +1,10 @@
+import 'package:app_icons/app_icons.dart';
+
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../../l10n/s.dart';
 import '../../utils/dialog_utils.dart';
 import 'composer_tool_action.dart';
@@ -211,7 +215,7 @@ class _ComposerQuickPanelState extends State<_ComposerQuickPanel> {
                     IconButton(
                       tooltip: S.current.common_cancel,
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close, size: 20),
+                      icon: const Icon(AppIcons.close, size: 20),
                     ),
                   ],
                 ),
@@ -228,7 +232,7 @@ class _ComposerQuickPanelState extends State<_ComposerQuickPanel> {
                   onSubmitted: (_) => _choose(),
                   decoration: InputDecoration(
                     hintText: S.current.composer_searchTools,
-                    prefixIcon: const Icon(Icons.search, size: 20),
+                    prefixIcon: const Icon(AppIcons.search, size: 20),
                     isDense: true,
                     filled: false,
                     contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -302,7 +306,7 @@ class _ComposerQuickPanelState extends State<_ComposerQuickPanel> {
                                       if (action.active)
                                         const Padding(
                                           padding: EdgeInsets.only(right: 6),
-                                          child: Icon(Icons.check, size: 16),
+                                          child: Icon(AppIcons.check, size: 16),
                                         ),
                                       if (action.shortcut != null)
                                         Text(

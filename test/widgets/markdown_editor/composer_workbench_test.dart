@@ -999,9 +999,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byType(ImageUploadDialog), findsOneWidget);
-    Navigator.of(tester.element(find.byType(ImageUploadDialog))).pop(
-      ImageUploadResult(path: '/模拟/组内图片.png', originalName: '组内图片.png'),
-    );
+    Navigator.of(tester.element(find.byType(ImageUploadDialog)))
+        .pop(ImageUploadResult(path: '/模拟/组内图片.png', originalName: '组内图片.png'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     // 文件不存在让真实上传入口在本地失败，无需发送网络请求。
@@ -1013,7 +1012,7 @@ void main() {
     expect(find.byType(UploadTaskCard), findsNothing);
     expect(find.textContaining(S.current.editorUploads_title), findsNothing);
     expect(find.text(S.current.common_retry), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.refresh_rounded));
+    await tester.tap(find.byIcon(AppIcons.refresh));
     await tester.pump();
     expect(find.byTooltip(S.current.common_cancel), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
@@ -1901,7 +1900,10 @@ void main() {
         expect(island.left, greaterThan(canvas.left));
         expect(island.right, lessThan(canvas.right));
         expect(island.bottom, lessThan(canvas.bottom));
-        expect(find.byType(GlassSurface), findsOneWidget);
+        expect(
+          find.byKey(const ValueKey('composer-island-surface')),
+          findsOneWidget,
+        );
         final bold = find.byTooltip(S.current.toolPanel_bold);
         expect(tester.getSize(bold).width, greaterThanOrEqualTo(48));
 
@@ -1996,14 +1998,8 @@ void main() {
               width: 640,
               height: 700,
               child: rich
-                  ? RichComposerEditor(
-                      controller: controller,
-                      focusNode: focus,
-                    )
-                  : MarkdownEditor(
-                      controller: controller,
-                      focusNode: focus,
-                    ),
+                  ? RichComposerEditor(controller: controller, focusNode: focus)
+                  : MarkdownEditor(controller: controller, focusNode: focus),
             ),
           ),
           width: 1200,
@@ -2028,11 +2024,11 @@ void main() {
         await tester.pump(const Duration(milliseconds: 300));
         final panel = find.byType(EmojiStickerPanel);
         expect(panel, findsOneWidget);
-        expect(tester.getSize(panel).height, 280);
+        expect(tester.getSize(panel).height, 336);
         expect(tester.getRect(panel).bottom, lessThanOrEqualTo(800));
         expect(tester.takeException(), isNull);
 
-        // 返回浮动/外接键盘时不能继续占住兜底面板的 280 高度。
+        // 返回浮动/外接键盘时不能继续占住兜底面板的 336 高度。
         await tester.tap(emojiToggle);
         await tester.pump();
         ChatBottomContainerListenerManager().flutterApi.keyboardHeight(48);
@@ -2040,9 +2036,9 @@ void main() {
         await tester.pump(const Duration(milliseconds: 300));
         expect(panel, findsNothing);
         expect(
-          tester.getSize(
-            find.byKey(const ValueKey('composer-keyboard-space')),
-          ).height,
+          tester
+              .getSize(find.byKey(const ValueKey('composer-keyboard-space')))
+              .height,
           24,
         );
         await tester.tap(find.byTooltip(S.current.composer_expandToolbar));
@@ -2186,7 +2182,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byType(EmojiStickerPanel), findsOneWidget);
       expect(formats, findsOneWidget);
-      expect(find.byIcon(Symbols.keyboard_rounded), findsOneWidget);
+      expect(find.byIcon(AppIcons.keyboard), findsOneWidget);
       expect(tester.getRect(formats).bottom, closeTo(toolbarBottom, .1));
 
       await tester.tap(emojiToggle);
@@ -2750,7 +2746,7 @@ void main() {
           expect(
             find.descendant(
               of: find.byType(ComposerIsland),
-              matching: find.byType(GlassSurface),
+              matching: find.byType(CapsuleSurface),
             ),
             findsOneWidget,
           );

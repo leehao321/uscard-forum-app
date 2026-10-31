@@ -3,162 +3,89 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxdo/widgets/markdown_editor/composer_submit_button.dart';
 
+// 0.4.0 M5：发送按钮换成 v2 的 44 高胶囊（66 宽起），提交中文字换菊花、尺寸不变。
+
+Widget _host(Widget child) => MaterialApp(
+  home: Scaffold(body: Center(child: child)),
+);
+
 void main() {
-  for (final compact in [false, true]) {
-    testWidgets('紧凑按钮只缩小外观，保留48px点击范围 compact=$compact', (tester) async {
-      var calls = 0;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Center(
-              child: ComposerSubmitButton(
-                label: '发送',
-                compact: compact,
-                busy: false,
-                onPressed: () => calls++,
-              ),
-            ),
-          ),
+  testWidgets('胶囊 44 高、66 宽起，显示文字', (tester) async {
+    var calls = 0;
+    await tester.pumpWidget(
+      _host(
+        ComposerSubmitButton(
+          label: '发送',
+          busy: false,
+          onPressed: () => calls++,
         ),
-      );
-      final button = find.byType(ComposerSubmitButton);
-      expect(tester.getSize(button), const Size.square(48));
-      expect(
-        tester.getSize(
-          find.descendant(of: button, matching: find.byType(Material)),
-        ),
-        Size.square(compact ? 36 : 40),
-      );
-      // 圆形表面外、触控区域内仍可点击，不能用透明但不可点击的外框补齐尺寸。
-      await tester.tapAt(tester.getCenter(button) + const Offset(22, 0));
-      expect(calls, 1);
-      await tester.pumpWidget(const SizedBox.shrink());
-    });
-  }
+      ),
+    );
+    final button = find.byKey(const ValueKey('composer-header-submit'));
+    final size = tester.getSize(button);
+    expect(size.height, 44);
+    expect(size.width, greaterThanOrEqualTo(66));
+    expect(find.text('发送'), findsOneWidget);
+    await tester.tap(button);
+    expect(calls, 1);
+  });
 
-  for (final reduced in [false, true]) {
-    testWidgets('发送起飞不阻塞提交，失败恢复后可重试 reduced=$reduced', (tester) async {
-      var busy = false;
-      var calls = 0;
-      late StateSetter update;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: StatefulBuilder(
-            builder: (context, setState) {
-              update = setState;
-              return MediaQuery(
-                data: MediaQuery.of(context)
-                    .copyWith(disableAnimations: reduced),
-                child: Scaffold(
-                  body: Center(
-                    child: ComposerSubmitButton(
-                      label: '发送',
-                      busy: busy,
-                      onPressed: () => setState(() {
-                        calls++;
-                        busy = true;
-                      }),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      );
-      final button = find.byKey(const ValueKey('composer-header-submit'));
-      final bounds = tester.getRect(button);
-      final flight = find.byKey(const ValueKey('composer-submit-flight'));
-      expect(
-        tester.getSize(
-          find.descendant(of: button, matching: find.byType(Material)),
-        ),
-        const Size.square(40),
-      );
-      await tester.tap(button);
-      expect(calls, 1, reason: '请求立即开始，不等待起飞动画');
-      await tester.pump();
-      expect(tester.widget<FilledButton>(button).onPressed, isNull);
-      expect(tester.getRect(button), bounds);
-      if (reduced) {
-        expect(flight, findsNothing);
-      } else {
-        final glyph = find.byWidgetPredicate(
-          (w) => w is AppIcon && w.icon == AppIcons.paperPlane,
-        );
-        final start = tester.getRect(glyph);
-        await tester.pump(const Duration(milliseconds: 100));
-        expect(tester.getRect(glyph).left, greaterThan(start.left));
-        expect(tester.getRect(glyph).top, lessThan(start.top));
-      }
-      await tester.tap(button);
-      expect(calls, 1);
-      await tester.pump(const Duration(milliseconds: 300));
-      expect(flight, findsNothing);
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      update(() => busy = false);
-      await tester.pump();
-      expect(find.byType(CircularProgressIndicator), findsNothing);
-      expect(
-        find.byWidgetPredicate(
-          (w) => w is AppIcon && w.icon == AppIcons.paperPlane,
-        ),
-        findsOneWidget,
-      );
-      expect(tester.getRect(button), bounds);
-      await tester.tap(button);
-      await tester.pump();
-      expect(calls, 2);
-      await tester.pumpWidget(const SizedBox.shrink());
-    });
-  }
-
-  testWidgets('附件上传等待不播放发送起飞', (tester) async {
-    late StateSetter update;
+  testWidgets('提交中置灰、显示菊花、尺寸不变，失败恢复后可重试', (tester) async {
     var busy = false;
+    var calls = 0;
+    late StateSetter update;
     await tester.pumpWidget(
       MaterialApp(
         home: StatefulBuilder(
           builder: (context, setState) {
             update = setState;
-            return ComposerSubmitButton(
-              label: '发送',
-              onPressed: () {},
-              busy: busy,
-              animateFlight: false,
+            return Scaffold(
+              body: Center(
+                child: ComposerSubmitButton(
+                  label: '发送',
+                  busy: busy,
+                  onPressed: () => setState(() {
+                    calls++;
+                    busy = true;
+                  }),
+                ),
+              ),
             );
           },
         ),
       ),
     );
-    update(() => busy = true);
+    final button = find.byKey(const ValueKey('composer-header-submit'));
+    final bounds = tester.getRect(button);
+    await tester.tap(button);
+    expect(calls, 1, reason: '请求立即开始');
     await tester.pump();
-    expect(find.byKey(const ValueKey('composer-submit-flight')), findsNothing);
+    expect(tester.widget<FilledButton>(button).onPressed, isNull);
+    expect(tester.getRect(button), bounds, reason: '提交中按钮尺寸不变');
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.tap(button, warnIfMissed: false);
+    expect(calls, 1);
+
+    update(() => busy = false);
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text('发送'), findsOneWidget);
+    await tester.tap(button);
+    expect(calls, 2);
   });
 
-  testWidgets('没有进入提交状态时不播放起飞', (tester) async {
-    var calls = 0;
+  testWidgets('保存编辑带图标', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: ComposerSubmitButton(
-              label: '发送',
-              busy: false,
-              onPressed: () => calls++,
-            ),
-          ),
+      _host(
+        ComposerSubmitButton(
+          label: '保存',
+          icon: AppIcons.check,
+          busy: false,
+          onPressed: () {},
         ),
       ),
     );
-    final flight = find.byKey(const ValueKey('composer-submit-flight'));
-    final before = tester.getRect(flight);
-    await tester.tap(find.byType(FilledButton));
-    await tester.pump(const Duration(milliseconds: 140));
-    expect(calls, 1);
-    expect(tester.getRect(flight), before);
-    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.byIcon(AppIcons.check), findsOneWidget);
+    expect(find.text('保存'), findsOneWidget);
   });
 }

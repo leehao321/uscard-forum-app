@@ -8,8 +8,8 @@ enum ComposerViewMode { rich, source, preview }
 
 extension ComposerViewModeX on ComposerViewMode {
   Object get icon => switch (this) {
-    ComposerViewMode.rich => Symbols.wysiwyg_rounded,
-    ComposerViewMode.source => Symbols.code_rounded,
+    ComposerViewMode.rich => AppIcons.layoutTemplate,
+    ComposerViewMode.source => AppIcons.code,
     ComposerViewMode.preview => AppIcons.openBook,
   };
 
@@ -33,7 +33,7 @@ class ComposerModeButton extends StatelessWidget {
         '${S.current.composerView_switch}: '
         '${rich ? S.current.composerView_source : S.current.composerView_rich}',
     onPressed: onPressed,
-    icon: Icon(rich ? Symbols.code_rounded : Symbols.wysiwyg_rounded, size: 21),
+    icon: Icon(rich ? AppIcons.code : AppIcons.layoutTemplate, size: 21),
   );
 }
 

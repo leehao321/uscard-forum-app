@@ -6,6 +6,8 @@
 /// 通吃)。
 library;
 
+import 'package:app_icons/app_icons.dart';
+
 import 'dart:async';
 import 'dart:io';
 
@@ -115,10 +117,10 @@ class _VoiceRecorderSheetState extends State<_VoiceRecorderSheet> {
     _ampSub = recorder
         .onAmplitudeChanged(const Duration(milliseconds: 120))
         .listen((a) {
-      // dBFS(约 -45..0)→ 0..1
-      final norm = ((a.current + 45) / 45).clamp(0.0, 1.0);
-      if (mounted) setState(() => _amplitude = norm);
-    });
+          // dBFS(约 -45..0)→ 0..1
+          final norm = ((a.current + 45) / 45).clamp(0.0, 1.0);
+          if (mounted) setState(() => _amplitude = norm);
+        });
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() => _elapsed += const Duration(seconds: 1));
@@ -168,14 +170,16 @@ class _VoiceRecorderSheetState extends State<_VoiceRecorderSheet> {
     if (transcoder != null && await transcoder.ensureReady() == null) {
       try {
         final m4a = path.replaceFirst(RegExp(r'\.wav$'), '.m4a');
-        final ok = await transcoder.transcode(TranscodeSpec(
-          input: path,
-          output: m4a,
-          audioOnly: true,
-          audioBitrate: 32000,
-          audioSampleRate: 16000,
-          audioChannels: 1,
-        ));
+        final ok = await transcoder.transcode(
+          TranscodeSpec(
+            input: path,
+            output: m4a,
+            audioOnly: true,
+            audioBitrate: 32000,
+            audioSampleRate: 16000,
+            audioChannels: 1,
+          ),
+        );
         if (ok) path = m4a;
       } catch (_) {
         // 转码腿不可用(如热重启后通道缺失):wav 直用
@@ -254,14 +258,18 @@ class _VoiceRecorderSheetState extends State<_VoiceRecorderSheet> {
                   _Phase.recording => '录制中…',
                   _Phase.recorded => '试听确认后发送',
                 },
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: scheme.onSurfaceVariant),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
               ),
               if (_error != null) ...[
                 const SizedBox(height: 8),
-                Text(_error!,
-                    style:
-                        theme.textTheme.bodySmall?.copyWith(color: scheme.error)),
+                Text(
+                  _error!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.error,
+                  ),
+                ),
               ],
               const SizedBox(height: 20),
               Text(
@@ -277,8 +285,10 @@ class _VoiceRecorderSheetState extends State<_VoiceRecorderSheet> {
                   onTap: _phase == _Phase.recording ? _stop : _start,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 120),
-                    width: 76 + (_phase == _Phase.recording ? _amplitude * 14 : 0),
-                    height: 76 + (_phase == _Phase.recording ? _amplitude * 14 : 0),
+                    width:
+                        76 + (_phase == _Phase.recording ? _amplitude * 14 : 0),
+                    height:
+                        76 + (_phase == _Phase.recording ? _amplitude * 14 : 0),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: _phase == _Phase.recording
@@ -286,9 +296,7 @@ class _VoiceRecorderSheetState extends State<_VoiceRecorderSheet> {
                           : scheme.primaryContainer,
                     ),
                     child: Icon(
-                      _phase == _Phase.recording
-                          ? Icons.stop_rounded
-                          : Icons.mic_rounded,
+                      _phase == _Phase.recording ? AppIcons.stop : AppIcons.mic,
                       size: 34,
                       color: _phase == _Phase.recording
                           ? scheme.onErrorContainer
@@ -304,14 +312,13 @@ class _VoiceRecorderSheetState extends State<_VoiceRecorderSheet> {
                     StreamBuilder<PlayerState>(
                       stream: _player?.playerStateStream,
                       builder: (context, snap) {
-                        final playing = (snap.data?.playing ?? false) &&
+                        final playing =
+                            (snap.data?.playing ?? false) &&
                             snap.data?.processingState !=
                                 ProcessingState.completed;
                         return IconButton.filledTonal(
                           iconSize: 32,
-                          icon: Icon(playing
-                              ? Icons.pause_rounded
-                              : Icons.play_arrow_rounded),
+                          icon: Icon(playing ? AppIcons.pause : AppIcons.play),
                           onPressed: _togglePreview,
                         );
                       },
@@ -321,9 +328,11 @@ class _VoiceRecorderSheetState extends State<_VoiceRecorderSheet> {
               if (kDebugMode && _phase == _Phase.idle) ...[
                 const SizedBox(height: 10),
                 TextButton.icon(
-                  icon: const Icon(Icons.science_outlined, size: 16),
-                  label: const Text('生成测试音频(debug)',
-                      style: TextStyle(fontSize: 12)),
+                  icon: const Icon(AppIcons.flask, size: 16),
+                  label: const Text(
+                    '生成测试音频(debug)',
+                    style: TextStyle(fontSize: 12),
+                  ),
                   onPressed: _debugSynthesize,
                 ),
               ],
@@ -336,7 +345,7 @@ class _VoiceRecorderSheetState extends State<_VoiceRecorderSheet> {
                     TextButton(onPressed: _retake, child: const Text('重录')),
                     const SizedBox(width: 8),
                     FilledButton.icon(
-                      icon: const Icon(Icons.send_rounded, size: 18),
+                      icon: const Icon(AppIcons.send, size: 18),
                       label: const Text('发送'),
                       onPressed: () => Navigator.of(context).pop(_path),
                     ),

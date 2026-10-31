@@ -1,3 +1,4 @@
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,7 +28,7 @@ void main() {
               child: Builder(
                 key: anchorKey,
                 builder: (buttonContext) => IconButton(
-                  icon: const Icon(Icons.add),
+                  icon: const Icon(AppIcons.add),
                   onPressed: () async {
                     final box = buttonContext.findRenderObject() as RenderBox;
                     chosen = await showComposerAnchoredPanel<int>(

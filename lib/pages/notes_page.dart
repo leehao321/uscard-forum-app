@@ -111,6 +111,8 @@ class _NotesPageState extends State<NotesPage> {
                       final n = items[i];
                       final preview = n.text.trim().isNotEmpty
                           ? n.text.trim()
+                          : n.floors.isNotEmpty
+                          ? n.floorNotes[n.floors.first]!.trim()
                           : n.excerpts.first.text;
                       return ListTile(
                         title: Text(

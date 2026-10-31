@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:ai_model_manager/ai_model_manager.dart';
 import 'package:app_icons/app_icons.dart';
+import 'package:flutter/cupertino.dart' show CupertinoActivityIndicator;
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter/services.dart';
@@ -24,6 +25,7 @@ void showAiTopicSummarySheet(
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (ctx) => AppSheetScaffold(
+      title: 'AI 总结',
       maxHeightFactor: 0.85,
       child: _AiTopicSummaryBody(title: title, posts: posts),
     ),
@@ -163,36 +165,23 @@ class _AiTopicSummaryBodyState extends ConsumerState<_AiTopicSummaryBody> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final metaStyle = theme.textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
     final selected = ref.watch(aiTopicSummaryModelProvider);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Icon(
-              Symbols.auto_awesome_rounded,
-              size: 20,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'AI 总结',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
         if (selected != null)
           Padding(
             padding: const EdgeInsets.only(top: 2),
             child: Text(
               '${selected.provider.name} / ${selected.model.name ?? selected.model.id}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+              style: metaStyle,
             ),
           ),
         if (_postCount > 0)
@@ -202,11 +191,7 @@ class _AiTopicSummaryBodyState extends ConsumerState<_AiTopicSummaryBody> {
               _truncated
                   ? '仅总结已加载楼层的前 $_postCount 层（内容过长已截断）'
                   : '基于已加载的 $_postCount 个楼层',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: _truncated
-                    ? theme.colorScheme.tertiary
-                    : theme.colorScheme.onSurfaceVariant,
-              ),
+              style: metaStyle,
             ),
           ),
         const SizedBox(height: 12),
@@ -221,7 +206,7 @@ class _AiTopicSummaryBodyState extends ConsumerState<_AiTopicSummaryBody> {
                           _error!,
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.error,
+                            color: colors.textDestructive,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -236,17 +221,13 @@ class _AiTopicSummaryBodyState extends ConsumerState<_AiTopicSummaryBody> {
                 : _result.isEmpty
                 ? const Padding(
                     padding: EdgeInsets.symmetric(vertical: 32),
-                    child: Center(
-                      child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2.5),
-                      ),
-                    ),
+                    child: Center(child: CupertinoActivityIndicator()),
                   )
                 : SelectableText(
                     _result.toString(),
-                    style: theme.textTheme.bodyMedium?.copyWith(height: 1.55),
+                    style: theme.textTheme.bodyMedium
+                        ?.merge(tokens.text.body)
+                        .copyWith(color: colors.textPrimary),
                   ),
           ),
         ),
@@ -257,12 +238,12 @@ class _AiTopicSummaryBodyState extends ConsumerState<_AiTopicSummaryBody> {
             if (_streaming)
               TextButton.icon(
                 onPressed: _stop,
-                icon: const Icon(Symbols.stop_rounded, size: 18),
+                icon: const Icon(AppIcons.pause, size: 18),
                 label: const Text('停止'),
               ),
             TextButton.icon(
               onPressed: _result.isEmpty ? null : _copy,
-              icon: const Icon(Symbols.content_copy_rounded, size: 18),
+              icon: const Icon(AppIcons.copy, size: 18),
               label: const Text('复制'),
             ),
           ],

@@ -1,3 +1,4 @@
+import 'package:ai_model_manager/ai_model_manager.dart' show aiSharedPreferencesProvider;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -71,6 +72,7 @@ Future<void> _pump(
   final container = ProviderContainer(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(prefs),
+      aiSharedPreferencesProvider.overrideWithValue(prefs),
       categoryMapProvider.overrideWith(
         (_) => const AsyncData(<int, Category>{}),
       ),
@@ -271,7 +273,9 @@ void main() {
     await _pump(tester, state: state);
     expect(find.text('展开其余 3 条回复'), findsOneWidget);
     final button = find.text('展开其余 3 条回复');
-    await tester.ensureVisible(button);
+    // v2 正文 17 号，按钮落在首屏外：先滚到可见
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -300));
+    await tester.pump();
     await tester.tap(button);
     await tester.pumpAndSettle();
     expect(find.text('展开其余 3 条回复'), findsNothing);

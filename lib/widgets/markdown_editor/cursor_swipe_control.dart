@@ -19,6 +19,7 @@ import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:app_icons/app_icons.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../l10n/s.dart';
 import 'composer_action_menu.dart';
 
@@ -236,11 +237,11 @@ class _CursorSwipeControlState extends State<CursorSwipeControl> {
   Future<void> _showCursorMenu() async {
     final s = S.current;
     final entries = [
-      (s.composer_cursorLeft, Icons.arrow_back_rounded),
-      (s.composer_cursorRight, Icons.arrow_forward_rounded),
-      (s.composer_cursorUp, Icons.arrow_upward_rounded),
-      (s.composer_cursorDown, Icons.arrow_downward_rounded),
-      (s.composer_cursorSelect, Icons.select_all_rounded),
+      (s.composer_cursorLeft, AppIcons.back),
+      (s.composer_cursorRight, AppIcons.forward),
+      (s.composer_cursorUp, AppIcons.up),
+      (s.composer_cursorDown, AppIcons.down),
+      (s.composer_cursorSelect, AppIcons.selectAll),
     ];
     final picked = await showComposerActionMenu<int>(
       context: context,
@@ -253,7 +254,7 @@ class _CursorSwipeControlState extends State<CursorSwipeControl> {
                 Icon(entries[i].$2, size: 20),
                 const SizedBox(width: 12),
                 Text(entries[i].$1),
-                if (i == 4 && _selecting) const Icon(Icons.check, size: 18),
+                if (i == 4 && _selecting) const Icon(AppIcons.check, size: 18),
               ],
             ),
           ),
@@ -308,11 +309,7 @@ class _CursorSwipeControlState extends State<CursorSwipeControl> {
             borderRadius: BorderRadius.circular(18),
           ),
           child: _selecting
-              ? Icon(
-                  Symbols.text_select_start_rounded,
-                  size: 20,
-                  color: scheme.primary,
-                )
+              ? Icon(AppIcons.textSelect, size: 20, color: scheme.primary)
               : FaIcon(
                   FontAwesomeIcons.iCursor,
                   size: 19,

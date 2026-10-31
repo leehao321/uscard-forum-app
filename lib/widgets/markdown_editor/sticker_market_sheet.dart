@@ -155,12 +155,12 @@ class _StickerMarketSheetState extends ConsumerState<StickerMarketSheet> {
                 color: theme.colorScheme.onSurfaceVariant,
                 fontSize: 14,
               ),
-              prefixIcon: const Icon(Symbols.search_rounded, size: 18),
+              prefixIcon: const Icon(AppIcons.search, size: 18),
               suffixIcon: value.text.isEmpty
                   ? null
                   : IconButton(
                       visualDensity: VisualDensity.compact,
-                      icon: const Icon(Symbols.close_rounded, size: 16),
+                      icon: const Icon(AppIcons.close, size: 16),
                       onPressed: () {
                         _searchDebounce?.cancel();
                         _searchController.clear();
@@ -241,11 +241,7 @@ class _StickerMarketSheetState extends ConsumerState<StickerMarketSheet> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Symbols.error_rounded,
-            size: 48,
-            color: theme.colorScheme.outline,
-          ),
+          Icon(AppIcons.error, size: 48, color: theme.colorScheme.outline),
           const SizedBox(height: 12),
           Text(
             S.current.sticker_marketLoadFailed,
@@ -391,7 +387,7 @@ class _StickerGroupTile extends ConsumerWidget {
         trailing: isSubscribed
             ? FilledButton.icon(
                 onPressed: onToggle,
-                icon: const Icon(Symbols.check_rounded, size: 16),
+                icon: const Icon(AppIcons.check, size: 16),
                 label: Text(S.current.sticker_added),
                 style: FilledButton.styleFrom(
                   visualDensity: VisualDensity.compact,
@@ -400,7 +396,7 @@ class _StickerGroupTile extends ConsumerWidget {
               )
             : OutlinedButton.icon(
                 onPressed: onToggle,
-                icon: const Icon(Symbols.add_rounded, size: 16),
+                icon: const Icon(AppIcons.add, size: 16),
                 label: Text(S.current.common_add),
                 style: OutlinedButton.styleFrom(
                   visualDensity: VisualDensity.compact,

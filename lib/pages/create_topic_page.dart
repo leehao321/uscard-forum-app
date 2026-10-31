@@ -17,7 +17,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/draft_store_provider.dart';
 
 import 'package:fluxdo/widgets/common/error_view.dart';
-import 'package:fluxdo/widgets/common/progressive_top_blur.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 import 'package:fluxdo/providers/preferences_provider.dart';
 import 'package:fluxdo/widgets/markdown_editor/composer_shortcuts.dart';
@@ -112,7 +111,7 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
   final _formKey = GlobalKey<FormState>();
   final _chrome = ComposerChromeController();
   double get _topChromeInset =>
-      ProgressiveTopBlur.heightFor(context) +
+      ComposerTopFade.heightFor(context) +
       (PlatformUtils.isDesktop && MediaQuery.sizeOf(context).width < 900
           ? 56
           : 0);
@@ -572,8 +571,7 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
   ///
   /// 官方只把**外部**链接做成精选链接（`only feature links to external
   /// sites`），指向本站的 URL 直接不处理。
-  bool _isSameSiteUrl(TitleUrlInfo candidate) =>
-      isSiteHost(candidate.uri.host);
+  bool _isSameSiteUrl(TitleUrlInfo candidate) => isSiteHost(candidate.uri.host);
 
   /// 标题输入的单一监听入口（草稿 / 计数器 / featured link 三合一）。
   void _onTitleInputChanged() {
@@ -1089,20 +1087,20 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
                   hintText: _featuredLinkEnabled
                       ? context.l10n.createTopic_titleOrLinkHint
                       : context.l10n.createTopic_titleHint,
-                  hintStyle: TextStyle(
-                    color: theme.colorScheme.onSurfaceVariant.withValues(
-                      alpha: 0.5,
-                    ),
-                    fontWeight: FontWeight.normal,
-                  ),
+                  hintStyle: theme.textTheme.headlineSmall
+                      ?.merge(context.tokens.text.title)
+                      .copyWith(
+                        color: context.tokens.colors.textMeta,
+                        fontWeight: FontWeight.normal,
+                      ),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                   isDense: true,
                 ),
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0,
-                ),
+                // v2：标题 22 Semibold（title 档）
+                style: theme.textTheme.headlineSmall
+                    ?.merge(context.tokens.text.title)
+                    .copyWith(color: context.tokens.colors.textPrimary),
                 maxLines: null,
                 // 对齐官方 `titleMaxLength`：允许精选链接时不设 maxLength，否则会
                 // 把粘贴进来的长链接截断（超长交由校验提示，不靠硬截）。
@@ -1397,7 +1395,7 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
                                               hintText: context
                                                   .l10n
                                                   .createTopic_contentHint,
-                                              emojiPanelHeight: 350,
+                                              emojiPanelHeight: 336,
                                               onEmojiPanelChanged: (show) {
                                                 setState(
                                                   () => _showEmojiPanel = show,
@@ -1451,7 +1449,7 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
                                             .l10n
                                             .createTopic_contentHint,
                                         expands: true,
-                                        emojiPanelHeight: 350,
+                                        emojiPanelHeight: 336,
                                         // 预览入口由顶部承载。
                                         showPreviewButton: false,
                                         onEmojiPanelChanged: (show) {
@@ -1486,9 +1484,12 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
                                           ? context.l10n.createTopic_noTitle
                                           : _titleController.text,
                                       style: theme.textTheme.headlineSmall
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                            letterSpacing: 0,
+                                          ?.merge(context.tokens.text.title)
+                                          .copyWith(
+                                            color: context
+                                                .tokens
+                                                .colors
+                                                .textPrimary,
                                           ),
                                     ),
                                     const SizedBox(height: 16),
@@ -1510,15 +1511,13 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
                                       padding: EdgeInsets.symmetric(
                                         vertical: 24,
                                       ),
-                                      child: Divider(height: 1),
+                                      child: AppHairline(),
                                     ),
                                     if (_contentController.text.isEmpty)
                                       Text(
                                         context.l10n.createTopic_noContent,
                                         style: TextStyle(
-                                          color: theme
-                                              .colorScheme
-                                              .onSurfaceVariant,
+                                          color: context.tokens.colors.textMeta,
                                         ),
                                       )
                                     else
@@ -1549,7 +1548,7 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
                     if (_isLoadingDraft)
                       Positioned.fill(
                         child: Container(
-                          color: theme.colorScheme.surface.withValues(
+                          color: context.tokens.colors.surfacePage.withValues(
                             alpha: 0.7,
                           ),
                           child: const Center(child: LoadingSpinner()),

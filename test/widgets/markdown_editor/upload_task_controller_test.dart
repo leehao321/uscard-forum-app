@@ -1,3 +1,5 @@
+import 'package:app_icons/app_icons.dart';
+
 import 'dart:async';
 
 import 'package:fluxdo/l10n/s.dart';
@@ -45,7 +47,7 @@ void main() {
     );
     expect(tester.getSize(find.byType(ChatUploadStrip)).height, 88);
     expect(find.byType(ListTile), findsNothing);
-    expect(find.byIcon(Icons.check_rounded), findsOneWidget);
+    expect(find.byIcon(AppIcons.check), findsOneWidget);
     await tester.tap(find.byType(IconButton));
     await tester.pump();
     expect(controller.tasks, isEmpty);

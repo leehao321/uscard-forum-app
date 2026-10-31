@@ -1,11 +1,14 @@
+import 'package:flutter/cupertino.dart' show CupertinoActivityIndicator;
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:app_icons/app_icons.dart';
-import 'package:m3e_ui/m3e_ui.dart';
 
 import '../l10n/s.dart';
+
 import 'package:common_ui/common_ui.dart';
+
 import 'image_viewer_page.dart';
+import 'viewer_chrome.dart';
 
 /// Mermaid 矢量查看页 —— WebView 顶级文档加载 kroki SVG。
 ///
@@ -89,99 +92,148 @@ class _MermaidViewerPageState extends State<MermaidViewerPage> {
     final isDark = theme.brightness == Brightness.dark;
     // 内容底色对齐 mermaid 块容器灰底(282a36/f6f8fa):kroki SVG 背景
     // 透明,dark 主题图形浅色线条,必须深底才可读。
-    final canvasColor =
-        isDark ? const Color(0xff282a36) : const Color(0xfff6f8fa);
+    final canvasColor = isDark
+        ? const Color(0xff282a36)
+        : const Color(0xfff6f8fa);
 
+    // 外壳和图片查看器一致：黑底 + 44 圆钮；SVG 文档需要浅 / 深底才可读，
+    // 所以画布仍用 mermaid 块的底色，放在顶栏下面，不被浮钮盖住首行
     return Scaffold(
-      appBar: AppBar(
-        title: Text(S.current.codeBlock_chart),
-        actions: [
-          IconButton(
-            icon: const Icon(Symbols.image_rounded),
-            tooltip: S.current.common_view,
-            onPressed: _openAsImage,
-          ),
-        ],
-      ),
-      body: Container(
-        color: canvasColor,
-        child: Stack(
-          children: [
-            if (!_error)
-              Positioned.fill(
-                child: InAppWebView(
-                  key: ValueKey('mermaid-svg-$_attempt'),
-                  initialUrlRequest: URLRequest(url: WebUri(widget.svgUrl)),
-                  initialSettings: InAppWebViewSettings(
-                    // 纯 SVG 静态文档,无需 JS
-                    javaScriptEnabled: false,
-                    transparentBackground: true,
-                    // Android pinch 缩放三件套(iOS 默认支持)
-                    supportZoom: true,
-                    builtInZoomControls: true,
-                    displayZoomControls: false,
-                    // 大图初始 fit 屏宽,再由用户放大
-                    useWideViewPort: true,
-                    loadWithOverviewMode: true,
-                  ),
-                  onLoadStop: (controller, url) {
-                    if (mounted) setState(() => _loaded = true);
-                  },
-                  onReceivedError: (controller, request, error) {
-                    if (request.isForMainFrame ?? true) {
-                      if (mounted) setState(() => _error = true);
-                    }
-                  },
-                  onReceivedHttpError: (controller, request, response) {
-                    if (request.isForMainFrame ?? true) {
-                      if (mounted) setState(() => _error = true);
-                    }
-                  },
-                ),
+      backgroundColor: Colors.black,
+      body: Column(
+        children: [
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpace.pageMargin,
+                vertical: AppSpace.s,
               ),
-            if (!_loaded && !_error)
-              const Center(child: LoadingSpinner()),
-            if (_error)
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Symbols.error_rounded,
-                        color: theme.colorScheme.error),
-                    const SizedBox(height: 12),
-                    Text(
-                      S.current.codeBlock_chartLoadFailed,
-                      style: TextStyle(
-                        color: theme.colorScheme.error,
-                        fontSize: 13,
+              child: Row(
+                children: [
+                  ViewerCircleButton(
+                    icon: AppIcons.close,
+                    semanticLabel: '关闭',
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Semantics(
+                        header: true,
+                        child: Container(
+                          height: 32,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpace.m,
+                          ),
+                          decoration: const ShapeDecoration(
+                            color: kViewerScrim,
+                            shape: StadiumBorder(),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            S.current.codeBlock_chart,
+                            style: theme.textTheme.bodySmall
+                                ?.merge(context.tokens.text.meta)
+                                .copyWith(color: kViewerForeground),
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextButton.icon(
-                          onPressed: () => setState(() {
-                            _error = false;
-                            _loaded = false;
-                            _attempt++;
-                          }),
-                          icon: const Icon(Symbols.refresh_rounded, size: 16),
-                          label: Text(S.current.common_retry),
-                        ),
-                        const SizedBox(width: 8),
-                        TextButton.icon(
-                          onPressed: _openAsImage,
-                          icon: const Icon(Symbols.image_rounded, size: 16),
-                          label: Text(S.current.common_view),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  ),
+                  ViewerCircleButton(
+                    icon: AppIcons.image,
+                    semanticLabel: S.current.common_view,
+                    onPressed: _openAsImage,
+                  ),
+                ],
               ),
-          ],
-        ),
+            ),
+          ),
+          Expanded(child: _buildCanvas(context, canvasColor)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCanvas(BuildContext context, Color canvasColor) {
+    final theme = Theme.of(context);
+    return Container(
+      color: canvasColor,
+      child: Stack(
+        children: [
+          if (!_error)
+            Positioned.fill(
+              child: InAppWebView(
+                key: ValueKey('mermaid-svg-$_attempt'),
+                initialUrlRequest: URLRequest(url: WebUri(widget.svgUrl)),
+                initialSettings: InAppWebViewSettings(
+                  // 纯 SVG 静态文档,无需 JS
+                  javaScriptEnabled: false,
+                  transparentBackground: true,
+                  // Android pinch 缩放三件套(iOS 默认支持)
+                  supportZoom: true,
+                  builtInZoomControls: true,
+                  displayZoomControls: false,
+                  // 大图初始 fit 屏宽,再由用户放大
+                  useWideViewPort: true,
+                  loadWithOverviewMode: true,
+                ),
+                onLoadStop: (controller, url) {
+                  if (mounted) setState(() => _loaded = true);
+                },
+                onReceivedError: (controller, request, error) {
+                  if (request.isForMainFrame ?? true) {
+                    if (mounted) setState(() => _error = true);
+                  }
+                },
+                onReceivedHttpError: (controller, request, response) {
+                  if (request.isForMainFrame ?? true) {
+                    if (mounted) setState(() => _error = true);
+                  }
+                },
+              ),
+            ),
+          if (!_loaded && !_error)
+            const Center(child: CupertinoActivityIndicator(color: Colors.grey)),
+          if (_error)
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(AppIcons.error, color: theme.colorScheme.error),
+                  const SizedBox(height: 12),
+                  Text(
+                    S.current.codeBlock_chartLoadFailed,
+                    style: TextStyle(
+                      color: theme.colorScheme.error,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () => setState(() {
+                          _error = false;
+                          _loaded = false;
+                          _attempt++;
+                        }),
+                        icon: const Icon(AppIcons.refresh, size: 16),
+                        label: Text(S.current.common_retry),
+                      ),
+                      const SizedBox(width: 8),
+                      TextButton.icon(
+                        onPressed: _openAsImage,
+                        icon: const Icon(AppIcons.image, size: 16),
+                        label: Text(S.current.common_view),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }

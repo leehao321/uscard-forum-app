@@ -1,4 +1,6 @@
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
+
 import '../../utils/platform_utils.dart';
 
 import 'composer_tool_style.dart';
@@ -95,7 +97,7 @@ class ComposerObjectToolbar extends StatelessWidget {
             IconButton(
               tooltip: '退出选中',
               onPressed: selection.dismiss,
-              icon: const Icon(Icons.close_rounded, size: 20),
+              icon: const Icon(AppIcons.close, size: 20),
             ),
             Expanded(
               child: Text(
@@ -118,7 +120,7 @@ class ComposerObjectToolbar extends StatelessWidget {
             IconButton(
               tooltip: '在后面输入',
               onPressed: selection.after,
-              icon: const Icon(Icons.keyboard_return_rounded, size: 20),
+              icon: const Icon(AppIcons.cornerReturn, size: 20),
             ),
             Builder(
               key: menuAnchorKey,
@@ -126,7 +128,7 @@ class ComposerObjectToolbar extends StatelessWidget {
                 key: const ValueKey('composer-object-more'),
                 onPressed: () =>
                     showComposerObjectMenu(buttonContext, selection),
-                icon: const Icon(Icons.more_horiz_rounded, size: 20),
+                icon: const Icon(AppIcons.moreHoriz, size: 20),
                 label: const Text('更多'),
                 style: TextButton.styleFrom(
                   minimumSize: const Size(48, 48),

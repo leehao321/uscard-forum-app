@@ -1,3 +1,5 @@
+import 'package:app_icons/app_icons.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -39,11 +41,11 @@ void main() {
       await tester.pump();
       expect(find.byType(GlassSurfaceFrame), findsOneWidget);
       expect(find.byType(Card), findsNothing);
-      expect(find.byIcon(Icons.cleaning_services_outlined), findsNothing);
+      expect(find.byIcon(AppIcons.eraser), findsNothing);
       final surface = find.byKey(const ValueKey('source-upload-glass'));
       expect(tester.getSize(surface).width, lessThanOrEqualTo(520));
       expect(tester.takeException(), isNull);
-      await tester.tap(find.byIcon(Icons.keyboard_arrow_up_rounded));
+      await tester.tap(find.byIcon(AppIcons.chevronUp));
       await tester.pump();
       expect(tester.getSize(surface).height, lessThan(70));
       completer.complete(

@@ -1,3 +1,4 @@
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxdo/widgets/markdown_editor/composer_object_toolbar.dart';
@@ -131,7 +132,7 @@ void main() {
                       for (final label in labels)
                         ComposerObjectAction(
                           label,
-                          Icons.image_outlined,
+                          AppIcons.image,
                           () => onAction(label),
                         ),
                     ],

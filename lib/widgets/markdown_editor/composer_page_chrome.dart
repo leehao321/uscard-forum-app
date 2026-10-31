@@ -1,6 +1,7 @@
 import 'package:app_icons/app_icons.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
+
 import '../../l10n/s.dart';
 
 /// 文档操作的统一图标规格。
@@ -69,18 +70,18 @@ class ComposerTopicKindPicker extends StatelessWidget {
       position: PopupMenuPosition.under,
       offset: const Offset(0, 6),
       padding: EdgeInsets.zero,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(context.tokens.radius.card),
       tooltip: '',
       constraints: const BoxConstraints(minWidth: 180, maxWidth: 220),
-      color: colors.surfaceContainer,
+      color: context.tokens.colors.surfaceElevated,
       elevation: 3,
       shadowColor: colors.shadow.withValues(alpha: .24),
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(context.tokens.radius.card),
         side: BorderSide(
-          color: colors.outlineVariant.withValues(alpha: .45),
-          width: .6,
+          color: context.tokens.colors.separator,
+          width: AppSpace.hairline,
         ),
       ),
       // 不传 initialValue：Flutter 会用它将选中行居中到触发点，从而覆盖入口。
@@ -104,7 +105,11 @@ class ComposerTopicKindPicker extends StatelessWidget {
                   ),
                 ),
                 if (value == question)
-                  Icon(Symbols.check_rounded, size: 18, color: colors.primary),
+                  Icon(
+                    AppIcons.check,
+                    size: AppSize.iconM,
+                    color: context.tokens.colors.brandPrimary,
+                  ),
               ],
             ),
           ),
@@ -125,11 +130,9 @@ class ComposerTopicKindPicker extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.only(left: 6),
                     child: Icon(
-                      locked
-                          ? Symbols.lock_rounded
-                          : Symbols.expand_more_rounded,
+                      locked ? AppIcons.lock : AppIcons.expandMore,
                       size: 16,
-                      color: colors.onSurfaceVariant,
+                      color: context.tokens.colors.textMeta,
                     ),
                   ),
                 ),

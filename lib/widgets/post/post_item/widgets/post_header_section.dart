@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../models/topic.dart';
 import '../../../../providers/discourse_providers.dart';
 import '../../../../providers/preferences_provider.dart';
+
 import 'package:dio/dio.dart';
+
 import '../../../../services/app_error_handler.dart';
 import '../../../../services/discourse/discourse_service.dart';
 import '../../../../utils/frame_jank_monitor.dart';
@@ -228,10 +232,17 @@ class _PostHeaderSectionState extends ConsumerState<PostHeaderSection> {
                 danmakuActive: widget.danmakuActive,
                 onToggleDanmaku: widget.onToggleDanmaku,
                 buildCompactBadge: _buildCompactBadge,
-                timeAndFloorWidget: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                // v2：「#楼层」「日期」同一行，13 meta，间距 8
+                timeAndFloorWidget: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    Text(
+                      '#${post.postNumber}',
+                      style: theme.textTheme.bodySmall
+                          ?.merge(context.tokens.text.meta)
+                          .copyWith(color: context.tokens.colors.textMeta),
+                    ),
+                    const SizedBox(width: AppSpace.s),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -252,11 +263,11 @@ class _PostHeaderSectionState extends ConsumerState<PostHeaderSection> {
                           children: [
                             RelativeTimeText(
                               dateTime: post.displayDate,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.8),
-                                fontSize: 11,
-                              ),
+                              style: theme.textTheme.bodySmall
+                                  ?.merge(context.tokens.text.meta)
+                                  .copyWith(
+                                    color: context.tokens.colors.textMeta,
+                                  ),
                             ),
                             Positioned(
                               right: -6,
@@ -300,16 +311,6 @@ class _PostHeaderSectionState extends ConsumerState<PostHeaderSection> {
                           ],
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '#${post.postNumber}',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant.withValues(
-                          alpha: 0.4,
-                        ),
-                        fontSize: 10,
-                      ),
                     ),
                   ],
                 ),

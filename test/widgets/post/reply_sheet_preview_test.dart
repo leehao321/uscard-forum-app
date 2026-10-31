@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:app_icons/app_icons.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:fluxdo/models/topic.dart';
@@ -149,7 +151,7 @@ Future<void> _pumpReply(
   // 草稿的本地存储读取需要让平台异步回调完成，再操作被遮罩覆盖的页头。
   for (
     var i = 0;
-    i < 20 && find.byType(CloseButton).hitTestable().evaluate().isEmpty;
+    i < 20 && find.byIcon(AppIcons.close).hitTestable().evaluate().isEmpty;
     i++
   ) {
     await tester.runAsync(
@@ -157,7 +159,7 @@ Future<void> _pumpReply(
     );
     await tester.pump(const Duration(milliseconds: 20));
   }
-  expect(find.byType(CloseButton).hitTestable(), findsOneWidget);
+  expect(find.byIcon(AppIcons.close).hitTestable(), findsOneWidget);
 }
 
 Future<void> _waitForRichDraft(WidgetTester tester, String text) async {
@@ -221,8 +223,17 @@ void main() {
         expect(rect.left, greaterThanOrEqualTo(0));
         expect(rect.right, lessThanOrEqualTo(width));
         final send = find.byKey(const ValueKey('composer-header-submit'));
-        expect(tester.getSize(send), const Size(48, 48));
-        expect(tester.getSize(find.byType(CloseButton)), const Size(48, 48));
+        expect(tester.getSize(send).height, 44);
+        expect(tester.getSize(send).width, greaterThanOrEqualTo(66));
+        expect(
+          tester.getSize(
+            find.ancestor(
+              of: find.byIcon(AppIcons.close),
+              matching: find.byType(AppIconButton),
+            ),
+          ),
+          const Size(44, 44),
+        );
         final more = find.byKey(const ValueKey('composer-header-more'));
         if (more.evaluate().isNotEmpty &&
             find
@@ -408,10 +419,11 @@ void main() {
       final header = find.byKey(const ValueKey('reply-composer-header'));
       expect(tester.getSize(header).height, kToolbarHeight);
       expect(find.byType(ComposerHeaderActions), findsOneWidget);
-      expect(find.byType(CloseButton), findsOneWidget);
+      expect(find.byIcon(AppIcons.close), findsOneWidget);
       final send = find.byKey(const ValueKey('composer-header-submit'));
       final more = find.byKey(const ValueKey('composer-header-more'));
-      expect(tester.getSize(send), const Size(48, 48));
+      expect(tester.getSize(send).height, 44);
+      expect(tester.getSize(send).width, greaterThanOrEqualTo(66));
       expect(find.byTooltip(S.current.common_send), findsOneWidget);
       if (width < 480) expect(tester.getSize(more), const Size(44, 44));
       expect(width - tester.getRect(send).right, 16);
@@ -419,7 +431,7 @@ void main() {
       expect(tester.getRect(send).left - tester.getRect(lastAction).right, 8);
       expect(
         find.byType(ComposerPreviewButton),
-        width >= 390 && scale == 1 ? findsOneWidget : findsNothing,
+        width >= 420 && scale == 1 ? findsOneWidget : findsNothing,
       );
 
       final field = find.descendant(
@@ -449,7 +461,7 @@ void main() {
           ),
           isEmpty,
         );
-        if (width >= 390 && scale == 1) {
+        if (width >= 420 && scale == 1) {
           await tester.tapAt(const Offset(2, 300));
           await tester.pumpAndSettle();
           await tester.tap(
@@ -590,7 +602,7 @@ void main() {
       ),
     );
     editor.insertText('关闭前尚未 debounce 的最新正文');
-    await tester.tap(find.byType(CloseButton));
+    await tester.tap(find.byIcon(AppIcons.close));
     await tester.pump();
     // 测试根路由不能被 pop，强制卸载模拟路由最终移除。
     await tester.pumpWidget(const SizedBox.shrink());

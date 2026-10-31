@@ -1,3 +1,5 @@
+import 'package:app_icons/app_icons.dart';
+
 import 'composer_chrome.dart';
 
 import 'dart:async';
@@ -99,7 +101,7 @@ class MarkdownEditor extends ConsumerStatefulWidget {
     this.hintText = '',
     this.minLines = 5,
     this.expands = false,
-    this.emojiPanelHeight = 280.0,
+    this.emojiPanelHeight = 336.0,
     this.onEmojiPanelChanged,
     this.mentionDataSource,
     this.showPreviewButton = true,
@@ -280,7 +282,7 @@ class MarkdownEditorState extends ConsumerState<MarkdownEditor> {
       ComposerToolAction(
         id: 'undo',
         label: S.current.toolbar_undo,
-        icon: const Icon(Icons.undo),
+        icon: const Icon(AppIcons.undo),
         enabled: _undoController.value.canUndo,
         shortcut: composerShortcutHint('undo'),
         searchText: 'undo',
@@ -290,7 +292,7 @@ class MarkdownEditorState extends ConsumerState<MarkdownEditor> {
       ComposerToolAction(
         id: 'redo',
         label: S.current.toolbar_redo,
-        icon: const Icon(Icons.redo),
+        icon: const Icon(AppIcons.redo),
         enabled: _undoController.value.canRedo,
         shortcut: composerShortcutHint('redo'),
         searchText: 'redo',
@@ -342,7 +344,7 @@ class MarkdownEditorState extends ConsumerState<MarkdownEditor> {
         ComposerToolAction(
           id: 'pangu',
           label: S.current.toolbar_mixOptimize,
-          icon: const Icon(Icons.auto_fix_high),
+          icon: const Icon(AppIcons.wand),
           searchText: 'pangu spacing',
           group: ComposerToolGroup.editing,
           run: () => run(_applyPanguSpacing),
@@ -352,7 +354,7 @@ class MarkdownEditorState extends ConsumerState<MarkdownEditor> {
           id: 'switch-mode',
           label:
               '${S.current.composerView_switch}: ${S.current.composerView_rich}',
-          icon: const Icon(Icons.swap_horiz_rounded),
+          icon: const Icon(AppIcons.swapHoriz),
           searchText: 'rich text',
           group: ComposerToolGroup.editing,
           run: widget.onSwitchToRich!,

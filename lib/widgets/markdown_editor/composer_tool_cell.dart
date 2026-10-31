@@ -93,7 +93,7 @@ class ToolCellBody extends StatelessWidget {
                     ),
                   ),
                   child: Icon(
-                    pinned ? Symbols.check_rounded : Symbols.add_rounded,
+                    pinned ? AppIcons.check : AppIcons.add,
                     size: 12,
                     color: pinned
                         ? theme.colorScheme.onPrimary

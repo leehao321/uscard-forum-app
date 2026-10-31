@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 /// - primary = brand/primary（链接、强调）
 /// - outline = quote/rule（引用左侧竖线）
 /// - outlineVariant = separator（分隔线、表格线）
-/// - surfaceContainerHighest = 透明（引用块不加底色，只留竖线）
+/// - surfaceContainerHighest = 页面底色（引用块不加底色，只留竖线）
 /// - surfaceContainerHigh = surface/grouped（行内代码、代码块、表头）
 class RenderTheme extends StatelessWidget {
   const RenderTheme({super.key, required this.child});
@@ -24,7 +24,8 @@ class RenderTheme extends StatelessWidget {
           primary: colors.brandPrimary,
           outline: colors.quoteRule,
           outlineVariant: colors.separator,
-          surfaceContainerHighest: Colors.transparent,
+          // 渲染器给它叠 30% / 50% 透明度做底；取页面底色，叠上去等于没有底
+          surfaceContainerHighest: colors.surfacePage,
           surfaceContainerHigh: colors.surfaceGrouped,
         ),
       ),

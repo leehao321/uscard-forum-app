@@ -1,3 +1,4 @@
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/gestures.dart'
     show PointerDeviceKind, PointerHoverEvent;
 import 'package:flutter/material.dart';
@@ -307,8 +308,7 @@ class _ComposerBlockHoverState extends State<ComposerBlockHover> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _BlockTypeIcon(object: object),
-                  if (!compact)
-                    const Icon(Icons.drag_indicator_rounded, size: 20),
+                  if (!compact) const Icon(AppIcons.grip, size: 20),
                 ],
               ),
             ),
@@ -380,10 +380,7 @@ class _ComposerBlockHoverState extends State<ComposerBlockHover> {
                                   button(
                                     key: const ValueKey('composer-block-add'),
                                     tooltip: '添加块',
-                                    icon: const Icon(
-                                      Icons.add_rounded,
-                                      size: 22,
-                                    ),
+                                    icon: const Icon(AppIcons.add, size: 22),
                                     picker: true,
                                   )
                                 else if (!splitControls)
@@ -400,10 +397,7 @@ class _ComposerBlockHoverState extends State<ComposerBlockHover> {
                                       'composer-block-hover-select',
                                     ),
                                     tooltip: '$label操作',
-                                    icon: const Icon(
-                                      Icons.drag_indicator_rounded,
-                                      size: 20,
-                                    ),
+                                    icon: const Icon(AppIcons.grip, size: 20),
                                     picker: false,
                                   ),
                                 ],
@@ -430,7 +424,7 @@ class _BlockTypeIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final object = this.object;
-    if (object == null) return const Icon(Icons.title_rounded, size: 20);
+    if (object == null) return const Icon(AppIcons.heading, size: 20);
     final block = object.block;
     if (object.target is EditorBlockTarget &&
         block is TextBlock &&
@@ -441,49 +435,44 @@ class _BlockTypeIcon extends StatelessWidget {
       );
     }
     final icon = object.image != null
-        ? Icons.image_outlined
+        ? AppIcons.image
         : switch (object.frame) {
-            DetailsFrame() => Icons.expand_more_rounded,
-            QuoteFrame() || QuoteCardFrame() => Icons.format_quote_rounded,
-            CalloutFrame() => Icons.info_outline_rounded,
-            SpoilerFrame() => Icons.blur_on_rounded,
+            DetailsFrame() => AppIcons.expandMore,
+            QuoteFrame() || QuoteCardFrame() => AppIcons.formatQuote,
+            CalloutFrame() => AppIcons.info,
+            SpoilerFrame() => AppIcons.visibilityOff,
             null => switch (block) {
               TextBlock(:final isListItem, :final ordered) when isListItem =>
-                ordered
-                    ? Icons.format_list_numbered_rounded
-                    : Icons.format_list_bulleted_rounded,
-              TextBlock() => Icons.title_rounded,
+                ordered ? AppIcons.listNumbered : AppIcons.listBulleted,
+              TextBlock() => AppIcons.heading,
               IslandBlock(:final node) => switch (node) {
-                ParagraphNode() || HeadingNode() => Icons.title_rounded,
-                ListNode() => Icons.format_list_bulleted_rounded,
-                BlockquoteNode() ||
-                QuoteCardNode() => Icons.format_quote_rounded,
-                SpoilerBlockNode() => Icons.blur_on_rounded,
-                OneboxNode() => Icons.link_rounded,
-                CalloutNode() => Icons.info_outline_rounded,
-                DetailsNode() => Icons.expand_more_rounded,
+                ParagraphNode() || HeadingNode() => AppIcons.heading,
+                ListNode() => AppIcons.listBulleted,
+                BlockquoteNode() || QuoteCardNode() => AppIcons.formatQuote,
+                SpoilerBlockNode() => AppIcons.visibilityOff,
+                OneboxNode() => AppIcons.link,
+                CalloutNode() => AppIcons.info,
+                DetailsNode() => AppIcons.expandMore,
                 ImageGridNode(:final mode) =>
                   mode == ImageGridMode.carousel
-                      ? Icons.view_carousel_outlined
-                      : Icons.grid_view_rounded,
-                TableNode() => Icons.table_chart_outlined,
+                      ? AppIcons.carousel
+                      : AppIcons.gridView,
+                TableNode() => AppIcons.table,
                 CodeBlockNode(:final language) =>
-                  language == 'mermaid'
-                      ? Icons.account_tree_outlined
-                      : Icons.code_rounded,
-                HorizontalRuleNode() => Icons.horizontal_rule_rounded,
-                BlankLineNode() => Icons.space_bar_rounded,
-                FootnotesSectionNode() => Icons.superscript_rounded,
-                VideoNode() || LazyVideoNode() => Icons.videocam_outlined,
+                  language == 'mermaid' ? AppIcons.workflow : AppIcons.code,
+                HorizontalRuleNode() => AppIcons.remove,
+                BlankLineNode() => AppIcons.space,
+                FootnotesSectionNode() => AppIcons.superscript,
+                VideoNode() || LazyVideoNode() => AppIcons.videoLibrary,
                 AudioNode(:final voice) =>
-                  voice ? Icons.mic_rounded : Icons.audiotrack_rounded,
-                IframeNode() => Icons.web_asset_rounded,
-                PolicyNode() => Icons.fact_check_outlined,
-                MathBlockNode() => Icons.functions_rounded,
-                SvgNode() => Icons.draw_outlined,
-                PollNode() => Icons.poll_outlined,
-                ChatTranscriptNode() => Icons.forum_outlined,
-                DefinitionListNode() => Icons.menu_book_outlined,
+                  voice ? AppIcons.mic : AppIcons.audio,
+                IframeNode() => AppIcons.appWindow,
+                PolicyNode() => AppIcons.clipboardCheck,
+                MathBlockNode() => AppIcons.sigma,
+                SvgNode() => AppIcons.pencilLine,
+                PollNode() => AppIcons.poll,
+                ChatTranscriptNode() => AppIcons.forum,
+                DefinitionListNode() => AppIcons.bookOpen,
               },
             },
           };

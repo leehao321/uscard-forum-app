@@ -1,3 +1,5 @@
+import 'package:app_icons/app_icons.dart';
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -63,9 +65,7 @@ class _UploadTaskPanelState extends State<UploadTaskPanel> {
           children: [
             ListTile(
               dense: true,
-              leading: Icon(
-                failed > 0 ? Icons.error_outline : Icons.cloud_upload_outlined,
-              ),
+              leading: Icon(failed > 0 ? AppIcons.error : AppIcons.cloudUpload),
               title: Text('${labels.title} · $done/${tasks.length}'),
               subtitle: failed > 0 ? Text('${labels.failed} · $failed') : null,
               trailing: Row(
@@ -75,9 +75,9 @@ class _UploadTaskPanelState extends State<UploadTaskPanel> {
                     IconButton(
                       tooltip: context.l10n.common_clear,
                       onPressed: widget.controller.clearSucceeded,
-                      icon: const Icon(Icons.cleaning_services_outlined),
+                      icon: const Icon(AppIcons.eraser),
                     ),
-                  Icon(_expanded ? Icons.expand_less : Icons.expand_more),
+                  Icon(_expanded ? AppIcons.expandLess : AppIcons.expandMore),
                 ],
               ),
               onTap: () => setState(() => _expanded = !_expanded),
@@ -149,11 +149,10 @@ class UploadTaskCard extends StatelessWidget {
                       fit: BoxFit.cover,
                       cacheWidth: 96,
                       cacheHeight: 96,
-                      errorBuilder: (_, _, _) =>
-                          const Icon(Icons.image_outlined),
+                      errorBuilder: (_, _, _) => const Icon(AppIcons.image),
                     ),
                   )
-                : const Icon(Icons.insert_drive_file_outlined),
+                : const Icon(AppIcons.file),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -183,7 +182,7 @@ class UploadTaskCard extends StatelessWidget {
             IconButton(
               tooltip: context.l10n.common_retry,
               onPressed: () => controller.retry(task.id),
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(AppIcons.refresh),
             ),
           IconButton(
             tooltip: active
@@ -192,9 +191,7 @@ class UploadTaskCard extends StatelessWidget {
             onPressed: () => active
                 ? controller.cancel(task.id)
                 : controller.remove(task.id),
-            icon: Icon(
-              active || flat ? Icons.close_rounded : Icons.delete_outline,
-            ),
+            icon: Icon(active || flat ? AppIcons.close : AppIcons.delete),
           ),
         ],
       ),
@@ -287,7 +284,7 @@ class _ChatUploadTile extends StatelessWidget {
                   cacheWidth: 192,
                   cacheHeight: 192,
                   errorBuilder: (_, _, _) => Icon(
-                    Icons.image_outlined,
+                    AppIcons.image,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 )
@@ -297,7 +294,7 @@ class _ChatUploadTile extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(
-                        Icons.insert_drive_file_outlined,
+                        AppIcons.file,
                         size: 25,
                         color: theme.colorScheme.primary,
                       ),
@@ -355,7 +352,7 @@ class _ChatUploadTile extends StatelessWidget {
                       onTap: () => controller.retry(task.id),
                       child: const Center(
                         child: Icon(
-                          Icons.refresh_rounded,
+                          AppIcons.refresh,
                           color: Colors.white,
                           shadows: [Shadow(blurRadius: 4)],
                         ),
@@ -375,7 +372,7 @@ class _ChatUploadTile extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.all(3),
                       child: Icon(
-                        Icons.check_rounded,
+                        AppIcons.check,
                         size: 13,
                         color: theme.colorScheme.onPrimary,
                       ),
@@ -403,7 +400,7 @@ class _ChatUploadTile extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
-                      Icons.close_rounded,
+                      AppIcons.close,
                       size: 14,
                       color: Colors.white,
                     ),
@@ -499,9 +496,7 @@ class _SourceUploadPanelState extends State<SourceUploadPanel> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(
-                              failed
-                                  ? Icons.error_outline_rounded
-                                  : Icons.cloud_upload_outlined,
+                              failed ? AppIcons.error : AppIcons.cloudUpload,
                               size: 18,
                               color: failed ? colors.error : colors.primary,
                             ),
@@ -528,8 +523,8 @@ class _SourceUploadPanelState extends State<SourceUploadPanel> {
                             height: 32,
                             child: Icon(
                               _expanded
-                                  ? Icons.keyboard_arrow_up_rounded
-                                  : Icons.keyboard_arrow_down_rounded,
+                                  ? AppIcons.chevronUp
+                                  : AppIcons.chevronDown,
                               size: 20,
                               color: colors.onSurfaceVariant,
                             ),

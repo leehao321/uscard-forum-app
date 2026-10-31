@@ -10,7 +10,6 @@ import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxdo/widgets/common/error_view.dart';
-import 'package:fluxdo/widgets/common/progressive_top_blur.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 import 'package:fluxdo/widgets/markdown_editor/composer_shortcuts.dart';
 import 'package:fluxdo/widgets/markdown_editor/composer_switch_fade.dart';
@@ -72,7 +71,7 @@ class _EditTopicPageState extends ConsumerState<EditTopicPage> {
   final _formKey = GlobalKey<FormState>();
   final _chrome = ComposerChromeController();
   double get _topChromeInset =>
-      ProgressiveTopBlur.heightFor(context) +
+      ComposerTopFade.heightFor(context) +
       (PlatformUtils.isDesktop &&
               MediaQuery.sizeOf(context).width < 900 &&
               !_isPrivateMessage
@@ -614,7 +613,7 @@ class _EditTopicPageState extends ConsumerState<EditTopicPage> {
                     MediaQuery.sizeOf(context).width -
                     MediaQuery.paddingOf(context).horizontal,
                 submitLabel: context.l10n.common_save,
-                submitIcon: Symbols.check_rounded,
+                submitIcon: AppIcons.check,
                 onSubmit: (_isSubmitting || _isLoadingContent) ? null : _submit,
                 submitting: _isSubmitting,
                 previewing: _showPreview,
@@ -899,7 +898,7 @@ class _EditTopicPageState extends ConsumerState<EditTopicPage> {
                                   focusNode: _contentFocusNode,
                                   hintText:
                                       context.l10n.createTopic_contentHint,
-                                  emojiPanelHeight: 350,
+                                  emojiPanelHeight: 336,
                                   onEmojiPanelChanged: (show) {
                                     setState(() => _showEmojiPanel = show);
                                   },
@@ -935,7 +934,7 @@ class _EditTopicPageState extends ConsumerState<EditTopicPage> {
                             focusNode: _contentFocusNode,
                             hintText: context.l10n.createTopic_contentHint,
                             expands: true,
-                            emojiPanelHeight: 350,
+                            emojiPanelHeight: 336,
                             // 预览入口由顶部承载。
                             showPreviewButton: false,
                             onEmojiPanelChanged: (show) {

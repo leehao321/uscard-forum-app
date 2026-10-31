@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
+
 import '../../services/discourse/discourse_service.dart';
 import '../../models/template.dart';
 import '../../utils/dialog_utils.dart';
+
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../../../../../l10n/s.dart';
 
 /// 模板选择底部弹窗
@@ -95,7 +98,7 @@ class _TemplateInsertDialogState extends State<TemplateInsertDialog> {
                   controller: _searchController,
                   decoration: InputDecoration(
                     hintText: S.current.template_searchHint,
-                    prefixIcon: const Icon(Symbols.search_rounded, size: 20),
+                    prefixIcon: const Icon(AppIcons.search, size: 20),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -179,7 +182,7 @@ class _TemplateInsertDialogState extends State<TemplateInsertDialog> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    isExpanded ? Symbols.expand_less_rounded : Symbols.expand_more_rounded,
+                    isExpanded ? AppIcons.expandLess : AppIcons.expandMore,
                     size: 20,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

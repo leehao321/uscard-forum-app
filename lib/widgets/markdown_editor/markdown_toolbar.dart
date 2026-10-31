@@ -1217,8 +1217,8 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
     final button = IconButton(
       icon: Icon(
         widget.isEmojiPanelVisible && widget.emojiPopover == null
-            ? Symbols.keyboard_rounded
-            : Symbols.sentiment_satisfied_rounded,
+            ? AppIcons.keyboard
+            : AppIcons.smile,
       ),
       tooltip: S.current.emoji_tab,
       onPressed: widget.onToggleEmoji,
