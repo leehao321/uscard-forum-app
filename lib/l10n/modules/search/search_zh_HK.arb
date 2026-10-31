@@ -9,6 +9,7 @@
       }
     }
   },
+  "search_aiSemanticSearch": "AI 語意搜尋",
   "search_applyFilter": "應用篩選",
   "search_beforeDate": "{date} 之前",
   "@search_beforeDate": {
@@ -52,6 +53,10 @@
   "search_noLimit": "不限",
   "search_noPopularTags": "暫無熱門標籤",
   "search_noResults": "沒有找到相關結果",
+  "search_pillCategory": "分類",
+  "search_pillStatus": "狀態",
+  "search_pillTags": "標籤",
+  "search_pillTime": "時間",
   "search_selectResultHint": "選擇一個搜索結果，在此處查看詳情",
   "search_popularTags": "熱門標籤",
   "search_recentSearches": "最近搜索",
@@ -88,6 +93,7 @@
   "search_statusOpen": "進行中",
   "search_statusSolved": "已解決",
   "search_statusUnsolved": "未解決",
+  "search_syntaxTitle": "搜尋語法",
   "search_tags": "標籤",
   "search_tagsLoadFailed": "加載標籤失敗: {error}",
   "@search_tagsLoadFailed": {

@@ -92,6 +92,7 @@
     }
   },
   "notification_empty": "暫無通知",
+  "notification_emptyFiltered": "這一類沒有通知",
   "notification_eventInvitation": "{username} 邀請你參加活動",
   "@notification_eventInvitation": {
     "placeholders": {
@@ -101,6 +102,14 @@
     }
   },
   "notification_eventReminder": "活動提醒",
+  "notification_filterAll": "全部",
+  "notification_filterBadges": "徽章",
+  "notification_filterLikes": "按讚",
+  "notification_filterMentions": "提及",
+  "notification_filterMessages": "私訊",
+  "notification_filterOther": "其他",
+  "notification_filterReplies": "回覆",
+  "notification_filterUnread": "未讀",
   "notification_followingYou": "{displayName} 開始關注你",
   "@notification_followingYou": {
     "placeholders": {
@@ -212,6 +221,7 @@
       }
     }
   },
+  "notification_loginRequired": "登入後查看通知",
   "notification_markAllRead": "全部標為已讀",
   "notification_membershipAccepted": "加入 '{groupName}' 的申請已被接受",
   "@notification_membershipAccepted": {
@@ -327,6 +337,8 @@
     }
   },
   "notification_showList": "通知列表",
+  "notification_stateRead": "已讀",
+  "notification_stateUnread": "未讀",
   "notification_topicReminder": "話題提醒",
   "notification_typeAdminProblems": "管理員問題",
   "notification_typeAssignedTopic": "話題指派",

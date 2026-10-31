@@ -72,6 +72,7 @@ abstract final class AppIcons {
   static const down = LucideIcons300.arrowDown;
   static const chevronLeft = LucideIcons300.chevronLeft;
   static const chevronRight = LucideIcons300.chevronRight;
+  static const qrCode = LucideIcons300.qrCode;
   static const chevronDown = LucideIcons300.chevronDown;
   static const chevronUp = LucideIcons300.chevronUp;
   static const expandMore = LucideIcons300.chevronDown;
@@ -206,6 +207,7 @@ abstract final class AppIcons {
   static const dataError = LucideIcons300.braces;
   static const inbox = LucideIcons300.inbox;
   static const searchOff = LucideIcons300.searchX;
+  static const northWest = LucideIcons300.arrowUpLeft;
   static const flag = LucideIcons300.flag;
   static const loading = LucideIcons300.hourglass;
 
@@ -293,6 +295,23 @@ abstract final class AppIcons {
   static const toTop = LucideIcons300.arrowUpToLine;
   static const wand = LucideIcons300.wandSparkles;
   static const workflow = LucideIcons300.workflow;
+  // M7（个人列表、用户主页、徽章等）
+  static const micOff = LucideIcons300.micOff;
+  static const fileOpen = LucideIcons300.fileInput;
+  static const alarm = LucideIcons300.alarmClock;
+  static const alarmOff = LucideIcons300.alarmClockOff;
+  static const globe = LucideIcons300.globe;
+  static const mapPin = LucideIcons300.mapPin;
+  static const folderOpen = LucideIcons300.folderOpen;
+  static const zap = LucideIcons300.zap;
+  static const folderUp = LucideIcons300.folderUp;
+  static const volumeOn = LucideIcons300.volume2;
+  static const volumeOff = LucideIcons300.volumeOff;
+  static const repeat = LucideIcons300.repeat;
+  static const userOff = LucideIcons300.userX;
+  static const arrowUpRight = LucideIcons300.arrowUpRight;
+  static const trophy = LucideIcons300.trophy;
+  static const infinite = LucideIcons300.infinity;
 
   // ─── 自绘图标（Lucide 没有合适字形时） ─────────────────────────────
   static final AppCustomIcon openBook = AppCustomIcon(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/s.dart';
@@ -187,24 +188,9 @@ class _UserContentSearchViewState extends ConsumerState<UserContentSearchView> {
         children: [
           ...filterWidgets,
           Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Symbols.search_rounded,
-                    size: 64,
-                    color: theme.colorScheme.outline,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    widget.emptySearchHint,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+            child: AppStateView(
+              icon: AppIcons.search,
+              title: widget.emptySearchHint,
             ),
           ),
         ],
@@ -217,9 +203,7 @@ class _UserContentSearchViewState extends ConsumerState<UserContentSearchView> {
         children: [
           ...filterWidgets,
           const Expanded(
-            child: SearchListSkeleton(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            ),
+            child: SearchListSkeleton(padding: EdgeInsets.zero),
           ),
         ],
       );
@@ -231,30 +215,11 @@ class _UserContentSearchViewState extends ConsumerState<UserContentSearchView> {
         children: [
           ...filterWidgets,
           Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Symbols.error_rounded,
-                    size: 48,
-                    color: theme.colorScheme.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    context.l10n.search_error,
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    searchState.error!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
+            child: AppStateView(
+              icon: AppIcons.dataError,
+              title: context.l10n.search_error,
+              message: searchState.error,
+              announce: true,
             ),
           ),
         ],
@@ -267,31 +232,10 @@ class _UserContentSearchViewState extends ConsumerState<UserContentSearchView> {
         children: [
           ...filterWidgets,
           Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Symbols.search_off_rounded,
-                    size: 64,
-                    color: theme.colorScheme.outline,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    context.l10n.search_noResults,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    context.l10n.search_tryOtherKeywords,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.outline,
-                    ),
-                  ),
-                ],
-              ),
+            child: AppStateView(
+              icon: AppIcons.searchOff,
+              title: context.l10n.search_noResults,
+              message: context.l10n.search_tryOtherKeywords,
             ),
           ),
         ],
@@ -303,20 +247,24 @@ class _UserContentSearchViewState extends ConsumerState<UserContentSearchView> {
       children: [
         ...filterWidgets,
         // 结果数量
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              Text(
+        SizedBox(
+          height: AppSize.hit,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpace.pageMargin,
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
                 context.l10n.search_resultCount(
                   searchState.results.length,
                   searchState.hasMore ? '+' : '',
                 ),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.outline,
-                ),
+                style: theme.textTheme.bodySmall
+                    ?.merge(context.tokens.text.meta)
+                    .copyWith(color: context.tokens.colors.textMeta),
               ),
-            ],
+            ),
           ),
         ),
         Expanded(
@@ -325,7 +273,7 @@ class _UserContentSearchViewState extends ConsumerState<UserContentSearchView> {
             child: ListView.builder(
               controller: _scrollController,
               addAutomaticKeepAlives: false,
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.zero,
               itemCount: searchState.results.length + 1,
               itemBuilder: (context, index) {
                 if (index == searchState.results.length) {

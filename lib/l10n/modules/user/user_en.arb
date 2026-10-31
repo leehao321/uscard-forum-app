@@ -34,6 +34,7 @@
   "profile_aboutFluxDO": "About USCard Forum",
   "profile_aiModelService": "AI Model Service",
   "profile_appearance": "Appearance",
+  "profile_browseWithoutLogin": "You can still browse public topics without signing in.",
   "profile_browsingHistory": "Browsing history",
   "profile_confirmLogout": "Confirm logout",
   "profile_dataManagement": "Data management",

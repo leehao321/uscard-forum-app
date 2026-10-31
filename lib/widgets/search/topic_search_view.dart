@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/s.dart';
@@ -75,87 +76,33 @@ class _TopicSearchViewState extends ConsumerState<TopicSearchView> {
 
     // 未搜索状态
     if (searchState.query.isEmpty && searchState.results.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Symbols.search_rounded,
-              size: 64,
-              color: theme.colorScheme.outline,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              context.l10n.search_topicSearchHint,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
+      return AppStateView(
+        icon: AppIcons.search,
+        title: context.l10n.search_topicSearchHint,
       );
     }
 
     // 加载中（首次搜索）
     if (searchState.isLoading && searchState.results.isEmpty) {
-      return const SearchListSkeleton(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      );
+      return const SearchListSkeleton(padding: EdgeInsets.zero);
     }
 
     // 错误状态
     if (searchState.error != null && searchState.results.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Symbols.error_rounded,
-              size: 48,
-              color: theme.colorScheme.error,
-            ),
-            const SizedBox(height: 16),
-            Text(context.l10n.search_error, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text(
-              searchState.error!,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+      return AppStateView(
+        icon: AppIcons.dataError,
+        title: context.l10n.search_error,
+        message: searchState.error,
+        announce: true,
       );
     }
 
     // 无结果
     if (searchState.results.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Symbols.search_off_rounded,
-              size: 64,
-              color: theme.colorScheme.outline,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              context.l10n.search_noResults,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              context.l10n.search_tryOtherKeywords,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.outline,
-              ),
-            ),
-          ],
-        ),
+      return AppStateView(
+        icon: AppIcons.searchOff,
+        title: context.l10n.search_noResults,
+        message: context.l10n.search_tryOtherKeywords,
       );
     }
 
@@ -163,20 +110,24 @@ class _TopicSearchViewState extends ConsumerState<TopicSearchView> {
     return Column(
       children: [
         // 结果数量
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              Text(
+        SizedBox(
+          height: AppSize.hit,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpace.pageMargin,
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
                 context.l10n.search_resultCount(
                   searchState.results.length,
                   searchState.hasMore ? '+' : '',
                 ),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.outline,
-                ),
+                style: theme.textTheme.bodySmall
+                    ?.merge(context.tokens.text.meta)
+                    .copyWith(color: context.tokens.colors.textMeta),
               ),
-            ],
+            ),
           ),
         ),
         Expanded(
@@ -185,7 +136,7 @@ class _TopicSearchViewState extends ConsumerState<TopicSearchView> {
             child: ListView.builder(
               controller: _scrollController,
               addAutomaticKeepAlives: false,
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.zero,
               itemCount: searchState.results.length + 1,
               itemBuilder: (context, index) {
                 if (index == searchState.results.length) {

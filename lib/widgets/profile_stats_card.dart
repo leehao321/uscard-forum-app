@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:ui' show FontFeature;
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/profile_stats_config.dart';
 import '../models/user.dart';
@@ -26,32 +28,25 @@ class ProfileStatsCard extends ConsumerWidget {
 
     // 空状态：显示占位卡片，引导用户添加
     if (config.enabledStats.isEmpty) {
-      return Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: InkWell(
-          onTap: onEdit,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Symbols.add_chart_rounded,
-                  size: 20,
-                  color: theme.colorScheme.primary.withValues(alpha: 0.6),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  S.current.profileStats_addItems,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.8),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+      final tokens = context.tokens;
+      return _StatsSurface(
+        onTap: onEdit,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              AppIcons.add,
+              size: AppSize.iconM,
+              color: tokens.colors.brandPrimary,
             ),
-          ),
+            const SizedBox(width: AppSpace.s),
+            Text(
+              S.current.profileStats_addItems,
+              style: theme.textTheme.bodyMedium
+                  ?.merge(tokens.text.control)
+                  .copyWith(color: tokens.colors.brandPrimary),
+            ),
+          ],
         ),
       );
     }
@@ -88,44 +83,20 @@ class ProfileStatsCardPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (config.enabledStats.isEmpty) {
-      return SizedBox(
-        width: double.infinity,
-        child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Center(
-                child: Text(
-                  S.current.profileStats_noItemsSelected,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            ),
+      return _StatsSurface(
+        onTap: onTap,
+        child: Center(
+          child: Text(
+            S.current.profileStats_noItemsSelected,
+            style: Theme.of(context).textTheme.bodyMedium
+                ?.merge(context.tokens.text.meta)
+                .copyWith(color: context.tokens.colors.textMeta),
           ),
         ),
       );
     }
 
-    return SizedBox(
-      width: double.infinity,
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-            child: _buildLayout(context),
-          ),
-        ),
-      ),
-    );
+    return _StatsSurface(onTap: onTap, child: _buildLayout(context));
   }
 
   Widget _buildLayout(BuildContext context) {
@@ -160,7 +131,7 @@ class ProfileStatsCardPreview extends StatelessWidget {
     return Column(
       children: [
         for (int r = 0; r < rows.length; r++) ...[
-          if (r > 0) const SizedBox(height: 14),
+          if (r > 0) const SizedBox(height: AppSpace.m),
           Row(
             children: [
               for (int c = 0; c < rows[r].length; c++)
@@ -213,34 +184,42 @@ class ProfileStatsCardPreview extends StatelessWidget {
   }
 
   Widget _buildStatItem(ThemeData theme, _StatItemData item) {
+    final tokens = theme.extension<AppTokens>() ??
+        AppTokens.resolve(brightness: theme.brightness);
+    // 数字 17 Semibold（等宽数字）+ 标签 11 meta
     return Tooltip(
       message: item.isTimeValue
           ? NumberUtils.formatDurationLong(item.rawValue)
           : '${item.rawValue}',
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            item.isTimeValue
-                ? item.value
-                : NumberUtils.formatCount(item.rawValue),
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: theme.colorScheme.onSurface,
+      child: Semantics(
+        label: '${item.label} ${item.isTimeValue ? item.value : NumberUtils.formatCount(item.rawValue)}',
+        excludeSemantics: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              item.isTimeValue
+                  ? item.value
+                  : NumberUtils.formatCount(item.rawValue),
+              style: theme.textTheme.titleMedium
+                  ?.merge(tokens.text.headline)
+                  .copyWith(
+                    color: tokens.colors.textPrimary,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+              maxLines: 1,
             ),
-            maxLines: 1,
-          ),
-          const SizedBox(height: 3),
-          Text(
-            item.label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontSize: 11,
+            const SizedBox(height: AppSpace.xs),
+            Text(
+              item.label,
+              style: theme.textTheme.bodySmall
+                  ?.merge(tokens.text.caption)
+                  .copyWith(color: tokens.colors.textMeta),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -499,6 +478,33 @@ class _DraggableStatItemState extends State<_DraggableStatItem> {
           ),
         );
       },
+    );
+  }
+}
+
+/// 统计卡外壳：surface/grouped、r12、pad 12（页面左右边距 20 由个人页给）
+class _StatsSurface extends StatelessWidget {
+  const _StatsSurface({required this.child, this.onTap});
+
+  final Widget child;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return AppPressable(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(AppSpace.m),
+        decoration: ShapeDecoration(
+          color: tokens.colors.surfaceGrouped,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(tokens.radius.card),
+          ),
+        ),
+        child: child,
+      ),
     );
   }
 }

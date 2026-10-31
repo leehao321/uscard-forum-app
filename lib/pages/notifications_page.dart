@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/notification.dart';
 import '../providers/discourse_providers.dart';
 import '../providers/preferences_provider.dart';
 import '../utils/load_more_coordinator.dart';
@@ -12,6 +14,68 @@ import '../widgets/common/error_view.dart';
 import '../widgets/common/paged_list_footer.dart';
 import '../l10n/s.dart';
 import '../utils/blocked_user_filter.dart';
+import 'login_page.dart';
+
+/// 页内筛选（设计说明 §5.1）：只筛已加载的列表，不改请求
+enum NotificationFilter {
+  all,
+  unread,
+  replies,
+  mentions,
+  likes,
+  messages,
+  badges,
+  other;
+
+  static const _replyTypes = {
+    NotificationType.replied,
+    NotificationType.posted,
+    NotificationType.quoted,
+    NotificationType.followingReplied,
+  };
+  static const _mentionTypes = {
+    NotificationType.mentioned,
+    NotificationType.groupMentioned,
+    NotificationType.chatMention,
+    NotificationType.chatGroupMention,
+  };
+  static const _likeTypes = {
+    NotificationType.liked,
+    NotificationType.likedConsolidated,
+    NotificationType.reaction,
+  };
+  static const _messageTypes = {
+    NotificationType.privateMessage,
+    NotificationType.invitedToPrivateMessage,
+  };
+
+  bool matches(DiscourseNotification n) {
+    final t = n.notificationType;
+    switch (this) {
+      case all:
+        return true;
+      case unread:
+        return !n.read;
+      case replies:
+        return _replyTypes.contains(t);
+      case mentions:
+        return _mentionTypes.contains(t);
+      case likes:
+        return _likeTypes.contains(t);
+      case messages:
+        return _messageTypes.contains(t);
+      case badges:
+        return t == NotificationType.grantedBadge;
+      case other:
+        // 编辑、移动、群组、Boost、系统类等都收进「其他」
+        return !_replyTypes.contains(t) &&
+            !_mentionTypes.contains(t) &&
+            !_likeTypes.contains(t) &&
+            !_messageTypes.contains(t) &&
+            t != NotificationType.grantedBadge;
+    }
+  }
+}
 
 /// 通知历史列表页面（独立分页，不受 messageBus 干扰）
 class NotificationsPage extends ConsumerStatefulWidget {
@@ -24,6 +88,7 @@ class NotificationsPage extends ConsumerStatefulWidget {
 class _NotificationsPageState extends ConsumerState<NotificationsPage> {
   final ScrollController _scrollController = ScrollController();
   final LoadMoreCoordinator _loadMoreCoordinator = LoadMoreCoordinator();
+  NotificationFilter _filter = NotificationFilter.all;
 
   @override
   void initState() {
@@ -62,107 +127,158 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     await ref.read(notificationListProvider.notifier).refresh();
   }
 
+  String _filterLabel(NotificationFilter f) {
+    final l10n = context.l10n;
+    return switch (f) {
+      NotificationFilter.all => l10n.notification_filterAll,
+      NotificationFilter.unread => l10n.notification_filterUnread,
+      NotificationFilter.replies => l10n.notification_filterReplies,
+      NotificationFilter.mentions => l10n.notification_filterMentions,
+      NotificationFilter.likes => l10n.notification_filterLikes,
+      NotificationFilter.messages => l10n.notification_filterMessages,
+      NotificationFilter.badges => l10n.notification_filterBadges,
+      NotificationFilter.other => l10n.notification_filterOther,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isLoggedIn = ref.watch(currentUserProvider).value != null;
     final notificationsAsync = ref.watch(notificationListProvider);
     final systemAvatarTemplate = ref
         .watch(systemUserAvatarTemplateProvider)
         .value;
 
+    // 导航单行：中间「通知」，右侧 check-check（全部标为已读，无确认）
+    final navBar = AppNavBar(
+      title: context.l10n.common_notification,
+      automaticallyImplyLeading: false,
+      trailing: [
+        if (isLoggedIn)
+          AppIconButton(
+            icon: AppIcons.checkAll,
+            semanticLabel: context.l10n.notification_markAllRead,
+            onPressed: () =>
+                ref.read(notificationListProvider.notifier).markAllAsRead(),
+          ),
+      ],
+    );
+
+    if (!isLoggedIn) {
+      return Scaffold(
+        appBar: navBar,
+        body: AppStateView(
+          icon: AppIcons.notificationOff,
+          title: context.l10n.notification_loginRequired,
+          action: FilledButton(
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const LoginPage())),
+            child: Text(context.l10n.common_login),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.common_notification),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Symbols.done_all_rounded),
-            onPressed: () async {
-              await ref.read(notificationListProvider.notifier).markAllAsRead();
-              // 快捷面板下次打开时会自动 silentRefresh 同步已读状态
-            },
-            tooltip: context.l10n.notification_markAllRead,
+      appBar: navBar,
+      body: Column(
+        children: [
+          FilterTabs(
+            labels: [
+              for (final f in NotificationFilter.values) _filterLabel(f),
+            ],
+            selectedIndex: _filter.index,
+            onSelected: (i) =>
+                setState(() => _filter = NotificationFilter.values[i]),
+          ),
+          Expanded(
+            child: DesktopRefreshIndicator(
+              onRefresh: _onRefresh,
+              child: notificationsAsync.when(
+                data: (notifications) =>
+                    _buildList(context, notifications, systemAvatarTemplate),
+                loading: () => const NotificationListSkeleton(),
+                error: (error, stack) => ErrorView(
+                  error: error,
+                  stackTrace: stack,
+                  onRetry: _onRefresh,
+                ),
+              ),
+            ),
           ),
         ],
       ),
-      body: DesktopRefreshIndicator(
-        onRefresh: _onRefresh,
-        child: notificationsAsync.when(
-          data: (notifications) {
-            final blockedUsernames = ref.watch(
-              preferencesProvider.select((p) => p.normalizedBlockedUsernames),
-            );
-            final visibleNotifications = notifications
-                .where(
-                  (notification) => !BlockedUserFilter.isBlockedNotification(
-                    notification,
-                    blockedUsernames,
-                  ),
-                )
-                .toList(growable: false);
-            final notifier = ref.read(notificationListProvider.notifier);
-            // 已加载页全部被本地屏蔽时列表不可滚，滚动触发的翻页永远不会
-            // 发生；主动补载下一页（coordinator 自带冷却，不会打转）
-            if (visibleNotifications.isEmpty &&
-                notifications.isNotEmpty &&
-                notifier.hasMore) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) _loadMore();
-              });
-            }
-            if (visibleNotifications.isEmpty &&
-                (notifications.isEmpty || !notifier.hasMore)) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Symbols.notifications_rounded,
-                      size: 64,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      context.l10n.notification_empty,
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  ],
-                ),
-              );
-            }
+    );
+  }
 
-            return ListView.builder(
-              controller: _scrollController,
-              itemCount: visibleNotifications.length + 1,
-              itemBuilder: (context, index) {
-                if (index == visibleNotifications.length) {
-                  final notifier = ref.read(notificationListProvider.notifier);
-                  return PagedListFooter(
-                    hasMore: notifier.hasMore,
-                    isLoadingMore: notifier.isLoadingMore,
-                    isLoadMoreFailed: notifier.isLoadMoreFailed,
-                    onRetry: notifier.retryLoadMore,
-                  );
-                }
-                final notification = visibleNotifications[index];
-                return NotificationItem(
-                  notification: notification,
-                  systemAvatarTemplate: systemAvatarTemplate,
-                  // siblings = 当前已加载列表,大屏弹窗内可上一条/下一条
-                  onTap: () => handleNotificationTap(
-                    context,
-                    ref,
-                    notification,
-                    siblings: visibleNotifications,
-                  ),
-                );
-              },
-            );
-          },
-          loading: () => const NotificationListSkeleton(),
-          error: (error, stack) =>
-              ErrorView(error: error, stackTrace: stack, onRetry: _onRefresh),
-        ),
-      ),
+  Widget _buildList(
+    BuildContext context,
+    List<DiscourseNotification> notifications,
+    String? systemAvatarTemplate,
+  ) {
+    final blockedUsernames = ref.watch(
+      preferencesProvider.select((p) => p.normalizedBlockedUsernames),
+    );
+    final visibleNotifications = notifications
+        .where(
+          (notification) =>
+              !BlockedUserFilter.isBlockedNotification(
+                notification,
+                blockedUsernames,
+              ) &&
+              _filter.matches(notification),
+        )
+        .toList(growable: false);
+    final notifier = ref.read(notificationListProvider.notifier);
+    // 已加载页全部被本地屏蔽 / 筛掉时列表不可滚，滚动触发的翻页永远不会
+    // 发生；主动补载下一页（coordinator 自带冷却，不会打转）
+    if (visibleNotifications.isEmpty &&
+        notifications.isNotEmpty &&
+        notifier.hasMore) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadMore();
+      });
+    }
+    if (visibleNotifications.isEmpty &&
+        (notifications.isEmpty || !notifier.hasMore)) {
+      return AppStateView(
+        icon: AppIcons.notification,
+        title: _filter == NotificationFilter.all
+            ? context.l10n.notification_empty
+            : context.l10n.notification_emptyFiltered,
+      );
+    }
+
+    return ListView.separated(
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: visibleNotifications.length + 1,
+      separatorBuilder: (_, i) => i == visibleNotifications.length - 1
+          ? const SizedBox.shrink()
+          : const AppHairline(indent: AvatarRow.separatorIndent),
+      itemBuilder: (context, index) {
+        if (index == visibleNotifications.length) {
+          return PagedListFooter(
+            hasMore: notifier.hasMore,
+            isLoadingMore: notifier.isLoadingMore,
+            isLoadMoreFailed: notifier.isLoadMoreFailed,
+            onRetry: notifier.retryLoadMore,
+          );
+        }
+        final notification = visibleNotifications[index];
+        return NotificationItem(
+          notification: notification,
+          systemAvatarTemplate: systemAvatarTemplate,
+          // siblings = 当前已加载列表,大屏弹窗内可上一条/下一条
+          onTap: () => handleNotificationTap(
+            context,
+            ref,
+            notification,
+            siblings: visibleNotifications,
+          ),
+        );
+      },
     );
   }
 }

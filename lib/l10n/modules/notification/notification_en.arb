@@ -6,21 +6,31 @@
   "notification_boost": "{username} boosted your post",
   "@notification_boost": {
     "placeholders": {
-      "username": {"type": "String"}
+      "username": {
+        "type": "String"
+      }
     }
   },
   "notification_boostWithContent": "{username}: {content}",
   "@notification_boostWithContent": {
     "placeholders": {
-      "username": {"type": "String"},
-      "content": {"type": "String"}
+      "username": {
+        "type": "String"
+      },
+      "content": {
+        "type": "String"
+      }
     }
   },
   "notification_boostByMany": "{username} and {count} others boosted your post",
   "@notification_boostByMany": {
     "placeholders": {
-      "username": {"type": "String"},
-      "count": {"type": "int"}
+      "username": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
     }
   },
   "notification_bookmarkReminder": "Bookmark reminder",
@@ -40,8 +50,17 @@
   "notification_custom": "Custom notification",
   "notification_editedPost": "{username} edited the post",
   "notification_empty": "No notifications",
+  "notification_emptyFiltered": "No notifications in this filter",
   "notification_eventInvitation": "{username} invited you to an event",
   "notification_eventReminder": "Event reminder",
+  "notification_filterAll": "All",
+  "notification_filterBadges": "Badges",
+  "notification_filterLikes": "Likes",
+  "notification_filterMentions": "Mentions",
+  "notification_filterMessages": "Messages",
+  "notification_filterOther": "Other",
+  "notification_filterReplies": "Replies",
+  "notification_filterUnread": "Unread",
   "notification_followingYou": "{displayName} started following you",
   "notification_grantedBadge": "Earned '{badgeName}'",
   "notification_groupMessageSummary": "{groupName} inbox has {count} messages",
@@ -54,6 +73,7 @@
   "notification_likedMultiplePosts": "{displayName} liked {count} of your posts",
   "notification_linkedMultiplePosts": "{displayName} linked {count} of your posts",
   "notification_linkedPost": "{username} linked your post",
+  "notification_loginRequired": "Sign in to see notifications",
   "notification_markAllRead": "Mark all as read",
   "notification_membershipAccepted": "Your request to join '{groupName}' was accepted",
   "notification_membershipPending": "{count} pending '{groupName}' membership requests",
@@ -75,6 +95,8 @@
   "notification_replied": "{username} replied to your post",
   "notification_repliedTopic": "{username} replied to the topic",
   "notification_showList": "Notification list",
+  "notification_stateRead": "Read",
+  "notification_stateUnread": "Unread",
   "notification_topicReminder": "Topic reminder",
   "notification_typeAdminProblems": "Admin problems",
   "notification_typeAssignedTopic": "Topic assigned",

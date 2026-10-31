@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants.dart';
@@ -29,7 +30,6 @@ import '../utils/dialog_utils.dart';
 import '../utils/load_more_coordinator.dart';
 import '../utils/blocked_user_filter.dart';
 import '../utils/discourse_url_parser.dart';
-import '../widgets/common/search_capsule.dart';
 import '../utils/link_launcher.dart';
 import 'settings_page.dart';
 
@@ -811,131 +811,60 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   );
 
   Widget _buildSearchScaffold(ThemeData theme) {
-    final searchField = TextField(
-      controller: _searchController,
-      focusNode: _focusNode,
-      onSubmitted: _onSearch,
-      textInputAction: TextInputAction.search,
-      textAlignVertical: TextAlignVertical.center,
-      // 胶囊模式对齐首页胶囊 hint 的 14px（SearchCapsule 同参）
-      style: widget.heroCapsule
-          ? theme.textTheme.bodyMedium
-          : theme.textTheme.bodyLarge,
-      decoration: InputDecoration(
-        // 胶囊模式 hint 自绘（下方 Stack 覆盖层）：InputDecorator 的
-        // hint 垂直对齐在定高容器里不可控（isDense 偏上 / isCollapsed
-        // 偏下，均已翻车），不再依赖
-        hintText: widget.heroCapsule ? null : context.l10n.search_hintText,
-        border: InputBorder.none,
-        isDense: true,
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: widget.heroCapsule ? 8 : 12,
-        ),
-        suffixIcon: _searchController.text.isNotEmpty
-            ? IconButton(
-                icon: const Icon(Symbols.close_rounded, size: 20),
-                onPressed: _clearSearch,
-              )
-            : null,
+    final tokens = context.tokens;
+    final hasText = _searchController.text.isNotEmpty;
+
+    // 搜索框保持 Safari 式：贴在键盘上方；有内容时右侧 58 圆形关闭钮 = 清除
+    final searchBar = Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpace.pageMargin,
+        AppSpace.s,
+        AppSpace.pageMargin,
+        AppSpace.s,
       ),
-      onChanged: (value) {
-        setState(() {});
-      },
+      child: Row(
+        children: [
+          Expanded(
+            child: SearchCapsule(
+              placeholder: context.l10n.search_hintText,
+              controller: _searchController,
+              focusNode: _focusNode,
+              onSubmitted: _onSearch,
+              onChanged: (_) => setState(() {}),
+            ),
+          ),
+          if (hasText) ...[
+            const SizedBox(width: AppSpace.s),
+            SearchCloseButton(onPressed: _clearSearch),
+          ],
+        ],
+      ),
     );
 
-    // Hero 入场：搜索框套胶囊容器（与首页胶囊同视觉），跨页 morph 的
-    // 落点;flight 用静态胶囊（TextField 不参与飞行，避免光标闪烁）。
-    // 40px 定高胶囊须钳制系统字体缩放（HyperOS 大字体档会撑破胶囊）
-    final Widget titleField = widget.heroCapsule
-        ? Hero(
-            tag: kSearchCapsuleHeroTag,
-            // 预测返回(user gesture)时胶囊也要 morph 回首页
-            transitionOnUserGestures: true,
-            flightShuttleBuilder: searchCapsuleFlightShuttle,
-            child: MediaQuery.withClampedTextScaling(
-              maxScaleFactor: 1.2,
-              child: Container(
-                height: 40,
-                margin: const EdgeInsets.only(right: 4),
-                padding: const EdgeInsets.only(left: 8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest.withValues(
-                    alpha: 0.5,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                // Hero child 需要 Material 语境（飞行时脱离原位）。
-                // hint 自绘覆盖层：普通 Text + Stack 居中对齐（与首页
-                // 胶囊 hint 同布局方式），彻底绕开 InputDecorator 的
-                // hint 垂直对齐黑盒
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: Stack(
-                    alignment: Alignment.centerLeft,
-                    children: [
-                      if (_searchController.text.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: IgnorePointer(
-                            child: Text(
-                              context.l10n.search_hintText,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        ),
-                      searchField,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          )
-        : searchField;
-
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
+      appBar: AppNavBar(
+        title: context.l10n.common_search,
+        // 嵌入首页左栏时用关闭钮，否则是系统返回
         leading: widget.onClose == null
             ? null
-            : IconButton(
-                tooltip: context.l10n.common_close,
-                icon: const Icon(Symbols.close_rounded),
+            : AppIconButton(
+                icon: AppIcons.close,
+                semanticLabel: context.l10n.common_close,
                 onPressed: widget.onClose,
               ),
-        titleSpacing: 0,
-        title: titleField,
-        actions: [
-          IconButton(
-            icon: const Icon(Symbols.search_rounded),
-            onPressed: () => _onSearch(_searchController.text),
-            tooltip: context.l10n.common_search,
-          ),
-          // 过滤器按钮
+        automaticallyImplyLeading: widget.onClose == null,
+        trailing: [
+          // 高级筛选：有筛选时右上角出现未读点
           Stack(
+            clipBehavior: Clip.none,
             children: [
-              IconButton(
-                icon: const Icon(Symbols.tune_rounded),
+              AppIconButton(
+                icon: AppIcons.tune,
+                semanticLabel: context.l10n.search_advancedSearch,
                 onPressed: _openFilterPanel,
-                tooltip: context.l10n.search_advancedSearch,
               ),
               if (_filter.isNotEmpty)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
+                const Positioned(right: 8, top: 8, child: UnreadDot()),
             ],
           ),
         ],
@@ -957,6 +886,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                 ? _buildEmptyState(theme)
                 : _buildSearchResults(theme),
           ),
+          ColoredBox(color: tokens.colors.surfacePage, child: SafeArea(top: false, child: searchBar)),
         ],
       ),
     );
@@ -1006,89 +936,123 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     }
   }
 
+  /// 搜索语法快捷胶囊：点按把语法插到输入框（不搜索）
+  static const List<String> _syntaxChips = [
+    '@',
+    '#',
+    'tags:',
+    'status:solved',
+    'in:bookmarks',
+    'after:',
+  ];
+
+  void _insertSyntax(String token) {
+    final text = _searchController.text;
+    final next = text.isEmpty || text.endsWith(' ') ? '$text$token' : '$text $token';
+    _searchController.value = TextEditingValue(
+      text: next,
+      selection: TextSelection.collapsed(offset: next.length),
+    );
+    _focusNode.requestFocus();
+    setState(() {});
+  }
+
   Widget _buildEmptyState(ThemeData theme) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final metaStyle = theme.textTheme.bodySmall
+        ?.merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
+
     // 正在加载最近搜索记录
     if (_isLoadingRecentSearches) {
       return const Center(child: LoadingSpinner());
     }
 
-    // 有最近搜索记录时显示记录列表
-    if (_recentSearches.isNotEmpty) {
-      return ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // 最近搜索标题行
+    return ListView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: EdgeInsets.zero,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpace.pageMargin,
+            AppSpace.m,
+            AppSpace.pageMargin,
+            AppSpace.s,
+          ),
+          child: Text(context.l10n.search_syntaxTitle, style: metaStyle),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpace.pageMargin),
+          child: Wrap(
+            spacing: AppSpace.s,
+            runSpacing: AppSpace.s,
+            children: [
+              for (final token in _syntaxChips)
+                FilterPill(
+                  label: token,
+                  showChevron: false,
+                  onTap: () => _insertSyntax(token),
+                ),
+            ],
+          ),
+        ),
+        if (_recentSearches.isNotEmpty) ...[
           Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpace.pageMargin,
+              AppSpace.xl,
+              AppSpace.pageMargin,
+              AppSpace.xs,
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  context.l10n.search_recentSearches,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: theme.colorScheme.onSurfaceVariant,
+                Text(context.l10n.search_recentSearches, style: metaStyle),
+                // 「清除」文字按钮，无确认
+                AppPressable(
+                  onTap: _isClearingRecentSearches ? null : _clearRecentSearches,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: AppSize.hit),
+                    child: Center(
+                      child: _isClearingRecentSearches
+                          ? const LoadingSpinner(size: 14)
+                          : Text(
+                              context.l10n.common_clear,
+                              style: metaStyle?.copyWith(
+                                color: colors.brandPrimary,
+                              ),
+                            ),
+                    ),
                   ),
-                ),
-                GestureDetector(
-                  onTap: _isClearingRecentSearches
-                      ? null
-                      : _clearRecentSearches,
-                  child: _isClearingRecentSearches
-                      ? SizedBox(
-                          width: 12,
-                          height: 12,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: theme.colorScheme.primary,
-                          ),
-                        )
-                      : Text(
-                          context.l10n.common_clear,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.primary,
-                          ),
-                        ),
                 ),
               ],
             ),
           ),
-          // 搜索记录列表
-          ..._recentSearches.map(
-            (query) => _buildRecentSearchItem(query, theme),
-          ),
-        ],
-      );
-    }
-
-    // 默认空状态
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Symbols.search_rounded,
-            size: 64,
-            color: theme.colorScheme.outline,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            context.l10n.search_emptyHint,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+          for (var i = 0; i < _recentSearches.length; i++) ...[
+            if (i > 0) const AppHairline(indent: 52),
+            _buildRecentSearchItem(_recentSearches[i], theme),
+          ],
+        ] else
+          Padding(
+            padding: const EdgeInsets.all(AppSpace.xxl),
+            child: Center(
+              child: Text(context.l10n.search_emptyHint, style: metaStyle),
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
-  /// 构建最近搜索项
+  /// 最近搜索行：高 48，history 20 meta + 查询词 17 + arrow-up-left 16（填入不搜索）
   Widget _buildRecentSearchItem(String query, ThemeData theme) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     // 提取纯净查询
     final cleanQuery = _stripOrderFromQuery(query);
 
-    return InkWell(
+    return AppPressable(
+      highlight: true,
       onTap: () {
         // 如果历史记录中有排序设置，恢复它
         final extractedOrder = _extractOrderFromQuery(query);
@@ -1100,33 +1064,41 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         _searchController.text = cleanQuery;
         _onSearch(cleanQuery);
       },
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        child: Row(
-          children: [
-            Icon(
-              Symbols.history_rounded,
-              size: 20,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                query,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: AppSize.row48),
+        child: Padding(
+          padding: const EdgeInsets.only(left: AppSpace.pageMargin),
+          child: Row(
+            children: [
+              Icon(AppIcons.history, size: AppSize.iconM, color: colors.textMeta),
+              const SizedBox(width: AppSpace.m),
+              Expanded(
+                child: Text(
+                  query,
+                  style: theme.textTheme.bodyMedium
+                      ?.merge(tokens.text.control)
+                      .copyWith(color: colors.textPrimary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
-            ),
-            Icon(
-              Symbols.north_west_rounded,
-              size: 16,
-              color: theme.colorScheme.outline,
-            ),
-          ],
+              AppIconButton(
+                icon: AppIcons.northWest,
+                semanticLabel: query,
+                size: AppSize.iconS,
+                onPressed: () {
+                  _searchController.value = TextEditingValue(
+                    text: cleanQuery,
+                    selection: TextSelection.collapsed(
+                      offset: cleanQuery.length,
+                    ),
+                  );
+                  _focusNode.requestFocus();
+                  setState(() {});
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1172,109 +1144,19 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
     return Column(
       children: [
-        // 排序选项
-        if (posts.isNotEmpty || users.isNotEmpty)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                Text(
-                  context.l10n.search_sortLabel,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                DropdownButton<SearchSortOrder>(
-                  value: ref.watch(searchSettingsProvider).sortOrder,
-                  isDense: true,
-                  underline: const SizedBox(),
-                  items: SearchSortOrder.values.map((order) {
-                    return DropdownMenuItem(
-                      value: order,
-                      child: Text(order.label),
-                    );
-                  }).toList(),
-                  onChanged: _onSortChanged,
-                ),
-                const Spacer(),
-                // AI 搜索开关（仅当站点支持时显示）
-                if (_siteAiSearchAvailable) ...[
-                  if (_isSearchingAi)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 4),
-                      child: SizedBox(
-                        width: 14,
-                        height: 14,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: theme.colorScheme.tertiary,
-                        ),
-                      ),
-                    ),
-                  Icon(
-                    Symbols.auto_awesome_rounded,
-                    size: 16,
-                    color:
-                        ref.watch(searchSettingsProvider).sortOrder ==
-                            SearchSortOrder.relevance
-                        ? theme.colorScheme.tertiary
-                        : theme.colorScheme.outline,
-                  ),
-                  SizedBox(
-                    height: 32,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Switch.adaptive(
-                        value:
-                            ref.watch(searchSettingsProvider).aiSearchEnabled &&
-                            ref.watch(searchSettingsProvider).sortOrder ==
-                                SearchSortOrder.relevance,
-                        onChanged:
-                            ref.watch(searchSettingsProvider).sortOrder ==
-                                SearchSortOrder.relevance
-                            ? (value) {
-                                ref
-                                    .read(searchSettingsProvider.notifier)
-                                    .setAiSearchEnabled(value);
-                                setState(() {
-                                  _rebuildDisplayPosts();
-                                  // 开启时若还没有 AI 结果，触发搜索
-                                  if (value &&
-                                      _aiPosts.isEmpty &&
-                                      _currentQuery.isNotEmpty) {
-                                    final cleanQuery = _stripOrderFromQuery(
-                                      _currentQuery,
-                                    );
-                                    _triggerAiSearch(cleanQuery);
-                                  }
-                                });
-                              }
-                            : null,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                Text(
-                  context.l10n.search_resultCount(
-                    posts.length,
-                    _hasMorePosts ? '+' : '',
-                  ),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.outline,
-                  ),
-                ),
-              ],
-            ),
-          ),
+        // 筛选胶囊行（44 高可横滑）：排序 · 时间 · 分类 · 状态 · 标签；已生效的变 brand
+        if (posts.isNotEmpty || users.isNotEmpty) ...[
+          _buildPillRow(),
+          _buildResultHeader(theme, posts.length),
+        ],
         Expanded(
           child: SearchPostPrewarmScope(
             posts: posts,
             child: ListView.builder(
               controller: _scrollController,
               addAutomaticKeepAlives: false,
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.zero,
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               itemCount:
                   posts.length + (users.isNotEmpty ? users.length + 1 : 0) + 1,
               itemBuilder: (context, index) {
@@ -1303,7 +1185,12 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                 final userStartIndex = posts.length;
                 if (users.isNotEmpty && index == userStartIndex) {
                   return Padding(
-                    padding: const EdgeInsets.only(top: 16, bottom: 8),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpace.pageMargin,
+                      AppSpace.l,
+                      AppSpace.pageMargin,
+                      AppSpace.xs,
+                    ),
                     child: _buildSectionHeader(
                       context.l10n.search_users,
                       users.length,
@@ -1343,58 +1230,148 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 
   Widget _buildNoResults() {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    return AppStateView(
+      icon: AppIcons.searchOff,
+      title: context.l10n.search_noResults,
+      message: context.l10n.search_tryOtherKeywords,
+    );
+  }
+
+  /// 用户分区页眉「用户 · N」13 meta
+  Widget _buildSectionHeader(String title, int count, bool hasMore) {
+    final tokens = context.tokens;
+    return Text(
+      '$title · ${hasMore ? '$count+' : '$count'}',
+      style: Theme.of(context).textTheme.bodySmall
+          ?.merge(tokens.text.meta)
+          .copyWith(color: tokens.colors.textMeta),
+    );
+  }
+
+  Widget _buildPillRow() {
+    final settings = ref.watch(searchSettingsProvider);
+    final order = settings.sortOrder;
+    return SizedBox(
+      height: AppSize.hit,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpace.pageMargin),
         children: [
-          Icon(
-            Symbols.search_off_rounded,
-            size: 64,
-            color: theme.colorScheme.outline,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            context.l10n.search_noResults,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+          Builder(
+            builder: (ctx) => FilterPill(
+              label: order.label,
+              selected: order != SearchSortOrder.relevance,
+              onTap: () async {
+                final picked = await showAppMenu<SearchSortOrder>(
+                  context: ctx,
+                  anchor: globalRectOf(ctx),
+                  sections: [
+                    [
+                      for (final o in SearchSortOrder.values)
+                        AppMenuItem(
+                          label: o.label,
+                          value: o,
+                          checked: o == order,
+                        ),
+                    ],
+                  ],
+                );
+                if (picked != null) _onSortChanged(picked);
+              },
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            context.l10n.search_tryOtherKeywords,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.outline,
-            ),
+          const SizedBox(width: AppSpace.s),
+          FilterPill(
+            label: context.l10n.search_pillTime,
+            selected: _filter.beforeDate != null || _filter.afterDate != null,
+            onTap: _openFilterPanel,
+          ),
+          const SizedBox(width: AppSpace.s),
+          FilterPill(
+            label: _filter.categoryName ?? context.l10n.search_pillCategory,
+            selected: _filter.categoryId != null,
+            onTap: _openFilterPanel,
+          ),
+          const SizedBox(width: AppSpace.s),
+          FilterPill(
+            label: context.l10n.search_pillStatus,
+            selected: _filter.status != null,
+            onTap: _openFilterPanel,
+          ),
+          const SizedBox(width: AppSpace.s),
+          FilterPill(
+            label: context.l10n.search_pillTags,
+            selected: _filter.tags.isNotEmpty,
+            onTap: _openFilterPanel,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title, int count, bool hasMore) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
+  /// 结果头行 44：「20+ 条结果」13 meta；右侧「AI 语义搜索」+ 开关
+  /// （仅站点开启 AI 时出现，排序不是相关度时开关不可用）
+  Widget _buildResultHeader(ThemeData theme, int postCount) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final settings = ref.watch(searchSettingsProvider);
+    final isRelevance = settings.sortOrder == SearchSortOrder.relevance;
+    final metaStyle = theme.textTheme.bodySmall
+        ?.merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
+    return SizedBox(
+      height: AppSize.hit,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpace.pageMargin),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                context.l10n.search_resultCount(
+                  postCount,
+                  _hasMorePosts ? '+' : '',
+                ),
+                style: metaStyle,
+              ),
+            ),
+            if (_siteAiSearchAvailable) ...[
+              if (_isSearchingAi)
+                const Padding(
+                  padding: EdgeInsets.only(right: AppSpace.s),
+                  child: LoadingSpinner(size: 14),
+                ),
+              Text(context.l10n.search_aiSemanticSearch, style: metaStyle),
+              const SizedBox(width: AppSpace.s),
+              Switch.adaptive(
+                value: settings.aiSearchEnabled && isRelevance,
+                onChanged: isRelevance
+                    ? (value) {
+                        ref
+                            .read(searchSettingsProvider.notifier)
+                            .setAiSearchEnabled(value);
+                        setState(() {
+                          _rebuildDisplayPosts();
+                          // 开启时若还没有 AI 结果，触发搜索
+                          if (value &&
+                              _aiPosts.isEmpty &&
+                              _currentQuery.isNotEmpty) {
+                            _triggerAiSearch(
+                              _stripOrderFromQuery(_currentQuery),
+                            );
+                          }
+                        });
+                      }
+                    : null,
+              ),
+            ],
+          ],
         ),
-        const SizedBox(width: 8),
-        Text(
-          hasMore ? '$count+' : '$count',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.outline,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
 
-/// 搜索结果用户卡片
+/// 搜索结果用户行：头像行单行（名字 17 + @handle 11 + chevron）
 class _SearchUserCard extends StatelessWidget {
   final SearchUser user;
   final VoidCallback? onTap;
@@ -1403,54 +1380,37 @@ class _SearchUserCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              SmartAvatar(
-                imageUrl: user.getAvatarUrl().isNotEmpty
-                    ? user.getAvatarUrl(size: 80)
-                    : null,
-                radius: 20,
-                fallbackText: user.username,
-                backgroundColor: theme.colorScheme.secondaryContainer,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user.username,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (user.name != null && user.name!.isNotEmpty)
-                      Text(
-                        user.name!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              Icon(
-                Symbols.chevron_right_rounded,
-                color: theme.colorScheme.outline,
-              ),
-            ],
+    final tokens = context.tokens;
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    final display = (user.name != null && user.name!.isNotEmpty)
+        ? user.name!
+        : user.username;
+    return Column(
+      children: [
+        AvatarRow(
+          avatar: SmartAvatar(
+            imageUrl: user.getAvatarUrl().isNotEmpty
+                ? user.getAvatarUrl(size: 80)
+                : null,
+            radius: AppSize.avatarS / 2,
+            fallbackText: user.username,
+            backgroundColor: tokens.colors.avatarFill,
           ),
+          title: Text(display),
+          titleMaxLines: 1,
+          meta: Text(
+            '@${user.username}',
+            style: base.merge(tokens.text.caption),
+          ),
+          trailing: Icon(
+            AppIcons.chevronRight,
+            size: AppSize.iconS,
+            color: tokens.colors.textMeta,
+          ),
+          onTap: onTap,
         ),
-      ),
+        const AppHairline(indent: AvatarRow.separatorIndent),
+      ],
     );
   }
 }

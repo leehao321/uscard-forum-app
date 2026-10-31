@@ -12,7 +12,6 @@ import 'package:fluxdo/widgets/search/search_preview_dialog.dart';
 import 'package:fluxdo/widgets/search/search_post_card.dart';
 import 'package:fluxdo/widgets/common/morphing_dialog_anchor.dart';
 import 'package:fluxdo/widgets/common/morphing_dialog_shell.dart';
-import 'package:fluxdo/widgets/topic/painted_topic_card.dart';
 import 'package:fluxdo/widgets/topic/topic_card_layout.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -42,7 +41,7 @@ SearchPost _post() {
 void main() {
   testWidgets('真实搜索卡片交接画面，退场完成后恢复来源', (tester) async {
     await _pumpSourcePreview(tester);
-    final card = find.byType(PaintedTopicCard);
+    final card = find.byType(SearchPostCard);
     final cardBounds = tester.getRect(card);
     final expectedAnchor = Rect.fromLTRB(
       cardBounds.left,
@@ -70,7 +69,7 @@ void main() {
 
   testWidgets('路由被直接移除时也会归还源卡片', (tester) async {
     await _pumpSourcePreview(tester);
-    await tester.longPress(find.byType(PaintedTopicCard));
+    await tester.longPress(find.byType(SearchPostCard));
     await tester.pumpAndSettle();
     final route = ModalRoute.of(
       tester.element(find.byType(MorphingDialogShell)),
@@ -85,7 +84,7 @@ void main() {
     final showSource = ValueNotifier(true);
     addTearDown(showSource.dispose);
     await _pumpSourcePreview(tester, showSource: showSource);
-    await tester.longPress(find.byType(PaintedTopicCard));
+    await tester.longPress(find.byType(SearchPostCard));
     await tester.pumpAndSettle();
     final shellFinder = find.byKey(const ValueKey('morphing-shell'));
     final openedRect = tester.getRect(shellFinder);

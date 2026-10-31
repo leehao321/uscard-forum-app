@@ -48,14 +48,17 @@ Future<void> showQrLoginSheet(BuildContext context, {String? username}) async {
     await showAppBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
+      backgroundColor: Colors.transparent,
       useRootNavigator: true,
-      builder: (_) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.viewInsetsOf(context).bottom,
+      builder: (sheetContext) => AppSheetScaffold(
+        title: context.l10n.login_qrDisplayTitle,
+        maxHeightFactor: 0.9,
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+          ),
+          child: _QrLoginPanel(username: username, inSheet: true),
         ),
-        child: _QrLoginPanel(username: username, inSheet: true),
       ),
     );
   } else {
@@ -269,7 +272,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
     final showQrState = _approved || _loading;
 
     return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(24, widget.inSheet ? 0 : 20, 24, 24),
+      padding: EdgeInsets.fromLTRB(AppSpace.pageMargin, widget.inSheet ? 0 : 20, AppSpace.pageMargin, AppSpace.pageMargin),
       child: AnimatedSize(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOutCubic,
@@ -278,8 +281,11 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildHeader(theme, scheme),
-            const SizedBox(height: 4),
+            // 手机上标题在半屏头行；桌面 Dialog 才自带头部
+            if (!widget.inSheet) ...[
+              _buildHeader(theme, scheme),
+              const SizedBox(height: 4),
+            ],
             Text(
               context.l10n.login_qrDisplayHint,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -304,7 +310,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
   Widget _buildHeader(ThemeData theme, ColorScheme scheme) {
     return Row(
       children: [
-        Icon(Symbols.qr_code_rounded, size: 22, color: scheme.primary),
+        Icon(AppIcons.qrCode, size: 22, color: context.tokens.colors.brandPrimary),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
@@ -318,7 +324,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
           IconButton(
             tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
             onPressed: () => Navigator.of(context).maybePop(),
-            icon: const Icon(Symbols.close_rounded, size: 20),
+            icon: const Icon(AppIcons.close, size: 20),
           ),
       ],
     );
@@ -336,7 +342,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
         const SizedBox(height: 20),
         FilledButton.icon(
           onPressed: _confirmAndGenerate,
-          icon: const Icon(Symbols.qr_code_rounded),
+          icon: const Icon(AppIcons.qrCode),
           label: Text(context.l10n.login_qrGenerateAction),
           style: FilledButton.styleFrom(
             minimumSize: const Size.fromHeight(48),
@@ -350,13 +356,13 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: scheme.errorContainer.withValues(alpha: 0.35),
+        color: context.tokens.colors.surfaceGrouped,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Symbols.warning_rounded, size: 20, color: scheme.error),
+          Icon(AppIcons.warning, size: 20, color: context.tokens.colors.textDestructive),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -406,7 +412,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
               child: Text(
                 context.l10n.login_qrScannedSuccess,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  color: scheme.primary,
+                  color: context.tokens.colors.brandPrimary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -427,7 +433,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
             const SizedBox(height: 12),
             Center(
               child: _InfoChip(
-                icon: Symbols.person_rounded,
+                icon: AppIcons.person,
                 label: context.l10n.login_qrAccount(payload.username),
               ),
             ),
@@ -441,7 +447,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
                   )
                 : TextButton.icon(
                     onPressed: _confirmAndGenerate,
-                    icon: const Icon(Symbols.refresh_rounded, size: 18),
+                    icon: const Icon(AppIcons.refresh, size: 18),
                     label: Text(context.l10n.login_qrRefresh),
                   ),
           ),
@@ -454,7 +460,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Symbols.error_rounded, size: 48, color: scheme.error),
+        Icon(AppIcons.error, size: 48, color: context.tokens.colors.textDestructive),
         const SizedBox(height: 12),
         Text(_error!, textAlign: TextAlign.center),
         const SizedBox(height: 16),
@@ -479,7 +485,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(
-                  Symbols.check_circle_rounded,
+                  AppIcons.checkCircle,
                   color: Colors.white,
                   size: 40,
                 ),
@@ -517,7 +523,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(
-                    Symbols.refresh_rounded,
+                    AppIcons.refresh,
                     color: Colors.white,
                     size: 40,
                   ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -168,96 +169,62 @@ class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
     final categoriesAsync = ref.watch(categoriesProvider);
     final tagsAsync = ref.watch(tagsProvider);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+    final tokens = context.tokens;
+    return AppSheetScaffold(
+      title: context.l10n.search_advancedSearch,
+      expandToFill: true,
+      actions: [
+        // 重置：brand，不用红色（重置不是破坏性操作）
+        if (_localFilter.isNotEmpty)
+          TextButton(
+            onPressed: _clearAll,
+            child: Text(
+              context.l10n.common_reset,
+              style: TextStyle(color: tokens.colors.brandPrimary),
+            ),
+          ),
+      ],
+      footer: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpace.pageMargin,
+          AppSpace.s,
+          AppSpace.pageMargin,
+          0,
+        ),
+        child: FilledButton(
+          onPressed: () {
+            widget.onFilterChanged(_localFilter);
+            Navigator.pop(context);
+          },
+          style: AppButtonStyles.large,
+          child: Text(context.l10n.search_applyFilter),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 顶部拖动柄
-          Center(
-            child: Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 32,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-
-          // 标题栏
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  context.l10n.search_advancedSearch,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                // 重置按钮
-                Visibility(
-                  visible: _localFilter.isNotEmpty,
-                  maintainSize: true,
-                  maintainAnimation: true,
-                  maintainState: true,
-                  child: TextButton(
-                    onPressed: _localFilter.isNotEmpty ? _clearAll : null,
-                    style: TextButton.styleFrom(
-                      foregroundColor: colorScheme.error,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    child: Text(context.l10n.common_reset),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-
           // 内容区域
           Expanded(
             child: ListView(
               controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              padding: const EdgeInsets.only(top: AppSpace.m, bottom: AppSpace.l),
               children: [
                 // 状态选择
-                Text(
-                  context.l10n.search_status,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                _sectionTitle(context.l10n.search_status),
                 const SizedBox(height: 12),
                 _buildStatusSection(theme),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpace.xl),
 
                 // 时间范围
-                Text(
-                  context.l10n.search_dateRange,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                _sectionTitle(context.l10n.search_dateRange),
                 const SizedBox(height: 12),
                 _buildDateRangeSection(theme),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpace.xl),
 
                 // 分类选择
-                Text(
-                  context.l10n.search_category,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                _sectionTitle(context.l10n.search_category),
                 const SizedBox(height: 12),
                 categoriesAsync.when(
                   data: (categories) => _buildCategoryGrid(
@@ -274,21 +241,16 @@ class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
                   error: (e, _) => Center(child: Text(context.l10n.search_categoryLoadFailed('$e'))),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpace.xl),
 
                 // 标签选择
                 Row(
                   children: [
-                    Text(
-                      context.l10n.search_tags,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    _sectionTitle(context.l10n.search_tags),
                     const Spacer(),
                     TextButton.icon(
                       onPressed: _openTagSearchSheet,
-                      icon: const Icon(Symbols.search_rounded, size: 18),
+                      icon: const Icon(AppIcons.search, size: AppSize.iconS),
                       label: Text(context.l10n.common_searchMore),
                       style: TextButton.styleFrom(
                         visualDensity: VisualDensity.compact,
@@ -349,30 +311,19 @@ class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
             ),
           ),
 
-          // 底部确认按钮区域
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () {
-                    widget.onFilterChanged(_localFilter);
-                    Navigator.pop(context);
-                  },
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(context.l10n.search_applyFilter, style: const TextStyle(fontSize: 16)),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
+    );
+  }
+
+  /// 分组小标题：13 meta
+  Widget _sectionTitle(String text) {
+    final tokens = context.tokens;
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.bodySmall
+          ?.merge(tokens.text.meta)
+          .copyWith(color: tokens.colors.textMeta),
     );
   }
 
@@ -451,7 +402,7 @@ class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
           label: hasDateRange ? _formatDateRange() : context.l10n.search_custom,
           isSelected: hasDateRange,
           onTap: _selectDateRange,
-          icon: Symbols.calendar_today_rounded,
+          icon: AppIcons.history,
         ),
       ],
     );
@@ -702,59 +653,13 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? colorScheme.primaryContainer
-                : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isSelected
-                  ? colorScheme.primary.withValues(alpha: 0.5)
-                  : Colors.transparent,
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon != null) ...[
-                Icon(
-                  icon,
-                  size: 14,
-                  color: isSelected
-                      ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 4),
-              ],
-              Text(
-                label,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: isSelected
-                      ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                ),
-              ),
-              if (isSelected) ...[
-                const SizedBox(width: 4),
-                Icon(Symbols.check_rounded, size: 14, color: colorScheme.primary),
-              ],
-            ],
-          ),
-        ),
-      ),
+    // v2：筛选胶囊，选中带 check 16、文字变 brand
+    return FilterPill(
+      label: label,
+      selected: isSelected,
+      showChevron: false,
+      icon: isSelected ? AppIcons.check : icon,
+      onTap: onTap,
     );
   }
 }
@@ -972,7 +877,7 @@ class ActiveSearchFiltersBar extends StatelessWidget {
                             child: _RemovableChip(
                               label: _formatDateRange(
                                   filter.afterDate, filter.beforeDate),
-                              icon: Symbols.calendar_today_rounded,
+                              icon: AppIcons.history,
                               onDeleted: onClearDateRange,
                             ),
                           ),

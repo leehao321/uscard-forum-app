@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import '../../l10n/s.dart';
 
@@ -146,12 +147,12 @@ class _SearchableAppBarState extends State<SearchableAppBar>
     return AppBar(
       leading: widget.isSearchMode
           ? IconButton(
-              icon: const Icon(Symbols.arrow_back_rounded),
+              icon: const Icon(AppIcons.back),
               onPressed: widget.onCloseSearch,
             )
           : (widget.onBackPressed != null
                 ? IconButton(
-                    icon: const Icon(Symbols.arrow_back_rounded),
+                    icon: const Icon(AppIcons.back),
                     onPressed: widget.onBackPressed,
                   )
                 : null),
@@ -171,11 +172,15 @@ class _SearchableAppBarState extends State<SearchableAppBar>
               onChanged: widget.onSearchChanged,
               textInputAction: TextInputAction.search,
               textAlignVertical: TextAlignVertical.center,
-              style: theme.textTheme.bodyLarge,
+              style: theme.textTheme.bodyLarge
+                  ?.merge(context.tokens.text.control)
+                  .copyWith(color: context.tokens.colors.textPrimary),
+              cursorColor: context.tokens.colors.brandPrimary,
               decoration: InputDecoration(
                 hintText: widget.searchHint.isEmpty
                     ? context.l10n.common_searchHint
                     : widget.searchHint,
+                hintStyle: TextStyle(color: context.tokens.colors.textMeta),
                 border: InputBorder.none,
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(
@@ -184,7 +189,7 @@ class _SearchableAppBarState extends State<SearchableAppBar>
                 ),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Symbols.close_rounded, size: 20),
+                        icon: const Icon(AppIcons.close, size: 20),
                         onPressed: _handleClear,
                       )
                     : null,
@@ -196,7 +201,7 @@ class _SearchableAppBarState extends State<SearchableAppBar>
       actions: widget.isSearchMode
           ? [
               IconButton(
-                icon: const Icon(Symbols.search_rounded),
+                icon: const Icon(AppIcons.search),
                 onPressed: () => _handleSubmit(_searchController.text),
                 tooltip: context.l10n.common_search,
               ),
@@ -205,7 +210,7 @@ class _SearchableAppBarState extends State<SearchableAppBar>
           : [
               if (widget.showSearchButton)
                 IconButton(
-                  icon: const Icon(Symbols.search_rounded),
+                  icon: const Icon(AppIcons.search),
                   onPressed: widget.onSearchPressed,
                   tooltip: context.l10n.common_search,
                 ),
@@ -219,7 +224,7 @@ class _SearchableAppBarState extends State<SearchableAppBar>
     return Stack(
       children: [
         IconButton(
-          icon: const Icon(Symbols.tune_rounded),
+          icon: const Icon(AppIcons.tune),
           onPressed: widget.onFilterPressed,
           tooltip: context.l10n.common_filter,
         ),
@@ -227,14 +232,7 @@ class _SearchableAppBarState extends State<SearchableAppBar>
           Positioned(
             right: 8,
             top: 8,
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary,
-                shape: BoxShape.circle,
-              ),
-            ),
+            child: const UnreadDot(),
           ),
       ],
     );

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
+import 'package:common_ui/common_ui.dart';
+import '../../l10n/s.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 import '../../models/notification.dart';
 import '../../utils/url_helper.dart';
@@ -34,75 +36,44 @@ class NotificationItem extends StatelessWidget {
     required this.onTap,
   });
 
+  /// 类型图标（设计说明 §5.1）：回复 reply、提及 at-sign、引用 quote、点赞 / 反应 heart、
+  /// 私信 mail、徽章 award、关注 user-plus、链接 link、编辑 pen、移动 folder、其余 bell。
+  /// 不再按类型上色（只有 11 色）。
   IconData _getNotificationIcon() {
     switch (notification.notificationType) {
-      case NotificationType.mentioned:
-        return Symbols.alternate_email_rounded;
       case NotificationType.replied:
-        return Symbols.reply_rounded;
+      case NotificationType.posted:
+      case NotificationType.followingReplied:
+        return AppIcons.reply;
+      case NotificationType.mentioned:
+      case NotificationType.groupMentioned:
+      case NotificationType.chatMention:
+      case NotificationType.chatGroupMention:
+        return AppIcons.mention;
       case NotificationType.quoted:
-        return Symbols.format_quote_rounded;
+      case NotificationType.chatQuotedPost:
+        return AppIcons.formatQuote;
       case NotificationType.liked:
       case NotificationType.likedConsolidated:
-        return Symbols.favorite_rounded;
       case NotificationType.reaction:
-        return Symbols.thumb_up_rounded;
+        return AppIcons.heart;
       case NotificationType.privateMessage:
       case NotificationType.invitedToPrivateMessage:
-        return Symbols.mail_rounded;
-      case NotificationType.posted:
-        return Symbols.post_add_rounded;
+        return AppIcons.mail;
       case NotificationType.grantedBadge:
-        return Symbols.military_tech_rounded;
-      case NotificationType.linked:
-        return Symbols.link_rounded;
-      case NotificationType.bookmarkReminder:
-        return Symbols.bookmark_rounded;
-      case NotificationType.groupMentioned:
-        return Symbols.group_rounded;
-      case NotificationType.watchingFirstPost:
-        return Symbols.visibility_rounded;
+        return AppIcons.medal;
       case NotificationType.following:
       case NotificationType.followingCreatedTopic:
-      case NotificationType.followingReplied:
-        return Symbols.person_add_rounded;
-      case NotificationType.watchingCategoryOrTag:
-        return Symbols.label_rounded;
-      case NotificationType.newFeatures:
-        return Symbols.new_releases_rounded;
-      case NotificationType.adminProblems:
-        return Symbols.warning_rounded;
+        return AppIcons.follow;
+      case NotificationType.linked:
       case NotificationType.linkedConsolidated:
-        return Symbols.link_rounded;
-      case NotificationType.chatWatchedThread:
-        return Symbols.chat_bubble_rounded;
-      case NotificationType.invitedToTopic:
-        return Symbols.mail_rounded;
-      case NotificationType.inviteeAccepted:
-        return Symbols.check_circle_rounded;
+        return AppIcons.link;
+      case NotificationType.edited:
+        return AppIcons.edit;
       case NotificationType.movedPost:
-        return Symbols.drive_file_move_rounded;
-      case NotificationType.topicReminder:
-        return Symbols.alarm_rounded;
-      case NotificationType.eventReminder:
-      case NotificationType.eventInvitation:
-        return Symbols.event_rounded;
-      case NotificationType.chatMention:
-      case NotificationType.chatMessage:
-      case NotificationType.chatInvitation:
-      case NotificationType.chatGroupMention:
-      case NotificationType.chatQuotedPost:
-        return Symbols.chat_rounded;
-      case NotificationType.boost:
-        return Symbols.rocket_launch_rounded;
-      case NotificationType.assignedTopic:
-        return Symbols.assignment_rounded;
-      case NotificationType.questionAnswerUserCommented:
-        return Symbols.question_answer_rounded;
-      case NotificationType.circlesActivity:
-        return Symbols.groups_rounded;
+        return AppIcons.folder;
       default:
-        return Symbols.notifications_rounded;
+        return AppIcons.notification;
     }
   }
 
@@ -148,86 +119,26 @@ class NotificationItem extends StatelessWidget {
     );
   }
 
-  Color _getNotificationColor(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    switch (notification.notificationType) {
-      case NotificationType.liked:
-      case NotificationType.likedConsolidated:
-      case NotificationType.reaction:
-        return Colors.red;
-      case NotificationType.privateMessage:
-      case NotificationType.invitedToPrivateMessage:
-        return Colors.blue;
-      case NotificationType.grantedBadge:
-        return Colors.amber;
-      case NotificationType.boost:
-        return Colors.deepPurple;
-      case NotificationType.mentioned:
-      case NotificationType.groupMentioned:
-        return colorScheme.primary;
-      case NotificationType.following:
-        return Colors.green;
-      case NotificationType.adminProblems:
-        return Colors.red;
-      case NotificationType.newFeatures:
-        return Colors.purple;
-      default:
-        return colorScheme.onSurfaceVariant;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final iconColor = _getNotificationColor(context);
-    final titleStyle = TextStyle(
-      fontWeight: notification.read ? FontWeight.normal : FontWeight.w500,
-    );
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    final titleStyle = base
+        .merge(tokens.text.headline)
+        .copyWith(color: colors.textPrimary);
+    final metaStyle = base
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
+    final l10n = context.l10n;
 
-    return ListTile(
-      leading: SizedBox(
-        width: 48,
-        height: 48,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Align(
-              alignment: Alignment.center,
-              child: SmartAvatar(
-                imageUrl: _getAvatarUrl(),
-                radius: 20,
-                backgroundColor: colorScheme.surfaceContainerHighest,
-              ),
-            ),
-            Positioned(
-              top: -2,
-              right: -2,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: notification.read
-                      ? colorScheme.surfaceContainerHighest
-                      : colorScheme.surface,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: colorScheme.surface,
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 2,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: _buildBadgeIcon(
-                  notification.read ? colorScheme.onSurfaceVariant : iconColor,
-                ),
-              ),
-            ),
-          ],
-        ),
+    // v2 头像行：头像 34 + 标题（话题标题，2 行）+ 元信息「类型图标 14 · 描述 · 时间」，
+    // 未读点在元信息右端；整行先读「未读 / 已读」
+    return AvatarRow(
+      avatar: SmartAvatar(
+        imageUrl: _getAvatarUrl(),
+        radius: AppSize.avatarS / 2,
+        backgroundColor: colors.avatarFill,
       ),
       title: Text.rich(
         TextSpan(
@@ -239,47 +150,36 @@ class NotificationItem extends StatelessWidget {
         ),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: titleStyle,
       ),
-      subtitle: Row(
+      meta: Row(
         children: [
-          Expanded(
+          _buildBadgeIcon(colors.textMeta),
+          const SizedBox(width: AppSpace.xs),
+          Flexible(
             child: Text.rich(
               TextSpan(
                 children: EmojiText.buildEmojiSpans(
                   context,
                   notification.description,
-                  TextStyle(
-                    color: colorScheme.onSurfaceVariant,
-                    fontSize: 13,
-                  ),
+                  metaStyle,
                 ),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 8),
+          Text(' · ', style: metaStyle),
           RelativeTimeText(
             dateTime: notification.createdAt,
-            style: TextStyle(
-              color: colorScheme.onSurfaceVariant,
-              fontSize: 12,
-            ),
+            style: metaStyle,
           ),
         ],
       ),
+      unread: !notification.read,
+      readState: notification.read
+          ? l10n.notification_stateRead
+          : l10n.notification_stateUnread,
       onTap: onTap,
-      trailing: !notification.read
-          ? Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: colorScheme.primary,
-                shape: BoxShape.circle,
-              ),
-            )
-          : null,
     );
   }
 }
