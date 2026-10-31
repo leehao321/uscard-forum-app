@@ -111,3 +111,10 @@ linux/.ffmpeg-cache/
 packages/flutter_inappwebview_*/example/*/flutter/ephemeral/
 packages/flutter_inappwebview_windows/pubspec.lock
 packages/flutter_inappwebview_windows/example/pubspec.lock
+
+# 构建产物与解密后的补丁
+*.ipa
+*.ipa.enc
+build.log
+build.log.enc
+private/*.patch
