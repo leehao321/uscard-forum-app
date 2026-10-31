@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
+
 import '../../l10n/s.dart';
 
 /// 可搜索的 AppBar
@@ -144,89 +145,91 @@ class _SearchableAppBarState extends State<SearchableAppBar>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return AppBar(
-      leading: widget.isSearchMode
-          ? AppIconButton(
-              icon: AppIcons.back,
-              semanticLabel: context.l10n.common_back,
-              onPressed: widget.onCloseSearch,
-            )
-          : (widget.onBackPressed != null
-                ? AppIconButton(
-                    icon: AppIcons.back,
-                    semanticLabel: context.l10n.common_back,
-                    onPressed: widget.onBackPressed,
-                  )
-                : null),
-      titleSpacing: widget.isSearchMode ? 0 : null,
-      title: AnimatedBuilder(
-        animation: _animation,
-        builder: (context, child) {
-          if (!widget.isSearchMode && _animation.value == 0) {
-            return Text(widget.title);
-          }
-          return Opacity(
-            opacity: _animation.value,
-            child: TextField(
-              controller: _searchController,
-              focusNode: _focusNode,
-              onSubmitted: _handleSubmit,
-              onChanged: widget.onSearchChanged,
-              textInputAction: TextInputAction.search,
-              textAlignVertical: TextAlignVertical.center,
-              style: theme.textTheme.bodyLarge
-                  ?.merge(context.tokens.text.control)
-                  .copyWith(color: context.tokens.colors.textPrimary),
-              cursorColor: context.tokens.colors.brandPrimary,
-              decoration: InputDecoration(
-                hintText: widget.searchHint.isEmpty
-                    ? context.l10n.common_searchHint
-                    : widget.searchHint,
-                hintStyle: TextStyle(color: context.tokens.colors.textMeta),
-                filled: true,
-                fillColor: context.tokens.colors.surfaceGrouped,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(
-                    context.tokens.radius.field,
+    return ReadableAppBar(
+      child: AppBar(
+        leading: widget.isSearchMode
+            ? AppIconButton(
+                icon: AppIcons.back,
+                semanticLabel: context.l10n.common_back,
+                onPressed: widget.onCloseSearch,
+              )
+            : (widget.onBackPressed != null
+                  ? AppIconButton(
+                      icon: AppIcons.back,
+                      semanticLabel: context.l10n.common_back,
+                      onPressed: widget.onBackPressed,
+                    )
+                  : null),
+        titleSpacing: widget.isSearchMode ? 0 : null,
+        title: AnimatedBuilder(
+          animation: _animation,
+          builder: (context, child) {
+            if (!widget.isSearchMode && _animation.value == 0) {
+              return Text(widget.title);
+            }
+            return Opacity(
+              opacity: _animation.value,
+              child: TextField(
+                controller: _searchController,
+                focusNode: _focusNode,
+                onSubmitted: _handleSubmit,
+                onChanged: widget.onSearchChanged,
+                textInputAction: TextInputAction.search,
+                textAlignVertical: TextAlignVertical.center,
+                style: theme.textTheme.bodyLarge
+                    ?.merge(context.tokens.text.control)
+                    .copyWith(color: context.tokens.colors.textPrimary),
+                cursorColor: context.tokens.colors.brandPrimary,
+                decoration: InputDecoration(
+                  hintText: widget.searchHint.isEmpty
+                      ? context.l10n.common_searchHint
+                      : widget.searchHint,
+                  hintStyle: TextStyle(color: context.tokens.colors.textMeta),
+                  filled: true,
+                  fillColor: context.tokens.colors.surfaceGrouped,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                      context.tokens.radius.field,
+                    ),
+                    borderSide: BorderSide.none,
                   ),
-                  borderSide: BorderSide.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppSpace.m,
+                    vertical: AppSpace.m,
+                  ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? AppIconButton(
+                          icon: AppIcons.close,
+                          semanticLabel: context.l10n.common_clear,
+                          onPressed: _handleClear,
+                        )
+                      : null,
                 ),
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppSpace.m,
-                  vertical: AppSpace.m,
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? AppIconButton(
-                        icon: AppIcons.close,
-                        semanticLabel: context.l10n.common_clear,
-                        onPressed: _handleClear,
-                      )
-                    : null,
               ),
-            ),
-          );
-        },
-      ),
-      actions: widget.isSearchMode
-          ? [
-              AppIconButton(
-                icon: AppIcons.search,
-                semanticLabel: context.l10n.common_search,
-                onPressed: () => _handleSubmit(_searchController.text),
-              ),
-              if (widget.showFilterButton) _buildFilterButton(theme),
-            ]
-          : [
-              if (widget.showSearchButton)
+            );
+          },
+        ),
+        actions: widget.isSearchMode
+            ? [
                 AppIconButton(
                   icon: AppIcons.search,
                   semanticLabel: context.l10n.common_search,
-                  onPressed: widget.onSearchPressed,
+                  onPressed: () => _handleSubmit(_searchController.text),
                 ),
-              if (widget.showFilterButton) _buildFilterButton(theme),
-              ...widget.trailingActions,
-            ],
+                if (widget.showFilterButton) _buildFilterButton(theme),
+              ]
+            : [
+                if (widget.showSearchButton)
+                  AppIconButton(
+                    icon: AppIcons.search,
+                    semanticLabel: context.l10n.common_search,
+                    onPressed: widget.onSearchPressed,
+                  ),
+                if (widget.showFilterButton) _buildFilterButton(theme),
+                ...widget.trailingActions,
+              ],
+      ),
     );
   }
 
@@ -239,11 +242,7 @@ class _SearchableAppBarState extends State<SearchableAppBar>
           onPressed: widget.onFilterPressed,
         ),
         if (widget.filterActive)
-          Positioned(
-            right: 10,
-            top: 10,
-            child: const UnreadDot(),
-          ),
+          Positioned(right: 10, top: 10, child: const UnreadDot()),
       ],
     );
   }

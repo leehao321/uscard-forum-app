@@ -231,6 +231,7 @@ class PageCase {
     this.readable = true,
     this.editor = false,
     this.editorColumn = false,
+    this.navBar = true,
   });
 
   /// false = 全屏沉浸页（图片查看器等），只查溢出，不要求 640 限宽
@@ -241,6 +242,9 @@ class PageCase {
 
   /// true = 编辑器页：滚动区通栏，限宽靠两侧留白，改用 [expectEditorColumn] 量输入区
   final bool editorColumn;
+
+  /// 检查顶部导航栏对齐 640 列（没有导航栏的页面自动跳过）
+  final bool navBar;
 
   /// 预置的 SharedPreferences 值（例如不弹引导）
   final Map<String, Object> prefs;
@@ -436,6 +440,7 @@ void main() {
         try {
           expectNoUiException(tester);
           if (c.readable) expectReadableBody(tester, variant);
+          if (c.navBar) expectNavBarAligned(tester, variant);
           if (c.editorColumn) expectEditorColumn(tester, variant);
         } catch (_) {
           await uiShot(tester, 'landscape_fail_${c.name}_${device.name}');

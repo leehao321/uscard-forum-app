@@ -315,7 +315,7 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
     final showRail = _showRail(context);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: ReadableAppBar(child: AppBar(
         title: Text(_isEditing
             ? AiL10n.current.editProvider
             : AiL10n.current.addProvider),
@@ -349,7 +349,7 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
           ),
           const SizedBox(width: AppSpace.xs),
         ],
-      ),
+      )),
       body: ReadableBody(
           child: Row(
         children: [

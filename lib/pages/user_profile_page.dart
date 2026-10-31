@@ -1213,7 +1213,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
 
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(
+        appBar: ReadableAppBar(child: AppBar(
           title: Text(widget.username),
           // embeddedMode 但 onEmbeddedBack 为空（master 面板的"上一层
           // 预览"，非当前可交互栈顶）时不该有任何返回键——之前不管
@@ -1227,7 +1227,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
           leading: widget.embeddedMode && widget.onEmbeddedBack != null
               ? BackButton(onPressed: widget.onEmbeddedBack)
               : null,
-        ),
+        )),
         body: ReadableBody(
           child: ErrorView(
             error: _error!,

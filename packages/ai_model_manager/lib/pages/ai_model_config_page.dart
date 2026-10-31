@@ -25,7 +25,7 @@ class AiModelConfigPage extends ConsumerWidget {
     final imageDefault = _resolveModel(allModels, imageDefaultKey);
 
     return Scaffold(
-      appBar: AppBar(title: Text(AiL10n.current.modelConfig)),
+      appBar: ReadableAppBar(child: AppBar(title: Text(AiL10n.current.modelConfig))),
       body: ReadableBody(
           child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),

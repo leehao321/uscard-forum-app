@@ -16,7 +16,7 @@ class AiAdvancedSettingsPage extends ConsumerWidget {
     final partialEnabled = ref.watch(aiPartialImagesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(AiL10n.current.advancedSettings)),
+      appBar: ReadableAppBar(child: AppBar(title: Text(AiL10n.current.advancedSettings))),
       body: ReadableBody(child: ListView(
         padding: const EdgeInsets.all(16),
         children: [

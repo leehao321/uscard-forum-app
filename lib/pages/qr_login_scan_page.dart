@@ -136,7 +136,7 @@ class _QrLoginScanPageState extends State<QrLoginScanPage> {
     final scheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: ReadableAppBar(child: AppBar(
         title: Text(context.l10n.login_qrScanTitle),
         actions: [
           if (_cameraSupported)
@@ -146,7 +146,7 @@ class _QrLoginScanPageState extends State<QrLoginScanPage> {
               onPressed: _handling ? null : _pickFromGallery,
             ),
         ],
-      ),
+      )),
       body: Stack(
         fit: StackFit.expand,
         children: [

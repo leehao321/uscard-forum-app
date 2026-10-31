@@ -204,7 +204,7 @@ class _BrowsingHistoryPageState extends ConsumerState<BrowsingHistoryPage> {
         }
       },
       child: Scaffold(
-        appBar: SearchableAppBar(
+        appBar: ReadableAppBar(child: SearchableAppBar(
           title: context.l10n.browsingHistory_title,
           isSearchMode: searchState.isSearchMode,
           onSearchPressed: () => ref
@@ -221,7 +221,7 @@ class _BrowsingHistoryPageState extends ConsumerState<BrowsingHistoryPage> {
           onFilterPressed: () =>
               showSearchFilterPanel(context, ref, SearchInType.seen),
           searchHint: context.l10n.browsingHistory_searchHint,
-        ),
+        )),
         body: ReadableBody(
           child: Stack(
             children: [

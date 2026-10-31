@@ -727,7 +727,7 @@ class _AssignNoteEditorPageState extends State<_AssignNoteEditorPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: ReadableAppBar(child: AppBar(
         title: const Text('编辑备注'),
         leading: IconButton(
           icon: const Icon(AppIcons.close),
@@ -739,7 +739,7 @@ class _AssignNoteEditorPageState extends State<_AssignNoteEditorPage> {
             child: const Text('完成'),
           ),
         ],
-      ),
+      )),
       body: SafeArea(
         child: MarkdownEditor(
           controller: _controller,

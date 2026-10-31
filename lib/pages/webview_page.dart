@@ -110,7 +110,7 @@ class _WebViewPageState extends ConsumerState<WebViewPage> {
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        appBar: AppBar(
+        appBar: ReadableAppBar(child: AppBar(
           title: GestureDetector(
             onTap: _showUrlInput,
             child: Container(
@@ -218,7 +218,7 @@ class _WebViewPageState extends ConsumerState<WebViewPage> {
               ],
             ),
           ],
-        ),
+        )),
         body: Column(
           children: [
             if (_isLoading)

@@ -99,7 +99,7 @@ class _WebViewLoginPageState extends ConsumerState<WebViewLoginPage> {
         WindowsWebViewEnvironmentService.instance.environment;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: ReadableAppBar(child: AppBar(
         title: Text(context.l10n.webviewLogin_title),
         actions: [
           AppIconButton(
@@ -139,7 +139,7 @@ class _WebViewLoginPageState extends ConsumerState<WebViewLoginPage> {
             onPressed: () => _controller?.reload(),
           ),
         ],
-      ),
+      )),
       body: Column(
         children: [
           // 4 高进度条（brand / avatar-fill）

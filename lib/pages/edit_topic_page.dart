@@ -6,6 +6,7 @@ import '../widgets/markdown_editor/composer_header_actions.dart';
 import '../utils/platform_utils.dart';
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -565,7 +566,7 @@ class _EditTopicPageState extends ConsumerState<EditTopicPage> {
         // 顶栏渐变模糊(创建页同款):AppBar 纯透明只承载功能件,
         // 模糊/遮罩由 body Stack 顶部的 ProgressiveTopBlur 提供
         extendBodyBehindAppBar: true,
-        appBar: ComposerAutoHideAppBar(
+        appBar: ReadableAppBar(child: ComposerAutoHideAppBar(
           child: AppBar(
             centerTitle: false, // 同 create_topic_page：窄屏标题让位给右侧功能件
             title: Row(
@@ -628,7 +629,7 @@ class _EditTopicPageState extends ConsumerState<EditTopicPage> {
               ),
             ],
           ),
-        ),
+        )),
         body: Stack(
           children: [
             _isPrivateMessage

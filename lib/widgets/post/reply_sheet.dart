@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/draft_store_provider.dart';
 
 import 'pm_recipient_field.dart';
+import '../markdown_editor/composer_chrome.dart' show ComposerReadingPadding;
 import '../markdown_editor/composer_shortcuts.dart';
 import '../markdown_editor/composer_switch_fade.dart';
 import '../markdown_editor/composer_workbench.dart';
@@ -478,31 +479,37 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
       children: [
         SizedBox(
           height: kToolbarHeight,
-          child: AppBar(
-            key: const ValueKey('reply-composer-header'),
-            primary: false,
-            centerTitle: false,
-            automaticallyImplyLeading: false,
-            leading: Center(
-              child: AppIconButton(
-                icon: AppIcons.close,
-                semanticLabel: context.l10n.common_close,
-                onPressed: () => Navigator.of(context).maybePop(),
+          // 页头自己带内边距、不包 SafeArea（primary: false）：横屏按 640 列居中靠留白，
+          // 半屏本身只有 640 宽时自动不留白
+          child: ComposerReadingPadding(
+            minLeading: 0,
+            minTrailing: 0,
+            child: AppBar(
+              key: const ValueKey('reply-composer-header'),
+              primary: false,
+              centerTitle: false,
+              automaticallyImplyLeading: false,
+              leading: Center(
+                child: AppIconButton(
+                  icon: AppIcons.close,
+                  semanticLabel: context.l10n.common_close,
+                  onPressed: () => Navigator.of(context).maybePop(),
+                ),
               ),
+              title: separateTarget
+                  ? Text(context.l10n.common_reply)
+                  : _buildHeaderTitle(theme, style: style),
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              actions: [
+                _buildHeaderActions(
+                  width,
+                  minimumTitleWidth: separateTarget ? width : titleWidth,
+                ),
+              ],
             ),
-            title: separateTarget
-                ? Text(context.l10n.common_reply)
-                : _buildHeaderTitle(theme, style: style),
-            backgroundColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            actions: [
-              _buildHeaderActions(
-                width,
-                minimumTitleWidth: separateTarget ? width : titleWidth,
-              ),
-            ],
           ),
         ),
         if (separateTarget)

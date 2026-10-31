@@ -95,3 +95,49 @@ class ReadableBody extends StatelessWidget {
     );
   }
 }
+
+/// 顶部导航栏的横屏阅读列（设计 §5.6，Figma「阅读页 · 横屏」62:1483）：**手机横屏**
+/// （短边 < 600、去掉安全区后宽 ≥ 640）时，导航栏背景仍横跨整个屏宽，左右按钮和标题按
+/// 640 列对齐；竖屏、平板、桌面原样返回。
+///
+/// 给 Material 的 [AppBar] 用：AppBar 的内容包在 SafeArea 里，所以只要把这里的左右安全区
+/// 加宽到阅读列边缘，背景（在 SafeArea 外面）不动，按钮和标题就跟着进到 640 列里。
+/// [AppNavBar] 自己已经按 [readableInsets] 对齐，不需要再包。
+class ReadableAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const ReadableAppBar({super.key, required this.child});
+
+  final PreferredSizeWidget child;
+
+  @override
+  Size get preferredSize => child.preferredSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final size = media.size;
+    final safe = media.padding;
+    if (size.shortestSide >= 600 ||
+        size.width - safe.left - safe.right < kReadableMaxWidth) {
+      return child;
+    }
+    // 用导航栏所在区域的实际宽度算（半屏里的 Scaffold 不是屏宽），区域 ≤ 640 时不再加宽
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final side = math.max(
+          0.0,
+          (constraints.maxWidth - kReadableMaxWidth) / 2,
+        );
+        if (side <= 0) return child;
+        final left = math.max(safe.left, side);
+        final right = math.max(safe.right, side);
+        return MediaQuery(
+          data: media.copyWith(
+            padding: safe.copyWith(left: left, right: right),
+            viewPadding: media.viewPadding.copyWith(left: left, right: right),
+          ),
+          child: child,
+        );
+      },
+    );
+  }
+}

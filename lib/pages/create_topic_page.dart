@@ -1264,7 +1264,7 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
         // Stack 顶部的 ProgressiveTopBlur 提供(从上到下消散到全透明,
         // 无均匀毛玻璃的硬下边);分类/标签/字数在底部 ComposerMetaBar
         extendBodyBehindAppBar: true,
-        appBar: ComposerAutoHideAppBar(
+        appBar: ReadableAppBar(child: ComposerAutoHideAppBar(
           child: AppBar(
             centerTitle: false,
             title: inlineProperties
@@ -1338,7 +1338,7 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
               ),
             ],
           ),
-        ),
+        )),
         body: Stack(
           children: [
             categoriesAsync.when(

@@ -132,7 +132,7 @@ class _MyTopicsPageState extends ConsumerState<MyTopicsPage> {
         }
       },
       child: Scaffold(
-        appBar: SearchableAppBar(
+        appBar: ReadableAppBar(child: SearchableAppBar(
           title: context.l10n.myTopics_title,
           isSearchMode: searchState.isSearchMode,
           onSearchPressed: () => ref
@@ -149,7 +149,7 @@ class _MyTopicsPageState extends ConsumerState<MyTopicsPage> {
           onFilterPressed: () =>
               showSearchFilterPanel(context, ref, SearchInType.created),
           searchHint: context.l10n.myTopics_searchHint,
-        ),
+        )),
         body: ReadableBody(
           child: Stack(
             children: [

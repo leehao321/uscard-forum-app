@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 
 class MobileTopicWorkspaceAppBar extends StatelessWidget
@@ -35,36 +36,38 @@ class MobileTopicWorkspaceAppBar extends StatelessWidget
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      titleSpacing: 0,
-      leadingWidth: 0,
-      backgroundColor: backgroundColor,
-      elevation: elevation,
-      scrolledUnderElevation: scrolledUnderElevation,
-      shadowColor: shadowColor,
-      surfaceTintColor: surfaceTintColor,
-      title: Row(
-        children: [
-          IconButton(
-            key: backButtonKey,
-            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-            onPressed: onBack,
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(AppIcons.back, size: 20),
-          ),
-          IconButton(
-            key: closeButtonKey,
-            tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-            onPressed: onClose,
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(AppIcons.close, size: 20),
-          ),
-          const SizedBox(width: 4),
-          Expanded(child: title),
-        ],
+    return ReadableAppBar(
+      child: AppBar(
+        automaticallyImplyLeading: false,
+        titleSpacing: 0,
+        leadingWidth: 0,
+        backgroundColor: backgroundColor,
+        elevation: elevation,
+        scrolledUnderElevation: scrolledUnderElevation,
+        shadowColor: shadowColor,
+        surfaceTintColor: surfaceTintColor,
+        title: Row(
+          children: [
+            IconButton(
+              key: backButtonKey,
+              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+              onPressed: onBack,
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(AppIcons.back, size: 20),
+            ),
+            IconButton(
+              key: closeButtonKey,
+              tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+              onPressed: onClose,
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(AppIcons.close, size: 20),
+            ),
+            const SizedBox(width: 4),
+            Expanded(child: title),
+          ],
+        ),
+        actions: actions,
       ),
-      actions: actions,
     );
   }
 }

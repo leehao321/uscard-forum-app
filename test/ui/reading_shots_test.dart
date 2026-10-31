@@ -144,6 +144,7 @@ void main() {
       final ex = tester.takeException();
       if (ex is FlutterError) debugPrint(ex.toStringDeep());
       expect(ex, isNull);
+      expectNavBarAligned(tester, variant);
       await uiShot(tester, 'reading_${variant.label}');
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 1));

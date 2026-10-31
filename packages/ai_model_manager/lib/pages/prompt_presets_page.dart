@@ -49,7 +49,7 @@ class _PromptPresetsPageState extends ConsumerState<PromptPresetsPage> {
     final customs = all.where((p) => !p.builtIn).toList(growable: false);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: ReadableAppBar(child: AppBar(
         title: Text(AiL10n.current.quickPromptsManageTitle),
         actions: [
           AppIconButton(
@@ -92,7 +92,7 @@ class _PromptPresetsPageState extends ConsumerState<PromptPresetsPage> {
             ],
           ),
         ],
-      ),
+      )),
       body: ReadableBody(
           child: Column(
         children: [

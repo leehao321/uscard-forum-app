@@ -29,7 +29,7 @@ class _AiProviderListPageState extends ConsumerState<AiProviderListPage> {
     final others = providers.where((provider) => !provider.pinned).toList();
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: ReadableAppBar(child: AppBar(
         leading: _manageMode
             ? IconButton(
                 icon: const Icon(AppIcons.close),
@@ -43,7 +43,7 @@ class _AiProviderListPageState extends ConsumerState<AiProviderListPage> {
               : AiL10n.current.providersTitle,
         ),
         actions: _buildAppBarActions(context, providers),
-      ),
+      )),
       body: ReadableBody(child: providers.isEmpty
           ? _buildEmpty(context)
           : _manageMode

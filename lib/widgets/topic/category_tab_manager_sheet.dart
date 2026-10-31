@@ -441,10 +441,10 @@ class PinnedCategoryEditPage extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: ReadableAppBar(child: AppBar(
         title: Text(S.current.category_editMyCategories),
         centerTitle: false,
-      ),
+      )),
       body: categoriesAsync.when(
         data: (categories) {
           final categoryMap = categoryMapAsync.value ?? {};

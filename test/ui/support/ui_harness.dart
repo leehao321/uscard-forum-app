@@ -285,6 +285,41 @@ void expectEditorColumn(WidgetTester tester, UiVariant variant) {
   expect(widest, lessThanOrEqualTo(640), reason: '横屏编辑器正文列应限宽 640');
 }
 
+/// 手机横屏下顶部导航栏的内容（返回键、标题、右侧按钮）都落在 640 阅读列里
+/// （Figma 阅读页 · 横屏 62:1483：背景铺满屏宽，按钮和标题按正文栏左右对齐）。
+/// 量页面里第一个 `NavigationToolbar`（AppBar、AppNavBar 都用它）里所有图标和文字的
+/// 位置；页面没有导航栏就不检查。竖屏、平板不做要求。
+void expectNavBarAligned(WidgetTester tester, UiVariant variant) {
+  final size = variant.device.size;
+  final padding = variant.device.padding;
+  if (size.shortestSide >= 600) return;
+  if (size.width - padding.left - padding.right < 640) return;
+  final bars = find.byType(NavigationToolbar);
+  if (bars.evaluate().isEmpty) return;
+  final columnLeft = (size.width - 640) / 2;
+  final columnRight = size.width - columnLeft;
+  final items = [
+    ...find.descendant(of: bars.first, matching: find.byType(Icon)).evaluate(),
+    ...find.descendant(of: bars.first, matching: find.byType(Text)).evaluate(),
+  ];
+  expect(items, isNotEmpty, reason: '导航栏里没有图标或文字');
+  for (final element in items) {
+    final box = element.renderObject as RenderBox?;
+    if (box == null || !box.hasSize || box.size.isEmpty) continue;
+    final rect = box.localToGlobal(Offset.zero) & box.size;
+    expect(
+      rect.left,
+      greaterThanOrEqualTo(columnLeft - 1),
+      reason: '导航栏内容越过了 640 列左缘：$rect',
+    );
+    expect(
+      rect.right,
+      lessThanOrEqualTo(columnRight + 1),
+      reason: '导航栏内容越过了 640 列右缘：$rect',
+    );
+  }
+}
+
 /// 渲染过程中没有异常（RenderFlex 溢出等都会在这里暴露）
 void expectNoUiException(WidgetTester tester) {
   expect(tester.takeException(), isNull);

@@ -47,7 +47,7 @@ class _AiChatHistoryPageState extends ConsumerState<AiChatHistoryPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: ReadableAppBar(child: AppBar(
         title: Text(AiL10n.current.sessionHistory),
         actions: [
           if (_groups.isNotEmpty)
@@ -57,7 +57,7 @@ class _AiChatHistoryPageState extends ConsumerState<AiChatHistoryPage> {
               onPressed: () => _confirmDeleteAll(context),
             ),
         ],
-      ),
+      )),
       body: ReadableBody(
           child: _groups.isEmpty
               ? _buildEmpty(theme)

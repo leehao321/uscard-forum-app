@@ -2628,7 +2628,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
     // 正常分支自身就是 PreferredSize(kToolbarHeight)),外层声明恒定
     // 高度后,内部随 detail 重建不影响 Scaffold 布局
     final topicScaffold = Scaffold(
-      appBar: PreferredSize(
+      appBar: ReadableAppBar(child: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: Consumer(
           builder: (context, ref, _) {
@@ -2640,7 +2640,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
             );
           },
         ),
-      ),
+      )),
       body: Consumer(
         builder: (context, ref, _) {
           final detailAsync = ref.watch(topicDetailProvider(params));

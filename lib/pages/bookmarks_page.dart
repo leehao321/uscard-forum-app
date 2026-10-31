@@ -539,31 +539,62 @@ class _BookmarksPageState extends ConsumerState<BookmarksPage> {
       if (widget.workspaceTopicPageBuilder == null) {
         return null;
       }
-      return AppBar(
-        automaticallyImplyLeading: false,
-        titleSpacing: 0,
-        title: Row(
-          children: [
-            IconButton(
-              key: const ValueKey('bookmark-workspace-mobile-back'),
-              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-              onPressed: _activateBookmarksTab,
-              icon: const Icon(AppIcons.back),
-            ),
-            IconButton(
-              key: const ValueKey('bookmark-workspace-mobile-close'),
-              tooltip: context.l10n.common_close,
-              onPressed: _closeActiveWorkspaceTab,
-              icon: const Icon(AppIcons.close),
-            ),
-            Expanded(
-              child: Text(
-                activeTopic.title,
-                key: const ValueKey('bookmark-workspace-mobile-title-text'),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+      return ReadableAppBar(
+        child: AppBar(
+          automaticallyImplyLeading: false,
+          titleSpacing: 0,
+          title: Row(
+            children: [
+              IconButton(
+                key: const ValueKey('bookmark-workspace-mobile-back'),
+                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                onPressed: _activateBookmarksTab,
+                icon: const Icon(AppIcons.back),
               ),
-            ),
+              IconButton(
+                key: const ValueKey('bookmark-workspace-mobile-close'),
+                tooltip: context.l10n.common_close,
+                onPressed: _closeActiveWorkspaceTab,
+                icon: const Icon(AppIcons.close),
+              ),
+              Expanded(
+                child: Text(
+                  activeTopic.title,
+                  key: const ValueKey('bookmark-workspace-mobile-title-text'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              MobileWorkspaceCountButton(
+                key: const ValueKey('bookmark-workspace-mobile-count-button'),
+                count: _workspaceState.topicTabs.length,
+                tooltip: _workspaceSwitcherLabel(
+                  _workspaceState.topicTabs.length,
+                ),
+                onPressed: _showWorkspaceSwitcher,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ReadableAppBar(
+      child: AppBar(
+        leading: null,
+        title: Text(
+          context.l10n.bookmarks_title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(AppIcons.search),
+            onPressed: () => _onSearchPressed(true),
+            tooltip: context.l10n.common_search,
+          ),
+          _buildSyncAction(),
+          if (hasOpenedTopics)
             MobileWorkspaceCountButton(
               key: const ValueKey('bookmark-workspace-mobile-count-button'),
               count: _workspaceState.topicTabs.length,
@@ -572,33 +603,8 @@ class _BookmarksPageState extends ConsumerState<BookmarksPage> {
               ),
               onPressed: _showWorkspaceSwitcher,
             ),
-          ],
-        ),
-      );
-    }
-
-    return AppBar(
-      leading: null,
-      title: Text(
-        context.l10n.bookmarks_title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+        ],
       ),
-      actions: [
-        IconButton(
-          icon: const Icon(AppIcons.search),
-          onPressed: () => _onSearchPressed(true),
-          tooltip: context.l10n.common_search,
-        ),
-        _buildSyncAction(),
-        if (hasOpenedTopics)
-          MobileWorkspaceCountButton(
-            key: const ValueKey('bookmark-workspace-mobile-count-button'),
-            count: _workspaceState.topicTabs.length,
-            tooltip: _workspaceSwitcherLabel(_workspaceState.topicTabs.length),
-            onPressed: _showWorkspaceSwitcher,
-          ),
-      ],
     );
   }
 

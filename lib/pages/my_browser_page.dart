@@ -32,7 +32,7 @@ class MyBrowserPage extends ConsumerWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.myBrowser_title)),
+      appBar: ReadableAppBar(child: AppBar(title: Text(context.l10n.myBrowser_title))),
       body: ReadableBody(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -232,7 +232,7 @@ class _BookmarkListPage extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: ReadableAppBar(child: AppBar(
         title: Text(context.l10n.myBrowser_bookmarks),
         actions: [
           IconButton(
@@ -241,7 +241,7 @@ class _BookmarkListPage extends ConsumerWidget {
             onPressed: () => _showAddDialog(context, ref),
           ),
         ],
-      ),
+      )),
       body: ReadableBody(
         child: bookmarks.isEmpty
             ? Center(
@@ -447,7 +447,7 @@ class _WebHistoryPage extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: ReadableAppBar(child: AppBar(
         title: Text(context.l10n.myBrowser_history),
         actions: [
           if (history.isNotEmpty)
@@ -457,7 +457,7 @@ class _WebHistoryPage extends ConsumerWidget {
               onPressed: () => _confirmClear(context, ref),
             ),
         ],
-      ),
+      )),
       body: ReadableBody(
         child: history.isEmpty
             ? Center(

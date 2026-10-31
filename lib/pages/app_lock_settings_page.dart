@@ -67,7 +67,7 @@ class _AppLockSettingsPageState extends State<AppLockSettingsPage> {
 
     return Scaffold(
       backgroundColor: colors.surfacePage,
-      appBar: const AppNavBar(title: '应用锁'),
+      appBar: ReadableAppBar(child: const AppNavBar(title: '应用锁')),
       body: ReadableBody(
         child: Align(
           alignment: Alignment.topCenter,

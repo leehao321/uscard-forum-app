@@ -392,38 +392,183 @@ class ComposerReadingPadding extends StatelessWidget {
     required this.child,
     this.vertical = EdgeInsets.zero,
     this.minLeading,
+    this.minTrailing,
   });
   final Widget child;
   final EdgeInsets vertical;
   final double? minLeading;
+
+  /// 右侧留白下限；默认取 [ComposerReadingGutter]（页边距 20），页头这类自己带内边距的传 0
+  final double? minTrailing;
   @override
   Widget build(BuildContext context) {
-    final side = composerReadingSide(context);
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        math.max(minLeading ?? ComposerReadingGutter.of(context), side.left),
-        vertical.top,
-        math.max(ComposerReadingGutter.trailingOf(context), side.right),
-        vertical.bottom,
-      ),
+    final size = MediaQuery.sizeOf(context);
+    final safe = MediaQuery.paddingOf(context);
+    final phoneLandscape =
+        size.shortestSide < 600 &&
+        size.width - safe.left - safe.right >= kReadableMaxWidth;
+    return _AdaptiveReadingPadding(
+      minLeft: minLeading ?? ComposerReadingGutter.of(context),
+      minRight: minTrailing ?? ComposerReadingGutter.trailingOf(context),
+      vertical: vertical,
+      // 手机横屏：按这块区域自己的宽度居中 640（回复半屏本身只有 640 宽，不能再按屏宽留白）；
+      // 其余：按屏宽居中 800，和原来一样
+      centerWidth: phoneLandscape ? kReadableMaxWidth : null,
+      screenSide: math.max(0.0, (size.width - 800) / 2),
       child: child,
     );
   }
 }
 
-/// 编辑器正文列两侧的留白下限（不含页边距）：
-/// - **手机横屏**（短边 < 600、去掉安全区后宽 ≥ 640）：正文列限宽 640 居中（设计 §5.6，
-///   和阅读页同一条规则），两侧至少让开安全区；底部工具条的背景仍然横跨整个屏宽，
-///   里面的按钮另按 `readableInsets` 对齐这一列；
-/// - 其余（竖屏、平板、桌面）：列宽 800 居中，和原来一样。
-({double left, double right}) composerReadingSide(BuildContext context) {
-  final size = MediaQuery.sizeOf(context);
-  final safe = MediaQuery.paddingOf(context);
-  final available = size.width - safe.left - safe.right;
-  if (size.shortestSide < 600 && available >= kReadableMaxWidth) {
-    final side = (size.width - kReadableMaxWidth) / 2;
-    return (left: math.max(safe.left, side), right: math.max(safe.right, side));
+/// 左右留白随布局宽度变的 Padding。不用 LayoutBuilder：编辑器里有 IntrinsicHeight 一类
+/// 要量固有尺寸的父级，LayoutBuilder 不支持固有尺寸。
+class _AdaptiveReadingPadding extends SingleChildRenderObjectWidget {
+  const _AdaptiveReadingPadding({
+    required this.minLeft,
+    required this.minRight,
+    required this.vertical,
+    required this.centerWidth,
+    required this.screenSide,
+    required super.child,
+  });
+
+  final double minLeft;
+  final double minRight;
+  final EdgeInsets vertical;
+  final double? centerWidth;
+  final double screenSide;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderAdaptiveReadingPadding(
+        minLeft: minLeft,
+        minRight: minRight,
+        vertical: vertical,
+        centerWidth: centerWidth,
+        screenSide: screenSide,
+      );
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderAdaptiveReadingPadding renderObject,
+  ) {
+    renderObject
+      ..minLeft = minLeft
+      ..minRight = minRight
+      ..vertical = vertical
+      ..centerWidth = centerWidth
+      ..screenSide = screenSide;
   }
-  final side = math.max(0.0, (size.width - 800) / 2);
-  return (left: side, right: side);
+}
+
+class _RenderAdaptiveReadingPadding extends RenderShiftedBox {
+  _RenderAdaptiveReadingPadding({
+    required double minLeft,
+    required double minRight,
+    required EdgeInsets vertical,
+    required double? centerWidth,
+    required double screenSide,
+  }) : _minLeft = minLeft,
+       _minRight = minRight,
+       _vertical = vertical,
+       _centerWidth = centerWidth,
+       _screenSide = screenSide,
+       super(null);
+
+  double _minLeft;
+  double _minRight;
+  EdgeInsets _vertical;
+  double? _centerWidth;
+  double _screenSide;
+
+  set minLeft(double v) {
+    if (v == _minLeft) return;
+    _minLeft = v;
+    markNeedsLayout();
+  }
+
+  set minRight(double v) {
+    if (v == _minRight) return;
+    _minRight = v;
+    markNeedsLayout();
+  }
+
+  set vertical(EdgeInsets v) {
+    if (v == _vertical) return;
+    _vertical = v;
+    markNeedsLayout();
+  }
+
+  set centerWidth(double? v) {
+    if (v == _centerWidth) return;
+    _centerWidth = v;
+    markNeedsLayout();
+  }
+
+  set screenSide(double v) {
+    if (v == _screenSide) return;
+    _screenSide = v;
+    markNeedsLayout();
+  }
+
+  EdgeInsets _padding(double maxWidth) {
+    final side = _centerWidth != null && maxWidth.isFinite
+        ? math.max(0.0, (maxWidth - _centerWidth!) / 2)
+        : _screenSide;
+    return EdgeInsets.fromLTRB(
+      math.max(_minLeft, side),
+      _vertical.top,
+      math.max(_minRight, side),
+      _vertical.bottom,
+    );
+  }
+
+  @override
+  double computeMinIntrinsicWidth(double height) =>
+      (child?.getMinIntrinsicWidth(height) ?? 0) + _minLeft + _minRight;
+
+  @override
+  double computeMaxIntrinsicWidth(double height) =>
+      (child?.getMaxIntrinsicWidth(height) ?? 0) + _minLeft + _minRight;
+
+  @override
+  double computeMinIntrinsicHeight(double width) {
+    final p = _padding(width);
+    return (child?.getMinIntrinsicHeight(math.max(0.0, width - p.horizontal)) ??
+            0) +
+        p.vertical;
+  }
+
+  @override
+  double computeMaxIntrinsicHeight(double width) {
+    final p = _padding(width);
+    return (child?.getMaxIntrinsicHeight(math.max(0.0, width - p.horizontal)) ??
+            0) +
+        p.vertical;
+  }
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) {
+    final p = _padding(constraints.maxWidth);
+    final childSize = child?.getDryLayout(constraints.deflate(p)) ?? Size.zero;
+    return constraints.constrain(
+      Size(childSize.width + p.horizontal, childSize.height + p.vertical),
+    );
+  }
+
+  @override
+  void performLayout() {
+    final p = _padding(constraints.maxWidth);
+    final c = child;
+    if (c == null) {
+      size = constraints.constrain(Size(p.horizontal, p.vertical));
+      return;
+    }
+    c.layout(constraints.deflate(p), parentUsesSize: true);
+    (c.parentData! as BoxParentData).offset = Offset(p.left, p.top);
+    size = constraints.constrain(
+      Size(c.size.width + p.horizontal, c.size.height + p.vertical),
+    );
+  }
 }

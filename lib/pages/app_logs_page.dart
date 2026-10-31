@@ -896,7 +896,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.tokens.colors.surfacePage,
-      appBar: _buildAppBar(),
+      appBar: ReadableAppBar(child: _buildAppBar()),
       body: ReadableBody(child: _buildBody()),
     );
   }

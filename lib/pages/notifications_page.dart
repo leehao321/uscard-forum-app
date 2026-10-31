@@ -170,7 +170,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
 
     if (!isLoggedIn) {
       return Scaffold(
-        appBar: navBar,
+        appBar: ReadableAppBar(child: navBar),
         body: ReadableBody(
           child: AppStateView(
             icon: AppIcons.notificationOff,
@@ -186,7 +186,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     }
 
     final list = Scaffold(
-      appBar: navBar,
+      appBar: ReadableAppBar(child: navBar),
       body: ReadableBody(
         child: Column(
           children: [

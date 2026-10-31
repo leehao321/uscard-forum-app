@@ -70,7 +70,7 @@ class _PromptPresetEditPageState extends ConsumerState<PromptPresetEditPage> {
     final isImage = _type == PromptType.image;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: ReadableAppBar(child: AppBar(
         title: Text(_isEditing
             ? AiL10n.current.quickPromptsEditTitle
             : AiL10n.current.quickPromptsCreateTitle),
@@ -80,7 +80,7 @@ class _PromptPresetEditPageState extends ConsumerState<PromptPresetEditPage> {
             child: Text(AiL10n.current.save),
           ),
         ],
-      ),
+      )),
       body: ReadableBody(
           child: Form(
         key: _formKey,
