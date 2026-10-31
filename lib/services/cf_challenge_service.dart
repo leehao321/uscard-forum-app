@@ -5,6 +5,7 @@ import 'dart:math' as math;
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -305,7 +306,7 @@ class CfChallengeService {
       useRootNavigator: true,
       builder: (dialogContext) {
         final theme = Theme.of(dialogContext);
-        return AlertDialog(
+        return AppAlertDialog(
           title: Text(S.current.cf_sessionCompatTitle),
           // 三个动作横排放不下(中文约 360px、英文约 500px,而对话框可用宽度
           // 只有 280~320px,OverflowBar 会自动竖排,把"取消"顶到最上面、
@@ -2543,7 +2544,7 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
                 ),
               ),
               Center(
-                child: AlertDialog(
+                child: AppAlertDialog(
                   title: Text(context.l10n.cf_abandonVerifyTitle),
                   content: Text(context.l10n.cf_abandonVerifyMessage),
                   actions: [
@@ -2576,7 +2577,7 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
                 ),
               ),
               Center(
-                child: AlertDialog(
+                child: AppAlertDialog(
                   title: Text(context.l10n.cf_helpTitle),
                   content: Text(context.l10n.cf_helpContent),
                   actions: [
@@ -2804,7 +2805,8 @@ class _ChallengeFallbackOverlayState extends State<_ChallengeFallbackOverlay>
             spacing: 8,
             runSpacing: 4,
             children: [
-              FilledButton.tonalIcon(
+              FilledButton.icon(
+                style: AppButtonStyles.secondary(context),
                 onPressed: widget.onRetry,
                 icon: const Icon(Symbols.refresh_rounded, size: 18),
                 label: Text(l10n.cf_retryVerificationAction),

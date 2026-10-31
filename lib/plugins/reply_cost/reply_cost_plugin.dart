@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 
 import '../../l10n/s.dart';
 import '../../utils/dialog_utils.dart';
@@ -42,7 +43,7 @@ class ReplyCostPlugin extends SitePlugin {
 
     final confirmed = await showAppDialog<bool>(
       context: context.context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => AppAlertDialog(
         title: Text(dialogContext.l10n.common_hint),
         content: Text(dialogContext.l10n.replyCost_confirm(cost)),
         actions: [

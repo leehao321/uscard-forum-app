@@ -4,6 +4,7 @@ import 'reading_stats_page.dart';
 import '../constants.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -208,7 +209,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   Future<void> _logout() async {
     final confirmed = await showAppDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Text(context.l10n.profile_confirmLogout),
         content: Text(context.l10n.profile_logoutContent),
         actions: [

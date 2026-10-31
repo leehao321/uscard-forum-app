@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:ai_model_manager/ai_model_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -289,7 +290,7 @@ class _AiPostReviewButtonState extends ConsumerState<AiPostReviewButton> {
   Future<_ChangedContentAction?> _showChangedContentChoice() {
     return showAppDialog<_ChangedContentAction>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => AppAlertDialog(
         title: Text(context.l10n.aiPostReview_contentChangedTitle),
         content: Text(context.l10n.aiPostReview_contentChangedDesc),
         actions: [
@@ -462,7 +463,8 @@ class _AiPostReviewPopover extends StatelessWidget {
             const SizedBox(height: 14),
             Align(
               alignment: Alignment.centerRight,
-              child: FilledButton.tonalIcon(
+              child: FilledButton.icon(
+                style: AppButtonStyles.secondary(context),
                 onPressed: onReviewAgain,
                 icon: const Icon(Symbols.refresh_rounded, size: 18),
                 label: Text(context.l10n.aiPostReview_reviewAgain),

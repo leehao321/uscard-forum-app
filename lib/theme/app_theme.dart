@@ -95,6 +95,19 @@ ThemeData buildAppTheme({
   TextStyle styled(TextStyle token, Color color) =>
       fontBase.merge(token).copyWith(color: color);
 
+  // 按钮最小高就是 44，不再让 Material 额外补到 48 的点按区
+  final secondaryButton = ButtonStyle(
+    minimumSize: const WidgetStatePropertyAll(Size(64, AppSize.hit)),
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    shape: const WidgetStatePropertyAll(StadiumBorder()),
+    side: const WidgetStatePropertyAll(BorderSide.none),
+    elevation: const WidgetStatePropertyAll(0),
+    textStyle: WidgetStatePropertyAll(fontBase.merge(t.control)),
+    backgroundColor: WidgetStatePropertyAll(c.avatarFill),
+    foregroundColor: _DisabledOr(c.textMeta, c.textPrimary),
+    iconColor: _DisabledOr(c.textMeta, c.textPrimary),
+  );
+
   final menuSide = brightness == Brightness.light
       ? BorderSide(color: c.separator, width: AppSpace.hairline)
       : BorderSide.none;
@@ -109,7 +122,10 @@ ThemeData buildAppTheme({
     canvasColor: c.surfacePage,
     dividerColor: c.separator,
     iconTheme: IconThemeData(color: c.textPrimary, size: AppSize.iconL),
-    primaryIconTheme: IconThemeData(color: scheme.onPrimary, size: AppSize.iconL),
+    primaryIconTheme: IconThemeData(
+      color: scheme.onPrimary,
+      size: AppSize.iconL,
+    ),
     cupertinoOverrideTheme: NoDefaultCupertinoThemeData(
       primaryColor: c.brandPrimary,
       scaffoldBackgroundColor: c.surfacePage,
@@ -205,13 +221,13 @@ ThemeData buildAppTheme({
       elevation: 0,
       color: c.surfaceGrouped,
       surfaceTintColor: const Color(0x00000000),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(r.card)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(r.card),
+      ),
       margin: EdgeInsets.zero,
     ),
     popupMenuTheme: PopupMenuThemeData(
-      color: brightness == Brightness.light
-          ? c.surfacePage
-          : c.surfaceElevated,
+      color: brightness == Brightness.light ? c.surfacePage : c.surfaceElevated,
       surfaceTintColor: const Color(0x00000000),
       elevation: 3,
       shadowColor: const Color(0xFF000000),
@@ -220,6 +236,9 @@ ThemeData buildAppTheme({
         side: menuSide,
       ),
       textStyle: styled(t.control, c.textPrimary),
+      labelTextStyle: WidgetStatePropertyAll(styled(t.control, c.textPrimary)),
+      iconColor: c.textPrimary,
+      iconSize: AppSize.iconM,
       menuPadding: EdgeInsets.zero,
     ),
     snackBarTheme: SnackBarThemeData(
@@ -235,17 +254,32 @@ ThemeData buildAppTheme({
       hintStyle: styled(t.control, c.textMeta),
       focusColor: c.brandPrimary,
     ),
-    // 颜色跟 ColorScheme（primary）；主 / 次按钮分色在共享组件里做（M2）
+    // 主按钮 brand/button 白字；次按钮（OutlinedButton / ElevatedButton，
+    // 以及 FilledButton + AppButtonStyles.secondary）avatar/fill 底、
+    // text/primary 字；文字按钮 brand/primary（设计说明 §4）。
+    // FilledButton.tonal 和 FilledButton 共用这一份主题，所以不用 tonal。
     filledButtonTheme: FilledButtonThemeData(
       style: ButtonStyle(
         minimumSize: const WidgetStatePropertyAll(Size(64, AppSize.hit)),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: const WidgetStatePropertyAll(StadiumBorder()),
         textStyle: WidgetStatePropertyAll(fontBase.merge(t.control)),
+        backgroundColor: _DisabledOr(c.avatarFill, c.brandButton),
+        foregroundColor: _DisabledOr(c.textMeta, c.onBrandButton),
+        iconColor: _DisabledOr(c.textMeta, c.onBrandButton),
       ),
     ),
+    outlinedButtonTheme: OutlinedButtonThemeData(style: secondaryButton),
+    elevatedButtonTheme: ElevatedButtonThemeData(style: secondaryButton),
     textButtonTheme: TextButtonThemeData(
       style: ButtonStyle(
+        minimumSize: const WidgetStatePropertyAll(
+          Size(AppSize.hit, AppSize.hit),
+        ),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         textStyle: WidgetStatePropertyAll(fontBase.merge(t.control)),
+        foregroundColor: _DisabledOr(c.textMeta, c.brandPrimary),
+        iconColor: _DisabledOr(c.textMeta, c.brandPrimary),
       ),
     ),
     extensions: [
@@ -255,13 +289,13 @@ ThemeData buildAppTheme({
       SegmentedCardGroupStyle(
         insetGrouped: true,
         radius: r.card,
-        // 行 pad 0 12：无图标时分隔线对齐 12，有图标时对齐文字起点。
-        // 设计是 20 的图标 → 44；现有行还是全局 24 的图标 → 48，
-        // M2 分组列表换皮改用 20 图标时一起改成 44。
+        // 行 pad 0 12、组内图标 20：无图标时分隔线对齐 12，有图标时对齐
+        // 文字起点 12 + 20 + 12 = 44（设计说明 §4「分组列表」）
         separatorIndent: AppSpace.m,
-        leadingSeparatorIndent: AppSpace.m + AppSize.iconL + AppSpace.m,
+        leadingSeparatorIndent: AppSpace.m + AppSize.iconM + AppSpace.m,
         separatorColor: c.separator,
-        cellColor: c.surfaceGrouped,
+        // 不写死底色：取 cardTheme.color，半屏里换成 surface/elevated
+        // （AppSheetScaffold.innerTheme）
       ),
       AppSheetShellStyle(topRadius: r.sheet, titleStyle: t.control),
     ],
@@ -292,6 +326,28 @@ class _SelectedOr<T> implements WidgetStateProperty<T> {
 
   @override
   int get hashCode => Object.hash(selected, other);
+}
+
+/// 不可用 / 可用两个取值的 WidgetStateProperty（理由同 [_SelectedOr]）
+@immutable
+class _DisabledOr<T> implements WidgetStateProperty<T> {
+  const _DisabledOr(this.disabled, this.other);
+
+  final T disabled;
+  final T other;
+
+  @override
+  T resolve(Set<WidgetState> states) =>
+      states.contains(WidgetState.disabled) ? disabled : other;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _DisabledOr<T> &&
+      other.disabled == disabled &&
+      other.other == this.other;
+
+  @override
+  int get hashCode => Object.hash(disabled, other);
 }
 
 /// 所有平台都直接用主题里的 [SwitchThemeData]（框架默认在 iOS / macOS 上

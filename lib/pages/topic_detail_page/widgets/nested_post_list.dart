@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:app_icons/app_icons.dart';
@@ -664,7 +665,8 @@ class _NestedPostListState extends ConsumerState<NestedPostList> {
                         horizontal: 16,
                         vertical: 4,
                       ),
-                      child: FilledButton.tonal(
+                      child: FilledButton(
+                        style: AppButtonStyles.secondary(context),
                         onPressed: _loadNewRoots,
                         child: Text(
                           context.l10n.nested_newReplies(

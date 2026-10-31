@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:app_icons/app_icons.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/s.dart';
@@ -41,12 +42,8 @@ class SettingsRenderer extends ConsumerWidget {
     return SwitchListTile.adaptive(
       title: Text(m.title),
       subtitle: subtitle != null ? Text(subtitle) : null,
-      secondary: Icon(
-        m.icon,
-        color: value
-            ? theme.colorScheme.primary
-            : theme.colorScheme.onSurfaceVariant,
-      ),
+      // v2 分组列表：前导图标 20 brand/primary（组内 IconTheme 给尺寸）
+      secondary: Icon(m.icon, color: context.tokens.colors.brandPrimary),
       value: value,
       onChanged: (v) {
         HapticFeedback.selectionClick();
@@ -69,7 +66,7 @@ class SettingsRenderer extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(m.icon, color: theme.colorScheme.primary),
+              Icon(m.icon, color: context.tokens.colors.brandPrimary),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -122,7 +119,7 @@ class SettingsRenderer extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          Icon(m.icon, size: 22, color: theme.colorScheme.onSurfaceVariant),
+          Icon(m.icon, color: context.tokens.colors.brandPrimary),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -172,8 +169,9 @@ class SettingsRenderer extends ConsumerWidget {
     final dynamicSub = m.getDynamicSubtitle?.call(ref);
     final displaySub = dynamicSub ?? m.subtitle;
 
+    final colors = context.tokens.colors;
     return ListTile(
-      leading: Icon(m.icon, color: theme.colorScheme.onSurfaceVariant),
+      leading: Icon(m.icon, color: colors.brandPrimary),
       title: Text(m.title),
       subtitle: displaySub != null
           ? Text(
@@ -182,13 +180,13 @@ class SettingsRenderer extends ConsumerWidget {
               overflow: m.wrapSubtitle
                   ? TextOverflow.visible
                   : TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 12,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
             )
           : null,
-      trailing: Icon(Symbols.chevron_right_rounded, color: theme.colorScheme.onSurfaceVariant),
+      trailing: Icon(
+        AppIcons.chevronRight,
+        size: AppSize.iconS,
+        color: colors.textMeta,
+      ),
       onTap: () => m.onTap(context, ref),
     );
   }

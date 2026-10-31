@@ -4,17 +4,27 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxdo/services/local_notification_service.dart';
 import 'package:fluxdo/services/toast_service.dart';
 
-/// 入场 560ms、退场 300ms，多给一点余量
+// 0.4.0（v2）：Toast 在屏幕下方、工具栏上方，胶囊材质；进度提示占着底部
+// 槽位时普通提示排在它上方让位（以前在顶部，方向相反）。
+
+/// 入场 220ms、退场 180ms，多给一点余量
 const _enter = Duration(milliseconds: 700);
 const _exit = Duration(milliseconds: 400);
 
-Future<void> _pumpHost(WidgetTester tester, {bool glass = true}) {
+Future<void> _pumpHost(
+  WidgetTester tester, {
+  TranslucencyTier translucency = TranslucencyTier.standard,
+}) {
   return tester.pumpWidget(
     MaterialApp(
       navigatorKey: navigatorKey,
-      builder: (context, child) => GlassSettingsScope(
-        settings: GlassSettings(enabled: glass),
-        child: child!,
+      theme: ThemeData(
+        extensions: [
+          AppTokens.resolve(
+            brightness: Brightness.light,
+            tiers: AppearanceTiers(translucency: translucency),
+          ),
+        ],
       ),
       home: const Scaffold(body: SizedBox.expand()),
     ),
@@ -61,23 +71,23 @@ void main() {
     expect(find.text('FluxDO.apk'), findsOneWidget);
     expect(find.text('50%'), findsOneWidget);
 
-    // 下载进行中：普通提示不再被丢弃，而是排在进度胶囊下方让位
+    // 下载进行中：普通提示不再被丢弃，而是排在进度胶囊上方让位
     ToastService.showInfo('下载时也能看到');
     await tester.pump();
     await tester.pump(_enter);
     final progressTop = tester.getTopLeft(
       find.ancestor(
         of: find.text('FluxDO.apk'),
-        matching: find.byType(GlassSurfaceFrame),
+        matching: find.byType(CapsuleSurface),
       ),
     ).dy;
     final noticeTop = tester.getTopLeft(
       find.ancestor(
         of: find.text('下载时也能看到'),
-        matching: find.byType(GlassSurfaceFrame),
+        matching: find.byType(CapsuleSurface),
       ),
     ).dy;
-    expect(noticeTop, greaterThan(progressTop + 40));
+    expect(noticeTop, lessThan(progressTop - 40));
 
     // 让它按自己的时长消失，后面的断言只针对下载胶囊
     await tester.pump(const Duration(seconds: 3));
@@ -86,7 +96,7 @@ void main() {
 
     final overlayChild = find.ancestor(
       of: find.text('FluxDO.apk'),
-      matching: find.byType(GlassSurfaceFrame),
+      matching: find.byType(CapsuleSurface),
     );
     final frameBefore = tester.element(overlayChild);
 
@@ -108,7 +118,7 @@ void main() {
       tester.element(
         find.ancestor(
           of: find.text('下载完成'),
-          matching: find.byType(GlassSurfaceFrame),
+          matching: find.byType(CapsuleSurface),
         ),
       ),
       same(frameBefore),
@@ -146,8 +156,8 @@ void main() {
     await tester.pump(_exit);
   });
 
-  testWidgets('玻璃开关决定是否模糊背景', (tester) async {
-    await _pumpHost(tester, glass: false);
+  testWidgets('半透明档「关」时不模糊，其他档模糊', (tester) async {
+    await _pumpHost(tester, translucency: TranslucencyTier.off);
     ToastService.showSuccess('实色');
     await tester.pump();
     await tester.pump(_enter);
@@ -157,7 +167,7 @@ void main() {
     await tester.pump(_exit);
 
     await _pumpHost(tester);
-    ToastService.showSuccess('玻璃');
+    ToastService.showSuccess('半透明');
     await tester.pump();
     await tester.pump(_enter);
     expect(find.byType(BackdropFilter), findsWidgets);
@@ -165,45 +175,45 @@ void main() {
     await tester.pump(_exit);
   });
 
-  testWidgets('进度胶囊退场时插入新提示，排在下方且不重叠', (tester) async {
+  testWidgets('进度胶囊退场时插入新提示，排在上方且不重叠', (tester) async {
     await _pumpHost(tester);
 
     final handle = ToastService.showDownload('a.apk');
     await tester.pump();
     await tester.pump(_enter);
-    expect(find.byType(GlassSurfaceFrame), findsOneWidget);
+    expect(find.byType(CapsuleSurface), findsOneWidget);
 
     handle.dismiss();
     ToastService.showError('下载失败');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
-    // 退场中的进度胶囊还在，新提示排在它下面 —— 重叠在同一位置才是 bug
+    // 退场中的进度胶囊还在，新提示排在它上面 —— 重叠在同一位置才是 bug
     final leavingTop = tester.getTopLeft(
       find.ancestor(
         of: find.text('a.apk'),
-        matching: find.byType(GlassSurfaceFrame),
+        matching: find.byType(CapsuleSurface),
       ),
     ).dy;
     final arrivingTop = tester.getTopLeft(
       find.ancestor(
         of: find.text('下载失败'),
-        matching: find.byType(GlassSurfaceFrame),
+        matching: find.byType(CapsuleSurface),
       ),
     ).dy;
-    expect(arrivingTop, greaterThan(leavingTop + 40));
+    expect(arrivingTop, lessThan(leavingTop - 40));
 
-    // 退场结束：只剩新提示，并且升回顶部
+    // 退场结束：只剩新提示，并且落回底部槽位
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pump(const Duration(milliseconds: 400));
-    expect(tester.widgetList(find.byType(GlassSurfaceFrame)).length, 1);
+    expect(tester.widgetList(find.byType(CapsuleSurface)).length, 1);
     expect(find.text('a.apk'), findsNothing);
     final settledTop = tester.getTopLeft(
       find.ancestor(
         of: find.text('下载失败'),
-        matching: find.byType(GlassSurfaceFrame),
+        matching: find.byType(CapsuleSurface),
       ),
     ).dy;
-    expect(settledTop, lessThan(arrivingTop));
+    expect(settledTop, greaterThan(arrivingTop));
 
     await tester.pump(const Duration(seconds: 5));
     await tester.pump(_exit);
@@ -219,7 +229,7 @@ void main() {
     final surface = tester.element(
       find.ancestor(
         of: find.text('a.apk'),
-        matching: find.byType(GlassSurfaceFrame),
+        matching: find.byType(CapsuleSurface),
       ),
     );
 
@@ -234,7 +244,7 @@ void main() {
       tester.element(
         find.ancestor(
           of: find.text('下载失败'),
-          matching: find.byType(GlassSurfaceFrame),
+          matching: find.byType(CapsuleSurface),
         ),
       ),
       same(surface),
@@ -258,7 +268,7 @@ void main() {
     // 模拟上层整体替换 widget 树（例如登出、切换 navigator）
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.byType(GlassSurfaceFrame), findsNothing);
+    expect(find.byType(CapsuleSurface), findsNothing);
 
     // 残留状态要能自愈：换回正常树后，新 Toast 仍可用
     await _pumpHost(tester);
@@ -270,7 +280,7 @@ void main() {
     await tester.pump(_exit);
   });
 
-  testWidgets('下载中普通提示下移让位，下载结束后升回原位', (tester) async {
+  testWidgets('下载中普通提示上移让位，下载结束后落回原位', (tester) async {
     await _pumpHost(tester);
 
     final handle = ToastService.showDownload('a.apk');
@@ -280,11 +290,11 @@ void main() {
     ToastService.showInfo('下载中的提示');
     await tester.pump();
     await tester.pump(_enter);
-    expect(tester.widgetList(find.byType(GlassSurfaceFrame)).length, 2);
+    expect(tester.widgetList(find.byType(CapsuleSurface)).length, 2);
     final stackedTop = tester.getTopLeft(
       find.ancestor(
         of: find.text('下载中的提示'),
-        matching: find.byType(GlassSurfaceFrame),
+        matching: find.byType(CapsuleSurface),
       ),
     ).dy;
 
@@ -292,14 +302,14 @@ void main() {
     await tester.pump();
     await tester.pump(_exit); // 胶囊退场
     await tester.pump(const Duration(milliseconds: 400)); // 让位动画走完
-    expect(tester.widgetList(find.byType(GlassSurfaceFrame)).length, 1);
+    expect(tester.widgetList(find.byType(CapsuleSurface)).length, 1);
     final liftedTop = tester.getTopLeft(
       find.ancestor(
         of: find.text('下载中的提示'),
-        matching: find.byType(GlassSurfaceFrame),
+        matching: find.byType(CapsuleSurface),
       ),
     ).dy;
-    expect(liftedTop, lessThan(stackedTop));
+    expect(liftedTop, greaterThan(stackedTop));
 
     await tester.pump(const Duration(seconds: 3));
     await tester.pump(_exit);
@@ -319,7 +329,7 @@ void main() {
     await tester.pump(_enter);
     expect(find.text('第一条提示'), findsNothing);
     expect(find.text('第二条提示'), findsOneWidget);
-    expect(tester.widgetList(find.byType(GlassSurfaceFrame)).length, 2);
+    expect(tester.widgetList(find.byType(CapsuleSurface)).length, 2);
 
     handle.dismiss();
     await tester.pump(const Duration(milliseconds: 400));
@@ -336,7 +346,7 @@ void main() {
     final before = tester.element(
       find.ancestor(
         of: find.text('已复制到剪贴板'),
-        matching: find.byType(GlassSurfaceFrame),
+        matching: find.byType(CapsuleSurface),
       ),
     );
 
@@ -348,7 +358,7 @@ void main() {
       tester.element(
         find.ancestor(
           of: find.text('已复制到剪贴板'),
-          matching: find.byType(GlassSurfaceFrame),
+          matching: find.byType(CapsuleSurface),
         ),
       ),
       same(before),
@@ -378,51 +388,51 @@ void main() {
     expect(find.text('下载失败'), findsNothing);
   });
 
-  testWidgets('先有普通提示再开始下载，提示下移让位且下载照常', (tester) async {
+  testWidgets('先有普通提示再开始下载，提示上移让位且下载照常', (tester) async {
     await _pumpHost(tester);
 
     ToastService.showInfo('先来的提示');
     await tester.pump();
     await tester.pump(_enter);
 
-    // 下载开始时，已有的提示挪到下方让位，而不是被收掉
+    // 下载开始时，已有的提示挪到上方让位，而不是被收掉
     final handle = ToastService.showDownload('a.apk');
     await tester.pump();
     await tester.pump(_enter);
     expect(find.text('先来的提示'), findsOneWidget);
-    expect(tester.widgetList(find.byType(GlassSurfaceFrame)).length, 2);
+    expect(tester.widgetList(find.byType(CapsuleSurface)).length, 2);
     final noticeTop = tester.getTopLeft(
       find.ancestor(
         of: find.text('先来的提示'),
-        matching: find.byType(GlassSurfaceFrame),
+        matching: find.byType(CapsuleSurface),
       ),
     ).dy;
     final progressTop = tester.getTopLeft(
       find.ancestor(
         of: find.text('a.apk'),
-        matching: find.byType(GlassSurfaceFrame),
+        matching: find.byType(CapsuleSurface),
       ),
     ).dy;
-    expect(noticeTop, greaterThan(progressTop + 40));
+    expect(noticeTop, lessThan(progressTop - 40));
 
     // 进度照常更新
     handle.updateProgress(0.4);
     await tester.pump();
     expect(find.text('40%'), findsOneWidget);
 
-    // 下载结束：提示升回顶部
+    // 下载结束：提示落回底部槽位
     handle.dismiss();
     await tester.pump();
     await tester.pump(_exit);
     await tester.pump(const Duration(milliseconds: 400));
-    expect(tester.widgetList(find.byType(GlassSurfaceFrame)).length, 1);
+    expect(tester.widgetList(find.byType(CapsuleSurface)).length, 1);
     final liftedTop = tester.getTopLeft(
       find.ancestor(
         of: find.text('先来的提示'),
-        matching: find.byType(GlassSurfaceFrame),
+        matching: find.byType(CapsuleSurface),
       ),
     ).dy;
-    expect(liftedTop, lessThan(noticeTop));
+    expect(liftedTop, greaterThan(noticeTop));
 
     await tester.pump(const Duration(seconds: 3));
     await tester.pump(_exit);

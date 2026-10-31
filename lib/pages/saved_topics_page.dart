@@ -1,5 +1,6 @@
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 
 import '../services/ai_translation_service.dart';
 import '../services/toast_service.dart';
@@ -61,7 +62,7 @@ class _SavedTopicsPageState extends State<SavedTopicsPage> {
   Future<void> _confirmClear() async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: const Text('清空已存帖子'),
         content: Text('将删除本机保存的 ${_all.length} 个话题，不影响论坛上的内容。'),
         actions: [

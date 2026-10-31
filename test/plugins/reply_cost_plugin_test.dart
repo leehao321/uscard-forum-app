@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -154,13 +155,13 @@ void main() {
     testWidgets('无 reply_cost 时直接放行且不弹框', (tester) async {
       final allowed = await _runHook(tester, extras: const {});
       expect(allowed, isTrue);
-      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byType(AppAlertDialog), findsNothing);
     });
 
     testWidgets('reply_cost <= 0 时直接放行', (tester) async {
       final allowed = await _runHook(tester, extras: const {'reply_cost': 0});
       expect(allowed, isTrue);
-      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byType(AppAlertDialog), findsNothing);
     });
 
     testWidgets('编辑帖子时不拦截（对齐 editingPost）', (tester) async {
@@ -170,7 +171,7 @@ void main() {
         isEditing: true,
       );
       expect(allowed, isTrue);
-      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byType(AppAlertDialog), findsNothing);
     });
 
     testWidgets('reply_cost > 0 且用户确认时放行', (tester) async {
@@ -179,7 +180,8 @@ void main() {
         extras: const {'reply_cost': 20},
         onDialog: (t) async {
           expect(find.textContaining('20'), findsOneWidget);
-          await t.tap(find.byType(FilledButton));
+          // v2 对话框：按钮行里第二个是确认
+          await t.tap(find.byType(AppDialogAction).last);
         },
       );
       expect(allowed, isTrue);
@@ -190,7 +192,7 @@ void main() {
         tester,
         extras: const {'reply_cost': 20},
         onDialog: (t) async {
-          await t.tap(find.byType(TextButton));
+          await t.tap(find.byType(AppDialogAction).first);
         },
       );
       expect(allowed, isFalse);

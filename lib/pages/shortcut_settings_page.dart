@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -28,7 +29,7 @@ class ShortcutSettingsPage extends ConsumerWidget {
           onPressed: () async {
             final confirmed = await showDialog<bool>(
               context: context,
-              builder: (ctx) => AlertDialog(
+              builder: (ctx) => AppAlertDialog(
                 title: Text(l10n.shortcuts_resetAll),
                 actions: [
                   TextButton(

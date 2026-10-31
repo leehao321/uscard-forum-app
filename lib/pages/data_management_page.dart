@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cross_file/cross_file.dart';
@@ -217,7 +218,7 @@ class _CacheManagementSectionState
   }) {
     return showAppDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Text(title),
         content: Text(content),
         actions: [
@@ -568,7 +569,7 @@ class DataBackupSection extends ConsumerWidget {
     // 导出前敏感信息提示(备份 v2 含 API Key / 代理密码 / Notion Token)
     final confirmed = await showAppDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(S.current.dataManagement_exportConfirmTitle),
         content: Text(S.current.dataManagement_exportSensitiveWarning),
         actions: [
@@ -635,7 +636,7 @@ class DataBackupSection extends ConsumerWidget {
 
       final confirmed = await showAppDialog<bool>(
         context: context,
-        builder: (ctx) => AlertDialog(
+        builder: (ctx) => AppAlertDialog(
           title: Text(S.current.dataManagement_confirmImport),
           content: Text(details.toString()),
           actions: [

@@ -9,10 +9,10 @@ import '../../utils/dialog_utils.dart';
 // 即可继续拿到外壳组件。
 export 'package:common_ui/common_ui.dart' show AppSheetScaffold, AppSheetStyle;
 
-/// 底部弹框统一入口。内部走 [showAppBottomSheet](带背景模糊与快捷键 surface),
+/// 底部弹框统一入口。内部走 [showAppBottomSheet](v2 遮罩与快捷键 surface),
 /// 固定 `isScrollControlled: true` + 透明背景,并自动包裹 [AppSheetScaffold]。
 ///
-/// 入口依赖主 app 的偏好(模糊)与快捷键 surface,因此留在主 app;外壳组件
+/// 入口依赖主 app 的快捷键 surface,因此留在主 app;外壳组件
 /// [AppSheetScaffold] 是纯 UI、零依赖,放在 common_ui 供子包共用。
 abstract final class AppBottomSheet {
   /// 弹出统一外壳的底部弹框。内容由 [builder] 返回,无需自绘外壳。
@@ -27,11 +27,8 @@ abstract final class AppBottomSheet {
     bool showCloseButton = true,
     bool? showDragHandle,
     bool showTitleDivider = false,
-    EdgeInsetsGeometry contentPadding = const EdgeInsets.fromLTRB(
-      16,
-      0,
-      16,
-      16,
+    EdgeInsetsGeometry contentPadding = const EdgeInsets.symmetric(
+      horizontal: AppSpace.pageMargin,
     ),
     double maxHeightFactor = 0.9,
     bool isDismissible = true,

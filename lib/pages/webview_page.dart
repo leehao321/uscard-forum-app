@@ -476,7 +476,7 @@ class _WebViewPageState extends ConsumerState<WebViewPage> {
     try {
       await showAppDialog(
         context: context,
-        builder: (ctx) => AlertDialog(
+        builder: (ctx) => AppAlertDialog(
           title: Text(S.current.webview_inputUrl),
           content: TextField(
             controller: textController,

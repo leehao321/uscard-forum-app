@@ -349,11 +349,11 @@ void main() {
       await tester.tap(find.text('page A'));
       await tester.pumpAndSettle();
 
-      // 统一入口:_BlurModalBottomSheetRoute(私有类,按名字断言)
+      // 统一入口:AppBottomSheetRoute(common_ui,0.4.0 起去掉了模糊)
       await openSheet(tester, navigatorKey.currentContext!);
       expect(
         sheetRoute(tester).runtimeType.toString(),
-        contains('BlurModalBottomSheetRoute'),
+        contains('AppBottomSheetRoute'),
         reason:
             '统一入口应产出带探测器的 route。若这里变成 ModalBottomSheetRoute,'
             '说明调用点被改回裸用 showModalBottomSheet,预测返回会静默失效',

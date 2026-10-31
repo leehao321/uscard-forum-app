@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -116,7 +117,7 @@ class _AiChatHistoryPageState extends ConsumerState<AiChatHistoryPage> {
   void _confirmDeleteAll(BuildContext context) {
     showAppDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(AiL10n.current.clearAllConversations),
         content: Text(AiL10n.current.confirmDeleteAllSessions(_totalSessionCount)),
         actions: [
@@ -237,7 +238,7 @@ class _TopicGroupTile extends StatelessWidget {
   void _confirmDeleteTopic(BuildContext context, String topicTitle) {
     showAppDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(AiL10n.current.deleteTopicSessions),
         content: Text(AiL10n.current.confirmDeleteTopicSessions(topicTitle)),
         actions: [

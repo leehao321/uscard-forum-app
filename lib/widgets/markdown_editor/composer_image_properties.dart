@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 
 Future<String?> showComposerAltEditor(BuildContext context, String initial) =>
     showDialog<String>(
@@ -22,7 +23,7 @@ class _AltDialogState extends State<_AltDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
+  Widget build(BuildContext context) => AppAlertDialog(
     title: const Text('替代文本'),
     content: SizedBox(
       width: 400,

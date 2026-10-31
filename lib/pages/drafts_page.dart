@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/draft.dart';
@@ -335,7 +336,7 @@ class _DraftsPageState extends ConsumerState<DraftsPage> {
       builder: (dialogContext) {
         bool isDeleting = false;
         return StatefulBuilder(
-          builder: (dialogContext, setState) => AlertDialog(
+          builder: (dialogContext, setState) => AppAlertDialog(
             title: Text(dialogContext.l10n.drafts_deleteTitle),
             content: Text(dialogContext.l10n.drafts_deleteContent),
             actions: [

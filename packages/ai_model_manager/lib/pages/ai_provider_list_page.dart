@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -206,7 +207,7 @@ class _AiProviderListPageState extends ConsumerState<AiProviderListPage> {
   Future<void> _confirmDelete(BuildContext context, AiProvider provider) async {
     final confirmed = await showAppDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(AiL10n.current.confirmDelete),
         content: Text(AiL10n.current.confirmDeleteProvider(provider.name)),
         actions: [
@@ -232,7 +233,7 @@ class _AiProviderListPageState extends ConsumerState<AiProviderListPage> {
   Future<void> _confirmBatchDelete(BuildContext context) async {
     final confirmed = await showAppDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(AiL10n.current.confirmDelete),
         content: Text(
           AiL10n.current.confirmDeleteSelectedProviders(_selectedIds.length),

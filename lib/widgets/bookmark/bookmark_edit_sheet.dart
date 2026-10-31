@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 
 import 'package:dio/dio.dart';
@@ -16,7 +17,6 @@ import '../../services/toast_service.dart';
 import '../../services/app_error_handler.dart';
 import '../../utils/dialog_utils.dart';
 import '../../utils/time_utils.dart';
-import '../common/app_bottom_sheet.dart';
 import 'bookmark_name_edit_panel.dart';
 
 /// 书签编辑结果
@@ -239,7 +239,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
 
     final confirmed = await showAppDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(S.current.common_deleteBookmark),
         content: Text(S.current.bookmark_deleteConfirm),
         actions: [

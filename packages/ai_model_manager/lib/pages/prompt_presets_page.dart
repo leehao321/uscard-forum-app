@@ -186,7 +186,7 @@ class _PromptPresetsPageState extends ConsumerState<PromptPresetsPage> {
   Future<void> _confirmReset() async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         content: Text(AiL10n.current.quickPromptsResetBuiltInsConfirm),
         actions: [
           TextButton(
@@ -278,7 +278,7 @@ class _PromptPresetsPageState extends ConsumerState<PromptPresetsPage> {
     if (!mounted) return;
     final confirmed = await showAppDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(AiL10n.current.presetImportPreview),
         content: SizedBox(
           width: double.maxFinite,
@@ -576,7 +576,7 @@ class _ReorderableGroupState extends ConsumerState<_ReorderableGroup> {
   Future<bool> _confirmDelete(BuildContext context, String name) async {
     final result = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         content: Text(AiL10n.current.quickPromptsDeleteConfirm(name)),
         actions: [
           TextButton(

@@ -7,6 +7,7 @@ import 'package:fluxdo/widgets/markdown_editor/composer_draft_status.dart';
 import '../../utils/platform_utils.dart';
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -695,7 +696,7 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
   Future<void> _discardDraft() async {
     final confirm = await showAppDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Text(context.l10n.post_discardTitle),
         content: Text(context.l10n.post_discardConfirm),
         actions: [
@@ -927,7 +928,7 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
   void _showError(String message) {
     showAppDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Text(context.l10n.common_hint),
         content: Text(message),
         actions: [

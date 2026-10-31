@@ -1046,7 +1046,8 @@ class _UserCardContentState extends ConsumerState<_UserCardContent> {
               icon: const Icon(Symbols.how_to_reg_rounded, size: 18),
               label: Text(S.current.userProfile_followed),
             )
-          : FilledButton.tonalIcon(
+          : FilledButton.icon(
+              style: AppButtonStyles.secondary(context),
               onPressed: _followLoading ? null : _toggleFollow,
               icon: const Icon(Symbols.person_add_alt_rounded, size: 18),
               label: Text(S.current.userProfile_follow),

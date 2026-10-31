@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -150,7 +151,7 @@ void main() {
     expect(tester.takeException(), isNull);
     await tester.tap(find.text('关闭'));
     await tester.pumpAndSettle();
-    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(AppAlertDialog), findsNothing);
   });
 
   testWidgets('共用帖子底部在操作栏前显示来源，缺少来源时隐藏', (tester) async {

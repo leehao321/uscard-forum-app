@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 
 import '../../../../l10n/s.dart';
 import '../../../../utils/dialog_utils.dart';
@@ -24,7 +25,7 @@ class PostDeviceSource extends StatelessWidget {
         child: TextButton(
           onPressed: () => showAppDialog<void>(
             context: context,
-            builder: (context) => AlertDialog(
+            builder: (context) => AppAlertDialog(
               title: Text(context.l10n.post_deviceSourceTitle),
               content: SingleChildScrollView(child: SelectableText(label)),
               actions: [

@@ -202,7 +202,7 @@ class _PostRevisionViewState extends ConsumerState<PostRevisionView> {
       context: context,
       builder: (dialogContext) {
         final theme = Theme.of(dialogContext);
-        return AlertDialog(
+        return AppAlertDialog(
           title: Text(title),
           content: Text(body),
           actions: [

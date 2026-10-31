@@ -129,7 +129,7 @@ extension _UserActions on _TopicDetailPageState {
       builder: (dialogContext) {
         bool isDeleting = false;
         return StatefulBuilder(
-          builder: (dialogContext, setState) => AlertDialog(
+          builder: (dialogContext, setState) => AppAlertDialog(
             title: Text(confirmTitle),
             content: Text(confirmContent),
             actions: [
@@ -983,7 +983,7 @@ extension _UserActions on _TopicDetailPageState {
 
     final confirmed = await showAppDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => AppAlertDialog(
         title: Text(
           isSelf ? context.l10n.common_exit : context.l10n.common_remove,
         ),
@@ -1058,7 +1058,7 @@ extension _UserActions on _TopicDetailPageState {
 
     final confirmed = await showAppDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => AppAlertDialog(
         title: Text(context.l10n.common_remove),
         content: Text(
           context.l10n.topicDetail_removePrivateMessageGroupConfirm(group.name),
@@ -1179,7 +1179,7 @@ extension _UserActions on _TopicDetailPageState {
         id: ShortcutSurfaceIds.postDeleteConfirm,
         triggerAction: ShortcutAction.deletePost,
       ),
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(context.l10n.post_deleteReplyTitle),
         content: Text(context.l10n.post_deleteReplyConfirm),
         actions: [
@@ -1228,7 +1228,7 @@ extension _UserActions on _TopicDetailPageState {
         triggerAction: ShortcutAction.jumpToPost,
         repeatBehavior: ShortcutSurfaceRepeatBehavior.toggle,
       ),
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Text(context.l10n.topic_jump),
         content: TextField(
           controller: controller,

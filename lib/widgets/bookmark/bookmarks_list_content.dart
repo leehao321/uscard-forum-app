@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:m3e_ui/m3e_ui.dart';
@@ -456,7 +457,8 @@ class BookmarksListContent extends ConsumerWidget {
             ),
             if (onRetrySync != null) ...[
               const SizedBox(height: 12),
-              FilledButton.tonal(
+              FilledButton(
+                style: AppButtonStyles.secondary(context),
                 onPressed: onRetrySync,
                 child: Text(context.l10n.common_retry),
               ),

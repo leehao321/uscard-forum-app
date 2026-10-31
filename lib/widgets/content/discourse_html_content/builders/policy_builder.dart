@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:html/dom.dart' as dom;
@@ -370,7 +371,7 @@ class _PolicyWidgetState extends ConsumerState<_PolicyWidget> {
       final isActive = !_revoked || _accepted;
       children.add(
         isActive
-            ? FilledButton.tonalIcon(
+            ? FilledButton.icon(
                 onPressed: _isLoading ? null : _revoke,
                 icon: const SizedBox.shrink(),
                 label: Text(widget.revokeLabel),
@@ -378,7 +379,7 @@ class _PolicyWidgetState extends ConsumerState<_PolicyWidget> {
                   foregroundColor: theme.colorScheme.error,
                   backgroundColor:
                       theme.colorScheme.errorContainer.withValues(alpha: 0.6),
-                ),
+                ).merge(AppButtonStyles.secondary(context)),
               )
             : OutlinedButton.icon(
                 onPressed: _isLoading ? null : _revoke,

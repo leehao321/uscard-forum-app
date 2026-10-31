@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/services.dart';
 
 /// 二步验证 (TOTP) 输入对话框。返回用户输入的 6 位 code,取消返 null。
@@ -60,7 +61,7 @@ class _TwoFactorDialogState extends State<_TwoFactorDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return AppAlertDialog(
       title: const Text('二步验证'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -115,7 +116,7 @@ class _TwoFactorDialogState extends State<_TwoFactorDialog> {
           valueListenable: _controller,
           builder: (_, value, _) {
             final enabled = value.text.trim().length == 6;
-            return FilledButton(
+            return AppDialogAction(
               onPressed: enabled ? _submit : null,
               child: const Text('验证'),
             );

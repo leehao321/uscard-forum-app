@@ -474,7 +474,8 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: FilledButton.tonalIcon(
+                child: FilledButton.icon(
+                  style: AppButtonStyles.secondary(context),
                   onPressed: _dnsCacheBusy ? null : _forceRefreshDnsCache,
                   icon: _dnsCacheBusy
                       ? const SizedBox(
@@ -614,7 +615,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
     final result = await showAppDialog<DohServer>(
       context: context,
       builder: (context) {
-        return AlertDialog(
+        return AppAlertDialog(
           title: Text(context.l10n.dohDetail_addServer),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -703,7 +704,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
     final result = await showAppDialog<DohServer>(
       context: context,
       builder: (context) {
-        return AlertDialog(
+        return AppAlertDialog(
           title: Text(context.l10n.dohDetail_editServer),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -789,7 +790,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
     final result = await showAppDialog<String?>(
       context: context,
       builder: (context) {
-        return AlertDialog(
+        return AppAlertDialog(
           title: Text(context.l10n.dohDetail_serverIp),
           content: TextField(
             controller: controller,
@@ -827,7 +828,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
   Future<void> _confirmDeleteServer(DohServer server) async {
     final confirm = await showAppDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Text(context.l10n.dohDetail_deleteServer),
         content: Text(context.l10n.dohDetail_deleteServerConfirm(server.name)),
         actions: [

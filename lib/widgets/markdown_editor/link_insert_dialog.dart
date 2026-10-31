@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import '../../../../../l10n/s.dart';
 import '../../models/search_result.dart';
 import '../../services/discourse/discourse_service.dart';
@@ -126,7 +127,7 @@ class _LinkInsertDialogState extends State<LinkInsertDialog> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return AlertDialog(
+    return AppAlertDialog(
       title: Text(widget.editing ? '编辑链接' : S.current.link_insertTitle),
       content: Form(
         key: _formKey,

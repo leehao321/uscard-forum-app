@@ -10,6 +10,7 @@ import '../utils/platform_utils.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -269,7 +270,7 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
     return showAppDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Text(context.l10n.createTopic_restoreDraft),
         content: Text(context.l10n.createTopic_restoreDraftContent),
         actions: [
@@ -410,7 +411,7 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
   Future<void> _discardDraft() async {
     final confirm = await showAppDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Text(context.l10n.createTopic_discardPost),
         content: Text(context.l10n.createTopic_discardPostContent),
         actions: [
@@ -980,7 +981,7 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
       if (!mounted) return;
       final confirm = await showAppDialog<bool>(
         context: context,
-        builder: (context) => AlertDialog(
+        builder: (context) => AppAlertDialog(
           title: Text(context.l10n.common_hint),
           content: Text(context.l10n.createTopic_templateNotModified),
           actions: [

@@ -8,6 +8,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxdo/services/local_notification_service.dart'
+    show navigatorKey;
 import 'package:fluxdo/l10n/s.dart';
 import 'package:fluxdo/main.dart' show buildAppThemeForTest;
 import 'package:fluxdo/providers/theme_provider.dart';
@@ -109,9 +111,9 @@ Future<void> loadUiFonts() async {
   // 包里的字体 family 带 packages/<包名>/ 前缀
   final config = File('.dart_tool/package_config.json').readAsStringSync();
   String? packageDir(String name) {
-    final root = RegExp(
-      '"name":\\s*"$name",\\s*"rootUri":\\s*"([^"]*)"',
-    ).firstMatch(config)?.group(1);
+    final root = RegExp('"name":\\s*"$name",\\s*"rootUri":\\s*"([^"]*)"')
+        .firstMatch(config)
+        ?.group(1);
     if (root == null) return null;
     final uri = Uri.parse(root);
     // workspace 内的包是相对 .dart_tool 的路径
@@ -130,7 +132,10 @@ Future<void> loadUiFonts() async {
 
   final lucide = packageDir('lucide_icons_flutter');
   if (lucide != null) {
-    await load('packages/lucide_icons_flutter/Lucide', '$lucide/assets/lucide.ttf');
+    await load(
+      'packages/lucide_icons_flutter/Lucide',
+      '$lucide/assets/lucide.ttf',
+    );
     final fonts = Directory('$lucide/assets/build_font');
     if (fonts.existsSync()) {
       for (final file in fonts.listSync().whereType<File>()) {
@@ -196,6 +201,8 @@ Future<void> pumpUi(
         overrides: overrides,
         child: TranslationProvider(
           child: MaterialApp(
+            // 和 App 一样挂全局 navigatorKey：S.current、ToastService 都靠它
+            navigatorKey: navigatorKey,
             debugShowCheckedModeBanner: false,
             locale: const Locale('zh'),
             supportedLocales: AppLocaleUtils.supportedLocales,
@@ -221,11 +228,22 @@ void expectNoUiException(WidgetTester tester) {
 }
 
 /// §9 的三条无障碍 guideline
-Future<void> expectUiAccessibility(WidgetTester tester) async {
+///
+/// [textContrast]：Flutter 的对比度检查按每个逻辑像素取 1 个点
+/// （`pixelRatio: 1 / devicePixelRatio`），13 号中文的笔画不到 1 像素宽，
+/// 取到的是被抗锯齿冲淡的颜色，量出来比实际低（meta 色白底实际 5.9:1，
+/// 量出 2–4）。画面里有 13 号及以下中文时传 false，改由
+/// `test/theme/component_contrast_test.dart` 按 token 精确计算。
+Future<void> expectUiAccessibility(
+  WidgetTester tester, {
+  bool textContrast = true,
+}) async {
   final handle = tester.ensureSemantics();
   await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
   await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
-  await expectLater(tester, meetsGuideline(textContrastGuideline));
+  if (textContrast) {
+    await expectLater(tester, meetsGuideline(textContrastGuideline));
+  }
   handle.dispose();
 }
 

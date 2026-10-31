@@ -1,12 +1,11 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' show lerpDouble;
 
 import 'package:app_icons/app_icons.dart';
 import 'package:common_ui/common_ui.dart';
+import 'package:flutter/cupertino.dart' show CupertinoActivityIndicator;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:m3e_ui/m3e_ui.dart';
+import 'package:flutter/semantics.dart';
 
 import 'local_notification_service.dart';
 
@@ -138,8 +137,7 @@ class DownloadToastHandle {
   final _ToastSession? _session;
   bool _finished = false;
 
-  bool get isActive =>
-      !_finished && _session != null && !_session.isClosed;
+  bool get isActive => !_finished && _session != null && !_session.isClosed;
 
   /// 更新下载进度（0.0~1.0，-1 为不确定进度）
   void updateProgress(double value) {
@@ -201,11 +199,11 @@ class DownloadToastHandle {
   }
 }
 
-/// 全局 Toast 服务（基于 Overlay，显示在屏幕顶部）
+/// 全局 Toast 服务（基于 Overlay，v2 起显示在屏幕下方、工具栏上方）
 ///
 /// 两个槽位：主槽位放下载/同步这类带进度的提示，或一条普通提示。进度提示
-/// 占着主槽位时，普通提示落到次槽位（顶部下方一点），互不打断；进度提示
-/// 收尾后，次槽位的那条会升上来接替主槽位。
+/// 占着主槽位时，普通提示落到次槽位（主槽位上方一点），互不打断；进度提示
+/// 收尾后，次槽位的那条会落下来接替主槽位。
 class ToastService {
   static _ToastSession? _current; // 主槽位
   static _ToastSession? _stacked; // 次槽位：让位中的普通提示
@@ -367,9 +365,10 @@ class ToastService {
   }
 }
 
-/// 形态与动效沿用"灵动胶囊"：圆点展开成胶囊、花瓣徽章回弹、下载完成
-/// 原位变身；材质走全局玻璃，开关、档位与高对比度由 GlassSurface 统一
-/// 降级为实色，这里不再各自判断。
+/// v2 Toast（设计说明 §4）：44 高胶囊、pad 0 16、间距 8，胶囊材质；
+/// 图标 16 + 13 字。位于工具栏或 Tab 胶囊上方 16（默认按「64 高工具栏 +
+/// 底部安全区」估算，键盘弹出时贴键盘上方）。出现和变身时用
+/// VoiceOver 播报，不抢焦点。向下轻扫可提前关掉。
 class _ToastView extends StatefulWidget {
   const _ToastView({required this.session});
 
@@ -379,97 +378,25 @@ class _ToastView extends StatefulWidget {
   State<_ToastView> createState() => _ToastViewState();
 }
 
-class _ToastViewState extends State<_ToastView> with TickerProviderStateMixin {
-  static const _radius = 28.0;
-  static const _enterDuration = Duration(milliseconds: 560);
-  static const _exitDuration = Duration(milliseconds: 300);
-  static const _settleDuration = Duration(milliseconds: 420);
+class _ToastViewState extends State<_ToastView>
+    with SingleTickerProviderStateMixin {
+  static const _enterDuration = Duration(milliseconds: 220);
+  static const _exitDuration = Duration(milliseconds: 180);
 
-  // 以下时间片都落在入场控制器 [0, 1] 上；弹簧曲线的周期按片长换算，
-  // 保证弹簧在片内收敛。
-  static const _fadeCurve = Interval(0, 0.3, curve: Curves.easeOut);
-  static final Curve _liftSpring = M3eMotion.defaultSpatial.curveFor(
-    _enterDuration,
-  );
-  static final Curve _revealSpring = Interval(
-    0.06,
-    1,
-    curve: M3eMotion.defaultSpatial.curveFor(_enterDuration * 0.94),
-  );
-  static final Curve _petalSpring = Interval(
-    0,
-    0.9,
-    curve: M3eMotion.fastSpatial.curveFor(_enterDuration * 0.9),
-  );
-  static const _contentCurve = Interval(0.3, 0.7, curve: Curves.easeOutCubic);
-  static const _checkCurve = Interval(0.42, 0.82, curve: Curves.easeOutCubic);
-  static final Curve _resizeSpring = M3eMotion.defaultSpatial.curveFor(
-    const Duration(milliseconds: 480),
-  );
-
-  // 完成态切换：徽章先缩后弹，同时换色、重描对勾
-  static const _settleColorCurve = Interval(0, 0.5, curve: Curves.easeOut);
-  static const _settleCheckCurve = Interval(
-    0.15,
-    0.7,
-    curve: Curves.easeOutCubic,
-  );
-  static final _settleScale = TweenSequence<double>([
-    TweenSequenceItem(
-      tween: Tween(begin: 0.86, end: 1.1).chain(CurveTween(curve: Curves.easeOut)),
-      weight: 60,
-    ),
-    TweenSequenceItem(
-      tween: Tween(begin: 1.1, end: 1.0).chain(CurveTween(curve: Curves.easeInOut)),
-      weight: 40,
-    ),
-  ]);
-  static final _settleTilt = TweenSequence<double>([
-    TweenSequenceItem(
-      tween: Tween(begin: -0.14, end: 0.07).chain(CurveTween(curve: Curves.easeOut)),
-      weight: 60,
-    ),
-    TweenSequenceItem(
-      tween: Tween(begin: 0.07, end: 0.0).chain(CurveTween(curve: Curves.easeInOut)),
-      weight: 40,
-    ),
-  ]);
-
-  // 同一件事重复触发：徽章弹一下，不做整条胶囊的形变
-  static final _pulseScale = TweenSequence<double>([
-    TweenSequenceItem(
-      tween: Tween(begin: 1.0, end: 1.12).chain(CurveTween(curve: Curves.easeOut)),
-      weight: 45,
-    ),
-    TweenSequenceItem(
-      tween: Tween(begin: 1.12, end: 1.0).chain(CurveTween(curve: Curves.easeInOut)),
-      weight: 55,
-    ),
-  ]);
+  /// 默认锚点：工具栏（64）上方 16
+  static const double _anchorAboveToolbar = AppSize.toolbar + AppSpace.l;
 
   late final AnimationController _enter = AnimationController(
     vsync: this,
     duration: _enterDuration,
     reverseDuration: _exitDuration,
   );
-  late final AnimationController _settle = AnimationController(
-    vsync: this,
-    duration: _settleDuration,
-    value: 1,
-  );
-  late final AnimationController _pulse = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 380),
-  );
   late final Listenable _repaint = Listenable.merge([
     _enter,
-    _settle,
-    _pulse,
     widget.session.data,
     widget.session.progress,
   ]);
   late _ToastKind _kind = widget.session.data.value.kind;
-  late _ToastKind _fromKind = _kind;
   double _dragOffset = 0;
   bool _dismissing = false;
 
@@ -478,8 +405,8 @@ class _ToastViewState extends State<_ToastView> with TickerProviderStateMixin {
     super.initState();
     widget.session._controller = _enter;
     widget.session.data.addListener(_onDataChanged);
-    widget.session.pulseTick.addListener(_onPulse);
     _enter.forward();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _announce());
   }
 
   @override
@@ -488,46 +415,43 @@ class _ToastViewState extends State<_ToastView> with TickerProviderStateMixin {
     // 晚一步到达，那时这两个对象已经不存在了
     widget.session._onViewDisposed();
     widget.session.data.removeListener(_onDataChanged);
-    widget.session.pulseTick.removeListener(_onPulse);
     _enter.dispose();
-    _settle.dispose();
-    _pulse.dispose();
     super.dispose();
   }
 
-  /// 同一件事又发生一次：徽章弹一下，告诉用户"这次也生效了"
-  void _onPulse() {
+  void _announce() {
     if (!mounted) return;
-    final expressive =
-        !MediaQuery.disableAnimationsOf(context) &&
-        M3eFlags.of(context).enabled;
-    if (expressive) _pulse.forward(from: 0);
+    final data = widget.session.data.value;
+    if (data.kind == _ToastKind.download) return;
+    SemanticsService.sendAnnouncement(
+      View.of(context),
+      data.message,
+      Directionality.of(context),
+    );
   }
 
   void _onDataChanged() {
     final kind = widget.session.data.value.kind;
     if (kind == _kind) return;
-    _fromKind = _kind;
     _kind = kind;
-    _settle.forward(from: 0);
+    // 下载完成原位变成结果提示：再播报一次
+    _announce();
   }
 
   void _onVerticalDragUpdate(DragUpdateDetails details) {
     if (_dismissing) return;
-    // 只允许向上拖动
+    // 只允许向下拖动
     setState(() {
-      _dragOffset = (_dragOffset + details.delta.dy).clamp(-double.infinity, 0);
+      _dragOffset = (_dragOffset + details.delta.dy).clamp(0, double.infinity);
     });
   }
 
   void _onVerticalDragEnd(DragEndDetails details) {
     if (_dismissing) return;
-    // 向上拖动超过 40px 或速度足够快则消失
-    if (_dragOffset < -40 || details.velocity.pixelsPerSecond.dy < -200) {
+    if (_dragOffset > 24 || details.velocity.pixelsPerSecond.dy > 200) {
       _dismissing = true;
       widget.session.close(animate: true);
     } else {
-      // 弹回原位
       setState(() => _dragOffset = 0);
     }
   }
@@ -535,19 +459,23 @@ class _ToastViewState extends State<_ToastView> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
+    final bottom = math.max(
+      mediaQuery.viewPadding.bottom + _anchorAboveToolbar,
+      mediaQuery.viewInsets.bottom + AppSpace.l,
+    );
     return Positioned(
-      top: mediaQuery.padding.top + 12,
-      left: 16,
-      right: 16,
+      bottom: bottom,
+      left: AppSpace.pageMargin,
+      right: AppSpace.pageMargin,
       child: SafeArea(
         top: false,
         bottom: false,
         child: Align(
-          alignment: Alignment.topCenter,
+          alignment: Alignment.bottomCenter,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
             child: _StackSlot(
-              // 进度提示自己就是让位的锚点，不需要下移
+              // 进度提示自己就是让位的锚点，不需要上移
               active: !widget.session.isProgress,
               child: GestureDetector(
                 onVerticalDragUpdate: _onVerticalDragUpdate,
@@ -565,291 +493,124 @@ class _ToastViewState extends State<_ToastView> with TickerProviderStateMixin {
   }
 
   Widget _buildToast(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-    // 减弱动效：只保留淡入淡出；M3E 关闭：保留位移，去掉形变与回弹
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
-    final expressive = !reduceMotion && M3eFlags.of(context).enabled;
-    final data = widget.session.data.value;
-    final t = _enter.value;
-
-    final lift = reduceMotion
-        ? 1.0
-        : (expressive ? _liftSpring : Curves.easeOutCubic).transform(t);
-    final reveal = expressive ? _revealSpring.transform(t) : 1.0;
-    final content = expressive ? _contentCurve.transform(t) : 1.0;
-    final dragFade = (1.0 + _dragOffset / 120).clamp(0.0, 1.0);
-
+    final t = Curves.easeOutCubic.transform(_enter.value);
+    final dragFade = (1.0 - _dragOffset / 80).clamp(0.0, 1.0);
     return Opacity(
-      opacity: _fadeCurve.transform(t) * dragFade,
+      opacity: t * dragFade,
       child: Transform.translate(
-        offset: Offset(0, lerpDouble(-14, 0, lift)! + _dragOffset),
-        child: Transform.scale(
-          scale: lerpDouble(0.9, 1, lift),
-          alignment: Alignment.topCenter,
-          child: Semantics(
-            container: true,
-            liveRegion: true,
-            child: DecoratedBox(
-              // 浮在正文之上需要比导航更明显的落影
-              decoration: ShapeDecoration(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(_radius),
-                ),
-                shadows: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.28 : 0.10),
-                    blurRadius: 24,
-                    spreadRadius: -6,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
+        offset: Offset(0, (reduceMotion ? 0 : (1 - t) * 8) + _dragOffset),
+        child: Semantics(
+          container: true,
+          child: CapsuleSurface(
+            child: Material(
+              type: MaterialType.transparency,
+              child: MediaQuery.withClampedTextScaling(
+                maxScaleFactor: kChromeMaxTextScale,
+                child: _buildContent(context, widget.session.data.value),
               ),
-              child: GlassSurfaceFrame(
-                radius: _radius,
-                recipe: GlassRecipe.menu,
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: _WidthReveal(
-                    factor: reveal,
-                    child: AnimatedSize(
-                      duration: const Duration(milliseconds: 480),
-                      curve: expressive ? _resizeSpring : Curves.easeOutCubic,
-                      alignment: Alignment.centerLeft,
-                      child: _buildContent(
-                        context,
-                        data,
-                        colorScheme,
-                        expressive: expressive,
-                        content: content,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, _ToastData data) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final textStyle = Theme.of(context).textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textPrimary);
+    final progress = widget.session.progress.value;
+    final isDownload = data.kind == _ToastKind.download;
+    final hasAction = data.actionLabel != null;
+
+    final icon = switch (data.kind) {
+      _ToastKind.success => Icon(
+        AppIcons.check,
+        size: AppSize.iconS,
+        color: colors.textPrimary,
+      ),
+      _ToastKind.error => Icon(
+        AppIcons.error,
+        size: AppSize.iconS,
+        color: colors.textDestructive,
+      ),
+      _ToastKind.info => Icon(
+        AppIcons.info,
+        size: AppSize.iconS,
+        color: colors.textMeta,
+      ),
+      _ToastKind.download =>
+        progress >= 0
+            ? SizedBox.square(
+                dimension: AppSize.iconS,
+                child: CircularProgressIndicator(
+                  value: progress,
+                  strokeWidth: 2,
+                  color: colors.brandPrimary,
+                  backgroundColor: colors.avatarFill,
+                ),
+              )
+            : const CupertinoActivityIndicator(radius: AppSize.iconS / 2),
+    };
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: AppSize.hit),
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: AppSpace.l,
+          right: hasAction ? AppSpace.xs : AppSpace.l,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ExcludeSemantics(child: icon),
+            const SizedBox(width: AppSpace.s),
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpace.s),
+                child: Text(
+                  data.message,
+                  style: textStyle,
+                  maxLines: isDownload ? 1 : 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+            if (isDownload && progress >= 0) ...[
+              const SizedBox(width: AppSpace.s),
+              Text(
+                '${(progress * 100).toInt()}%',
+                style: textStyle.copyWith(
+                  color: colors.textMeta,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
+            if (hasAction)
+              AppPressable(
+                onTap: () {
+                  data.onAction?.call();
+                  widget.session.close(animate: true);
+                },
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minWidth: AppSize.hit,
+                    minHeight: AppSize.hit,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpace.m),
+                    child: Center(
+                      child: Text(
+                        data.actionLabel!,
+                        style: textStyle.copyWith(color: colors.brandPrimary),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContent(
-    BuildContext context,
-    _ToastData data,
-    ColorScheme colorScheme, {
-    required bool expressive,
-    required double content,
-  }) {
-    final theme = Theme.of(context);
-    final t = _enter.value;
-    final settling = _settle.isAnimating;
-    final s = _settle.value;
-
-    final (fromBg, fromFg) = _palette(colorScheme, _fromKind);
-    final (toBg, toFg) = _palette(colorScheme, data.kind);
-    final colorT = settling ? _settleColorCurve.transform(s) : 1.0;
-    final badgeBg = Color.lerp(fromBg, toBg, colorT)!;
-    final badgeFg = Color.lerp(fromFg, toFg, colorT)!;
-
-    final petalIn = expressive ? _petalSpring.transform(t) : 1.0;
-    final popScale = expressive && settling ? _settleScale.transform(s) : 1.0;
-    final popTilt = expressive && settling ? _settleTilt.transform(s) : 0.0;
-    final pulseScale = expressive && _pulse.isAnimating
-        ? _pulseScale.transform(_pulse.value)
-        : 1.0;
-    // 下载态花瓣错开半瓣，完成时转回正位
-    final baseTilt = lerpDouble(
-      _baseTilt(_fromKind),
-      _baseTilt(data.kind),
-      colorT,
-    )!;
-    final check = math.min(
-      expressive ? _checkCurve.transform(t) : 1.0,
-      settling ? _settleCheckCurve.transform(s) : 1.0,
-    );
-
-    final progress = widget.session.progress.value;
-    final isDownload = data.kind == _ToastKind.download;
-    final hasAction = data.actionLabel != null;
-
-    Widget slideIn(Widget child) => Opacity(
-      opacity: content,
-      child: Transform.translate(
-        offset: Offset(lerpDouble(-6, 0, content)!, 0),
-        child: child,
-      ),
-    );
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(8, 8, hasAction ? 8 : 20, 8),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _ToastBadge(
-            kind: data.kind,
-            background: badgeBg,
-            foreground: badgeFg,
-            petal: M3eFlags.of(context).enabled,
-            scale: lerpDouble(0.72, 1, petalIn)! * popScale * pulseScale,
-            tilt: lerpDouble(-0.72, 0, petalIn)! + popTilt + baseTilt,
-            check: check,
-            progress: progress,
-          ),
-          const SizedBox(width: 12),
-          Flexible(
-            child: slideIn(
-              Text(
-                data.message,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.1,
-                ),
-                maxLines: isDownload ? 1 : 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
-          if (isDownload && progress >= 0) ...[
-            const SizedBox(width: 10),
-            slideIn(
-              Text(
-                '${(progress * 100).toInt()}%',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-            ),
-          ],
-          if (hasAction) ...[
-            const SizedBox(width: 12),
-            slideIn(
-              TextButton(
-                onPressed: () {
-                  data.onAction?.call();
-                  widget.session.close(animate: true);
-                },
-                style: TextButton.styleFrom(
-                  backgroundColor: toBg,
-                  foregroundColor: toFg,
-                  minimumSize: const Size(0, 40),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  shape: const StadiumBorder(),
-                  textStyle: theme.textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                child: Text(data.actionLabel!),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  static (Color, Color) _palette(ColorScheme colorScheme, _ToastKind kind) =>
-      switch (kind) {
-        _ToastKind.success => (
-          colorScheme.primaryContainer,
-          colorScheme.onPrimaryContainer,
-        ),
-        _ToastKind.error => (
-          colorScheme.errorContainer,
-          colorScheme.onErrorContainer,
-        ),
-        _ToastKind.info => (
-          colorScheme.secondaryContainer,
-          colorScheme.onSecondaryContainer,
-        ),
-        _ToastKind.download => (
-          colorScheme.tertiaryContainer,
-          colorScheme.onTertiaryContainer,
-        ),
-      };
-
-  static double _baseTilt(_ToastKind kind) =>
-      kind == _ToastKind.download ? math.pi / 8 : 0;
-}
-
-/// 状态徽章：花瓣底（M3E 关闭时为圆）+ 状态字形
-class _ToastBadge extends StatelessWidget {
-  const _ToastBadge({
-    required this.kind,
-    required this.background,
-    required this.foreground,
-    required this.petal,
-    required this.scale,
-    required this.tilt,
-    required this.check,
-    required this.progress,
-  });
-
-  static const double size = 40;
-
-  final _ToastKind kind;
-  final Color background;
-  final Color foreground;
-  final bool petal;
-  final double scale;
-  final double tilt;
-  final double check;
-  final double progress;
-
-  @override
-  Widget build(BuildContext context) {
-    final glyph = switch (kind) {
-      _ToastKind.success => SizedBox.square(
-        dimension: 22,
-        child: CustomPaint(
-          painter: _CheckmarkPainter(progress: check, color: foreground),
-        ),
-      ),
-      _ToastKind.error => Icon(
-        Symbols.priority_high_rounded,
-        size: 22,
-        color: foreground,
-      ),
-      _ToastKind.info => Icon(
-        Symbols.info_i_rounded,
-        size: 22,
-        color: foreground,
-      ),
-      // 无进度=不定态波浪弧追逐,有进度=波浪环;同一组件连续过渡,无形态跳变
-      _ToastKind.download => Stack(
-        alignment: Alignment.center,
-        children: [
-          M3eCircularProgress(
-            value: progress >= 0 ? progress : null,
-            size: 30,
-            strokeWidth: 2.5,
-            color: foreground,
-          ),
-          Icon(Symbols.arrow_downward_rounded, size: 16, color: foreground),
-        ],
-      ),
-    };
-
-    return SizedBox.square(
-      dimension: size,
-      child: Transform.scale(
-        scale: scale,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Positioned.fill(
-              child: Transform.rotate(
-                angle: tilt,
-                child: CustomPaint(
-                  painter: _BadgePainter(color: background, petal: petal),
-                ),
-              ),
-            ),
-            glyph,
           ],
         ),
       ),
@@ -857,189 +618,39 @@ class _ToastBadge extends StatelessWidget {
   }
 }
 
-/// 八瓣花瓣：r(θ) = R·(1 + 0.1·cos 8θ)，外接圆恰好是徽章尺寸
-class _BadgePainter extends CustomPainter {
-  _BadgePainter({required this.color, required this.petal});
-
-  final Color color;
-  final bool petal;
-
-  static const _lobes = 8;
-  static const _depth = 0.1;
-  static const _samples = 160;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..isAntiAlias = true;
-    final center = size.center(Offset.zero);
-    final outer = size.shortestSide / 2;
-    if (!petal) {
-      canvas.drawCircle(center, outer, paint);
-      return;
-    }
-    final base = outer / (1 + _depth);
-    final path = Path();
-    for (var i = 0; i < _samples; i++) {
-      final angle = i * 2 * math.pi / _samples;
-      final r = base * (1 + _depth * math.cos(_lobes * angle));
-      final point = center + Offset(r * math.cos(angle), r * math.sin(angle));
-      if (i == 0) {
-        path.moveTo(point.dx, point.dy);
-      } else {
-        path.lineTo(point.dx, point.dy);
-      }
-    }
-    path.close();
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(_BadgePainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.petal != petal;
-}
-
-/// 进度胶囊占住顶部时，普通提示整体下移让位；进度提示收尾后升回原位。
-/// 进度提示自己不参与，免得把自己推下去。
+/// 进度胶囊占着底部槽位时，普通提示整体上移让位；进度提示收尾后落回
+/// 原位。进度提示自己不参与，免得把自己推走。
 class _StackSlot extends StatelessWidget {
   const _StackSlot({required this.active, required this.child});
 
   final bool active;
   final Widget child;
 
-  /// 进度胶囊高度（内边距 8×2 + 徽章 40）再加上间距 12
-  static const double _slotHeight = 68;
+  /// Toast 高 44 + 间距 8
+  static const double _slotHeight = AppSize.hit + AppSpace.s;
 
   @override
   Widget build(BuildContext context) {
     if (!active) return child;
     return ValueListenableBuilder<bool>(
       valueListenable: ToastService._progressOnTop,
+      // begin 只在第一次构建时生效：出生在让位槽的提示直接落在那里，
+      // 不从主槽位滑过去（否则开头会和进度胶囊叠在一起）；之后槽位变化
+      // 才从当前位置动画过去
       builder: (context, shown, child) => TweenAnimationBuilder<double>(
-        tween: Tween<double>(begin: 0, end: shown ? _slotHeight : 0),
+        tween: Tween<double>(
+          begin: shown ? _slotHeight : 0,
+          end: shown ? _slotHeight : 0,
+        ),
         duration: MediaQuery.disableAnimationsOf(context)
             ? Duration.zero
             : const Duration(milliseconds: 280),
         curve: Curves.easeOutCubic,
         builder: (context, offset, child) =>
-            Transform.translate(offset: Offset(0, offset), child: child),
+            Transform.translate(offset: Offset(0, -offset), child: child),
         child: child,
       ),
       child: child,
     );
-  }
-}
-
-/// 从徽章处的圆点横向展开：高度随内容，宽度在 [高度, 内容宽] 之间插值。
-/// 未展开的部分由外层玻璃的圆角裁切。
-class _WidthReveal extends SingleChildRenderObjectWidget {
-  const _WidthReveal({required this.factor, required super.child});
-
-  final double factor;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) =>
-      _RenderWidthReveal(factor);
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    _RenderWidthReveal renderObject,
-  ) {
-    renderObject.factor = factor;
-  }
-}
-
-class _RenderWidthReveal extends RenderProxyBox {
-  _RenderWidthReveal(this._factor);
-
-  double _factor;
-  set factor(double value) {
-    if (value == _factor) return;
-    _factor = value;
-    markNeedsLayout();
-  }
-
-  Size _revealed(BoxConstraints constraints, Size natural) {
-    final collapsed = math.min(natural.height, natural.width);
-    return constraints.constrain(
-      Size(lerpDouble(collapsed, natural.width, _factor)!, natural.height),
-    );
-  }
-
-  @override
-  Size computeDryLayout(covariant BoxConstraints constraints) {
-    final child = this.child;
-    if (child == null) return constraints.smallest;
-    return _revealed(constraints, child.getDryLayout(constraints.loosen()));
-  }
-
-  @override
-  void performLayout() {
-    final child = this.child;
-    if (child == null) {
-      size = constraints.smallest;
-      return;
-    }
-    child.layout(constraints.loosen(), parentUsesSize: true);
-    size = _revealed(constraints, child.size);
-  }
-}
-
-class _CheckmarkPainter extends CustomPainter {
-  final double progress;
-  final Color color;
-
-  _CheckmarkPainter({
-    required this.progress,
-    required this.color,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (progress == 0) return;
-
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2.6
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final path = Path();
-    // Centered coordinates for a checkmark icon that looks like the material one
-    final start = Offset(size.width * 0.24, size.height * 0.52);
-    final mid = Offset(size.width * 0.43, size.height * 0.71);
-    final end = Offset(size.width * 0.77, size.height * 0.33);
-
-    final pathLength1 = (mid - start).distance;
-    final pathLength2 = (end - mid).distance;
-    final totalLength = pathLength1 + pathLength2;
-
-    final currentLength = totalLength * progress;
-
-    if (currentLength <= pathLength1) {
-      // Draw first segment (the short dive)
-      final currentMid = Offset.lerp(start, mid, currentLength / pathLength1)!;
-      path.moveTo(start.dx, start.dy);
-      path.lineTo(currentMid.dx, currentMid.dy);
-    } else {
-      // Draw first segment full
-      path.moveTo(start.dx, start.dy);
-      path.lineTo(mid.dx, mid.dy);
-      // Draw second segment (the long tail upwards)
-      final remainingLength = currentLength - pathLength1;
-      final currentEnd =
-          Offset.lerp(mid, end, remainingLength / pathLength2)!;
-      path.lineTo(currentEnd.dx, currentEnd.dy);
-    }
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(_CheckmarkPainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.color != color;
   }
 }

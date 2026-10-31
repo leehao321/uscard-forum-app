@@ -40,11 +40,12 @@ void main() {
       );
 
       final dividers = tester.widgetList<Divider>(find.byType(Divider)).toList();
-      // 现有行的图标还是全局 24：12 + 24 + 12 = 48（M2 换成 20 图标后是 44）
-      expect(dividers.map((d) => d.indent), [48, 48, 12]);
+      // 组内图标 20（M2）：12 + 20 + 12 = 44
+      expect(dividers.map((d) => d.indent), [44, 44, 12]);
+      expect(tester.getSize(find.byIcon(AppIcons.palette)).width, 20);
 
       final groupLeft = tester.getTopLeft(find.byType(SegmentedCardGroup)).dx;
-      expect(tester.getTopLeft(find.text('带图标')).dx - groupLeft, 48);
+      expect(tester.getTopLeft(find.text('带图标')).dx - groupLeft, 44);
       expect(tester.getTopLeft(find.text('不带图标')).dx - groupLeft, 12);
     });
   }

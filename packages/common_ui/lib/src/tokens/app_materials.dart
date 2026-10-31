@@ -51,6 +51,9 @@ class AppMaterials {
   static const scrim = Color(0x52000000);
 
   /// 滑块拇指阴影
+  /// 滑块拇指：白（两种明暗都是）
+  static const thumbFill = Color(0xFFFFFFFF);
+
   static const thumbShadow = BoxShadow(
     color: Color(0x2E000000),
     offset: Offset(0, 2),

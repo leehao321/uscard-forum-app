@@ -350,7 +350,7 @@ class _WebViewLoginPageState extends ConsumerState<WebViewLoginPage> {
     try {
       confirmed = await showAppDialog<bool>(
         context: context,
-        builder: (context) => AlertDialog(
+        builder: (context) => AppAlertDialog(
           title: Text(context.l10n.webviewLogin_clearSavedTitle),
           content: Text(context.l10n.webviewLogin_clearSavedContent),
           actions: [

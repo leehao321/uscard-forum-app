@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart';
 import '../../utils/dialog_utils.dart';
@@ -394,12 +395,12 @@ class _TopicTimelineSheetState extends State<TopicTimelineSheet> {
                                 const SizedBox(width: 8),
                                 SizedBox(
                                   height: 32,
-                                  child: FilledButton.tonal(
+                                  child: FilledButton(
                                     onPressed: _commitEdit,
                                     style: FilledButton.styleFrom(
                                       padding: const EdgeInsets.symmetric(horizontal: 12),
                                       visualDensity: VisualDensity.compact,
-                                    ),
+                                    ).merge(AppButtonStyles.secondary(context)),
                                     child: Text(S.current.common_confirm),
                                   ),
                                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart';
 
@@ -6,7 +7,6 @@ import '../../../l10n/s.dart';
 import '../../../services/network/doh_proxy/per_device_cert_service.dart';
 import '../../../services/toast_service.dart';
 import '../../../utils/dialog_utils.dart';
-import '../../../widgets/common/app_bottom_sheet.dart';
 
 /// 打开 iOS CA 证书安装引导对话框
 ///
@@ -338,7 +338,8 @@ class _IosCertInstallSheetState extends State<_IosCertInstallSheet> {
         const SizedBox(height: 8),
         SizedBox(
           width: double.infinity,
-          child: FilledButton.tonal(
+          child: FilledButton(
+            style: AppButtonStyles.secondary(context),
             onPressed: _finish,
             child: Text(l10n.dohSettings_certAllDone),
           ),

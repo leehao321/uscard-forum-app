@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:ai_model_manager/ai_model_manager.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,7 +12,6 @@ import '../../providers/ai_translation_provider.dart';
 import '../../services/ai_translation_service.dart';
 import '../../services/toast_service.dart';
 import '../../utils/dialog_utils.dart';
-import '../common/app_bottom_sheet.dart';
 
 /// 打开帖子 AI 翻译弹层。弹层独立于楼层树，避免破坏帖子实例缓存。
 void showAiTranslationSheet(
@@ -258,7 +258,8 @@ class _AiTranslationSheetBodyState
                           ),
                         ),
                         const SizedBox(height: 12),
-                        FilledButton.tonal(
+                        FilledButton(
+                          style: AppButtonStyles.secondary(context),
                           onPressed: _start,
                           child: Text(l10n.common_retry),
                         ),

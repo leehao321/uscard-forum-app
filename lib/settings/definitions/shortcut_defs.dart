@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -212,7 +213,7 @@ class _RecordKeyDialogState extends State<_RecordKeyDialog> {
       focusNode: _focusNode,
       autofocus: true,
       onKeyEvent: _onKeyEvent,
-      child: AlertDialog(
+      child: AppAlertDialog(
         title: Text(shortcutActionLabel(widget.binding.action, l10n)),
         content: Column(
           mainAxisSize: MainAxisSize.min,

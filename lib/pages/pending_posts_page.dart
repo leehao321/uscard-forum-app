@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/pending_post.dart';
@@ -144,7 +145,7 @@ class _PendingPostsPageState extends ConsumerState<PendingPostsPage> {
       builder: (dialogContext) {
         bool isDeleting = false;
         return StatefulBuilder(
-          builder: (dialogContext, setState) => AlertDialog(
+          builder: (dialogContext, setState) => AppAlertDialog(
             title: Text(title),
             content: Text(content),
             actions: [

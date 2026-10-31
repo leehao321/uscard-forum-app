@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:path_provider/path_provider.dart';
@@ -208,7 +209,7 @@ class _ImageUploadDialogState extends State<ImageUploadDialog> {
 
     return _enterToSubmit(
       onSubmit: _isProcessing ? null : _submit,
-      child: AlertDialog(
+      child: AppAlertDialog(
       title: Text(S.current.imageUpload_confirmTitle),
       content: SingleChildScrollView(
         child: Column(
@@ -519,7 +520,7 @@ class _MultiImageUploadDialogState extends State<MultiImageUploadDialog> {
 
     return _enterToSubmit(
       onSubmit: _isProcessing ? null : _submit,
-      child: AlertDialog(
+      child: AppAlertDialog(
       title: Text(S.current.imageUpload_multiTitle(_items.length)),
       content: SizedBox(
         width: double.maxFinite,

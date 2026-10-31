@@ -1774,7 +1774,8 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
       );
     }
     return _isFollowed
-        ? FilledButton.tonalIcon(
+        ? FilledButton.icon(
+            style: AppButtonStyles.secondary(context),
             onPressed: _toggleFollow,
             icon: const Icon(Symbols.check_rounded, size: 16),
             label: Text(context.l10n.userProfile_followed),

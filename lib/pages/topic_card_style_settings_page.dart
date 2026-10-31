@@ -1,5 +1,6 @@
 import '../constants.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:m3e_ui/m3e_ui.dart';
@@ -86,7 +87,7 @@ class _TopicCardStyleSettingsPageState
       try {
         confirmed = await showDialog<bool>(
           context: context,
-          builder: (ctx) => AlertDialog(
+          builder: (ctx) => AppAlertDialog(
             title: Text(l10n.topicCardStyle_fetchWarningTitle),
             content: Text(l10n.topicCardStyle_fetchWarningMessage),
             actions: [

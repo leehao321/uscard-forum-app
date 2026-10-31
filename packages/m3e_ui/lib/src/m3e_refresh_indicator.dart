@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'loading_spinner.dart';
-import 'm3e_flags.dart';
 
 /// Material 3 Expressive 风格下拉刷新。
 ///
@@ -21,11 +20,9 @@ import 'm3e_flags.dart';
 /// RefreshIndicator 同款揭示式入场,轻拉只露一条边,不会凭空出现
 /// 完整小圆片),刷新中形状 morph 即加载状态,完成后缩放收没。
 ///
-/// M3E 开关关闭时回退原生 [RefreshIndicator]。
-///
-/// iOS(`Theme.platform == iOS`)上展示层换成 [CupertinoActivityIndicator]
-/// (下拉时随进度渐显,刷新中转动),无圆片托底;拖拽/armed/snap/refresh
-/// 状态机与回调完全沿用同一套,M3E 开关在 iOS 上不再影响下拉刷新形态。
+/// v2(0.4.0)起全平台的展示层都是 [CupertinoActivityIndicator](下拉时随
+/// 进度渐显,刷新中转动),无圆片托底;拖拽/armed/snap/refresh 状态机与
+/// 回调沿用同一套。
 class M3eRefreshIndicator extends StatefulWidget {
   final Widget child;
   final RefreshCallback onRefresh;
@@ -54,8 +51,6 @@ class M3eRefreshIndicator extends StatefulWidget {
 /// 对外状态:`GlobalKey<M3eRefreshIndicatorState>` + [show] 编程式触发,
 /// 开关开/关两个分支都可用。
 class M3eRefreshIndicatorState extends State<M3eRefreshIndicator> {
-  final GlobalKey<RefreshIndicatorState> _fallbackKey =
-      GlobalKey<RefreshIndicatorState>();
   final GlobalKey<_M3eRefreshCoreState> _coreKey =
       GlobalKey<_M3eRefreshCoreState>();
 
@@ -63,29 +58,16 @@ class M3eRefreshIndicatorState extends State<M3eRefreshIndicator> {
   Future<void> show({bool atTop = true}) {
     final core = _coreKey.currentState;
     if (core != null) return core.show(atTop: atTop);
-    final fallback = _fallbackKey.currentState;
-    if (fallback != null) return fallback.show(atTop: atTop);
     return widget.onRefresh();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isIOS = Theme.of(context).platform == TargetPlatform.iOS;
-    // iOS 一律走自绘状态机(Cupertino 展示层),不随 M3E 开关回退成
-    // Material 圆形进度。
-    if (!isIOS && !M3eFlags.of(context).enabled) {
-      return RefreshIndicator(
-        key: _fallbackKey,
-        onRefresh: widget.onRefresh,
-        edgeOffset: widget.edgeOffset,
-        displacement: widget.displacement,
-        notificationPredicate: widget.notificationPredicate,
-        child: widget.child,
-      );
-    }
+    // v2(0.4.0):全平台走自绘状态机 + Cupertino 展示层(计划 §4「下拉
+    // 刷新」),不再随平台或 M3E 开关切换。
     return _M3eRefreshCore(
       key: _coreKey,
-      cupertino: isIOS,
+      cupertino: true,
       onRefresh: widget.onRefresh,
       edgeOffset: widget.edgeOffset,
       displacement: widget.displacement,

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:ai_model_manager/ai_model_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -376,7 +377,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
           onTap: (context, ref) async {
             final confirmed = await showDialog<bool>(
               context: context,
-              builder: (dialogContext) => AlertDialog(
+              builder: (dialogContext) => AppAlertDialog(
                 title: Text(l10n.crypto_settingsClearPasswords),
                 content: Text(l10n.crypto_settingsClearPasswordsConfirm),
                 actions: [
@@ -407,7 +408,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
 void _showRenderBackendRestartDialog(BuildContext context) {
   showAppDialog(
     context: context,
-    builder: (dialogContext) => AlertDialog(
+    builder: (dialogContext) => AppAlertDialog(
       title: Text(dialogContext.l10n.preferences_renderGlesRestartTitle),
       content: Text(dialogContext.l10n.preferences_renderGlesRestartBody),
       actions: [
@@ -598,7 +599,7 @@ class _TopicFilterKeywordsDialogState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    return AlertDialog(
+    return AppAlertDialog(
       scrollable: true,
       title: Text(l10n.preferences_topicFilterKeywords),
       content: SizedBox(
@@ -709,7 +710,7 @@ class _BlockedUsernamesDialogState extends State<_BlockedUsernamesDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return AlertDialog(
+    return AppAlertDialog(
       scrollable: true,
       title: Text(l10n.preferences_blockedUsernames),
       content: SizedBox(
@@ -902,7 +903,7 @@ void _showStickerBaseUrlDialog(BuildContext context, WidgetRef ref) {
 
   showAppDialog(
     context: context,
-    builder: (dialogContext) => AlertDialog(
+    builder: (dialogContext) => AppAlertDialog(
       title: Text(context.l10n.preferences_stickerSource),
       content: Column(
         mainAxisSize: MainAxisSize.min,

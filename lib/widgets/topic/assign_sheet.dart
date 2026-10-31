@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 
@@ -508,7 +509,7 @@ class _AssignDetailsDialogState extends State<_AssignDetailsDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return AlertDialog(
+    return AppAlertDialog(
       title: Text(_isEditMode ? '编辑指定' : '指定给用户'),
       content: SizedBox(
         width: 360,

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:common_ui/common_ui.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -171,15 +172,29 @@ final _category = Category(
   notificationLevel: CategoryNotificationLevel.tracking.value,
 );
 
+// 0.4.0 M2：订阅入口是 v2 的 AppIconButton（朗读名 = 原 tooltip），
+// 订阅半屏的每一行是按下铺灰的 AppPressable（「本帖通知」画板）。
 Finder _subscriptionButton() => find.descendant(
   of: find.byType(NotificationLevelButton),
-  matching: find.byType(IconButton),
+  matching: find.byType(AppIconButton),
+);
+
+/// 订阅半屏里文字为 [label] 的那一行
+Finder _levelRow(String label) => find.ancestor(
+  of: find.text(label),
+  matching: find.byWidgetPredicate((w) => w is AppPressable && w.highlight),
+);
+
+/// 订阅半屏里的全部行
+Finder _levelRows() => find.descendant(
+  of: find.byType(AppSheetScaffold),
+  matching: find.byWidgetPredicate((w) => w is AppPressable && w.highlight),
 );
 
 Future<void> _selectLevel(WidgetTester tester, String label) async {
   await tester.tap(_subscriptionButton());
   await tester.pumpAndSettle();
-  await tester.tap(find.widgetWithText(ListTile, label));
+  await tester.tap(_levelRow(label));
   await tester.pump(const Duration(milliseconds: 400));
 }
 
@@ -325,9 +340,10 @@ void main() {
         expect(_subscriptionButton(), findsOneWidget);
         final subscription = tester.getRect(_subscriptionButton());
         final search = tester.getRect(
-          find.ancestor(
-            of: find.byTooltip(S.current.common_search),
-            matching: find.byType(IconButton),
+          find.byWidgetPredicate(
+            (w) =>
+                w is AppIconButton &&
+                w.semanticLabel == S.current.common_search,
           ),
         );
         expect(subscription.size, search.size);
@@ -348,7 +364,7 @@ void main() {
           ]);
         }
         expect(
-          find.byTooltip('${S.current.topic_notificationSettings}: 关注新话题'),
+          find.bySemanticsLabel('${S.current.topic_notificationSettings}: 关注新话题'),
           findsOneWidget,
         );
         expect(tester.takeException(), isNull);
@@ -365,7 +381,8 @@ void main() {
       page: CategoryTopicsPage(category: _category),
     );
     await _selectLevel(tester, '关注');
-    expect(tester.widget<IconButton>(_subscriptionButton()).onPressed, isNull);
+    // 读取 / 保存中只显示菊花，没有可点的按钮
+    expect(_subscriptionButton(), findsNothing);
     expect(container.read(categoryNotificationOverridesProvider)[7], 3);
 
     saving.completeError(
@@ -376,7 +393,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(container.read(categoryNotificationOverridesProvider)[7], 2);
     expect(
-      find.byTooltip('${S.current.topic_notificationSettings}: 跟踪'),
+      find.bySemanticsLabel('${S.current.topic_notificationSettings}: 跟踪'),
       findsOneWidget,
     );
   });
@@ -401,10 +418,10 @@ void main() {
     );
     await tester.tap(_subscriptionButton());
     await tester.pumpAndSettle();
-    expect(find.byType(ListTile), findsNWidgets(4));
+    expect(_levelRows(), findsNWidgets(4));
     expect(find.text('关注新话题'), findsNothing);
     await tester.tap(
-      find.widgetWithText(ListTile, TopicNotificationLevel.watching.label),
+      _levelRow(TopicNotificationLevel.watching.label),
     );
     await tester.pumpAndSettle();
     expect(selected, TopicNotificationLevel.watching);
@@ -433,9 +450,9 @@ void main() {
     expect(chip, findsOneWidget);
     await tester.tap(chip);
     await tester.pumpAndSettle();
-    expect(find.byType(ListTile), findsNWidgets(4));
+    expect(_levelRows(), findsNWidgets(4));
     await tester.tap(
-      find.widgetWithText(ListTile, TopicNotificationLevel.watching.label),
+      _levelRow(TopicNotificationLevel.watching.label),
     );
     await tester.pumpAndSettle();
     expect(selected, TopicNotificationLevel.watching);
@@ -456,7 +473,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(service.reads, ['开发']);
     expect(
-      find.byTooltip('${S.current.topic_notificationSettings}: 跟踪'),
+      find.bySemanticsLabel('${S.current.topic_notificationSettings}: 跟踪'),
       findsOneWidget,
     );
   });
@@ -469,15 +486,13 @@ void main() {
     await tester.tap(_subscriptionButton());
     await tester.pumpAndSettle();
     for (final label in ['静音', '常规', '跟踪', '关注', '关注新话题']) {
-      expect(find.widgetWithText(ListTile, label), findsOneWidget);
+      expect(_levelRow(label), findsOneWidget);
     }
     expect(find.text('此标签有新话题时通知'), findsOneWidget);
     expect(tester.takeException(), isNull);
-    final selected = tester.widget<ListTile>(
-      find.widgetWithText(ListTile, '关注新话题'),
-    );
-    expect(selected.trailing, isNotNull);
-    await tester.tap(find.widgetWithText(ListTile, '关注新话题'));
+    final selected = tester.widget<AppPressable>(_levelRow('关注新话题'));
+    expect(selected.selected, isTrue);
+    await tester.tap(_levelRow('关注新话题'));
     await tester.pumpAndSettle();
     expect(service.writes, isEmpty);
 
@@ -492,7 +507,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(service.writes.last, ('开发', level));
       expect(
-        find.byTooltip('${S.current.topic_notificationSettings}: $label'),
+        find.bySemanticsLabel('${S.current.topic_notificationSettings}: $label'),
         findsOneWidget,
       );
     }
@@ -501,7 +516,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(service.reads, ['开发', '开发']);
     expect(
-      find.byTooltip('${S.current.topic_notificationSettings}: 关注新话题'),
+      find.bySemanticsLabel('${S.current.topic_notificationSettings}: 关注新话题'),
       findsOneWidget,
     );
   });
@@ -512,20 +527,21 @@ void main() {
         requestOptions: RequestOptions(path: '/tag/开发/notifications.json'),
       );
     await _pumpPage(tester, service);
-    expect(find.byTooltip('加载标签订阅设置失败，点击重试'), findsOneWidget);
+    expect(find.bySemanticsLabel('加载标签订阅设置失败，点击重试'), findsOneWidget);
 
     final loading = Completer<TagNotificationLevel>();
     service.load = () => loading.future;
     await tester.tap(_subscriptionButton());
     await tester.pump();
-    expect(tester.widget<IconButton>(_subscriptionButton()).onPressed, isNull);
+    // 读取 / 保存中只显示菊花，没有可点的按钮
+    expect(_subscriptionButton(), findsNothing);
     expect(service.writes, isEmpty);
 
     loading.complete(TagNotificationLevel.muted);
     await tester.pumpAndSettle();
     expect(service.reads, ['开发', '开发']);
     expect(
-      find.byTooltip('${S.current.topic_notificationSettings}: 静音'),
+      find.bySemanticsLabel('${S.current.topic_notificationSettings}: 静音'),
       findsOneWidget,
     );
   });
@@ -536,7 +552,8 @@ void main() {
     final container = await _pumpPage(tester, service);
 
     await _selectLevel(tester, '关注');
-    expect(tester.widget<IconButton>(_subscriptionButton()).onPressed, isNull);
+    // 读取 / 保存中只显示菊花，没有可点的按钮
+    expect(_subscriptionButton(), findsNothing);
     await container
         .read(tagNotificationLevelProvider('开发').notifier)
         .setLevel(TagNotificationLevel.muted);
@@ -549,7 +566,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(
-      find.byTooltip('${S.current.topic_notificationSettings}: 常规'),
+      find.bySemanticsLabel('${S.current.topic_notificationSettings}: 常规'),
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);
@@ -559,7 +576,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(service.writes, hasLength(2));
     expect(
-      find.byTooltip('${S.current.topic_notificationSettings}: 关注'),
+      find.bySemanticsLabel('${S.current.topic_notificationSettings}: 关注'),
       findsOneWidget,
     );
   });
@@ -581,7 +598,7 @@ void main() {
     saving.complete();
     await tester.pumpAndSettle();
     expect(
-      find.byTooltip('${S.current.topic_notificationSettings}: 静音'),
+      find.bySemanticsLabel('${S.current.topic_notificationSettings}: 静音'),
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);

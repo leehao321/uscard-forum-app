@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -382,7 +383,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tapAt(const Offset(8, 8));
     await tester.pumpAndSettle();
-    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(AppAlertDialog), findsNothing);
     expect(savedValue(), isFalse);
 
     await tester.tap(toggle);
@@ -396,7 +397,7 @@ void main() {
     await tester.tap(toggle);
     await tester.pumpAndSettle();
     expect(savedValue(), isFalse);
-    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(AppAlertDialog), findsNothing);
     await tester.tap(toggle);
     await tester.pumpAndSettle();
     expect(find.text('开启额外请求？'), findsOneWidget);

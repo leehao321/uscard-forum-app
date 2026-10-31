@@ -18,6 +18,7 @@ import '../../services/uploads/upload_progress.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:mime/mime.dart' show lookupMimeType;
 import 'package:path_provider/path_provider.dart';
 import 'package:m3e_ui/m3e_ui.dart';
@@ -431,7 +432,7 @@ class _CompressProgressDialogState extends State<_CompressProgressDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return AppAlertDialog(
       title: const Text('压缩媒体'),
       content: Column(
         mainAxisSize: MainAxisSize.min,

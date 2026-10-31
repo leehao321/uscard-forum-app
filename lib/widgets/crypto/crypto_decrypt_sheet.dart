@@ -5,6 +5,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -395,7 +396,8 @@ class _CryptoDecryptSheetState extends ConsumerState<CryptoDecryptSheet> {
       title: s.crypto_result,
       content: result,
       actions: [
-        FilledButton.tonalIcon(
+        FilledButton.icon(
+          style: AppButtonStyles.secondary(context),
           key: const ValueKey('crypto-decrypt-copy'),
           onPressed: () {
             Clipboard.setData(ClipboardData(text: result));
@@ -405,7 +407,8 @@ class _CryptoDecryptSheetState extends ConsumerState<CryptoDecryptSheet> {
           label: Text(s.common_copy),
         ),
         if (widget.onQuoteReply != null)
-          FilledButton.tonalIcon(
+          FilledButton.icon(
+            style: AppButtonStyles.secondary(context),
             key: const ValueKey('crypto-decrypt-quote'),
             onPressed: () {
               widget.onQuoteReply!.call(result);

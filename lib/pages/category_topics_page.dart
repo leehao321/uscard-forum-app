@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -574,8 +575,10 @@ class _CategoryTopicsPageState extends ConsumerState<CategoryTopicsPage>
               isLoading: _isUpdatingNotificationLevel,
               onChanged: _setCategoryNotificationLevel,
             ),
-          IconButton(
-            icon: const Icon(Symbols.search_rounded),
+          // 和订阅按钮同为 44 热区（v2 AppIconButton），两者对齐
+          AppIconButton(
+            icon: AppIcons.search,
+            semanticLabel: context.l10n.common_search,
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
@@ -589,7 +592,6 @@ class _CategoryTopicsPageState extends ConsumerState<CategoryTopicsPage>
                 ),
               ),
             ),
-            tooltip: context.l10n.common_search,
           ),
         ],
       ),

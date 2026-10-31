@@ -5,6 +5,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -434,7 +435,8 @@ class _CryptoEncryptSheetState extends ConsumerState<CryptoEncryptSheet> {
       monospace: true,
       maxContentHeight: 160,
       actions: [
-        FilledButton.tonalIcon(
+        FilledButton.icon(
+          style: AppButtonStyles.secondary(context),
           key: const ValueKey('crypto-encrypt-copy'),
           onPressed: () {
             Clipboard.setData(ClipboardData(text: result));

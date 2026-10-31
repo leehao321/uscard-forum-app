@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/category.dart';
@@ -36,57 +37,16 @@ class TopicNotificationButton extends StatelessWidget {
     );
   }
 
-  /// AI 摘要卡片内的胶囊样式订阅入口。
+  /// AI 摘要卡片内的订阅入口：筛选胶囊样式，关注 / 跟踪时文字变 brand。
   Widget _buildChip(BuildContext context) {
-    final theme = Theme.of(context);
     final isWatching =
         level == TopicNotificationLevel.watching ||
         level == TopicNotificationLevel.tracking;
-
-    // 适配 AI 摘要按钮风格
-    final bgColor = isWatching
-        ? theme.colorScheme.primaryContainer
-        : theme.colorScheme.primaryContainer.withValues(alpha: 0.3);
-
-    final fgColor = theme.colorScheme.primary;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onChanged != null ? () => _showSheet(context) : null,
-        borderRadius: BorderRadius.circular(8), // 统一圆角为 8
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 8,
-          ), // 统一 Padding
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isWatching
-                  ? theme.colorScheme.primary
-                  : Colors.transparent,
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(getIcon(level), size: 16, color: fgColor),
-              const SizedBox(width: 6),
-              Text(
-                level.label,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: fgColor,
-                  fontWeight: FontWeight.w500, // 统一字重
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return FilterPill(
+      label: level.label,
+      icon: getIcon(level),
+      selected: isWatching,
+      onTap: onChanged != null ? () => _showSheet(context) : null,
     );
   }
 
@@ -96,6 +56,7 @@ class TopicNotificationButton extends StatelessWidget {
   }
 }
 
+/// 「本帖通知」半屏：从高到低（关注 → 静音）排列，同设计稿。
 void showNotificationLevelSheet(
   BuildContext context,
   TopicNotificationLevel currentLevel,
@@ -105,7 +66,7 @@ void showNotificationLevelSheet(
     context: context,
     currentLevel: currentLevel,
     options: [
-      for (final level in TopicNotificationLevel.values)
+      for (final level in TopicNotificationLevel.values.reversed)
         NotificationLevelOption(
           value: level,
           icon: TopicNotificationButton.getIcon(level),
@@ -153,7 +114,7 @@ void showCategoryNotificationLevelSheet(
     context: context,
     currentLevel: currentLevel,
     options: [
-      for (final level in CategoryNotificationLevel.values)
+      for (final level in CategoryNotificationLevel.values.reversed)
         NotificationLevelOption(
           value: level,
           icon: getCategoryNotificationIcon(level),

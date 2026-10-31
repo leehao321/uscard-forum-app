@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ai_model_manager/ai_model_manager.dart'
@@ -301,7 +302,7 @@ class _BookmarkListPage extends ConsumerWidget {
 
     showAppDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(S.current.myBrowser_addManually),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -359,7 +360,7 @@ class _BookmarkListPage extends ConsumerWidget {
 
     showAppDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(S.current.myBrowser_editTitle),
         content: TextField(
           controller: titleController,
@@ -395,7 +396,7 @@ class _BookmarkListPage extends ConsumerWidget {
       BuildContext context, WidgetRef ref, WebBookmark item) {
     showAppDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(S.current.myBrowser_delete),
         content: Text(S.current.myBrowser_confirmDelete),
         actions: [
@@ -500,7 +501,7 @@ class _WebHistoryPage extends ConsumerWidget {
   void _confirmClear(BuildContext context, WidgetRef ref) {
     showAppDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(S.current.myBrowser_clearHistory),
         content: Text(S.current.myBrowser_clearHistoryConfirm),
         actions: [

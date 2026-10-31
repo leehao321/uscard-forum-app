@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -388,14 +389,14 @@ class _StickerGroupTile extends ConsumerWidget {
           overflow: TextOverflow.ellipsis,
         ),
         trailing: isSubscribed
-            ? FilledButton.tonalIcon(
+            ? FilledButton.icon(
                 onPressed: onToggle,
                 icon: const Icon(Symbols.check_rounded, size: 16),
                 label: Text(S.current.sticker_added),
                 style: FilledButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                ),
+                ).merge(AppButtonStyles.secondary(context)),
               )
             : OutlinedButton.icon(
                 onPressed: onToggle,

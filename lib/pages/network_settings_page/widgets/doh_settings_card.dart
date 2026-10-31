@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart';
 
@@ -381,7 +382,7 @@ Future<bool> ensureWindowsCertTrusted(BuildContext context) async {
   final l10n = context.l10n;
   final shouldInstall = await showDialog<bool>(
     context: context,
-    builder: (dialogContext) => AlertDialog(
+    builder: (dialogContext) => AppAlertDialog(
       title: Text(l10n.dohSettings_certDialogTitle),
       content: Text(l10n.dohSettings_certDialogDesc),
       actions: [

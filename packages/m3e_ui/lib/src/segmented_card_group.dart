@@ -111,6 +111,15 @@ class SegmentedCardGroupStyle extends ThemeExtension<SegmentedCardGroupStyle> {
   );
 }
 
+/// inset-grouped 组内图标默认 20(v2 分组列表:前导图标 20,分隔线因此
+/// 缩进到 12 + 20 + 12 = 44)。调用点显式写了 size 的图标不受影响。
+const double _kInsetIconSize = 20;
+
+Widget _insetIcons(Widget child) => IconTheme.merge(
+  data: const IconThemeData(size: _kInsetIconSize),
+  child: child,
+);
+
 /// 行是否带前导图标(列表行的文字因此右移)。
 bool _hasLeading(Widget row) => switch (row) {
   ListTile(:final leading) => leading != null,
@@ -120,15 +129,18 @@ bool _hasLeading(Widget row) => switch (row) {
   _ => false,
 };
 
-/// 发丝分隔线:厚度 = 1 物理像素。[above] 是分隔线上方那一行:
-/// 带前导图标时缩进到文字起点(iOS 分组列表的规则)。
+/// 发丝分隔线:厚度取主题 dividerTheme(v2 是 0.5),未设置时 1 物理像素。
+/// [above] 是分隔线上方那一行:带前导图标时缩进到文字起点(iOS 分组列表
+/// 的规则)。
 Widget _hairlineDivider(
   BuildContext context,
   SegmentedCardGroupStyle style,
   double? separatorIndent,
   Widget above,
 ) {
-  final hairline = 1 / MediaQuery.devicePixelRatioOf(context);
+  final hairline =
+      Theme.of(context).dividerTheme.thickness ??
+      1 / MediaQuery.devicePixelRatioOf(context);
   return Divider(
     height: hairline,
     thickness: hairline,
@@ -224,17 +236,24 @@ class SegmentedCardGroup extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(style.radius),
       ),
-      child: Column(
-        // 容器只包住内容:不能像分段形态那样撑满父级给的高度
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (int i = 0; i < children.length; i++) ...[
-            if (i > 0)
-              _hairlineDivider(context, style, separatorIndent, children[i - 1]),
-            children[i],
+      child: _insetIcons(
+        Column(
+          // 容器只包住内容:不能像分段形态那样撑满父级给的高度
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (int i = 0; i < children.length; i++) ...[
+              if (i > 0)
+                _hairlineDivider(
+                  context,
+                  style,
+                  separatorIndent,
+                  children[i - 1],
+                ),
+              children[i],
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -286,16 +305,18 @@ class SegmentedCardItem extends StatelessWidget {
             bottom: isLast ? radius : Radius.zero,
           ),
         ),
-        child: isLast
-            ? child
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  child,
-                  _hairlineDivider(context, style, null, child),
-                ],
-              ),
+        child: _insetIcons(
+          isLast
+              ? child
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    child,
+                    _hairlineDivider(context, style, null, child),
+                  ],
+                ),
+        ),
       );
     }
 

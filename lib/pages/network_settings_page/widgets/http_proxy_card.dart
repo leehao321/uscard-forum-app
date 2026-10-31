@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 
 import '../../../l10n/s.dart';
@@ -270,7 +271,7 @@ class _HttpProxyCardInner extends StatelessWidget {
                 selectedProtocol == UpstreamProxyProtocol.shadowsocks;
             final isShadowsocks2022 =
                 ProxySettingsService.isShadowsocks2022Cipher(selectedCipher);
-            return AlertDialog(
+            return AppAlertDialog(
               title: Text(dialogContext.l10n.httpProxy_configTitle),
               content: SingleChildScrollView(
                 child: Column(
@@ -499,7 +500,7 @@ class _HttpProxyCardInner extends StatelessWidget {
     final value = await showAppDialog<String>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
+        return AppAlertDialog(
           title: Text(dialogContext.l10n.httpProxy_importSsLink),
           content: TextField(
             controller: linkController,

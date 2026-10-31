@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -135,7 +136,7 @@ void main() {
         await tester.tap(find.byKey(const ValueKey('composer-header-discard')));
         await tester.pumpAndSettle();
         await tester.tap(
-          find.widgetWithText(TextButton, S.current.common_cancel),
+          find.widgetWithText(AppDialogAction, S.current.common_cancel),
         );
         await tester.pumpAndSettle();
         final editor = tester.widget<MarkdownEditor>(
@@ -154,7 +155,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('composer-header-discard')));
       await tester.pumpAndSettle();
       await tester.tap(
-        find.widgetWithText(FilledButton, S.current.common_discard),
+        find.widgetWithText(AppDialogAction, S.current.common_discard),
       );
       await tester.pumpAndSettle();
       expect(deletionStarted.isCompleted, isTrue);
@@ -178,7 +179,7 @@ void main() {
         MaterialPageRoute<void>(builder: (_) => const CreateTopicPage()),
       );
       await tester.pumpAndSettle();
-      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byType(AppAlertDialog), findsNothing);
       expect(
         tester
             .widget<MarkdownEditor>(find.byType(MarkdownEditor))

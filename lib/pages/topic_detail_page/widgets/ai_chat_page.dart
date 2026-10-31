@@ -353,7 +353,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     final theme = Theme.of(context);
     final result = await showAppDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         icon: Icon(
           Symbols.image_rounded,
           color: theme.colorScheme.primary,
@@ -1114,7 +1114,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   void _confirmClear(BuildContext context, TopicAiChatNotifier notifier) {
     showAppDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(context.l10n.ai_clearChatTitle),
         content: Text(context.l10n.ai_clearChatConfirm),
         actions: [
@@ -1458,7 +1458,7 @@ class _ThinkingButton extends StatelessWidget {
     final controller = TextEditingController(text: '${current.customBudget}');
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(AiL10n.current.thinkingCustom),
         content: TextField(
           controller: controller,

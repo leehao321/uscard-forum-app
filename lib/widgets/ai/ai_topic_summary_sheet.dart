@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:ai_model_manager/ai_model_manager.dart';
 import 'package:app_icons/app_icons.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,7 +12,6 @@ import '../../providers/ai_topic_summary_provider.dart';
 import '../../services/ai_topic_summary_service.dart';
 import '../../services/toast_service.dart';
 import '../../utils/dialog_utils.dart';
-import '../common/app_bottom_sheet.dart';
 
 /// 打开话题 AI 总结弹层。只总结已加载的楼层，点开才会调用用户自己的 AI 接口。
 void showAiTopicSummarySheet(
@@ -226,7 +225,8 @@ class _AiTopicSummaryBodyState extends ConsumerState<_AiTopicSummaryBody> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        FilledButton.tonal(
+                        FilledButton(
+                          style: AppButtonStyles.secondary(context),
                           onPressed: _start,
                           child: const Text('重试'),
                         ),

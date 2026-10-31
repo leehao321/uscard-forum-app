@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +16,7 @@ import '../utils/dialog_utils.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 import '../widgets/update_dialog.dart';
 import 'app_logs_page.dart';
+import 'dev/ui_gallery_page.dart';
 import 'perf_diagnostics_page.dart';
 
 class AboutPage extends StatefulWidget {
@@ -183,7 +185,7 @@ class _AboutPageState extends State<AboutPage> {
   void _showNoUpdateDialog(String currentVersion) {
     showAppDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         icon: const Icon(Symbols.check_circle_rounded, size: 48, color: Colors.green),
         title: Text(context.l10n.about_latestVersion),
         content: Text(context.l10n.about_noUpdateContent(currentVersion)),
@@ -200,7 +202,7 @@ class _AboutPageState extends State<AboutPage> {
   void _showErrorDialog(String error) {
     showAppDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         icon: const Icon(Symbols.error_rounded, size: 48, color: Colors.red),
         title: Text(context.l10n.about_checkUpdateFailed),
         content: Text(context.l10n.about_checkUpdateError(error)),
@@ -339,6 +341,17 @@ class _AboutPageState extends State<AboutPage> {
                     MaterialPageRoute(builder: (_) => const AppLogsPage()),
                   ),
                 ),
+                // 组件样本(0.4.0 v2 组件对照,只在开发者模式出现)
+                if (_developerMode)
+                  _buildListTile(
+                    context,
+                    icon: AppIcons.category,
+                    title: context.l10n.about_uiGallery,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const UiGalleryPage()),
+                    ),
+                  ),
                 // 性能诊断(开发者向工具,文案暂不接入 l10n)
                 _buildListTile(
                   context,
@@ -441,7 +454,7 @@ class _GithubProxyDialogState extends State<_GithubProxyDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return AlertDialog(
+    return AppAlertDialog(
       title: Text(context.l10n.update_githubProxy),
       content: Column(
         mainAxisSize: MainAxisSize.min,

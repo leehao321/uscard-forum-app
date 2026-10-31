@@ -173,8 +173,14 @@ void main() {
         expect(group.insetGrouped, isTrue);
         expect(group.radius, 12);
         expect(group.separatorIndent, 12);
-        expect(group.leadingSeparatorIndent, 48);
-        expect(group.cellColor, AppColors.resolve(b, AccentPreset.meika).surfaceGrouped);
+        // 组内图标 20：12 + 20 + 12
+        expect(group.leadingSeparatorIndent, 44);
+        // 底色不写死，取 cardTheme（半屏里换成 elevated）
+        expect(group.cellColor, isNull);
+        expect(
+          theme.cardTheme.color,
+          AppColors.resolve(b, AccentPreset.meika).surfaceGrouped,
+        );
         final sheet = theme.extension<AppSheetShellStyle>()!;
         expect(sheet.topRadius, 16);
         expect(sheet.titleStyle!.fontSize, 17);
@@ -267,7 +273,7 @@ void main() {
       expect(material.color, const Color(0xFF123456));
     });
 
-    testWidgets('iOS 半屏外壳：顶角 16、36×5 抓手、标题 17 Regular 居中', (tester) async {
+    testWidgets('iOS 半屏外壳：顶角 16、36×5 抓手、标题 17 Regular 左对齐', (tester) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
@@ -309,7 +315,9 @@ void main() {
       final title = tester.widget<Text>(find.text('标题'));
       expect(title.style?.fontSize, 17);
       expect(title.style?.fontWeight, FontWeight.w400);
-      expect(tester.getCenter(find.text('标题')).dx, closeTo(400, 0.5));
+      // v2（M2）：头行标题左对齐页边距 20，右侧是关闭按钮（「分享」半屏画板）
+      expect(tester.getTopLeft(find.text('标题')).dx, 20);
+      expect(find.bySemanticsLabel('Close'), findsOneWidget);
     });
   });
 }

@@ -31,7 +31,7 @@ extension _PostFooterMenuActions on _PostFooterSectionState {
   void _showDeleteConfirmDialog(BuildContext context, ThemeData theme) {
     showAppDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(context.l10n.post_deleteReplyTitle),
         content: Text(context.l10n.post_deleteReplyConfirm),
         actions: [

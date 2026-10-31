@@ -3,6 +3,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 
 import '../../../utils/dialog_utils.dart';
@@ -105,7 +106,7 @@ class _CalloutEditDialogState extends State<_CalloutEditDialog> {
     final types = kCalloutTypes.contains(_type)
         ? kCalloutTypes
         : [_type, ...kCalloutTypes];
-    return AlertDialog(
+    return AppAlertDialog(
       title: const Text('标注(Callout)'),
       content: SizedBox(
         width: 340,

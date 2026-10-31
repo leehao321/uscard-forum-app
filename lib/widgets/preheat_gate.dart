@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/s.dart';
@@ -83,7 +84,7 @@ class _PreheatGateState extends State<PreheatGate> {
       // ignore: use_build_context_synchronously
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(S.current.migration_title),
         content: Text(S.current.migration_reloginRequired),
         actions: [
@@ -292,7 +293,7 @@ class _PreheatFailed extends StatelessWidget {
   Future<void> _confirmLogout(BuildContext context) async {
     final confirmed = await showAppDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Text(context.l10n.common_logout),
         content: Text(context.l10n.preheat_logoutConfirm),
         actions: [

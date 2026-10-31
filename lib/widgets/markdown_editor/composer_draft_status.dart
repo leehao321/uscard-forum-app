@@ -1,6 +1,7 @@
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 
 import '../../l10n/s.dart';
 import '../../services/draft_controller.dart';
@@ -14,7 +15,7 @@ Future<bool> confirmComposerDraftOverwrite(
 }) async {
   final choice = await showAppDialog<_DraftConflictChoice>(
     context: context,
-    builder: (context) => AlertDialog(
+    builder: (context) => AppAlertDialog(
       scrollable: true,
       title: Text(context.l10n.composer_draftConflictTitle),
       content: Text(context.l10n.composer_draftConflictBody),

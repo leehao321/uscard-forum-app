@@ -1,27 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:app_icons/app_icons.dart';
 
-// 统一底部弹框外壳常量
-const double _kSheetCornerRadius = 20.0;
-const double _kHandleWidth = 32.0;
-const double _kHandleHeight = 4.0;
+import 'tokens/tokens.dart';
+import 'ui/app_nav_bar.dart' show AppCloseButton;
+import 'ui/surfaces.dart';
 
-// iOS 外壳常量(HIG:顶部圆角 12、36×5 抓手、17pt 半粗标题)
-const double _kIosSheetCornerRadius = 12.0;
-const double _kIosHandleWidth = 36.0;
-const double _kIosHandleHeight = 5.0;
-const double _kIosTitleBarHeight = 44.0;
-const TextStyle _kIosTitleStyle = TextStyle(
-  fontSize: 17,
-  fontWeight: FontWeight.w600,
-  height: 1.3,
-);
-
-/// [AppSheetScaffold] 在 iOS 上的外观覆盖(ThemeExtension,可选)。
+/// [AppSheetScaffold] 的外观覆盖(ThemeExtension,可选)。
 ///
-/// common_ui 不依赖应用,iOS 的圆角/标题字阶由宿主通过这个扩展传入;
-/// 未注册时 iOS 回退到内置的 HIG 默认值(圆角 12、标题 17/w600)。
-/// 其他平台忽略此扩展,外壳保持原样。
+/// common_ui 不依赖应用,圆角/标题字阶由宿主通过这个扩展传入;未注册时
+/// 取 v2 token(顶部圆角 sheet、标题 17 Regular)。
 ///
 /// 注意:light/dark 两个 ThemeData 必须对称注册 —— ThemeData.lerp 对
 /// "单边缺失"的 extension 不插值而是瞬时并入。
@@ -33,10 +19,7 @@ class AppSheetShellStyle extends ThemeExtension<AppSheetShellStyle> {
   /// 标题样式(不含颜色与 fontFamily,外壳按 textTheme 补字体与颜色)。
   final TextStyle? titleStyle;
 
-  const AppSheetShellStyle({
-    this.topRadius = _kIosSheetCornerRadius,
-    this.titleStyle,
-  });
+  const AppSheetShellStyle({this.topRadius = 16, this.titleStyle});
 
   @override
   AppSheetShellStyle copyWith({double? topRadius, TextStyle? titleStyle}) =>
@@ -68,26 +51,23 @@ class AppSheetShellStyle extends ThemeExtension<AppSheetShellStyle> {
 
 /// 底部弹框的两种受控形态。
 enum AppSheetStyle {
-  /// 贴边列表式:贴屏幕左右下边、顶部圆角,默认带拖拽条、可下滑关闭。
-  /// 适合浏览 / 选择 / 列表 / 快速输入。
+  /// 列表式:默认带拖拽条、可下滑关闭。适合浏览 / 选择 / 列表 / 快速输入。
   edge,
 
-  /// 表单卡片式:同样贴边、仅顶部圆角,但默认无拖拽条、带关闭按钮,
-  /// 并由弹出入口(AppBottomSheet.show)禁止下滑关闭,避免误关丢失输入。
-  /// 适合表单 / 编辑 / 确认。
+  /// 表单式:默认无拖拽条、带关闭按钮,并由弹出入口(AppBottomSheet.show)
+  /// 禁止下滑关闭,避免误关丢失输入。适合表单 / 编辑 / 确认。
   card,
 }
 
-/// 统一的底部弹框外壳。
+/// v2 通用半屏外壳(设计说明 §4「半屏(通用)」,与楼层跳转半屏一致)。
 ///
-/// 提供两种受控形态(见 [AppSheetStyle]):贴边列表式与浮岛卡片式。
-/// 统一负责拖拽条、可选标题栏、键盘顶起与高度策略,各 Sheet 只需把
-/// 「内容」作为 [child] 传入,不再各自手写外壳。
+/// - 底:浅色 surface/page、深色 surface/grouped(#1C1C1E);顶部圆角 16;
+/// - 拖拽条 36×5 r3 quote/rule,距顶 8;
+/// - 头行:标题 17 Regular 左对齐 + 右侧 x 22(热区 44);
+/// - 左右内边距 20,底部留安全区(至少 16);
+/// - 内部分组列表(卡片色)和输入框换成 surface/elevated。
 ///
-/// 纯外壳 widget,零业务依赖(只依赖 Flutter material),因此放在 common_ui
-/// 供主 app 与各子包共用。主 app 的弹出入口 `AppBottomSheet.show /
-/// showDraggable`(带背景模糊与快捷键)会自动包裹本组件;子包可在自己的
-/// `showModalBottomSheet`/封装中直接把本组件作为 builder 返回。
+/// 全平台同一套(计划 P2)。纯外壳,零业务依赖,主 app 与各子包共用。
 class AppSheetScaffold extends StatelessWidget {
   const AppSheetScaffold({
     super.key,
@@ -98,32 +78,34 @@ class AppSheetScaffold extends StatelessWidget {
     this.showCloseButton = true,
     this.showDragHandle,
     this.showTitleDivider = false,
-    this.contentPadding = const EdgeInsets.fromLTRB(16, 0, 16, 16),
+    this.contentPadding = const EdgeInsets.symmetric(
+      horizontal: AppSpace.pageMargin,
+    ),
     this.maxHeightFactor = 0.9,
     this.expandToFill = false,
     this.footer,
     required this.child,
   });
 
-  /// 外壳形态:贴边列表式或浮岛卡片式
+  /// 外壳形态
   final AppSheetStyle style;
 
-  /// 标题文字(为空且无 [titleWidget] 时不显示标题栏)
+  /// 标题文字(为空且无 [titleWidget] 时不显示头行)
   final String? title;
 
   /// 自定义标题(优先于 [title])
   final Widget? titleWidget;
 
-  /// 标题栏右侧操作按钮(位于关闭按钮左侧)
+  /// 头行右侧操作按钮(位于关闭按钮左侧)
   final List<Widget> actions;
 
-  /// 是否显示右上角关闭按钮(仅在有标题栏时生效)
+  /// 是否显示头行右侧关闭按钮(仅在有头行时生效)
   final bool showCloseButton;
 
-  /// 是否显示顶部拖拽条;为 null 时按 [style] 默认(贴边式显示、卡片式隐藏)
+  /// 是否显示顶部拖拽条;为 null 时按 [style] 默认(列表式显示、表单式隐藏)
   final bool? showDragHandle;
 
-  /// 是否在标题栏下方显示分隔线
+  /// 是否在头行下方显示分隔线
   final bool showTitleDivider;
 
   /// 内容内边距
@@ -137,7 +119,6 @@ class AppSheetScaffold extends StatelessWidget {
   final bool expandToFill;
 
   /// 固定在内容下方、不随内容滚动的底部区域(如确认/提交按钮)。
-  /// 位于内容滚动区之外,自带内边距,处于底部安全区内。
   final Widget? footer;
 
   /// 内容
@@ -145,167 +126,152 @@ class AppSheetScaffold extends StatelessWidget {
 
   bool get _hasTitle => title != null || titleWidget != null;
 
+  /// 半屏内部的主题:分组列表、卡片、输入框用 surface/elevated
+  static ThemeData innerTheme(ThemeData theme, AppTokens tokens) {
+    final elevated = tokens.colors.surfaceElevated;
+    return theme.copyWith(
+      cardTheme: theme.cardTheme.copyWith(color: elevated),
+      inputDecorationTheme: theme.inputDecorationTheme.copyWith(
+        fillColor: elevated,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final isIOS = theme.platform == TargetPlatform.iOS;
+    final tokens = context.tokens;
     final shellStyle = theme.extension<AppSheetShellStyle>();
-    final topRadius = isIOS
-        ? (shellStyle?.topRadius ?? _kIosSheetCornerRadius)
-        : _kSheetCornerRadius;
+    final topRadius = shellStyle?.topRadius ?? tokens.radius.sheet;
     final isCard = style == AppSheetStyle.card;
-    // 拖拽条默认:贴边式显示、卡片式隐藏;显式指定则以指定为准。
     final resolvedShowHandle = showDragHandle ?? !isCard;
 
+    final body = Padding(padding: contentPadding, child: child);
     final content = expandToFill
-        ? Expanded(
-            child: Padding(padding: contentPadding, child: child),
-          )
-        : Flexible(
-            child: Padding(padding: contentPadding, child: child),
-          );
+        ? Expanded(child: body)
+        : Flexible(child: body);
 
-    // 用 Material(而非 Container)作外壳:Material 自带 ink 层,内部 ListTile/
-    // InkWell 的水波纹与长按高亮才能画在背景之上、正常显示;Container 不提供
-    // ink 层会导致点击反馈被不透明背景遮挡。
     final shell = Material(
-      color: cs.surface,
+      color: tokens.materials.sheetFill,
       borderRadius: BorderRadius.vertical(top: Radius.circular(topRadius)),
       clipBehavior: Clip.antiAlias,
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: expandToFill ? MainAxisSize.max : MainAxisSize.min,
-          children: [
-            if (resolvedShowHandle) _buildDragHandle(cs, isIOS),
-            if (_hasTitle)
-              // 仅纯文字标题走 iOS 居中骨架;自定义 titleWidget 保持原布局
-              isIOS && titleWidget == null
-                  ? _buildIosTitleBar(
-                      context,
-                      theme,
-                      shellStyle,
-                      resolvedShowHandle,
-                    )
-                  : _buildTitleBar(context, theme, resolvedShowHandle),
-            if (_hasTitle && showTitleDivider)
-              const Divider(height: 1, indent: 16, endIndent: 16),
-            content,
-            // Column 默认按内容宽度居中,footer 里的按钮会缩成一小段;
-            // 这里给它 tight 宽约束,让 footer 自己决定要不要占满。
-            if (footer != null) SizedBox(width: double.infinity, child: footer),
-          ],
+      child: Theme(
+        data: innerTheme(theme, tokens),
+        child: SafeArea(
+          top: false,
+          minimum: const EdgeInsets.only(bottom: AppSpace.l),
+          child: Column(
+            mainAxisSize: expandToFill ? MainAxisSize.max : MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (resolvedShowHandle) _DragHandle(radius: tokens.radius.handle),
+              if (_hasTitle)
+                _buildTitleRow(context, tokens, shellStyle, resolvedShowHandle)
+              else
+                // 没有头行:拖拽条下面直接留 16;连拖拽条也没有时留 8
+                SizedBox(height: resolvedShowHandle ? AppSpace.l : AppSpace.s),
+              if (_hasTitle && showTitleDivider)
+                const AppHairline(indent: AppSpace.pageMargin),
+              content,
+              // footer 给 tight 宽约束,让它自己决定要不要占满
+              ?footer,
+            ],
+          ),
         ),
       ),
     );
 
-    // 可拖拽模式:高度由 DraggableScrollableSheet 决定,不封顶、不叠加键盘内边距。
-    if (expandToFill) return shell;
+    final labelled = Semantics(
+      scopesRoute: true,
+      namesRoute: true,
+      explicitChildNodes: true,
+      label: title,
+      child: shell,
+    );
 
-    // 两种形态均贴边:底部贴屏幕底,仅顶部圆角,从根本上避开「卡片底部圆角
-    // 与屏幕曲率不匹配」的问题;键盘弹出时整体上顶(需配合 isScrollControlled)。
+    // 可拖拽模式:高度由 DraggableScrollableSheet 决定,不封顶、不叠加键盘内边距。
+    if (expandToFill) return labelled;
+
+    // 贴屏幕底、仅顶部圆角;键盘弹出时整体上顶(需配合 isScrollControlled)。
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.sizeOf(context).height * maxHeightFactor,
         ),
-        child: shell,
+        child: labelled,
       ),
     );
   }
 
-  Widget _buildDragHandle(ColorScheme cs, bool isIOS) {
-    final width = isIOS ? _kIosHandleWidth : _kHandleWidth;
-    final height = isIOS ? _kIosHandleHeight : _kHandleHeight;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Center(
-        child: Container(
-          width: width,
-          height: height,
-          decoration: BoxDecoration(
-            color: cs.onSurfaceVariant.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(height / 2),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// iOS 标题栏:标题(headline)相对整条栏居中,actions/关闭按钮靠右。
-  /// 仅用于纯文字 [title](无 [titleWidget])。
-  Widget _buildIosTitleBar(
+  /// 头行 44 高(x 的热区),视觉上和拖拽条、内容各隔 16:
+  /// 22 的图标在 44 里上下各空 11,所以外面只再留 5。
+  Widget _buildTitleRow(
     BuildContext context,
-    ThemeData theme,
+    AppTokens tokens,
     AppSheetShellStyle? shellStyle,
     bool hasHandle,
   ) {
+    const iconOverhang = (AppSize.hit - 22) / 2;
+    const outerGap = AppSpace.l - iconOverhang;
+    final titleStyle = Theme.of(context).textTheme.bodyLarge!
+        .merge(shellStyle?.titleStyle ?? tokens.text.control)
+        .copyWith(color: tokens.colors.textPrimary, letterSpacing: 0);
     final trailing = <Widget>[
       ...actions,
-      if (showCloseButton)
-        IconButton(
-          icon: const Icon(Symbols.close_rounded),
-          visualDensity: VisualDensity.compact,
-          tooltip: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
+      if (showCloseButton) const AppCloseButton(),
     ];
-    // 字体取 textTheme(带用户字体与中文 fallback),字阶取 shellStyle/默认 HIG
-    final titleStyle = (theme.textTheme.titleMedium ?? const TextStyle())
-        .copyWith(letterSpacing: 0)
-        .merge(shellStyle?.titleStyle ?? _kIosTitleStyle)
-        .copyWith(color: theme.colorScheme.onSurface);
     return Padding(
-      padding: EdgeInsets.only(top: hasHandle ? 0 : 4, left: 8, right: 8),
-      child: SizedBox(
-        height: _kIosTitleBarHeight,
-        child: NavigationToolbar(
-          centerMiddle: true,
-          middle: Text(
-            title!,
-            style: titleStyle,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          trailing: trailing.isEmpty
-              ? null
-              : Row(mainAxisSize: MainAxisSize.min, children: trailing),
+      padding: EdgeInsets.only(
+        top: hasHandle ? outerGap : AppSpace.s,
+        bottom: outerGap,
+        left: AppSpace.pageMargin,
+        right: AppSpace.pageMargin - iconOverhang,
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: AppSize.hit),
+        child: Row(
+          children: [
+            Expanded(
+              child:
+                  titleWidget ??
+                  Semantics(
+                    header: true,
+                    child: Text(
+                      title!,
+                      style: titleStyle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+            ),
+            ...trailing,
+          ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildTitleBar(BuildContext context, ThemeData theme, bool hasHandle) {
-    return Padding(
-      // 有拖拽条时顶部间距已由拖拽条提供
-      padding: EdgeInsets.fromLTRB(16, hasHandle ? 0 : 12, 8, 8),
-      child: Row(
-        children: [
-          Expanded(
-            child:
-                titleWidget ??
-                Text(
-                  title!,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+class _DragHandle extends StatelessWidget {
+  const _DragHandle({required this.radius});
+
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) => ExcludeSemantics(
+    child: Padding(
+      padding: const EdgeInsets.only(top: AppSpace.s),
+      child: Center(
+        child: Container(
+          width: AppSize.sheetHandleWidth,
+          height: AppSize.sheetHandleHeight,
+          decoration: BoxDecoration(
+            color: context.tokens.colors.quoteRule,
+            borderRadius: BorderRadius.circular(radius),
           ),
-          ...actions,
-          if (showCloseButton)
-            IconButton(
-              icon: const Icon(Symbols.close_rounded),
-              visualDensity: VisualDensity.compact,
-              tooltip: MaterialLocalizations.of(
-                context,
-              ).modalBarrierDismissLabel,
-              onPressed: () => Navigator.of(context).maybePop(),
-            ),
-        ],
+        ),
       ),
-    );
-  }
+    ),
+  );
 }

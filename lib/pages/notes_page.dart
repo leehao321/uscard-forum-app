@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 
 import '../storage/topic_note_store.dart';
 import '../utils/time_utils.dart';
@@ -49,7 +50,7 @@ class _NotesPageState extends State<NotesPage> {
   Future<void> _confirmDelete(TopicNote note) async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: const Text('删除笔记'),
         content: Text('删除「${note.title}」的笔记和全部摘录？'),
         actions: [

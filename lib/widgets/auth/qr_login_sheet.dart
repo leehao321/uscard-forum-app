@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -145,7 +146,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
   Future<void> _confirmAndGenerate() async {
     final confirmed = await showAppDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(ctx.l10n.login_qrConfirmTitle),
         // 桌面宽窗口下 AlertDialog 会被长文案撑满,限宽保持可读行长
         content: ConstrainedBox(

@@ -10,6 +10,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 
 import '../../utils/dialog_utils.dart';
@@ -358,7 +359,7 @@ class _PollBuilderDialogState extends State<_PollBuilderDialog> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isNumber = _type == kPollTypeNumber;
-    return AlertDialog(
+    return AppAlertDialog(
       title: Text(widget.initial == null ? '创建投票' : '编辑投票'),
       content: SizedBox(
         width: 360,

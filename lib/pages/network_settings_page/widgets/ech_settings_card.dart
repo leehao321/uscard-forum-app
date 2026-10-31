@@ -1,6 +1,7 @@
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 
 import '../../../l10n/s.dart';
@@ -267,7 +268,7 @@ class _EchDomainDialogState extends State<EchDomainDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return AlertDialog(
+    return AppAlertDialog(
       title: Text(
         widget.initialDomain == null
             ? l10n.dohDetail_addEchDomain

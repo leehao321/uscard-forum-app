@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/cupertino.dart' show CupertinoActivityIndicator;
 import 'package:flutter/material.dart';
 import 'package:material_new_shapes/material_new_shapes.dart';
 
@@ -91,15 +92,17 @@ class _LoadingSpinnerState extends State<LoadingSpinner>
 
   @override
   Widget build(BuildContext context) {
-    // M3E 关闭时回退经典转圈:size 语义平移,线宽按 48→4 的比例缩放。
+    // M3E 关闭(v2,0.4.0)时用系统菊花:占位仍是 size,菊花本身最大 28
+    // (iOS 大号菊花的尺寸),小于 16 时按 size 缩小;颜色取系统灰。
     if (!M3eFlags.of(context).enabled) {
       return SizedBox(
         width: widget.size,
         height: widget.size,
-        child: CircularProgressIndicator(
-          color: widget.color,
-          strokeWidth: (widget.size / 12).clamp(2.0, 4.0),
-          padding: EdgeInsets.zero,
+        child: Center(
+          child: CupertinoActivityIndicator(
+            radius: (widget.size / 2).clamp(4.0, 14.0),
+            color: widget.color,
+          ),
         ),
       );
     }

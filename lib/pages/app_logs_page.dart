@@ -208,7 +208,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
   Future<void> _clearLogs() async {
     final confirmed = await showAppDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Text(context.l10n.appLogs_clearTitle),
         content: Text(context.l10n.appLogs_clearContent),
         actions: [
@@ -414,7 +414,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
 
     showAppDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Row(
           children: [
             Expanded(
@@ -479,7 +479,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
 
     showAppDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Row(
           children: [
             Expanded(
@@ -591,7 +591,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
 
     showAppDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Row(
           children: [
             Expanded(

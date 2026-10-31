@@ -33,7 +33,7 @@ class ErrorUtils {
   static ErrorInfo getErrorInfo(Object? error) {
     if (error == null) {
       return ErrorInfo(
-        icon: Symbols.error_rounded,
+        icon: AppIcons.error,
         title: S.current.error_loadFailed,
         message: S.current.error_unknown,
       );
@@ -42,7 +42,7 @@ class ErrorUtils {
     // 自定义异常
     if (error is RateLimitException) {
       return ErrorInfo(
-        icon: Symbols.speed_rounded,
+        icon: AppIcons.speed,
         title: S.current.error_tooManyRequests,
         message: error.toString(),
         isNetworkError: true,
@@ -50,7 +50,7 @@ class ErrorUtils {
     }
     if (error is ServerException) {
       return ErrorInfo(
-        icon: Symbols.cloud_off_rounded,
+        icon: AppIcons.cloudOff,
         title: S.current.error_serverUnavailable,
         message: error.toString(),
         isNetworkError: true,
@@ -59,7 +59,7 @@ class ErrorUtils {
     if (error is CfChallengeException) {
       // CF 验证有专门的"立即验证"入口,不再叠加网络设置按钮.
       return ErrorInfo(
-        icon: Symbols.shield_rounded,
+        icon: AppIcons.shield,
         title: S.current.error_securityChallenge,
         message: _cfChallengeMessage(error),
       );
@@ -71,14 +71,14 @@ class ErrorUtils {
       final innerError = error.error;
       if (innerError is CfChallengeException) {
         return ErrorInfo(
-          icon: Symbols.shield_rounded,
+          icon: AppIcons.shield,
           title: S.current.error_securityChallenge,
           message: _cfChallengeMessage(innerError),
         );
       }
       if (innerError is RateLimitException) {
         return ErrorInfo(
-          icon: Symbols.speed_rounded,
+          icon: AppIcons.speed,
           title: S.current.error_tooManyRequests,
           message: innerError.toString(),
           isNetworkError: true,
@@ -86,7 +86,7 @@ class ErrorUtils {
       }
       if (innerError is ServerException) {
         return ErrorInfo(
-          icon: Symbols.cloud_off_rounded,
+          icon: AppIcons.cloudOff,
           title: S.current.error_serverUnavailable,
           message: innerError.toString(),
           isNetworkError: true,
@@ -98,7 +98,7 @@ class ErrorUtils {
     // 网络相关异常
     if (error is SocketException) {
       return ErrorInfo(
-        icon: Symbols.signal_wifi_off_rounded,
+        icon: AppIcons.wifiOff,
         title: S.current.error_networkUnavailable,
         message: S.current.error_networkCheckSettings,
         isNetworkError: true,
@@ -106,7 +106,7 @@ class ErrorUtils {
     }
     if (error is TimeoutException) {
       return ErrorInfo(
-        icon: Symbols.timer_off_rounded,
+        icon: AppIcons.timerOff,
         title: S.current.error_connectionTimeout,
         message: S.current.error_requestTimeoutRetry,
         isNetworkError: true,
@@ -114,7 +114,7 @@ class ErrorUtils {
     }
     if (error is HttpException) {
       return ErrorInfo(
-        icon: Symbols.public_off_rounded,
+        icon: AppIcons.serverOff,
         title: S.current.error_requestFailed,
         message: S.current.error_networkRequestFailed,
         isNetworkError: true,
@@ -122,7 +122,7 @@ class ErrorUtils {
     }
     if (error is FormatException) {
       return ErrorInfo(
-        icon: Symbols.data_object_rounded,
+        icon: AppIcons.dataError,
         title: S.current.error_dataException,
         message: S.current.error_unrecognizedDataFormat,
       );
@@ -135,14 +135,14 @@ class ErrorUtils {
           ? message.substring(11)
           : message;
       return ErrorInfo(
-        icon: Symbols.error_rounded,
+        icon: AppIcons.error,
         title: S.current.error_loadFailed,
         message: cleaned,
       );
     }
 
     return ErrorInfo(
-      icon: Symbols.error_rounded,
+      icon: AppIcons.error,
       title: S.current.error_loadFailed,
       message: error.toString(),
     );
@@ -195,35 +195,35 @@ class ErrorUtils {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
         return ErrorInfo(
-          icon: Symbols.timer_off_rounded,
+          icon: AppIcons.timerOff,
           title: S.current.error_connectionTimeout,
           message: S.current.error_cannotConnectCheckNetwork,
           isNetworkError: true,
         );
       case DioExceptionType.receiveTimeout:
         return ErrorInfo(
-          icon: Symbols.hourglass_disabled_rounded,
+          icon: AppIcons.timerOff,
           title: S.current.error_responseTimeout,
           message: S.current.error_serverResponseTooLong,
           isNetworkError: true,
         );
       case DioExceptionType.connectionError:
         return ErrorInfo(
-          icon: Symbols.signal_wifi_off_rounded,
+          icon: AppIcons.wifiOff,
           title: S.current.error_networkUnavailable,
           message: S.current.error_networkCheckSettings,
           isNetworkError: true,
         );
       case DioExceptionType.badCertificate:
         return ErrorInfo(
-          icon: Symbols.gpp_bad_rounded,
+          icon: AppIcons.shieldAlert,
           title: S.current.error_certificateError,
           message: S.current.error_certificateVerifyFailed,
           isNetworkError: true,
         );
       case DioExceptionType.cancel:
         return ErrorInfo(
-          icon: Symbols.cancel_rounded,
+          icon: AppIcons.cancelCircle,
           title: S.current.error_requestCancelled,
           message: S.current.error_requestCancelledMsg,
         );
@@ -231,7 +231,7 @@ class ErrorUtils {
         // unknown 类型，检查内部 error
         if (error.error is SocketException) {
           return ErrorInfo(
-            icon: Symbols.signal_wifi_off_rounded,
+            icon: AppIcons.wifiOff,
             title: S.current.error_networkUnavailable,
             message: S.current.error_networkCheckSettings,
             isNetworkError: true,
@@ -241,7 +241,7 @@ class ErrorUtils {
         final errorStr = error.error?.toString().toUpperCase() ?? '';
         if (errorStr.contains('TIMED_OUT') || errorStr.contains('TIMEOUT')) {
           return ErrorInfo(
-            icon: Symbols.timer_off_rounded,
+            icon: AppIcons.timerOff,
             title: S.current.error_connectionTimeout,
             message: S.current.error_cannotConnectCheckNetwork,
             isNetworkError: true,
@@ -256,7 +256,7 @@ class ErrorUtils {
             errorStr.contains('INTERNET_DISCONNECTED') ||
             errorStr.contains('NETWORK_CHANGED')) {
           return ErrorInfo(
-            icon: Symbols.signal_wifi_off_rounded,
+            icon: AppIcons.wifiOff,
             title: S.current.error_networkUnavailable,
             message: S.current.error_networkCheckSettings,
             isNetworkError: true,
@@ -266,7 +266,7 @@ class ErrorUtils {
             errorStr.contains('CERT') ||
             errorStr.contains('CERTIFICATE')) {
           return ErrorInfo(
-            icon: Symbols.gpp_bad_rounded,
+            icon: AppIcons.shieldAlert,
             title: S.current.error_certificateError,
             message: S.current.error_certificateVerifyFailed,
             isNetworkError: true,
@@ -278,7 +278,7 @@ class ErrorUtils {
           final errorMsg = data['error'] ?? data['message'];
           if (errorMsg is String && errorMsg.isNotEmpty) {
             return ErrorInfo(
-              icon: Symbols.error_rounded,
+              icon: AppIcons.error,
               title: S.current.error_requestFailed,
               message: errorMsg,
             );
@@ -286,14 +286,14 @@ class ErrorUtils {
           final errors = data['errors'];
           if (errors is List && errors.isNotEmpty) {
             return ErrorInfo(
-              icon: Symbols.error_rounded,
+              icon: AppIcons.error,
               title: S.current.error_requestFailed,
               message: errors.first.toString(),
             );
           }
         }
         return ErrorInfo(
-          icon: Symbols.public_off_rounded,
+          icon: AppIcons.serverOff,
           title: S.current.error_requestFailed,
           message: S.current.error_networkRequestFailed,
         );
@@ -319,50 +319,50 @@ class ErrorUtils {
     switch (statusCode) {
       case 400:
         return ErrorInfo(
-          icon: Symbols.error_rounded,
+          icon: AppIcons.error,
           title: S.current.error_badRequest,
           message: serverMessage ?? S.current.error_badRequestParams,
         );
       case 401:
         return ErrorInfo(
-          icon: Symbols.lock_rounded,
+          icon: AppIcons.lock,
           title: S.current.error_unauthorized,
           message: serverMessage ?? S.current.error_unauthorizedExpired,
         );
       case 403:
         return ErrorInfo(
-          icon: Symbols.block_rounded,
+          icon: AppIcons.block,
           title: S.current.error_forbidden,
           message: serverMessage ?? S.current.error_forbiddenAccess,
         );
       case 404:
         return ErrorInfo(
-          icon: Symbols.explore_off_rounded,
+          icon: AppIcons.notFound,
           title: S.current.error_notFound,
           message: serverMessage ?? S.current.error_notFoundOrDeleted,
         );
       case 410:
         return ErrorInfo(
-          icon: Symbols.delete_rounded,
+          icon: AppIcons.delete,
           title: S.current.error_gone,
           message: serverMessage ?? S.current.error_contentDeleted,
         );
       case 422:
         return ErrorInfo(
-          icon: Symbols.warning_amber_rounded,
+          icon: AppIcons.warning,
           title: S.current.error_unprocessable,
           message: serverMessage ?? S.current.error_requestUnprocessable,
         );
       case 429:
         return ErrorInfo(
-          icon: Symbols.speed_rounded,
+          icon: AppIcons.speed,
           title: S.current.error_rateLimited,
           message: serverMessage ?? S.current.error_rateLimitedRetryLater,
           isNetworkError: true,
         );
       case 500:
         return ErrorInfo(
-          icon: Symbols.cloud_off_rounded,
+          icon: AppIcons.cloudOff,
           title: S.current.error_serverError,
           message: serverMessage ?? S.current.error_internalServerError,
           isNetworkError: true,
@@ -371,14 +371,14 @@ class ErrorUtils {
       case 503:
       case 504:
         return ErrorInfo(
-          icon: Symbols.cloud_off_rounded,
+          icon: AppIcons.cloudOff,
           title: S.current.error_serviceUnavailable,
           message: serverMessage ?? S.current.error_serviceUnavailableRetry,
           isNetworkError: true,
         );
       default:
         return ErrorInfo(
-          icon: Symbols.error_rounded,
+          icon: AppIcons.error,
           title: S.current.error_requestFailed,
           message:
               serverMessage ??

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:ai_model_manager/ai_model_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
@@ -459,7 +460,7 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                   const SizedBox(height: 8),
                   SizedBox(
                     width: double.infinity,
-                    child: FilledButton.tonalIcon(
+                    child: FilledButton.icon(
                       onPressed: _anyLoading ? null : _replyToTopic,
                       icon: _isReplying
                           ? const LoadingSpinner(size: 18)
@@ -468,7 +469,7 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                       style: FilledButton.styleFrom(
                         padding:
                             const EdgeInsets.symmetric(vertical: 12),
-                      ),
+                      ).merge(AppButtonStyles.secondary(context)),
                     ),
                   ),
                 ],

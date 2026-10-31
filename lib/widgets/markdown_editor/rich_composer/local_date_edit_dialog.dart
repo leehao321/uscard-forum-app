@@ -10,6 +10,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:fluxdo_render/fluxdo_render.dart' show LocalDateRun;
 
 import '../../../utils/dialog_utils.dart';
@@ -137,7 +138,7 @@ class _LocalDateEditDialogState extends State<_LocalDateEditDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return AppAlertDialog(
       title: Text(widget.initial == null ? '插入日期时间' : '编辑日期时间'),
       content: Column(
         mainAxisSize: MainAxisSize.min,

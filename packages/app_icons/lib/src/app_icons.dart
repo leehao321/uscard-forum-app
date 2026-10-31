@@ -145,6 +145,10 @@ abstract final class AppIcons {
   // ─── 状态类（两态用颜色区分，见规则 3） ─────────────────────────────
   static const bookmark = LucideIcons300.bookmark;
   static const notification = LucideIcons300.bell;
+  // 通知级别：静音 / 关注（每条都通知）/ 跟踪 / 常规用 notification
+  static const notificationOff = LucideIcons300.bellOff;
+  static const notificationActive = LucideIcons300.bellRing;
+  static const notificationAdd = LucideIcons300.bellPlus;
   static const favorite = LucideIcons300.heart;
   static const star = LucideIcons300.star;
   static const heart = LucideIcons300.heart;
@@ -188,6 +192,15 @@ abstract final class AppIcons {
   static const cancelCircle = LucideIcons300.circleX;
   static const doNotDisturb = LucideIcons300.circleMinus;
   static const block = LucideIcons300.ban;
+  static const wifiOff = LucideIcons300.wifiOff;
+  static const serverOff = LucideIcons300.serverOff;
+  static const shieldAlert = LucideIcons300.shieldAlert;
+  static const timerOff = LucideIcons300.timerOff;
+  static const notFound = LucideIcons300.fileQuestion;
+  static const dataError = LucideIcons300.braces;
+  static const inbox = LucideIcons300.inbox;
+  static const searchOff = LucideIcons300.searchX;
+  static const flag = LucideIcons300.flag;
   static const loading = LucideIcons300.hourglass;
 
   // ─── 分类 / 设置 / 杂项 ────────────────────────────────────────────

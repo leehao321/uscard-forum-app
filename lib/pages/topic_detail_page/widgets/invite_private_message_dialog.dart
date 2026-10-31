@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 
 import '../../../l10n/s.dart';
 import '../../../utils/dialog_utils.dart';
@@ -46,7 +47,7 @@ class _InvitePrivateMessageDialogState
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return AppAlertDialog(
       title: Text(context.l10n.pm_inviteParticipants),
       content: SizedBox(
         width: 360,

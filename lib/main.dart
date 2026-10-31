@@ -1084,7 +1084,7 @@ class _MainPageState extends ConsumerState<MainPage>
 
     final enable = await showAppDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => AppAlertDialog(
         title: Text(S.current.preferences_renderGlesDetectedTitle),
         content: Text(S.current.preferences_renderGlesDetectedBody),
         actions: [
@@ -1107,7 +1107,7 @@ class _MainPageState extends ConsumerState<MainPage>
       if (!mounted) return;
       await showAppDialog<void>(
         context: context,
-        builder: (dialogContext) => AlertDialog(
+        builder: (dialogContext) => AppAlertDialog(
           title: Text(S.current.preferences_renderGlesRestartTitle),
           content: Text(S.current.preferences_renderGlesRestartBody),
           actions: [
@@ -1132,7 +1132,7 @@ class _MainPageState extends ConsumerState<MainPage>
     await showAppDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Text(S.current.preferences_enableCrashlyticsTitle),
         content: Text(S.current.preferences_enableCrashlyticsContent),
         actions: [
@@ -1450,7 +1450,7 @@ class _MainPageState extends ConsumerState<MainPage>
     final action = await showAppDialog<_AuthErrorDialogAction>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Text(S.current.auth_loginExpiredTitle),
         content: Text(content),
         actions: [

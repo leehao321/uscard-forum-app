@@ -245,7 +245,7 @@ class _ExportHistoryPageState extends ConsumerState<ExportHistoryPage> {
   void _confirmClear() {
     showAppDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(S.current.exportHistory_clearAll),
         content: Text(S.current.exportHistory_clearConfirm),
         actions: [

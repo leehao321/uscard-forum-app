@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:m3e_ui/m3e_ui.dart';
@@ -516,7 +517,7 @@ class _EngineCardState extends State<EngineCard> {
   Future<void> _showFailureReasonDialog(String reason) async {
     await showAppDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => AppAlertDialog(
         title: Text(dialogContext.l10n.networkAdapter_degradeReason),
         content: SingleChildScrollView(
           child: SelectableText(
@@ -546,7 +547,7 @@ class _EngineCardState extends State<EngineCard> {
   ) async {
     final confirm = await showAppDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => AppAlertDialog(
         title: Text(dialogContext.l10n.networkAdapter_resetFallback),
         content: Text(dialogContext.l10n.networkAdapter_resetFallbackDesc),
         actions: [
@@ -573,7 +574,7 @@ class _EngineCardState extends State<EngineCard> {
   ) async {
     final confirm = await showAppDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => AppAlertDialog(
         title: Text(dialogContext.l10n.networkAdapter_simulateError),
         content: Text(dialogContext.l10n.networkAdapter_simulateErrorDesc),
         actions: [

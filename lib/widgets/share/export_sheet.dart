@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
@@ -19,7 +20,6 @@ import '../../utils/dialog_utils.dart';
 import '../../utils/export_utils.dart';
 import '../../utils/platform_utils.dart';
 import '../../utils/share_utils.dart';
-import '../common/app_bottom_sheet.dart';
 
 /// 用户在 sheet 上点的"去向"。
 /// 本地 MD/HTML 走 ExportUtils.exportTopic；Notion 走 NotionSyncService。
@@ -256,7 +256,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
   Future<bool?> _askGoToSettings() {
     return showAppDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(S.current.notion_title),
         content: Text(S.current.notion_notConfigured),
         actions: [
@@ -276,7 +276,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
   Future<DuplicateAction?> _askDuplicate() {
     return showAppDialog<DuplicateAction?>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(S.current.notion_duplicateTitle),
         content: Text(S.current.notion_duplicateMessage),
         actions: [

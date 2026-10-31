@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/rendering.dart';
@@ -304,7 +305,8 @@ class _StickerPickerState extends ConsumerState<StickerPicker>
             style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
-          FilledButton.tonalIcon(
+          FilledButton.icon(
+            style: AppButtonStyles.secondary(context),
             onPressed: _openMarket,
             icon: const Icon(Symbols.add_rounded, size: 18),
             label: Text(S.current.sticker_addFromMarket),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 import 'dart:async';
@@ -6,7 +7,6 @@ import 'package:fluxdo/l10n/s.dart';
 import 'package:fluxdo/models/tag_search_result.dart';
 import 'package:fluxdo/services/discourse/discourse_service.dart';
 import 'package:fluxdo/services/toast_service.dart';
-import 'package:fluxdo/widgets/common/app_bottom_sheet.dart';
 import 'package:fluxdo/widgets/common/topic_badges.dart';
 
 class TagSelectionSheet extends StatefulWidget {
@@ -329,13 +329,13 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        FilledButton.tonal(
+                        FilledButton(
                           onPressed: () =>
                               Navigator.pop(context, _currentSelectedTags),
                           style: FilledButton.styleFrom(
                             visualDensity: VisualDensity.compact,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                          ),
+                          ).merge(AppButtonStyles.secondary(context)),
                           child: Text(l10n.common_confirm),
                         ),
                       ],

@@ -47,7 +47,8 @@ import '../widgets/layout/master_detail_layout.dart';
 import '../widgets/common/error_view.dart';
 import '../widgets/common/loading_dialog.dart';
 import '../widgets/common/fading_edge_scroll_view.dart';
-import 'package:common_ui/common_ui.dart';
+// 旧搜索胶囊在 M3 换成 common_ui 的 SearchCapsule
+import 'package:common_ui/common_ui.dart' hide SearchCapsule;
 import '../widgets/offline_indicator.dart';
 import '../l10n/s.dart';
 import '../models/shortcut_binding.dart';
@@ -909,7 +910,7 @@ class _TopicsPageState extends ConsumerState<TopicsPage>
     final controller = TextEditingController();
     showAppDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Text(context.l10n.topics_jumpToTopic),
         content: TextField(
           controller: controller,
@@ -1006,7 +1007,7 @@ class _TopicsPageState extends ConsumerState<TopicsPage>
     final label = _dismissLabel(currentFilter);
     showAppDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AppAlertDialog(
         title: Text(context.l10n.topics_dismissConfirmTitle),
         content: Text(context.l10n.topics_dismissConfirmContent(label)),
         actions: [

@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart'
         ImmediateMultiDragGestureRecognizer,
         PointerDeviceKind;
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart';
@@ -174,7 +175,7 @@ class _BottomNavSettingsPageState
   Future<void> _restoreDefault() async {
     final confirmed = await showAppDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(ctx.l10n.bottomNav_editorRestoreDefault),
         content: Text(ctx.l10n.bottomNav_editorRestoreDefaultConfirm),
         actions: [

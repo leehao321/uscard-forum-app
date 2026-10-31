@@ -1,127 +1,117 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
+
 import '../common/skeleton.dart';
 
-/// 话题列表骨架屏
+/// 话题列表骨架屏（v2，共享状态画板「骨架 · 200ms 后才出现」）：
+/// 按列表行的几何画——pad 12 20，标题条 16 高（两行时第二行短一些），
+/// 元信息条 12 高，左边「分类 · 作者 · 时间」、右边计数；行间 0.5 发丝线
+/// 左缩进 20。
 class TopicListSkeleton extends StatelessWidget {
   final EdgeInsetsGeometry padding;
 
-  /// Gmail 式私信卡骨架(发件人置顶、主题次行),私信列表用
+  /// 私信列表用头像行骨架（字母头像 34 + 标题 + 元信息）
   final bool messageStyle;
 
   const TopicListSkeleton({
     super.key,
-    this.padding = const EdgeInsets.all(12),
+    this.padding = EdgeInsets.zero,
     this.messageStyle = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Skeleton(
-      child: ListView.builder(
+      child: ListView.separated(
         padding: padding,
+        physics: const NeverScrollableScrollPhysics(),
         itemCount: 8,
-        itemBuilder: (context, index) => messageStyle
-            ? const _MessageCardSkeleton()
-            : const _TopicCardSkeleton(),
-      ),
-    );
-  }
-}
-
-/// 单个话题卡片的骨架屏 — 匹配标题置顶布局:
-/// 标题两行 / 头像跨两行 + 昵称·时间 / 分类·统计
-class _TopicCardSkeleton extends StatelessWidget {
-  const _TopicCardSkeleton();
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 标题满宽两行(次行部分宽)
-            SkeletonBox(width: double.infinity, height: 16),
-            const SizedBox(height: 4),
-            SkeletonBox(width: 180, height: 16),
-            const SizedBox(height: 8),
-            // 署名块:头像 32 跨两行,右侧昵称/时间、分类/统计
-            Row(
-              children: [
-                const SkeletonCircle(size: 32),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          SkeletonBox(width: 72, height: 11),
-                          const Spacer(),
-                          SkeletonBox(width: 44, height: 11),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          SkeletonBox(width: 110, height: 11),
-                          const Spacer(),
-                          SkeletonBox(width: 32, height: 11),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
+        separatorBuilder: (_, _) => AppHairline(
+          indent: messageStyle
+              ? AvatarRow.separatorIndent
+              : AppSpace.pageMargin,
         ),
+        itemBuilder: (context, index) => messageStyle
+            ? const AvatarRowSkeleton()
+            : TopicRowSkeleton(twoLines: index.isEven),
       ),
     );
   }
 }
 
-/// 私信卡骨架 — Gmail 式:头像 40 + 发件人·时间 / 主题
-class _MessageCardSkeleton extends StatelessWidget {
-  const _MessageCardSkeleton();
+/// 列表行骨架
+class TopicRowSkeleton extends StatelessWidget {
+  const TopicRowSkeleton({super.key, this.twoLines = true});
+
+  final bool twoLines;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SkeletonCircle(size: 40),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    // 条宽按行内可用宽度的比例算（侧栏、宽屏里列表不一定占满屏幕）
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpace.pageMargin,
+        vertical: context.tokens.rowPadV,
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SkeletonBox(width: width * (twoLines ? 0.92 : 0.75), height: 16),
+              if (twoLines) ...[
+                const SizedBox(height: AppSpace.s),
+                SkeletonBox(width: width * 0.6, height: 16),
+              ],
+              const SizedBox(height: AppSpace.s),
+              Row(
                 children: [
-                  // 发件人 ······ 时间
-                  Row(
-                    children: [
-                      SkeletonBox(width: 96, height: 14),
-                      const Spacer(),
-                      SkeletonBox(width: 44, height: 11),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  // 会话主题
-                  SkeletonBox(width: double.infinity, height: 14),
+                  SkeletonBox(width: width * 0.4, height: 12),
+                  const Spacer(),
+                  SkeletonBox(width: width * 0.15, height: 12),
                 ],
               ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// 头像行骨架（通知、私信、用户结果）
+class AvatarRowSkeleton extends StatelessWidget {
+  const AvatarRowSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpace.pageMargin,
+        vertical: context.tokens.rowPadV,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SkeletonCircle(size: AppSize.avatarS),
+          const SizedBox(width: AppSpace.m),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SkeletonBox(width: width * 0.8, height: 16),
+                    const SizedBox(height: AppSpace.s),
+                    SkeletonBox(width: width * 0.5, height: 12),
+                  ],
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

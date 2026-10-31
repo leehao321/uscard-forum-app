@@ -60,6 +60,7 @@
   "common_loadFailed": "載入失敗",
   "common_loadFailedRetry": "載入失敗，請重試",
   "common_loadFailedTapRetry": "載入失敗，點選重試",
+  "common_loadMoreFailed": "載入更多失敗",
   "common_loading": "載入中...",
   "common_loadingData": "載入資料...",
   "common_login": "登入",
@@ -152,5 +153,6 @@
   "common_upload": "上傳",
   "common_view": "檢視",
   "common_viewAll": "檢視全部",
-  "common_viewDetails": "檢視詳情"
+  "common_viewDetails": "檢視詳情",
+  "common_waitingForForum": "正在等待論壇回應"
 }
