@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxdo/l10n/s.dart';
@@ -94,8 +95,8 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('参与者'), findsOneWidget);
-    expect(find.text('3'), findsOneWidget);
+    // v2：头行是一条「参与者 · N」
+    expect(find.text('参与者 · 3'), findsOneWidget);
     // 胶囊统一单行只显昵称，@username 不上屏（进 tooltip）
     expect(find.text('我'), findsOneWidget);
     expect(find.text('Alice'), findsOneWidget);
@@ -299,7 +300,7 @@ void main() {
     await tester.pump();
 
     // 3 个用户 + 1 个群组
-    expect(find.text('4'), findsOneWidget);
+    expect(find.text('参与者 · 4'), findsOneWidget);
     expect(find.text('staff'), findsOneWidget);
 
     await tester.tap(
@@ -380,11 +381,11 @@ void main() {
 
     // 正在移除的群组换成进度指示，其余按钮全部禁用
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    final invite = tester.widget<IconButton>(
+    final invite = tester.widget<AppIconButton>(
       find.byKey(const ValueKey('pm-participants-firstPost-invite')),
     );
     expect(invite.onPressed, isNull);
-    final removeUser = tester.widget<IconButton>(
+    final removeUser = tester.widget<AppIconButton>(
       find.byKey(const ValueKey('pm-participant-firstPost-remove-2')),
     );
     expect(removeUser.onPressed, isNull);

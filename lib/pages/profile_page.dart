@@ -609,6 +609,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       _buildOptionTile(
         icon: AppIcons.bookmark,
         title: context.l10n.profile_myBookmarks,
+        // 书签数取已加载的用户概览，不为这个数字另发请求
+        detail: _bookmarkCountText(),
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const BookmarksPage()),
@@ -728,6 +730,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    String? detail,
   }) {
     final tokens = context.tokens;
     return AppPressable(
@@ -749,6 +752,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       .copyWith(color: tokens.colors.textPrimary),
                 ),
               ),
+              if (detail != null) ...[
+                Text(
+                  detail,
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.merge(tokens.text.meta)
+                      .copyWith(color: tokens.colors.textMeta),
+                ),
+                const SizedBox(width: AppSpace.xs),
+              ],
               Icon(
                 AppIcons.chevronRight,
                 size: AppSize.iconS,
@@ -759,6 +771,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         ),
       ),
     );
+  }
+
+  String? _bookmarkCountText() {
+    final count = ref.watch(userSummaryProvider).value?.bookmarkCount;
+    return count == null || count <= 0 ? null : '$count';
   }
 
   Widget _buildAuthButton(ThemeData theme, bool isLoggedIn) {

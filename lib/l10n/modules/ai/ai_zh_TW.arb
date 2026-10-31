@@ -96,52 +96,92 @@
   "ai_imageCoverLabel": "封面海報",
   "ai_imageCoverPrompt": "為「{title}」這個話題畫一張極簡風格的封面海報，主色調克制、富有意境，適合作為話題展示圖",
   "@ai_imageCoverPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_imageIllustrationLabel": "話題插畫",
   "ai_imageIllustrationPrompt": "把「{title}」這個話題的核心場景畫成一幅插畫，構圖簡潔明了，能傳達話題氛圍",
   "@ai_imageIllustrationPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_imageComicLabel": "漫畫風格",
   "ai_imageComicPrompt": "用扁平化漫畫風格表達「{title}」這個話題的核心討論，畫面幽默有趣、富有表現力",
   "@ai_imageComicPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_imageCardLabel": "分享卡片",
   "ai_imageCardPrompt": "做一張可用於社交分享的「{title}」話題視覺卡片，含主題文字與裝飾元素，整體精緻美觀",
   "@ai_imageCardPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_imageInfographicLabel": "手繪小報",
   "ai_imageInfographicPrompt": "把「{title}」整理成一張 16:9 橫版手繪卡通資訊圖：粗糙草圖線條、蠟筆/麥克筆質感，標題置中或左上，列出 3-6 個 1-6 字的簡短要點，關鍵字用手繪圓圈/箭頭/星星標註，搭配可愛小圖示或角色，大量留白，畫面層次清晰，純塗鴉感、無寫實、無 3D",
   "@ai_imageInfographicPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_imageMinimalLabel": "極簡",
   "ai_imageMinimalPrompt": "為「{title}」這個話題做一張極簡風格的視覺，構圖乾淨、留白充足、幾何元素克制",
   "@ai_imageMinimalPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_imageWatercolorLabel": "水彩",
   "ai_imageWatercolorPrompt": "用水彩畫風格表達「{title}」這個話題，色彩柔和透明、筆觸自然有水分暈染感",
   "@ai_imageWatercolorPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_imagePixelLabel": "像素",
   "ai_imagePixelPrompt": "把「{title}」這個話題畫成 8-bit 像素風格圖，格子清晰、用色鮮明、復古遊戲畫面感",
   "@ai_imagePixelPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_image3dClayLabel": "黏土 3D",
   "ai_image3dClayPrompt": "把「{title}」這個話題做成 3D 黏土風格圖，圓潤飽滿、表面有手捏質感，色彩明亮飽和",
   "@ai_image3dClayPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_imageSketchNotesLabel": "塗鴉筆記",
   "ai_imageSketchNotesPrompt": "把「{title}」這個話題做成手繪塗鴉筆記風格：黑色麥克筆在米色紙上，散布手寫標題、簡筆畫圖示、箭頭、連線，富有學習筆記氣息",
   "@ai_imageSketchNotesPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_dimensionPaletteLabel": "色彩",
   "ai_dimensionRenderingLabel": "畫風",
@@ -220,7 +260,11 @@
   "ai_quickPromptsDelete": "刪除",
   "ai_quickPromptsDeleteConfirm": "確定刪除快捷詞「{name}」嗎？",
   "@ai_quickPromptsDeleteConfirm": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "ai_quickPromptsPin": "Pin 到聊天頁",
   "ai_quickPromptsUnpin": "取消 Pin",
@@ -251,5 +295,6 @@
         "type": "int"
       }
     }
-  }
+  },
+  "ai_regenerateLabel": "重新生成"
 }

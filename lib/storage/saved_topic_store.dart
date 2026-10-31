@@ -127,6 +127,16 @@ class SavedTopicStore {
     return dir;
   }
 
+  /// 已存内容占用的磁盘字节数（列表页脚显示）
+  static Future<int> totalBytes() async {
+    final dir = await _dir();
+    var total = 0;
+    await for (final e in dir.list()) {
+      if (e is File) total += await e.length();
+    }
+    return total;
+  }
+
   /// 是否开启「看过就存」，默认开启。
   static Future<bool> isEnabled() async {
     final prefs = await SharedPreferences.getInstance();

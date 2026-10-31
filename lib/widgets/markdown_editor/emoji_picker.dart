@@ -551,10 +551,10 @@ class _EmojiPickerState extends ConsumerState<EmojiPicker>
           (_, index) => _buildEmojiItem(emojis[index]),
           childCount: emojis.length,
         ),
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 40,
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
+        // v2：8 列，表情 28，行高 44（热区够大）
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 8,
+          mainAxisExtent: AppSize.hit,
         ),
       ),
     );
@@ -569,9 +569,13 @@ class _EmojiPickerState extends ConsumerState<EmojiPicker>
         borderRadius: BorderRadius.circular(4),
         child: Tooltip(
           message: ':${emoji.name}:',
-          child: Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: _EmojiCell(name: emoji.name, decodeSize: 64),
+          child: Center(
+            child: _EmojiCell(
+              name: emoji.name,
+              decodeSize: 64,
+              width: 28,
+              height: 28,
+            ),
           ),
         ),
       ),

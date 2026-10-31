@@ -55,5 +55,13 @@
   "dataManagement_importWarning": "Importing will overwrite current settings. Restart required.",
   "dataManagement_noCache": "No cache",
   "dataManagement_settingsCount": "Contains {count} settings",
-  "dataManagement_title": "Data Management"
+  "dataManagement_title": "Data Management",
+  "dataManagement_cacheTotal": "Total {size}",
+  "@dataManagement_cacheTotal": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  }
 }

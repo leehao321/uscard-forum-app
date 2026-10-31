@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart';
 
 import '../../constants.dart';
@@ -25,6 +27,7 @@ class PmRecipientField extends StatefulWidget {
     this.autofocus = false,
     this.groupNames = const {},
     this.onGroupNamesChanged,
+    this.inline = false,
   });
 
   /// 当前已选收件人（用户名 / 群组名）。
@@ -40,6 +43,10 @@ class PmRecipientField extends StatefulWidget {
   final Set<String> groupNames;
 
   final ValueChanged<Set<String>>? onGroupNamesChanged;
+
+  /// 内联形态（新建私信半屏，设计说明 §5.2）：「收件人」标签 + 胶囊 +
+  /// 无边框输入同在一行，底部发丝线；false 是对话框里的填充输入框形态。
+  final bool inline;
 
   @override
   State<PmRecipientField> createState() => _PmRecipientFieldState();
@@ -181,6 +188,8 @@ class _PmRecipientFieldState extends State<PmRecipientField> {
 
   Widget _buildOverlay(BuildContext context) {
     final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     return Positioned(
       width: _fieldWidth,
       child: CompositedTransformFollower(
@@ -193,10 +202,11 @@ class _PmRecipientFieldState extends State<PmRecipientField> {
           canRequestFocus: false,
           descendantsAreFocusable: false,
           child: Material(
+          // v2 候选卡：elevated 底、r12、菜单阴影
           elevation: 8,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(tokens.radius.card),
           clipBehavior: Clip.antiAlias,
-          color: theme.colorScheme.surfaceContainerHigh,
+          color: colors.surfaceElevated,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 240),
             child: ListView(
@@ -205,10 +215,10 @@ class _PmRecipientFieldState extends State<PmRecipientField> {
               children: [
                 for (final (i, u) in _users.indexed)
                   ListTile(
-                    dense: true,
+                    minTileHeight: AppSize.row48,
                     selected: i == _highlighted,
                     selectedTileColor:
-                        theme.colorScheme.primary.withValues(alpha: 0.10),
+                        colors.brandPrimary.withValues(alpha: 0.12),
                     leading: SmartAvatar(
                       // avatar_template 是**相对路径**(`/user_avatar/…`),
                       // 直接用会加载不出来只剩首字母兜底。走模型自带的
@@ -217,7 +227,12 @@ class _PmRecipientFieldState extends State<PmRecipientField> {
                       radius: 14,
                       fallbackText: u.username,
                     ),
-                    title: Text(u.username),
+                    title: Text(
+                      u.username,
+                      style: theme.textTheme.bodyMedium
+                          ?.merge(tokens.text.control)
+                          .copyWith(color: colors.textPrimary),
+                    ),
                     subtitle: (u.name == null || u.name!.isEmpty)
                         ? null
                         : Text(u.name!, overflow: TextOverflow.ellipsis),
@@ -225,15 +240,25 @@ class _PmRecipientFieldState extends State<PmRecipientField> {
                   ),
                 for (final (gi, g) in _groups.indexed)
                   ListTile(
-                    dense: true,
+                    minTileHeight: AppSize.row48,
                     selected: _users.length + gi == _highlighted,
                     selectedTileColor:
-                        theme.colorScheme.primary.withValues(alpha: 0.10),
-                    leading: const CircleAvatar(
+                        colors.brandPrimary.withValues(alpha: 0.12),
+                    leading: CircleAvatar(
                       radius: 14,
-                      child: Icon(Icons.group_rounded, size: 16),
+                      backgroundColor: colors.avatarFill,
+                      child: Icon(
+                        AppIcons.people,
+                        size: 16,
+                        color: colors.textMeta,
+                      ),
                     ),
-                    title: Text(g.name),
+                    title: Text(
+                      g.name,
+                      style: theme.textTheme.bodyMedium
+                          ?.merge(tokens.text.control)
+                          .copyWith(color: colors.textPrimary),
+                    ),
                     subtitle: (g.fullName == null || g.fullName!.isEmpty)
                         ? null
                         : Text(g.fullName!, overflow: TextOverflow.ellipsis),
@@ -282,22 +307,46 @@ class _PmRecipientFieldState extends State<PmRecipientField> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final chipStyle = theme.textTheme.bodySmall
+        ?.merge(tokens.text.metaStrong)
+        .copyWith(color: colors.textPrimary);
+    if (widget.inline) return _buildInline(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
+        // 收件人行：已选收件人是 44 高的 pill，尾部 x 移除
         if (widget.recipients.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.only(bottom: 6),
+            padding: const EdgeInsets.only(bottom: AppSpace.s),
             child: Wrap(
-              spacing: 6,
-              runSpacing: 6,
+              spacing: AppSpace.s,
+              runSpacing: AppSpace.xs,
               children: [
                 for (final r in widget.recipients)
-                  InputChip(
-                    label: Text(r),
-                    onDeleted: () => _remove(r),
-                    visualDensity: VisualDensity.compact,
+                  Container(
+                    constraints: const BoxConstraints(minHeight: AppSize.hit),
+                    padding: const EdgeInsets.only(left: AppSpace.m),
+                    decoration: ShapeDecoration(
+                      color: colors.avatarFill,
+                      shape: const StadiumBorder(),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(r, style: chipStyle),
+                        AppIconButton(
+                          icon: AppIcons.close,
+                          size: AppSize.iconS,
+                          semanticLabel: S.current.common_remove,
+                          color: colors.textMeta,
+                          onPressed: () => _remove(r),
+                        ),
+                      ],
+                    ),
                   ),
               ],
             ),
@@ -309,10 +358,27 @@ class _PmRecipientFieldState extends State<PmRecipientField> {
             controller: _controller,
             focusNode: _focusNode,
             autofocus: widget.autofocus,
+            cursorColor: colors.brandPrimary,
+            style: theme.textTheme.bodyLarge
+                ?.merge(tokens.text.control)
+                .copyWith(color: colors.textPrimary),
             decoration: InputDecoration(
               isDense: true,
+              filled: true,
+              fillColor: colors.surfaceElevated,
               hintText: S.current.pm_recipientHint,
-              prefixIcon: const Icon(Icons.person_add_alt_1_rounded, size: 20),
+              hintStyle: theme.textTheme.bodyLarge
+                  ?.merge(tokens.text.control)
+                  .copyWith(color: colors.textMeta),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppSpace.m,
+                vertical: AppSpace.m,
+              ),
+              prefixIcon: Icon(
+                AppIcons.follow,
+                size: AppSize.iconM,
+                color: colors.textMeta,
+              ),
               suffixIcon: _loading
                   ? const Padding(
                       padding: EdgeInsets.all(12),
@@ -323,7 +389,10 @@ class _PmRecipientFieldState extends State<PmRecipientField> {
                       ),
                     )
                   : null,
-              border: const OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(tokens.radius.field),
+                borderSide: BorderSide.none,
+              ),
             ),
             onChanged: _onTermChanged,
             // 回车 = 确认当前高亮候选(见 _handleKey)。**不再**把输入原样
@@ -332,6 +401,123 @@ class _PmRecipientFieldState extends State<PmRecipientField> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildInline(BuildContext context) {
+    final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final metaStyle = theme.textTheme.bodySmall
+        ?.merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
+    final controlStyle = theme.textTheme.bodyLarge
+        ?.merge(tokens.text.control)
+        .copyWith(color: colors.textPrimary);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: colors.separator,
+            width: AppSpace.hairline,
+          ),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpace.xs),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(S.current.pm_recipientLabel, style: metaStyle),
+            const SizedBox(width: AppSpace.m),
+            Expanded(
+              child: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: AppSpace.s,
+                runSpacing: AppSpace.xs,
+                children: [
+                  for (final r in widget.recipients)
+                    Container(
+                      height: 36,
+                      padding: const EdgeInsets.only(left: AppSpace.m),
+                      decoration: ShapeDecoration(
+                        color: colors.avatarFill,
+                        shape: const StadiumBorder(),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('@$r', style: controlStyle),
+                          // 36 高的胶囊里放 44 热区的 x，向外溢出不撑高
+                          SizedBox(
+                            width: AppSize.hit,
+                            height: 36,
+                            child: OverflowBox(
+                              maxHeight: AppSize.hit,
+                              child: AppIconButton(
+                                icon: AppIcons.close,
+                                size: AppSize.iconS,
+                                semanticLabel: S.current.common_remove,
+                                color: colors.textMeta,
+                                onPressed: () => _remove(r),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  CompositedTransformTarget(
+                    link: _link,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        minWidth: 120,
+                        maxWidth: 240,
+                      ),
+                      child: SizedBox(
+                        height: AppSize.hit,
+                        child: TextField(
+                          key: _fieldKey,
+                          controller: _controller,
+                          focusNode: _focusNode,
+                          autofocus: widget.autofocus,
+                          cursorColor: colors.brandPrimary,
+                          style: controlStyle,
+                          textAlignVertical: TextAlignVertical.center,
+                          decoration: InputDecoration(
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: AppSpace.m,
+                            ),
+                            border: InputBorder.none,
+                            hintText: S.current.pm_recipientHint,
+                            hintStyle: controlStyle?.copyWith(
+                              color: colors.textMeta,
+                            ),
+                            suffixIcon: _loading
+                                ? const Padding(
+                                    padding: EdgeInsets.all(14),
+                                    child: SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          onChanged: _onTermChanged,
+                          textInputAction: TextInputAction.done,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

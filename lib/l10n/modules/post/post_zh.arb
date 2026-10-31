@@ -57,6 +57,7 @@
   "nested_lineStyleAuto": "自适应",
   "nested_lineStyleL": "L 形连接线",
   "nested_lineStyleStraight": "简化竖线",
+  "pm_recipientLabel": "收件人",
   "poll_closed": "已关闭",
   "poll_count": "计数",
   "poll_percentage": "百分比",

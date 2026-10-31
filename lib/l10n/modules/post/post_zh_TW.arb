@@ -1,5 +1,6 @@
 {
   "@@locale": "zh_TW",
+  "pm_recipientLabel": "收件人",
   "poll_closed": "已關閉",
   "poll_count": "計數",
   "poll_percentage": "百分比",

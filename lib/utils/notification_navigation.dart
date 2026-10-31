@@ -110,6 +110,17 @@ void _markNotificationRead(
       });
 }
 
+/// 只做「标记已读」的副作用（通知页宽屏双栏进右栏时用，不跳转）
+void markNotificationReadOnTap(
+  BuildContext context,
+  DiscourseNotification notification,
+) {
+  _markNotificationRead(
+    ProviderScope.containerOf(context, listen: false),
+    notification,
+  );
+}
+
 /// 处理通知点击：标记已读 + 按类型跳转。快捷面板和历史列表页面共用。
 ///
 /// [siblings] 是点击项所在的完整通知列表:大屏弹窗据此提供

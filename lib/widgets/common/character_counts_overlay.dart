@@ -1,5 +1,7 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 
+import '../../l10n/s.dart';
 import '../../plugins/plugins.dart';
 
 /// 悬浮在输入区右下角的「字数不足」提示
@@ -38,18 +40,20 @@ class CharacterCountsOverlay extends StatelessWidget {
     }
 
     final theme = Theme.of(context);
+    final tokens = context.tokens;
     final warning = showWarning
         ? PluginRegistry.charCountWarning(context)
         : null;
+    // v2：「还差 N 字」13 destructive；有站点警告文案时接在后面
+    final remaining = context.l10n.createTopic_charsRemaining(min - length);
 
     return IgnorePointer(
       child: Text(
-        warning == null ? '$length / $min' : '$length / $min  $warning',
+        warning == null ? remaining : '$remaining  $warning',
         textAlign: TextAlign.end,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.error,
-          fontWeight: FontWeight.w600,
-        ),
+        style: theme.textTheme.bodySmall
+            ?.merge(tokens.text.metaStrong)
+            .copyWith(color: tokens.colors.textDestructive),
       ),
     );
   }

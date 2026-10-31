@@ -109,6 +109,9 @@ class MarkdownToolbar extends StatefulWidget {
   final void Function(int direction, {required bool extend})?
   onMoveCursorVertical;
 
+  /// 「还有附件没传完」状态通知（宿主头部「发送」据此置灰）
+  final ValueNotifier<bool>? pendingUploadsNotifier;
+
   const MarkdownToolbar({
     super.key,
     required this.controller,
@@ -130,6 +133,7 @@ class MarkdownToolbar extends StatefulWidget {
     this.metaBar,
     this.onResumeEditing,
     this.onMoveCursorVertical,
+    this.pendingUploadsNotifier,
   });
 
   @override
@@ -148,6 +152,18 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
   /// 失败待处理的任务也阻止发布；媒体旧流程仍计入保护。
   bool get hasPendingUploads => _uploads.hasPending || _uploadingCount > 0;
 
+  /// 把「还有附件没传完」同步给宿主（头部「发送」据此置灰）
+  void _syncPendingUploads() {
+    final notifier = widget.pendingUploadsNotifier;
+    if (notifier == null) return;
+    final pending = hasPendingUploads;
+    if (notifier.value == pending) return;
+    // 状态变化可能发生在构建期，推迟到帧后再通知监听者
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (notifier.value != pending) notifier.value = hasPendingUploads;
+    });
+  }
+
   bool get isInsertingUpload => _uploadAnchors.isInserting;
 
   @override
@@ -155,6 +171,7 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
     super.initState();
     _uploadAnchors = MarkdownInsertionAnchors(widget.controller);
     HardwareKeyboard.instance.addHandler(_handleRawKeyEvent);
+    _uploads.addListener(_syncPendingUploads);
   }
 
   @override
@@ -263,6 +280,7 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
   Future<bool> pasteImageFromClipboard() async {
     final anchor = _uploadAnchors.capture();
     _uploadingCount++;
+    _syncPendingUploads();
     try {
       final clipboard = SystemClipboard.instance;
       if (clipboard == null) return false;
@@ -287,6 +305,7 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
       // 读取图片失败，忽略，文本粘贴由 TextField 自行处理
     } finally {
       _uploadingCount--;
+      _syncPendingUploads();
       _uploadAnchors.release(anchor);
     }
     return false;
@@ -299,6 +318,7 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
   }) async {
     final anchor = _uploadAnchors.capture();
     _uploadingCount++;
+    _syncPendingUploads();
     try {
       final tempDir = await getTemporaryDirectory();
       final tempFile = File(p.join(tempDir.path, fileName));
@@ -316,6 +336,7 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
       AppErrorHandler.handleUnexpected(e, s);
     } finally {
       _uploadingCount--;
+      _syncPendingUploads();
       _uploadAnchors.release(anchor);
     }
   }
@@ -972,6 +993,7 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
     final anchor = insertionAnchor ?? _uploadAnchors.capture();
     var registered = false;
     _uploadingCount++;
+    _syncPendingUploads();
     try {
       if (!mounted) return;
       final result = await showImageUploadDialog(
@@ -991,6 +1013,7 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
       AppErrorHandler.handleUnexpected(e, s);
     } finally {
       _uploadingCount--;
+      _syncPendingUploads();
       if (!registered) _uploadAnchors.release(anchor);
     }
   }
@@ -999,6 +1022,7 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
   Future<void> pickAndUploadImages() async {
     final anchor = _uploadAnchors.capture();
     _uploadingCount++;
+    _syncPendingUploads();
     try {
       final images = await _picker.pickMultiImage();
       if (!mounted || images.isEmpty) return;
@@ -1030,6 +1054,7 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
       AppErrorHandler.handleUnexpected(e, s);
     } finally {
       _uploadingCount--;
+      _syncPendingUploads();
       _uploadAnchors.release(anchor);
     }
   }
@@ -1038,6 +1063,7 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
     final anchor = _uploadAnchors.capture();
     var registered = false;
     _uploadingCount++;
+    _syncPendingUploads();
     try {
       final result = await FilePicker.platform.pickFiles();
       if (!mounted || result == null || result.files.isEmpty) return;
@@ -1054,6 +1080,7 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
       AppErrorHandler.handleUnexpected(e, s);
     } finally {
       _uploadingCount--;
+      _syncPendingUploads();
       if (!registered) _uploadAnchors.release(anchor);
     }
   }
@@ -1092,6 +1119,7 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
     final anchor = _uploadAnchors.capture();
     var registered = false;
     _uploadingCount++;
+    _syncPendingUploads();
     try {
       final picked = await FilePicker.platform.pickFiles(
         type: isAudio ? FileType.audio : FileType.video,
@@ -1109,6 +1137,7 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
       AppErrorHandler.handleUnexpected(e, s);
     } finally {
       _uploadingCount--;
+      _syncPendingUploads();
       if (!registered) _uploadAnchors.release(anchor);
     }
   }
@@ -1146,6 +1175,7 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
     final anchor = _uploadAnchors.capture();
     var registered = false;
     _uploadingCount++;
+    _syncPendingUploads();
     try {
       final path = await showVoiceRecorderSheet(context);
       if (path == null || !mounted) return;
@@ -1160,6 +1190,7 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
       AppErrorHandler.handleUnexpected(e, s);
     } finally {
       _uploadingCount--;
+      _syncPendingUploads();
       if (!registered) _uploadAnchors.release(anchor);
     }
   }

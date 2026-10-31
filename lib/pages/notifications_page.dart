@@ -7,7 +7,10 @@ import '../providers/discourse_providers.dart';
 import '../providers/preferences_provider.dart';
 import '../utils/load_more_coordinator.dart';
 import '../widgets/desktop_refresh_indicator.dart';
+import '../providers/selected_topic_provider.dart';
 import '../utils/notification_navigation.dart';
+import '../widgets/layout/master_detail_layout.dart';
+import '../widgets/layout/master_detail_pane_host.dart';
 import '../widgets/notification/notification_item.dart';
 import '../widgets/notification/notification_list_skeleton.dart';
 import '../widgets/common/error_view.dart';
@@ -180,7 +183,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
       );
     }
 
-    return Scaffold(
+    final list = Scaffold(
       appBar: navBar,
       body: Column(
         children: [
@@ -210,6 +213,51 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
         ],
       ),
     );
+
+    // 宽屏：左列通知、右栏话题（平行视界），窄屏仍是单列
+    return MasterDetailPaneHost(
+      stackProvider: selectedNotificationsPaneProvider,
+      isActive: true,
+      // 左栏按自己的宽度量阅读列和安全区：双栏时全屏宽度的阅读列边距会把
+      // 窄栏里的导航栏挤到溢出
+      master: LayoutBuilder(
+        builder: (context, constraints) {
+          final media = MediaQuery.of(context);
+          if (constraints.maxWidth >= media.size.width - 1) return list;
+          return MediaQuery(
+            data: media.copyWith(
+              size: Size(constraints.maxWidth, media.size.height),
+              padding: media.padding.copyWith(left: 0, right: 0),
+              viewPadding: media.viewPadding.copyWith(left: 0, right: 0),
+            ),
+            child: list,
+          );
+        },
+      ),
+    );
+  }
+
+  /// 点通知：宽屏且有话题落点时进右栏，其余走原来的跳转 / 弹窗
+  void _onTap(
+    DiscourseNotification notification,
+    List<DiscourseNotification> siblings,
+  ) {
+    final topicId = notification.topicId;
+    if (topicId != null && MasterDetailLayout.canShowBothPanesFor(context)) {
+      if (!notification.read) {
+        markNotificationReadOnTap(context, notification);
+        ref.read(notificationListProvider.notifier).markAsRead(notification.id);
+      }
+      ref
+          .read(selectedNotificationsPaneProvider.notifier)
+          .select(
+            topicId: topicId,
+            initialTitle: notification.fancyTitle,
+            scrollToPostNumber: notification.postNumber,
+          );
+      return;
+    }
+    handleNotificationTap(context, ref, notification, siblings: siblings);
   }
 
   Widget _buildList(
@@ -271,12 +319,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
           notification: notification,
           systemAvatarTemplate: systemAvatarTemplate,
           // siblings = 当前已加载列表,大屏弹窗内可上一条/下一条
-          onTap: () => handleNotificationTap(
-            context,
-            ref,
-            notification,
-            siblings: visibleNotifications,
-          ),
+          onTap: () => _onTap(notification, visibleNotifications),
         );
       },
     );

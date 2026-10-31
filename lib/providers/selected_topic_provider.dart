@@ -440,6 +440,11 @@ final selectedHistoryPaneProvider = SelectedTopicProvider((ref) {
   return SelectedTopicNotifier();
 });
 
+/// 通知页右栏的平行视界栈（宽屏双栏）。
+final selectedNotificationsPaneProvider = SelectedTopicProvider((ref) {
+  return SelectedTopicNotifier();
+});
+
 /// 「我的话题」页右栏的平行视界栈。
 final selectedMyTopicsPaneProvider = SelectedTopicProvider((ref) {
   return SelectedTopicNotifier();

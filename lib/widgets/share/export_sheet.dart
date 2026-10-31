@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:m3e_ui/m3e_ui.dart' show LoadingSpinner, SegmentedCardGroup;
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
-import 'package:m3e_ui/m3e_ui.dart';
 import '../../models/topic.dart';
 import '../../l10n/s.dart';
 import '../../pages/notion_settings_page.dart';
@@ -316,40 +316,44 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
         children: [
           // 导出范围
           _sectionLabel(theme, context.l10n.export_range),
-          M3eButtonGroup<ExportScope>(
-            items: [
-              M3eButtonGroupItem(
-                value: ExportScope.firstPostOnly,
-                label: Text(context.l10n.export_firstPostOnly),
-                icon: const Icon(AppIcons.article),
+          Wrap(
+            spacing: AppSpace.s,
+            children: [
+              FilterPill(
+                label: context.l10n.export_firstPostOnly,
+                icon: AppIcons.article,
+                showChevron: false,
+                selected: _scope == ExportScope.firstPostOnly,
+                onTap: busy
+                    ? null
+                    : () => setState(() => _scope = ExportScope.firstPostOnly),
               ),
-              M3eButtonGroupItem(
-                value: ExportScope.allPosts,
-                label: Text(context.l10n.common_all),
-                icon: const Icon(AppIcons.forum),
+              FilterPill(
+                label: context.l10n.common_all,
+                icon: AppIcons.forum,
+                showChevron: false,
+                selected: _scope == ExportScope.allPosts,
+                onTap: busy
+                    ? null
+                    : () => setState(() => _scope = ExportScope.allPosts),
               ),
             ],
-            selected: _scope,
-            onSelected: busy ? (_) {} : (v) => setState(() => _scope = v),
           ),
           const SizedBox(height: 16),
           // 文件格式（只作用于"保存"/"分享"，Notion 固定以页面写入）
           _sectionLabel(theme, context.l10n.export_format),
-          M3eButtonGroup<ExportFormat>(
-            items: const [
-              M3eButtonGroupItem(
-                value: ExportFormat.markdown,
-                label: Text('Markdown'),
-                icon: Icon(AppIcons.code),
-              ),
-              M3eButtonGroupItem(
-                value: ExportFormat.html,
-                label: Text('HTML'),
-                icon: Icon(AppIcons.code),
-              ),
+          Wrap(
+            spacing: AppSpace.s,
+            children: [
+              for (final f in const [ExportFormat.markdown, ExportFormat.html])
+                FilterPill(
+                  label: f == ExportFormat.markdown ? 'Markdown' : 'HTML',
+                  icon: AppIcons.code,
+                  showChevron: false,
+                  selected: _format == f,
+                  onTap: busy ? null : () => setState(() => _format = f),
+                ),
             ],
-            selected: _format,
-            onSelected: busy ? (_) {} : (v) => setState(() => _format = v),
           ),
           // Markdown 限制提示
           if (_willBeLimited) ...[

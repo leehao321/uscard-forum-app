@@ -32,5 +32,13 @@
   "createTopic_titleOrLinkHint": "Type title, or paste a link here",
   "editTopic_editPm": "Edit PM",
   "editTopic_editTopic": "Edit Topic",
-  "editTopic_loadContentFailed": "Failed to load content: {error}"
+  "editTopic_loadContentFailed": "Failed to load content: {error}",
+  "createTopic_charsRemaining": "{count} more characters needed",
+  "@createTopic_charsRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

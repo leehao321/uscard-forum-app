@@ -111,5 +111,13 @@
       }
     }
   },
-  "dataManagement_title": "資料管理"
+  "dataManagement_title": "資料管理",
+  "dataManagement_cacheTotal": "共 {size}",
+  "@dataManagement_cacheTotal": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  }
 }

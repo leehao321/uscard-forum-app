@@ -243,48 +243,50 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
     return Container(
       height: screenHeight * 0.85,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        color: context.tokens.colors.surfaceElevated,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(context.tokens.radius.sheet),
+        ),
       ),
       child: Column(
         children: [
           // 顶部拖动条
           Container(
-            margin: const EdgeInsets.symmetric(vertical: 12),
-            width: 40,
-            height: 4,
+            margin: const EdgeInsets.symmetric(vertical: AppSpace.s),
+            width: 36,
+            height: 5,
             decoration: BoxDecoration(
-              color:
-                  theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2),
+              color: context.tokens.colors.quoteRule,
+              borderRadius: BorderRadius.circular(3),
             ),
           ),
 
-          // 标题栏
+          // 标题栏：左对齐 17 + 右侧 x（同 AppSheetScaffold）
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.only(left: AppSpace.pageMargin, right: AppSpace.s),
             child: Row(
               children: [
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(AppIcons.close),
-                ),
                 Expanded(
-                  child: Text(
-                    widget.messages.length > 1 ? context.l10n.share_exportChatImage : context.l10n.share_exportImage,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      widget.messages.length > 1 ? context.l10n.share_exportChatImage : context.l10n.share_exportImage,
+                      style: theme.textTheme.titleMedium
+                          ?.merge(context.tokens.text.headline)
+                          .copyWith(color: context.tokens.colors.textPrimary),
                     ),
-                    textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(width: 48),
+                AppIconButton(
+                  icon: AppIcons.close,
+                  semanticLabel: context.l10n.common_close,
+                  onPressed: () => Navigator.pop(context),
+                ),
               ],
             ),
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpace.s),
 
           // 图片预览区域
           Expanded(
@@ -323,8 +325,7 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest
-                  .withValues(alpha: 0.5),
+              color: context.tokens.colors.surfaceGrouped,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -371,10 +372,10 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                       Text(
                         t.name,
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 11,
                           color: isSelected
-                              ? theme.colorScheme.primary
-                              : theme.colorScheme.onSurfaceVariant,
+                              ? context.tokens.colors.brandPrimary
+                              : context.tokens.colors.textMeta,
                           fontWeight:
                               isSelected ? FontWeight.w500 : FontWeight.normal,
                         ),
@@ -395,11 +396,11 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
               bottom: 12 + bottomPadding,
             ),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
+              color: context.tokens.colors.surfaceElevated,
               border: Border(
                 top: BorderSide(
-                  color: theme.colorScheme.outlineVariant
-                      .withValues(alpha: 0.3),
+                  color: context.tokens.colors.separator,
+                  width: AppSpace.hairline,
                 ),
               ),
             ),
@@ -411,31 +412,31 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                   children: [
                     // 复制图片
                     Expanded(
-                      child: OutlinedButton.icon(
+                      child: FilledButton.icon(
                         onPressed: _anyLoading ? null : _copyImage,
                         icon: _isCopying
                             ? const LoadingSpinner(size: 18)
                             : const Icon(AppIcons.copy, size: 18),
                         label: Text(context.l10n.common_copy),
-                        style: OutlinedButton.styleFrom(
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 12),
-                        ),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size.fromHeight(AppSize.replyButton),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ).merge(AppButtonStyles.secondary(context)),
                       ),
                     ),
                     const SizedBox(width: 8),
                     // 保存图片（移动端进相册、桌面端另存为）
                     Expanded(
-                      child: OutlinedButton.icon(
+                      child: FilledButton.icon(
                         onPressed: _anyLoading ? null : _saveImage,
                         icon: _isSaving
                             ? const LoadingSpinner(size: 18)
                             : const Icon(AppIcons.saveAlt, size: 18),
                         label: Text(ImageSaveUtils.actionLabel),
-                        style: OutlinedButton.styleFrom(
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 12),
-                        ),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size.fromHeight(AppSize.replyButton),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ).merge(AppButtonStyles.secondary(context)),
                       ),
                     ),
                     const SizedBox(width: 8),

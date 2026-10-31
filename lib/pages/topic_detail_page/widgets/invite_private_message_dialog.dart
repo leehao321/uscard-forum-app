@@ -48,6 +48,11 @@ class _InvitePrivateMessageDialogState
   @override
   Widget build(BuildContext context) {
     return AppAlertDialog(
+      // 带输入的对话框左右 40（设计说明 §6 dialog/inset）
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: 40,
+        vertical: AppSpace.xxl,
+      ),
       title: Text(context.l10n.pm_inviteParticipants),
       content: SizedBox(
         width: 360,
@@ -57,9 +62,9 @@ class _InvitePrivateMessageDialogState
           children: [
             Text(
               context.l10n.pm_inviteParticipantsHint,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.merge(context.tokens.text.meta)
+                  .copyWith(color: context.tokens.colors.textMeta),
             ),
             const SizedBox(height: 12),
             PmRecipientField(

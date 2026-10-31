@@ -67,5 +67,13 @@
         "type": "String"
       }
     }
+  },
+  "createTopic_charsRemaining": "還差 {count} 字",
+  "@createTopic_charsRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

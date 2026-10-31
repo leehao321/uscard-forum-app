@@ -197,10 +197,14 @@ class RichComposerEditor extends StatefulWidget {
     this.onFallbackToPlain,
     this.onSwitchToSource,
     this.semanticCodec,
+    this.pendingUploadsNotifier,
   });
 
   /// 可注入编解码边界；生产默认使用 Discourse 的严格 cook 门禁。
   final SemanticComposerCodec? semanticCodec;
+
+  /// 「还有附件没传完」状态通知（宿主头部「发送」据此置灰）
+  final ValueNotifier<bool>? pendingUploadsNotifier;
 
   /// 对外 Markdown 镜像（宿主草稿/提交读它，不拥有文档）。
   final TextEditingController controller;
@@ -529,7 +533,19 @@ class RichComposerEditorState extends State<RichComposerEditor> {
     setState(() {});
   }
 
+  /// 把「还有附件没传完」同步给宿主（头部「发送」据此置灰）
+  void _syncPendingUploads() {
+    final notifier = widget.pendingUploadsNotifier;
+    if (notifier == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (notifier.value != hasPendingUploads) {
+        notifier.value = hasPendingUploads;
+      }
+    });
+  }
+
   void _onUploadsChanged() {
+    _syncPendingUploads();
     scheduleMicrotask(() {
       if (!mounted || _documentReplaced) return;
       final ids = _uploads.tasks.map((task) => task.id).toSet();

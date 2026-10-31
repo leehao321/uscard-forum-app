@@ -64,9 +64,15 @@ Future<void> showQrLoginSheet(BuildContext context, {String? username}) async {
   } else {
     await showAppDialog<void>(
       context: context,
-      builder: (_) => Dialog(
+      // 桌面形态：v2 浮层（elevated 底、半屏同款 r16），头行 17 标题 + x
+      builder: (dialogContext) => Dialog(
         clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: dialogContext.tokens.colors.surfaceElevated,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(dialogContext.tokens.radius.sheet),
+        ),
         child: SizedBox(
           width: 440,
           child: _QrLoginPanel(username: username, inSheet: false),
@@ -308,23 +314,25 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
   }
 
   Widget _buildHeader(ThemeData theme, ColorScheme scheme) {
+    final tokens = context.tokens;
     return Row(
       children: [
-        Icon(AppIcons.qrCode, size: 22, color: context.tokens.colors.brandPrimary),
-        const SizedBox(width: 10),
         Expanded(
-          child: Text(
-            context.l10n.login_qrDisplayTitle,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
+          child: Semantics(
+            header: true,
+            child: Text(
+              context.l10n.login_qrDisplayTitle,
+              style: theme.textTheme.titleMedium
+                  ?.merge(tokens.text.headline)
+                  .copyWith(color: tokens.colors.textPrimary),
             ),
           ),
         ),
         if (!widget.inSheet)
-          IconButton(
-            tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+          AppIconButton(
+            icon: AppIcons.close,
+            semanticLabel: MaterialLocalizations.of(context).closeButtonTooltip,
             onPressed: () => Navigator.of(context).maybePop(),
-            icon: const Icon(AppIcons.close, size: 20),
           ),
       ],
     );

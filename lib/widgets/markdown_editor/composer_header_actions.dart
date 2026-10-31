@@ -18,6 +18,8 @@ typedef ComposerReviewBuilder = Widget Function(
 
 enum _HeaderAction { preview, review, discard, draft }
 
+final ValueNotifier<bool> _kNeverDimmed = ValueNotifier<bool>(false);
+
 /// 创建、编辑和回复共用的文档操作区。窄屏优先给标题和提交按钮留空间。
 class ComposerHeaderActions extends StatelessWidget {
   const ComposerHeaderActions({
@@ -28,6 +30,7 @@ class ComposerHeaderActions extends StatelessWidget {
     required this.previewing,
     required this.onTogglePreview,
     this.submitIcon,
+    this.submitDimmed,
     this.submitting = false,
     this.showDiscard = false,
     this.onDiscard,
@@ -45,6 +48,9 @@ class ComposerHeaderActions extends StatelessWidget {
   final IconData? submitIcon;
   final VoidCallback? onSubmit;
   final bool submitting;
+
+  /// 还有附件没传完时「发送」置灰（仍可点，点了由宿主出 Toast）
+  final ValueListenable<bool>? submitDimmed;
   final bool previewing;
   final VoidCallback? onTogglePreview;
   final bool showDiscard;
@@ -259,11 +265,15 @@ class ComposerHeaderActions extends StatelessWidget {
               overflow.contains(_HeaderAction.review)
                   ? reviewHost(folded: true)
                   : more(false, null),
-            ComposerSubmitButton(
-              label: submitLabel,
-              icon: submitIcon,
-              busy: submitting,
-              onPressed: onSubmit,
+            ValueListenableBuilder<bool>(
+              valueListenable: submitDimmed ?? _kNeverDimmed,
+              builder: (context, dimmed, _) => ComposerSubmitButton(
+                label: submitLabel,
+                icon: submitIcon,
+                busy: submitting,
+                dimmed: dimmed,
+                onPressed: onSubmit,
+              ),
             ),
           ],
         ),

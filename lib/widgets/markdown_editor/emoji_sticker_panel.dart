@@ -8,16 +8,10 @@ import 'emoji_picker.dart';
 import 'sticker_picker.dart';
 import '../../../../../l10n/s.dart';
 
-/// 悬浮 Tab 的高度（含上下内边距），用于给内容区预留底部空间
-const double floatingTabHeight = 48;
-
-/// 紧凑模式(桌面悬浮弹层)的悬浮 Tab 预留高度
-const double floatingTabHeightCompact = 40;
-
 /// 表情/表情包面板容器
 ///
-/// 通过底部悬浮 Tab 或左右滑动切换"内置表情"和"表情包"两种模式。
-/// 使用 Stack 布局，内容区在底层，悬浮 Tab 在顶层。
+/// 通过顶部页内筛选或左右滑动切换"内置表情"和"表情包"两种模式。
+/// 顶部是页内筛选，下面是两页内容。
 class EmojiStickerPanel extends StatefulWidget {
   /// 选中内置表情的回调
   final ValueChanged<Emoji> onEmojiSelected;
@@ -64,12 +58,6 @@ class EmojiStickerPanel extends StatefulWidget {
 class _EmojiStickerPanelState extends State<EmojiStickerPanel> {
   late final PageController _pageController;
   int _currentPage = 0;
-
-  /// 悬浮 Tab 是否可见
-  bool _tabVisible = true;
-
-  /// 滚动累积量，正值=向下滚动，负值=向上滚动
-  double _scrollDelta = 0;
 
   /// 两个 picker 页面的实例缓存。
   ///
@@ -124,240 +112,69 @@ class _EmojiStickerPanelState extends State<EmojiStickerPanel> {
     super.dispose();
   }
 
-  void _onScrollUpdate(ScrollUpdateNotification notification) {
-    // 只响应垂直滚动，忽略 PageView 的水平翻页
-    if (notification.metrics.axis != Axis.vertical) return;
-
-    final delta = notification.scrollDelta ?? 0;
-    if (delta == 0) return;
-
-    // 方向反转时重置累积值
-    if ((_scrollDelta > 0 && delta < 0) || (_scrollDelta < 0 && delta > 0)) {
-      _scrollDelta = 0;
-    }
-
-    _scrollDelta += delta;
-
-    // 向下累积 80px 隐藏
-    if (_scrollDelta > 80 && _tabVisible) {
-      setState(() => _tabVisible = false);
-      _scrollDelta = 0;
-    }
-    // 向上累积 40px 显示
-    else if (_scrollDelta < -40 && !_tabVisible) {
-      setState(() => _tabVisible = true);
-      _scrollDelta = 0;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final safeBottom = MediaQuery.viewPaddingOf(context).bottom;
-    final tabHeight = widget.compact
-        ? floatingTabHeightCompact
-        : floatingTabHeight;
-    final totalBottomPadding = tabHeight + safeBottom;
 
-    return Stack(
+    // v2（设计说明 §3.2 表情面板）：顶部页内筛选「表情 · 表情包」（44 高），
+    // 下面是 8 列表情网格；退格键悬在右下。不再有底部悬浮切换胶囊。
+    return Column(
       children: [
-        // 内容区：NotificationListener 只处理垂直滚动
-        NotificationListener<ScrollUpdateNotification>(
-          onNotification: (notification) {
-            _onScrollUpdate(notification);
-            return false;
-          },
-          child: PageView(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-                _tabVisible = true;
-                _scrollDelta = 0;
-              });
-            },
-            children: _buildPages(totalBottomPadding),
+        FilterTabs(
+          labels: [S.current.emoji_tab, S.current.sticker_tab],
+          selectedIndex: _currentPage,
+          scrollable: false,
+          onSelected: (index) => _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
           ),
         ),
+        Expanded(
+          child: Stack(
+            children: [
+              PageView(
+                controller: _pageController,
+                onPageChanged: (index) => setState(() => _currentPage = index),
+                children: _buildPages(safeBottom),
+              ),
 
-        // 悬浮切换 Tab(紧凑模式桌面无安全区,补 6px 底距不贴边)
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: widget.compact ? safeBottom + 6 : safeBottom,
-          child: Center(
-            child: AnimatedSlide(
-              offset: _tabVisible ? Offset.zero : const Offset(0, 2),
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              child: _buildFloatingTab(context),
-            ),
-          ),
-        ),
-
-        // 悬浮退格键(仅移动端,与 Tab 同层同显隐节奏,靠右)
-        if (widget.onBackspace != null && PlatformUtils.isMobile)
-          Positioned(
-            right: 12,
-            bottom: safeBottom + 4,
-            child: AnimatedSlide(
-              offset: _tabVisible ? Offset.zero : const Offset(0, 2),
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              child: CapsuleSurface(
-                shape: const CircleBorder(),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: widget.onBackspace,
-                    child: SizedBox(
-                      width: 42,
-                      height: 42,
-                      child: Center(
-                        // backspace 字形视觉重心偏右(左侧是箭头尖),
-                        // 几何居中后看着偏右,向左 1px 光学补偿。
-                        child: Transform.translate(
-                          offset: const Offset(-1, 0),
-                          child: Icon(
-                            AppIcons.backspace,
-                            size: 20,
-                            color: context.tokens.colors.textMeta,
+              // 悬浮退格键(仅移动端，靠右)
+              if (widget.onBackspace != null && PlatformUtils.isMobile)
+                Positioned(
+                  right: 12,
+                  bottom: safeBottom + 4,
+                  child: CapsuleSurface(
+                    shape: const CircleBorder(),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: widget.onBackspace,
+                        child: SizedBox(
+                          width: AppSize.hit,
+                          height: AppSize.hit,
+                          child: Center(
+                            // backspace 字形视觉重心偏右(左侧是箭头尖),
+                            // 几何居中后看着偏右,向左 1px 光学补偿。
+                            child: Transform.translate(
+                              offset: const Offset(-1, 0),
+                              child: Icon(
+                                AppIcons.backspace,
+                                size: 20,
+                                color: context.tokens.colors.textMeta,
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildFloatingTab(BuildContext context) {
-    final theme = Theme.of(context);
-    final compact = widget.compact;
-    final buttonWidth = compact ? 76.0 : 90.0;
-    const gap = 4.0;
-
-    return CapsuleSurface(
-      // 紧凑模式在弹层里，弹层自带阴影，胶囊不再加影
-      shadow: !compact,
-      child: Padding(
-        padding: EdgeInsets.all(compact ? 3 : 4),
-        child: AnimatedBuilder(
-          animation: _pageController,
-          builder: (context, _) {
-            final page = _pageController.hasClients
-                ? (_pageController.page ?? _currentPage.toDouble())
-                : _currentPage.toDouble();
-
-            return SizedBox(
-              height: compact ? 30 : 34,
-              child: Stack(
-                children: [
-                  // 滑动指示器
-                  Positioned(
-                    left: page * (buttonWidth + gap),
-                    top: 0,
-                    bottom: 0,
-                    width: buttonWidth,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: context.tokens.colors.brandPrimary.withValues(
-                          alpha: 0.12,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                  ),
-                  // 按钮
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildTabLabel(
-                        theme: theme,
-                        icon: AppIcons.smileyOutline,
-                        label: S.current.emoji_tab,
-                        selected: _currentPage == 0,
-                        width: buttonWidth,
-                        onTap: () => _pageController.animateToPage(
-                          0,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        ),
-                      ),
-                      const SizedBox(width: gap),
-                      _buildTabLabel(
-                        theme: theme,
-                        icon: AppIcons.stickerOutline,
-                        label: S.current.sticker_tab,
-                        selected: _currentPage == 1,
-                        width: buttonWidth,
-                        onTap: () => _pageController.animateToPage(
-                          1,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTabLabel({
-    required ThemeData theme,
-    required Object icon,
-    required String label,
-    required bool selected,
-    required double width,
-    required VoidCallback onTap,
-  }) {
-    final compact = widget.compact;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: width,
-        child: Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppIcon(
-                icon,
-                size: compact ? 16 : 18,
-                fill: selected ? 1 : 0,
-                color: selected
-                    ? context.tokens.colors.brandPrimary
-                    : context.tokens.colors.textMeta,
-              ),
-              SizedBox(width: compact ? 5 : 6),
-              Text(
-                label,
-                // v2 元信息 13（紧凑 12 之外不再另设字号档）
-                style: theme.textTheme.bodySmall
-                    ?.merge(
-                      selected
-                          ? context.tokens.text.metaStrong
-                          : context.tokens.text.meta,
-                    )
-                    .copyWith(
-                      color: selected
-                          ? context.tokens.colors.brandPrimary
-                          : context.tokens.colors.textMeta,
-                    ),
-              ),
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 }

@@ -128,23 +128,22 @@ class _TopicSearchViewState extends ConsumerState<TopicSearchView> {
               children: [
                 Expanded(
                   child: Text(
-                    context.l10n.search_resultCount(
-                      searchState.results.length,
-                      searchState.hasMore ? '+' : '',
-                    ),
+                    widget.onJumpToPost != null
+                        ? context.l10n.search_matchSummary(
+                            searchState.results.length,
+                            _current.clamp(0, searchState.results.length - 1) +
+                                1,
+                          )
+                        : context.l10n.search_resultCount(
+                            searchState.results.length,
+                            searchState.hasMore ? '+' : '',
+                          ),
                     style: theme.textTheme.bodySmall
                         ?.merge(context.tokens.text.meta)
                         .copyWith(color: context.tokens.colors.textMeta),
                   ),
                 ),
                 if (widget.onJumpToPost != null) ...[
-                  Text(
-                    '${_current.clamp(0, searchState.results.length - 1) + 1}'
-                    '/${searchState.results.length}',
-                    style: theme.textTheme.bodySmall
-                        ?.merge(context.tokens.text.meta)
-                        .copyWith(color: context.tokens.colors.textMeta),
-                  ),
                   AppIconButton(
                     icon: AppIcons.chevronUp,
                     semanticLabel: context.l10n.search_prevMatch,

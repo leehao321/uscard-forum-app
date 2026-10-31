@@ -1312,34 +1312,106 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
   }) {
     final searchState = ref.watch(topicSearchProvider(widget.topicId));
 
-    // 搜索模式下的 AppBar
+    // 搜索模式：顶部 56 高，返回 + 填充搜索框 44 高 r10（框内清除键）
+    // （设计说明 §5.1 站内搜索）；匹配导航在结果头里（TopicSearchView）
     if (searchState.isSearchMode) {
-      return AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: theme.colorScheme.surface,
-        title: TextField(
-          controller: _searchController,
-          focusNode: _searchFocusNode,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: context.l10n.topicDetail_searchHint,
-            border: InputBorder.none,
-            hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+      final tokens = context.tokens;
+      final colors = tokens.colors;
+      final insets = readableInsets(context, gutter: 0);
+      return PreferredSize(
+        preferredSize: const Size.fromHeight(56),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: colors.surfacePage,
+            border: Border(
+              bottom: BorderSide(
+                color: colors.separator,
+                width: AppSpace.hairline,
+              ),
+            ),
           ),
-          style: theme.textTheme.bodyLarge,
-          textInputAction: TextInputAction.search,
-          onSubmitted: (query) {
-            ref
-                .read(topicSearchProvider(widget.topicId).notifier)
-                .search(query);
-          },
+          child: Padding(
+            padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top),
+            child: MediaQuery.withClampedTextScaling(
+              maxScaleFactor: kChromeMaxTextScale,
+              child: SizedBox(
+                height: 56,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: insets.left + AppSpace.pageMargin,
+                    right: insets.right + AppSpace.pageMargin,
+                  ),
+                  child: Row(
+                    children: [
+                      AppBackButton(onPressed: _exitSearchMode),
+                      Expanded(
+                        child: SizedBox(
+                          height: AppSize.hit,
+                          child: TextField(
+                            controller: _searchController,
+                            focusNode: _searchFocusNode,
+                            autofocus: true,
+                            cursorColor: colors.brandPrimary,
+                            textInputAction: TextInputAction.search,
+                            style: theme.textTheme.bodyLarge
+                                ?.merge(tokens.text.control)
+                                .copyWith(color: colors.textPrimary),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              filled: true,
+                              fillColor: colors.surfaceElevated,
+                              hintText: context.l10n.topicDetail_searchHint,
+                              hintStyle: theme.textTheme.bodyLarge
+                                  ?.merge(tokens.text.control)
+                                  .copyWith(color: colors.textMeta),
+                              prefixIcon: Icon(
+                                AppIcons.search,
+                                size: AppSize.iconM,
+                                color: colors.textMeta,
+                              ),
+                              // 输入框内的清除键（有内容才显示）
+                              suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                                valueListenable: _searchController,
+                                builder: (context, value, _) => value.text.isEmpty
+                                    ? const SizedBox.shrink()
+                                    : AppIconButton(
+                                        icon: AppIcons.cancelCircle,
+                                        size: AppSize.iconM,
+                                        semanticLabel:
+                                            context.l10n.common_clear,
+                                        color: colors.textMeta,
+                                        onPressed: _searchController.clear,
+                                      ),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: AppSpace.m,
+                                vertical: AppSpace.m,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  tokens.radius.field,
+                                ),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            onSubmitted: (query) {
+                              ref
+                                  .read(
+                                    topicSearchProvider(widget.topicId)
+                                        .notifier,
+                                  )
+                                  .search(query);
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Symbols.close_rounded),
-            onPressed: _exitSearchMode,
-          ),
-        ],
       );
     }
 

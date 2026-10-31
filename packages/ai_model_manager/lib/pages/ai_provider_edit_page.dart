@@ -647,7 +647,12 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
                 ),
               )
             : ReorderableListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpace.pageMargin,
+                  AppSpace.m,
+                  AppSpace.pageMargin,
+                  80,
+                ),
                 buildDefaultDragHandles: false,
                 itemCount: _models.length,
                 onReorderItem: _reorderModels,
@@ -714,7 +719,6 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
     required AiModel model,
     required int index,
   }) {
-    final cs = theme.colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Material(
@@ -744,7 +748,10 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
                       Text(
                         model.name ?? model.id,
                         style: theme.textTheme.bodyMedium
-                            ?.copyWith(fontWeight: FontWeight.w500),
+                            ?.merge(context.tokens.text.control)
+                            .copyWith(
+                              color: context.tokens.colors.textPrimary,
+                            ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -752,10 +759,9 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
                         const SizedBox(height: 2),
                         Text(
                           model.id,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: cs.onSurfaceVariant,
-                            fontSize: 11,
-                          ),
+                          style: theme.textTheme.bodySmall
+                              ?.merge(context.tokens.text.caption)
+                              .copyWith(color: context.tokens.colors.textMeta),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -765,11 +771,10 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: Icon(AppIcons.delete,
-                      color: cs.error.withValues(alpha: 0.7), size: 20),
-                  tooltip: AiL10n.current.remove,
-                  visualDensity: VisualDensity.compact,
+                AppIconButton(
+                  icon: AppIcons.delete,
+                  semanticLabel: AiL10n.current.remove,
+                  color: context.tokens.colors.textDestructive,
                   onPressed: () => setState(() => _removeModelAt(index)),
                 ),
               ],

@@ -75,52 +75,92 @@
   "ai_imageCoverLabel": "Cover poster",
   "ai_imageCoverPrompt": "Design a minimalist cover poster for the topic \"{title}\". Restrained palette, evocative atmosphere, suitable as a hero image",
   "@ai_imageCoverPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_imageIllustrationLabel": "Illustration",
   "ai_imageIllustrationPrompt": "Illustrate the core scene of the topic \"{title}\" with a clean composition that conveys the mood",
   "@ai_imageIllustrationPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_imageComicLabel": "Comic",
   "ai_imageComicPrompt": "Express the core discussion of the topic \"{title}\" in a flat comic style — humorous, expressive, eye-catching",
   "@ai_imageComicPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_imageCardLabel": "Share card",
   "ai_imageCardPrompt": "Create a polished social-share visual card for the topic \"{title}\" with title text and decorative elements",
   "@ai_imageCardPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_imageInfographicLabel": "Hand-drawn infographic",
   "ai_imageInfographicPrompt": "Turn the topic \"{title}\" into a 16:9 landscape hand-drawn cartoon infographic: rough sketch lines, crayon/marker texture, title at top or left, 3-6 short bullets (1-6 words each), highlight keywords with hand-drawn circles/arrows/stars, cute icons and mascots, plenty of whitespace, pure doodle feel, no realism, no 3D",
   "@ai_imageInfographicPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_imageMinimalLabel": "Minimal",
   "ai_imageMinimalPrompt": "Create a minimalist visual for the topic \"{title}\": clean composition, generous whitespace, restrained geometric elements",
   "@ai_imageMinimalPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_imageWatercolorLabel": "Watercolor",
   "ai_imageWatercolorPrompt": "Express the topic \"{title}\" in watercolor style: soft transparent colors, natural brush strokes with water-bleed edges",
   "@ai_imageWatercolorPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_imagePixelLabel": "Pixel",
   "ai_imagePixelPrompt": "Render the topic \"{title}\" as 8-bit pixel art: crisp grid, vivid palette, retro game vibe",
   "@ai_imagePixelPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_image3dClayLabel": "3D clay",
   "ai_image3dClayPrompt": "Make the topic \"{title}\" in 3D clay style: rounded forms, hand-pressed surface texture, bright saturated colors",
   "@ai_image3dClayPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_imageSketchNotesLabel": "Sketch notes",
   "ai_imageSketchNotesPrompt": "Make the topic \"{title}\" as hand-drawn sketch notes: black marker on cream paper, scattered handwritten titles, doodle icons, arrows and connectors — study-notes vibe",
   "@ai_imageSketchNotesPrompt": {
-    "placeholders": { "title": { "type": "String" } }
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "ai_dimensionPaletteLabel": "Palette",
   "ai_dimensionRenderingLabel": "Rendering",
@@ -199,7 +239,11 @@
   "ai_quickPromptsDelete": "Delete",
   "ai_quickPromptsDeleteConfirm": "Delete quick prompt \"{name}\"?",
   "@ai_quickPromptsDeleteConfirm": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "ai_quickPromptsPin": "Pin to chat",
   "ai_quickPromptsUnpin": "Unpin",
@@ -230,5 +274,6 @@
         "type": "int"
       }
     }
-  }
+  },
+  "ai_regenerateLabel": "Regenerate"
 }

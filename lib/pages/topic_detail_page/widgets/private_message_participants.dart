@@ -1,4 +1,5 @@
 import 'package:app_icons/app_icons.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 
 import '../../../l10n/s.dart';
@@ -16,7 +17,6 @@ const int _minPostsCountForBottomPanel = 3;
 const double _avatarRadius = 14;
 
 /// 移除按钮的点击区;不超过头像直径,免得把胶囊撑高。
-const double _removeButtonSize = 28;
 
 /// 私信成员面板，对齐 Discourse 私信 topic map 的成员与退出入口。
 class PrivateMessageParticipants extends StatelessWidget {
@@ -113,68 +113,52 @@ class PrivateMessageParticipants extends StatelessWidget {
     if (_entryCount == 0) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     final showInvite = canInvite && onInvite != null;
+    final meta = theme.textTheme.bodySmall
+        ?.merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
+    // v2：分组底 r12，左右边距 20；头行「参与者 N」13 meta + 邀请 44 热区
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.fromLTRB(
+        AppSpace.pageMargin,
+        AppSpace.s,
+        AppSpace.pageMargin,
+        AppSpace.s,
+      ),
+      padding: const EdgeInsets.all(AppSpace.m),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
+        color: colors.surfaceGrouped,
+        borderRadius: BorderRadius.circular(tokens.radius.card),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                AppIcons.lock,
-                size: 18,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
+              Icon(AppIcons.lock, size: AppSize.iconS, color: colors.textMeta),
+              const SizedBox(width: AppSpace.s),
               Text(
-                context.l10n.topic_participants,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  '$_entryCount',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSecondaryContainer,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                '${context.l10n.topic_participants} · $_entryCount',
+                style: meta?.copyWith(fontWeight: FontWeight.w600),
               ),
               if (showInvite) ...[
                 const Spacer(),
-                IconButton(
+                AppIconButton(
                   key: ValueKey('pm-participants-${location.name}-invite'),
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                  constraints: const BoxConstraints(
-                    minWidth: 32,
-                    minHeight: 32,
-                  ),
-                  tooltip: context.l10n.pm_inviteParticipants,
+                  icon: AppIcons.follow,
+                  size: AppSize.iconM,
+                  semanticLabel: context.l10n.pm_inviteParticipants,
                   onPressed: _controlsLocked ? null : onInvite,
-                  icon: const Icon(AppIcons.follow, size: 18),
                 ),
               ],
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpace.s),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: AppSpace.s,
+            runSpacing: AppSpace.s,
             children: [
               // 群组排在用户之前，对齐官方 private-message-map 的渲染顺序。
               for (final group in groups) _buildGroup(context, group),
@@ -190,7 +174,6 @@ class PrivateMessageParticipants extends StatelessWidget {
   /// 群组条目:官方 PmMapUserGroup 只认 canRemoveAllowedUsers,
   /// 群组没有「退出」语义(自己不在名单里)。
   Widget _buildGroup(BuildContext context, TopicGroup group) {
-    final theme = Theme.of(context);
     return _buildEntry(
       context,
       key: ValueKey('pm-group-${location.name}-${group.name}'),
@@ -200,11 +183,11 @@ class PrivateMessageParticipants extends StatelessWidget {
           : '${group.name} · ${group.displayName}',
       leading: CircleAvatar(
         radius: _avatarRadius,
-        backgroundColor: theme.colorScheme.secondaryContainer,
+        backgroundColor: context.tokens.colors.avatarFill,
         child: Icon(
           AppIcons.people,
           size: 16,
-          color: theme.colorScheme.onSecondaryContainer,
+          color: context.tokens.colors.textMeta,
         ),
       ),
       label: group.name,
@@ -347,72 +330,73 @@ class _PmEntryChipState extends State<_PmEntryChip> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     final onTap = widget.onTap;
+    // 胶囊高 44（整条可点 / 移除按钮热区都够），底色 elevated，13 号名字
     return Tooltip(
       message: widget.tooltip,
       child: CompositedTransformTarget(
         link: _link,
         child: ConstrainedBox(
           key: widget.chipKey,
-          constraints: const BoxConstraints(maxWidth: 240),
-          // Material + InkWell 而非 Container(decoration):水波纹要按胶囊
-          // 圆角裁切,直接给 Container 加 decoration 的话涟漪会溢出圆角。
-          child: Material(
-            color: theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(12),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: onTap == null ? null : () => onTap(context, _link),
-              child: Padding(
-                // 右内边距分两档:带按钮时按钮自带留白,不带按钮时要自己补
-                // 够,否则文字直接贴到胶囊边缘。
-                padding: EdgeInsets.fromLTRB(
-                  10,
-                  5,
-                  widget.canRemove ? 4 : 12,
-                  5,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    widget.leading,
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        widget.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelLarge,
+          constraints: const BoxConstraints(
+            maxWidth: 240,
+            minHeight: AppSize.hit,
+          ),
+          child: IntrinsicWidth(
+            child: Material(
+              // 分组卡片（grouped）上的胶囊用 avatarFill，浅 / 深色下都分得出来
+              color: colors.avatarFill,
+              shape: const StadiumBorder(),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: onTap == null ? null : () => onTap(context, _link),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpace.s,
+                    0,
+                    widget.canRemove ? 0 : AppSpace.m,
+                    0,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      widget.leading,
+                      const SizedBox(width: AppSpace.s),
+                      Flexible(
+                        child: Text(
+                          widget.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall
+                              ?.merge(tokens.text.metaStrong)
+                              .copyWith(color: colors.textPrimary),
+                        ),
                       ),
-                    ),
-                    if (widget.canRemove) ...[
-                      const SizedBox(width: 2),
-                      SizedBox.square(
-                        dimension: _removeButtonSize,
-                        child: widget.isRemoving
-                            ? const Padding(
-                                padding: EdgeInsets.all(7),
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                      if (widget.canRemove)
+                        widget.isRemoving
+                            ? const SizedBox.square(
+                                dimension: AppSize.hit,
+                                child: Padding(
+                                  padding: EdgeInsets.all(14),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 ),
                               )
-                            : IconButton(
+                            : AppIconButton(
                                 key: widget.removeKey,
-                                padding: EdgeInsets.zero,
-                                visualDensity: VisualDensity.compact,
-                                tooltip: widget.removeTooltip,
-                                // 移除/退出是常规操作,不该用 error 红的实心
-                                // 图标压过头像和名字;危险语义交给确认弹窗
-                                // 表达(官方同样只用一个弱化的 xmark)。
-                                color: theme.colorScheme.onSurfaceVariant,
+                                icon: AppIcons.close,
+                                size: AppSize.iconS,
+                                semanticLabel: widget.removeTooltip,
+                                color: colors.textMeta,
                                 onPressed: widget.controlsLocked
                                     ? null
                                     : widget.onRemove,
-                                icon: const Icon(AppIcons.close, size: 16),
                               ),
-                      ),
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),

@@ -219,22 +219,22 @@ void main() {
   group('CharacterCountsOverlay', () {
     tearDown(PluginRegistry.resetOverride);
 
-    testWidgets('linux.do 配置下字数不足时显示 `x / min` + 社区警告', (tester) async {
+    testWidgets('linux.do 配置下字数不足时显示「还差 N 字」+ 社区警告', (tester) async {
       PluginRegistry.overridePlugins(linuxdoCustomization.plugins);
       await tester.pumpWidget(
         _host(const CharacterCountsOverlay(length: 12, minimumLength: 16)),
       );
-      expect(find.textContaining('12 / 16'), findsOneWidget);
+      expect(find.textContaining('还差 4 字'), findsOneWidget);
       expect(find.textContaining('勿用各类字数补丁'), findsOneWidget);
     });
 
-    testWidgets('美卡字数不足时只显示 `x / min`，不带 linux.do 的社区警告', (
+    testWidgets('美卡字数不足时只显示「还差 N 字」，不带 linux.do 的社区警告', (
       tester,
     ) async {
       await tester.pumpWidget(
         _host(const CharacterCountsOverlay(length: 12, minimumLength: 16)),
       );
-      expect(find.textContaining('12 / 16'), findsOneWidget);
+      expect(find.textContaining('还差 4 字'), findsOneWidget);
       expect(find.textContaining('勿用各类字数补丁'), findsNothing);
     });
 
@@ -267,7 +267,7 @@ void main() {
           ),
         ),
       );
-      expect(find.text('0 / 15'), findsOneWidget);
+      expect(find.text('还差 15 字'), findsOneWidget);
     });
 
     testWidgets('标题场景 showWarning=false 时不带警告文案', (tester) async {
@@ -280,7 +280,7 @@ void main() {
           ),
         ),
       );
-      expect(find.text('5 / 15'), findsOneWidget);
+      expect(find.text('还差 10 字'), findsOneWidget);
       expect(find.textContaining('勿用各类字数补丁'), findsNothing);
     });
 

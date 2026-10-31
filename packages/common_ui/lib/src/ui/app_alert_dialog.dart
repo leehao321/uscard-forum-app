@@ -322,6 +322,8 @@ class _DialogActions extends StatelessWidget {
     if (action is AppDialogAction) return action;
     if (action is ButtonStyleButton) {
       return AppDialogAction(
+        // 保留原按钮的 key（测试和读屏定位用）
+        key: action.key,
         onPressed: action.onPressed,
         destructive: _isDestructive(context, action.style),
         child: action.child ?? const SizedBox.shrink(),

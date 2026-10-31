@@ -21,6 +21,9 @@ import '../../../widgets/markdown_editor/markdown_renderer.dart';
 class AiChatMessageItem extends StatelessWidget {
   final AiChatMessage message;
   final VoidCallback? onRetry;
+
+  /// 重新生成（只给最后一条已完成的回复）；null 不显示
+  final VoidCallback? onRegenerate;
   final VoidCallback? onShareAsImage;
   final VoidCallback? onCopyText;
 
@@ -37,6 +40,7 @@ class AiChatMessageItem extends StatelessWidget {
     super.key,
     required this.message,
     this.onRetry,
+    this.onRegenerate,
     this.onShareAsImage,
     this.onCopyText,
     this.onReplyImage,
@@ -395,6 +399,15 @@ class AiChatMessageItem extends StatelessWidget {
           color: color,
           onTap: onCopyText,
         ),
+        if (onRegenerate != null) ...[
+          const SizedBox(width: 12),
+          _ActionButton(
+            icon: AppIcons.refresh,
+            label: context.l10n.ai_regenerateLabel,
+            color: color,
+            onTap: onRegenerate,
+          ),
+        ],
       ],
     );
   }

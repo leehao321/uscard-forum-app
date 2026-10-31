@@ -374,6 +374,7 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
         : context.l10n.common_send,
     submitIcon: _isEditMode ? AppIcons.check : null,
     onSubmit: (_isSubmitting || _isLoadingRaw) ? null : _submit,
+    submitDimmed: _uploadsPending,
     submitting: _isSubmitting,
     previewing: _showPreview,
     onTogglePreview: !_isSubmitting && !_isLoadingRaw ? _togglePreview : null,
@@ -522,6 +523,10 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
   var _editorKey = GlobalKey<MarkdownEditorState>();
 
   bool _isSubmitting = false;
+
+  /// 还有附件没传完（编辑器通知；头部「发送」据此置灰）
+
+  final ValueNotifier<bool> _uploadsPending = ValueNotifier<bool>(false);
   bool _submitted = false; // 提交成功标志，防止 dispose 重新保存草稿
   bool _discarded = false; // 用户明确舍弃，防止 dispose 重新保存草稿
   bool _showEmojiPanel = false;
@@ -884,6 +889,7 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
 
   @override
   void dispose() {
+    _uploadsPending.dispose();
     final rich = _richKey.currentState;
     final currentContentSafe = rich != null
         ? rich.flushToController()
@@ -1210,6 +1216,7 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                           child: PmRecipientField(
+                            inline: true,
                             recipients: _recipients,
                             autofocus: widget.targetUsername == null,
                             onChanged: _onRecipientsChanged,
@@ -1275,6 +1282,8 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
                                           (_isLoadingDraft && !_reloadingDraft))
                                       ? const SizedBox.shrink()
                                       : RichComposerEditor(
+                                          pendingUploadsNotifier:
+                                              _uploadsPending,
                                           key: _richKey,
                                           metaBar: PlatformUtils.isDesktop
                                               ? null
@@ -1311,6 +1320,7 @@ class _ReplySheetState extends ConsumerState<ReplySheet> {
                                           // 模式切换由编辑台承载。
                                         ))
                                 : MarkdownEditor(
+                                    pendingUploadsNotifier: _uploadsPending,
                                     key: _editorKey,
                                     metaBar: PlatformUtils.isDesktop
                                         ? null

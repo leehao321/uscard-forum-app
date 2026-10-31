@@ -83,6 +83,17 @@
       }
     }
   },
+  "search_matchSummary": "{count} 處匹配 · 第 {current} 處",
+  "@search_matchSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "current": {
+        "type": "int"
+      }
+    }
+  },
   "search_selectDateRange": "選擇時間範圍",
   "search_selectedTags": "已選標籤",
   "search_sortLabel": "排序：",

@@ -13,11 +13,15 @@ class ComposerSubmitButton extends StatelessWidget {
     this.icon,
     this.animateFlight = true,
     this.compact = false,
+    this.dimmed = false,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool busy;
+
+  /// 还有附件没传完：整颗按钮压到 40% 不透明，但仍可点（点了出 Toast 说明原因）
+  final bool dimmed;
 
   /// 紧凑输入条里同样 44 高，仅保留参数兼容旧调用。
   final bool compact;
@@ -31,50 +35,53 @@ class ComposerSubmitButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.tokens.colors;
-    return Tooltip(
-      message: label,
-      excludeFromSemantics: true,
-      child: FilledButton(
-        key: const ValueKey('composer-header-submit'),
-        onPressed: busy ? null : onPressed,
-        style: FilledButton.styleFrom(
-          minimumSize: const Size(66, AppSize.hit),
-          fixedSize: const Size.fromHeight(AppSize.hit),
-          padding: const EdgeInsets.symmetric(horizontal: AppSpace.l),
-          visualDensity: VisualDensity.standard,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          disabledBackgroundColor: busy ? colors.brandButton : null,
-          disabledForegroundColor: busy ? colors.onBrandButton : null,
-        ),
-        child: Semantics(
-          label: label,
-          child: ExcludeSemantics(
-            // 文字始终参与布局（提交中透明），菊花盖在上面，按钮宽度不跳
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Opacity(
-                  opacity: busy ? 0 : 1,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (icon != null) ...[
-                        Icon(icon, size: AppSize.iconS),
-                        const SizedBox(width: AppSpace.xs),
+    return Opacity(
+      opacity: dimmed && !busy ? 0.4 : 1,
+      child: Tooltip(
+        message: label,
+        excludeFromSemantics: true,
+        child: FilledButton(
+          key: const ValueKey('composer-header-submit'),
+          onPressed: busy ? null : onPressed,
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(66, AppSize.hit),
+            fixedSize: const Size.fromHeight(AppSize.hit),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpace.l),
+            visualDensity: VisualDensity.standard,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            disabledBackgroundColor: busy ? colors.brandButton : null,
+            disabledForegroundColor: busy ? colors.onBrandButton : null,
+          ),
+          child: Semantics(
+            label: label,
+            child: ExcludeSemantics(
+              // 文字始终参与布局（提交中透明），菊花盖在上面，按钮宽度不跳
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Opacity(
+                    opacity: busy ? 0 : 1,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (icon != null) ...[
+                          Icon(icon, size: AppSize.iconS),
+                          const SizedBox(width: AppSpace.xs),
+                        ],
+                        Text(label),
                       ],
-                      Text(label),
-                    ],
-                  ),
-                ),
-                if (busy)
-                  SizedBox.square(
-                    dimension: AppSize.iconS,
-                    child: CircularProgressIndicator(
-                      color: colors.onBrandButton,
-                      strokeWidth: 2,
                     ),
                   ),
-              ],
+                  if (busy)
+                    SizedBox.square(
+                      dimension: AppSize.iconS,
+                      child: CircularProgressIndicator(
+                        color: colors.onBrandButton,
+                        strokeWidth: 2,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),

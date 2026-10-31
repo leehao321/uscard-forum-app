@@ -240,9 +240,32 @@ class _CacheManagementSectionState
       categories.sort((a, b) => (breakdown[b] ?? 0) - (breakdown[a] ?? 0));
     }
 
+    // 缓存总大小：异步算完才显示，算不出来（或没有缓存）就不显示
+    final totalSize = breakdown == null
+        ? 0
+        : breakdown.values.fold<int>(0, (sum, v) => sum + (v > 0 ? v : 0));
+    final tokens = context.tokens;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (totalSize > 0)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpace.m,
+              0,
+              AppSpace.m,
+              AppSpace.xs,
+            ),
+            child: Text(
+              context.l10n.dataManagement_cacheTotal(
+                CacheSizeService.formatSize(totalSize),
+              ),
+              style: theme.textTheme.bodySmall
+                  ?.merge(tokens.text.meta)
+                  .copyWith(color: tokens.colors.textMeta),
+            ),
+          ),
         SegmentedCardGroup(
           children: [
             // 六类勾选行

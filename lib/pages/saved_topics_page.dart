@@ -20,6 +20,7 @@ class _SavedTopicsPageState extends State<SavedTopicsPage> {
   final TextEditingController _searchController = TextEditingController();
   List<SavedTopicMeta> _all = const [];
   bool _loading = true;
+  int _bytes = 0;
   bool _enabled = true;
   String _query = '';
 
@@ -42,11 +43,19 @@ class _SavedTopicsPageState extends State<SavedTopicsPage> {
 
   Future<void> _reload() async {
     final list = await SavedTopicStore.list();
+    final bytes = await SavedTopicStore.totalBytes();
     if (!mounted) return;
     setState(() {
       _all = list;
+      _bytes = bytes;
       _loading = false;
     });
+  }
+
+  static String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / 1024 / 1024).toStringAsFixed(1)} MB';
   }
 
   List<SavedTopicMeta> get _filtered {
@@ -97,11 +106,15 @@ class _SavedTopicsPageState extends State<SavedTopicsPage> {
         slotWidth: 100,
         title: '已存帖子',
         trailing: [
+          // 右侧红字「清空」（破坏性，点开仍有确认）
           if (_all.isNotEmpty)
-            AppIconButton(
-              icon: AppIcons.delete,
-              semanticLabel: '清空',
+            TextButton(
+              style: TextButton.styleFrom(
+                minimumSize: const Size(AppSize.hit, AppSize.hit),
+                foregroundColor: colors.textDestructive,
+              ),
               onPressed: _confirmClear,
+              child: const Text('清空'),
             ),
         ],
       ),
@@ -184,8 +197,23 @@ class _SavedTopicsPageState extends State<SavedTopicsPage> {
                     title: _all.isEmpty ? '还没有保存的话题' : '没有匹配的话题',
                   )
                 : ListView.builder(
-                    itemCount: items.length,
+                    itemCount: items.length + 1,
                     itemBuilder: (context, index) {
+                      // 页脚：共 N 个话题 · 占用 · 只保存在本机
+                      if (index == items.length) {
+                        return Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: AppSpace.pageMargin,
+                            vertical: tokens.rowPadV,
+                          ),
+                          child: Text(
+                            '共 ${items.length} 个话题 · 占用 ${_formatBytes(_bytes)} · 只保存在这台设备上',
+                            style: base
+                                .merge(tokens.text.meta)
+                                .copyWith(color: colors.textMeta),
+                          ),
+                        );
+                      }
                       final meta = items[index];
                       return SwipeActions(
                         actions: [

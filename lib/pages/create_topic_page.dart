@@ -134,6 +134,9 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
   Category? _selectedCategory;
   List<String> _selectedTags = [];
   bool _isSubmitting = false;
+
+  /// 还有附件没传完（编辑器通知；头部「发送」据此置灰）
+  final ValueNotifier<bool> _uploadsPending = ValueNotifier<bool>(false);
   bool _submitted = false; // 提交成功标志，防止 dispose 重新保存草稿
   bool _discarded = false; // 用户明确舍弃，防止 dispose 重新保存草稿
   bool _showPreview = false;
@@ -469,6 +472,7 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
 
   @override
   void dispose() {
+    _uploadsPending.dispose();
     final rich = _richKey.currentState;
     final currentContentSafe = rich != null
         ? rich.flushToController()
@@ -1076,90 +1080,94 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Stack(
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  hintMaxLines: 1,
-                  // 对齐官方 `titlePlaceholder`：允许精选链接时提示可以粘链接
-                  hintText: _featuredLinkEnabled
-                      ? context.l10n.createTopic_titleOrLinkHint
-                      : context.l10n.createTopic_titleHint,
-                  hintStyle: theme.textTheme.headlineSmall
+          // v2：标题行至少 48 高
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Stack(
+              children: [
+                TextFormField(
+                  controller: _titleController,
+                  decoration: InputDecoration(
+                    hintMaxLines: 1,
+                    // 对齐官方 `titlePlaceholder`：允许精选链接时提示可以粘链接
+                    hintText: _featuredLinkEnabled
+                        ? context.l10n.createTopic_titleOrLinkHint
+                        : context.l10n.createTopic_titleHint,
+                    hintStyle: theme.textTheme.headlineSmall
+                        ?.merge(context.tokens.text.title)
+                        .copyWith(
+                          color: context.tokens.colors.textMeta,
+                          fontWeight: FontWeight.normal,
+                        ),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                    isDense: true,
+                  ),
+                  // v2：标题 22 Semibold（title 档）
+                  style: theme.textTheme.headlineSmall
                       ?.merge(context.tokens.text.title)
-                      .copyWith(
-                        color: context.tokens.colors.textMeta,
-                        fontWeight: FontWeight.normal,
-                      ),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
-                  isDense: true,
+                      .copyWith(color: context.tokens.colors.textPrimary),
+                  maxLines: null,
+                  // 对齐官方 `titleMaxLength`：允许精选链接时不设 maxLength，否则会
+                  // 把粘贴进来的长链接截断（超长交由校验提示，不靠硬截）。
+                  maxLength: _featuredLinkEnabled
+                      ? null
+                      : PreloadedDataService().maxTopicTitleLengthSync,
+                  // 计数改用悬浮层(见下方 Stack),这里不占位
+                  buildCounter: (
+                    context, {
+                    required currentLength,
+                    required isFocused,
+                    maxLength,
+                  }) => null,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return context.l10n.createTopic_enterTitle;
+                    }
+                    if (value.trim().length < minTitleLength) {
+                      return context.l10n.createTopic_minTitleLength(
+                        minTitleLength,
+                      );
+                    }
+                    // 允许精选链接时不靠 maxLength 硬截，改由校验抦（对齐官方
+                    // `composer.error.title_too_long`）。
+                    final maxTitleLength =
+                        PreloadedDataService().maxTopicTitleLengthSync;
+                    if (value.trim().length > maxTitleLength) {
+                      return context.l10n.createTopic_maxTitleLength(
+                        maxTitleLength,
+                      );
+                    }
+                    return null;
+                  },
+                  onTap: () {
+                    _editorKey.currentState?.closeEmojiPanel();
+                    _richKey.currentState?.closeEmojiPanel();
+                  },
                 ),
-                // v2：标题 22 Semibold（title 档）
-                style: theme.textTheme.headlineSmall
-                    ?.merge(context.tokens.text.title)
-                    .copyWith(color: context.tokens.colors.textPrimary),
-                maxLines: null,
-                // 对齐官方 `titleMaxLength`：允许精选链接时不设 maxLength，否则会
-                // 把粘贴进来的长链接截断（超长交由校验提示，不靠硬截）。
-                maxLength: _featuredLinkEnabled
-                    ? null
-                    : PreloadedDataService().maxTopicTitleLengthSync,
-                // 计数改用悬浮层(见下方 Stack),这里不占位
-                buildCounter: (
-                  context, {
-                  required currentLength,
-                  required isFocused,
-                  maxLength,
-                }) => null,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return context.l10n.createTopic_enterTitle;
-                  }
-                  if (value.trim().length < minTitleLength) {
-                    return context.l10n.createTopic_minTitleLength(
-                      minTitleLength,
-                    );
-                  }
-                  // 允许精选链接时不靠 maxLength 硬截，改由校验抦（对齐官方
-                  // `composer.error.title_too_long`）。
-                  final maxTitleLength =
-                      PreloadedDataService().maxTopicTitleLengthSync;
-                  if (value.trim().length > maxTitleLength) {
-                    return context.l10n.createTopic_maxTitleLength(
-                      maxTitleLength,
-                    );
-                  }
-                  return null;
-                },
-                onTap: () {
-                  _editorKey.currentState?.closeEmojiPanel();
-                  _richKey.currentState?.closeEmojiPanel();
-                },
-              ),
-              // 空白时也显示字数要求，达到门槛后由提示组件自动隐藏。
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: CharacterCountsOverlay(
-                  length: _titleLength,
-                  minimumLength: minTitleLength,
-                  // 标题不带社区警告文案（对齐主题组件 showWarning=false）
-                  showWarning: false,
-                ),
-              ),
-              // 正在解析标题里的链接。官方是把整个 composer 置 loading 态，这里
-              // 不阻断输入，只在标题右上角提示「在拿网页标题」。
-              // 用 LoadingSpinner：它内部跟随 M3eFlags，M3E 开启走 Expressive
-              // 形变环，关闭自动回退经典转圈（线宽按 size 等比缩放）。
-              if (_isResolvingFeaturedLink)
-                const Positioned(
+                // 空白时也显示字数要求，达到门槛后由提示组件自动隐藏。
+                Positioned(
                   right: 0,
-                  top: 0,
-                  child: LoadingSpinner(size: 16),
+                  bottom: 0,
+                  child: CharacterCountsOverlay(
+                    length: _titleLength,
+                    minimumLength: minTitleLength,
+                    // 标题不带社区警告文案（对齐主题组件 showWarning=false）
+                    showWarning: false,
+                  ),
                 ),
-            ],
+                // 正在解析标题里的链接。官方是把整个 composer 置 loading 态，这里
+                // 不阻断输入，只在标题右上角提示「在拿网页标题」。
+                // 用 LoadingSpinner：它内部跟随 M3eFlags，M3E 开启走 Expressive
+                // 形变环，关闭自动回退经典转圈（线宽按 size 等比缩放）。
+                if (_isResolvingFeaturedLink)
+                  const Positioned(
+                    right: 0,
+                    top: 0,
+                    child: LoadingSpinner(size: 16),
+                  ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
         ],
@@ -1301,6 +1309,7 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
                     MediaQuery.paddingOf(context).horizontal,
                 submitLabel: context.l10n.common_publish,
                 onSubmit: _isSubmitting ? null : _submit,
+                submitDimmed: _uploadsPending,
                 submitting: _isSubmitting,
                 previewing: _showPreview,
                 onTogglePreview: !_isSubmitting ? _togglePreview : null,
@@ -1368,6 +1377,8 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
                                     ? (_isLoadingDraft && !_reloadingDraft
                                           ? const SizedBox.shrink()
                                           : RichComposerEditor(
+                                              pendingUploadsNotifier:
+                                                  _uploadsPending,
                                               key: _richKey,
                                               // 手机进入页面时不自动跳到文末，避免
                                               // 键盘弹起与正文定位同时改变可视区域。
@@ -1421,6 +1432,7 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
                                               // 工具栏不再出 MD 徽标
                                             ))
                                     : MarkdownEditor(
+                                        pendingUploadsNotifier: _uploadsPending,
                                         key: _editorKey,
                                         onSwitchToRich:
                                             ref

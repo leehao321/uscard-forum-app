@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 import '../../services/discourse_cache_manager.dart';
@@ -189,11 +190,10 @@ class _SmartAvatarState extends State<SmartAvatar> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    // 默认透明背景，只有在需要 fallback 时才用主题色
-    final bgColor = widget.backgroundColor ?? Colors.transparent;
-    final fgColor =
-        widget.foregroundColor ?? theme.colorScheme.onPrimaryContainer;
+    // v2：字母头像 = avatar/fill 底 + text/meta 字母（设计说明 §2.3）
+    final tokens = context.tokens;
+    final bgColor = widget.backgroundColor ?? tokens.colors.avatarFill;
+    final fgColor = widget.foregroundColor ?? tokens.colors.textMeta;
 
     // 计算边框宽度，边框包含在 radius 内部
     double borderWidth = 0;

@@ -94,6 +94,9 @@ class MarkdownEditor extends ConsumerStatefulWidget {
   /// 键盘弹出导致正文区缩小时会跟着上移。
   final Widget? bodyOverlay;
 
+  /// 「还有附件没传完」状态通知（宿主头部「发送」据此置灰）
+  final ValueNotifier<bool>? pendingUploadsNotifier;
+
   const MarkdownEditor({
     super.key,
     required this.controller,
@@ -111,6 +114,7 @@ class MarkdownEditor extends ConsumerStatefulWidget {
     this.header,
     this.metaBar,
     this.bodyOverlay,
+    this.pendingUploadsNotifier,
   });
 
   @override
@@ -1141,6 +1145,7 @@ class MarkdownEditorState extends ConsumerState<MarkdownEditor> {
       toolbar: TextFieldTapRegion(
         child: MarkdownToolbar(
           key: _toolbarKey,
+          pendingUploadsNotifier: widget.pendingUploadsNotifier,
           metaBar: _isDesktop ? null : widget.metaBar,
           controller: widget.controller,
           focusNode: _focusNode,

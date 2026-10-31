@@ -13,8 +13,10 @@ import '../services/discourse/discourse_service.dart';
 import '../services/log/logger_utils.dart';
 import '../services/network/adapters/platform_adapter.dart';
 import '../services/toast_service.dart';
+
 import 'package:common_ui/common_ui.dart';
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../widgets/post/reply_sheet.dart';
 import '../l10n/s.dart';
 import '../utils/dialog_utils.dart';
@@ -37,8 +39,7 @@ enum LogTypeFilter {
       LogTypeFilter.general => type == 'general',
       LogTypeFilter.request => type == 'request',
       LogTypeFilter.lifecycle => type == 'lifecycle',
-      LogTypeFilter.cookie =>
-        type == 'cookie_trace' || type == 'cookie_engine',
+      LogTypeFilter.cookie => type == 'cookie_trace' || type == 'cookie_engine',
       LogTypeFilter.network => type == 'network',
       LogTypeFilter.cfChallenge => type == 'cf_challenge',
       LogTypeFilter.auth => type == 'auth',
@@ -303,8 +304,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
     final scheme = Theme.of(context).colorScheme;
     final level = entry['level']?.toString() ?? 'error';
     final statusCode = entry['statusCode'];
-    if (level == 'error' ||
-        (statusCode is int && statusCode >= 400)) {
+    if (level == 'error' || (statusCode is int && statusCode >= 400)) {
       return scheme.error;
     }
     if (level == 'warning') return Colors.orange;
@@ -412,54 +412,32 @@ class _AppLogsPageState extends State<AppLogsPage> {
       _ => event,
     };
 
-    showAppDialog(
-      context: context,
-      builder: (context) => AppAlertDialog(
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                eventLabel,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            IconButton(
-              icon: const Icon(AppIcons.copy, size: 20),
-              onPressed: () {
-                final detail = StringBuffer()
-                  ..writeln('${S.current.appLogs_time}: $timestamp')
-                  ..writeln('${S.current.appLogs_event}: $eventLabel');
-                if (appVersion != null) detail.writeln('${S.current.appLogs_version}: $appVersion');
-                detail.writeln('${S.current.appLogs_message}: $message');
-                if (username != null) detail.writeln('${S.current.appLogs_user}: $username');
-                if (reason != null) detail.writeln('${S.current.appLogs_reason}: $reason');
-                Clipboard.setData(ClipboardData(text: detail.toString()));
-                ToastService.showSuccess(S.current.common_copiedToClipboard);
-              },
-            ),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildDetailField(context.l10n.appLogs_time, timestamp),
-              if (appVersion != null) _buildDetailField(context.l10n.appLogs_version, appVersion),
-              _buildDetailField(context.l10n.appLogs_event, eventLabel),
-              _buildDetailField(context.l10n.appLogs_message, message),
-              if (username != null) _buildDetailField(context.l10n.appLogs_user, username),
-              if (reason != null) _buildDetailField(context.l10n.appLogs_reason, reason),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(context.l10n.common_close),
-          ),
-        ],
-      ),
+    final detail = StringBuffer()
+      ..writeln('${S.current.appLogs_time}: $timestamp')
+      ..writeln('${S.current.appLogs_event}: $eventLabel');
+    if (appVersion != null) {
+      detail.writeln('${S.current.appLogs_version}: $appVersion');
+    }
+    detail.writeln('${S.current.appLogs_message}: $message');
+    if (username != null) {
+      detail.writeln('${S.current.appLogs_user}: $username');
+    }
+    if (reason != null) {
+      detail.writeln('${S.current.appLogs_reason}: $reason');
+    }
+
+    _showDetailSheet(
+      title: eventLabel,
+      copyText: detail.toString(),
+      rows: [
+        (context.l10n.appLogs_time, timestamp, false),
+        if (appVersion != null)
+          (context.l10n.appLogs_version, appVersion, false),
+        (context.l10n.appLogs_event, eventLabel, false),
+        (context.l10n.appLogs_message, message, false),
+        if (username != null) (context.l10n.appLogs_user, username, false),
+        if (reason != null) (context.l10n.appLogs_reason, reason, false),
+      ],
     );
   }
 
@@ -477,105 +455,137 @@ class _AppLogsPageState extends State<AppLogsPage> {
     final appVersion = entry['appVersion']?.toString();
     final extras = _extraFields(entry);
 
-    showAppDialog(
+    final detail = StringBuffer()
+      ..writeln('${S.current.appLogs_time}: $timestamp')
+      ..writeln('${S.current.appLogs_level}: $level');
+    if (appVersion != null) {
+      detail.writeln('${S.current.appLogs_version}: $appVersion');
+    }
+    if (tag != null) detail.writeln('${S.current.appLogs_tag}: $tag');
+    detail.writeln('${S.current.appLogs_message}: $message');
+    if (error != null && error != message) {
+      detail.writeln('${S.current.appLogs_error}: $error');
+    }
+    if (errorType != null) {
+      detail.writeln('${S.current.appLogs_type}: $errorType');
+    }
+    for (final e in extras.entries) {
+      detail.writeln('${e.key}: ${e.value}');
+    }
+    if (stackTrace != null) {
+      detail
+        ..writeln()
+        ..writeln('${S.current.appLogs_stack}:')
+        ..writeln(stackTrace);
+    }
+
+    _showDetailSheet(
+      title: tag != null ? '[$tag]' : level.toUpperCase(),
+      copyText: detail.toString(),
+      rows: [
+        (context.l10n.appLogs_time, timestamp, false),
+        if (appVersion != null)
+          (context.l10n.appLogs_version, appVersion, false),
+        (context.l10n.appLogs_message, message, false),
+        if (error != null && error != message)
+          (context.l10n.appLogs_error, error, false),
+        if (errorType != null)
+          (context.l10n.appLogs_errorType, errorType, false),
+      ],
+      extras: extras,
+      stackTrace: stackTrace,
+    );
+  }
+
+  /// 生命周期 / 通用日志的详情半屏（和请求详情同一个版式）：
+  /// 标题 + 复制 + x；键 13 meta 56 宽、值 13；附加字段和堆栈放代码块。
+  void _showDetailSheet({
+    required String title,
+    required String copyText,
+    required List<(String, String, bool)> rows,
+    Map<String, String> extras = const {},
+    String? stackTrace,
+  }) {
+    showAppBottomSheet<void>(
       context: context,
-      builder: (context) => AppAlertDialog(
-        title: Row(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        final tokens = sheetContext.tokens;
+        final base = Theme.of(sheetContext).textTheme.bodySmall!;
+        final meta = base
+            .merge(tokens.text.meta)
+            .copyWith(color: tokens.colors.textMeta);
+        final value = base
+            .merge(tokens.text.meta)
+            .copyWith(color: tokens.colors.textPrimary);
+        const mono = TextStyle(fontFamily: 'monospace');
+        Widget codeBlock(String label, String text) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Text(
-                tag != null ? '[$tag]' : level.toUpperCase(),
-                style: Theme.of(context).textTheme.titleMedium,
+            const SizedBox(height: AppSpace.m),
+            Text(label, style: meta),
+            const SizedBox(height: AppSpace.xs),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppSpace.m),
+              decoration: BoxDecoration(
+                color: tokens.colors.surfaceElevated,
+                borderRadius: BorderRadius.circular(tokens.radius.table),
+              ),
+              child: SelectableText(
+                text,
+                style: value.merge(mono).copyWith(fontSize: 11),
               ),
             ),
-            IconButton(
-              icon: const Icon(AppIcons.copy, size: 20),
+          ],
+        );
+        return AppSheetScaffold(
+          title: title,
+          maxHeightFactor: 0.85,
+          actions: [
+            AppIconButton(
+              icon: AppIcons.copy,
+              semanticLabel: sheetContext.l10n.appLogs_copyAll,
               onPressed: () {
-                final detail = StringBuffer()
-                  ..writeln('${S.current.appLogs_time}: $timestamp')
-                  ..writeln('${S.current.appLogs_level}: $level');
-                if (appVersion != null) detail.writeln('${S.current.appLogs_version}: $appVersion');
-                if (tag != null) detail.writeln('${S.current.appLogs_tag}: $tag');
-                detail.writeln('${S.current.appLogs_message}: $message');
-                if (error != null && error != message) {
-                  detail.writeln('${S.current.appLogs_error}: $error');
-                }
-                if (errorType != null) detail.writeln('${S.current.appLogs_type}: $errorType');
-                for (final e in extras.entries) {
-                  detail.writeln('${e.key}: ${e.value}');
-                }
-                if (stackTrace != null) {
-                  detail
-                    ..writeln()
-                    ..writeln('${S.current.appLogs_stack}:')
-                    ..writeln(stackTrace);
-                }
-                Clipboard.setData(ClipboardData(text: detail.toString()));
+                Clipboard.setData(ClipboardData(text: copyText));
                 ToastService.showSuccess(S.current.common_copiedToClipboard);
               },
             ),
           ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildDetailField(context.l10n.appLogs_time, timestamp),
-              if (appVersion != null) _buildDetailField(context.l10n.appLogs_version, appVersion),
-              _buildDetailField(context.l10n.appLogs_message, message),
-              if (error != null && error != message)
-                _buildDetailField(context.l10n.appLogs_error, error),
-              if (errorType != null) _buildDetailField(context.l10n.appLogs_errorType, errorType),
-              if (extras.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Text(
-                  context.l10n.appLogs_otherFields,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                for (final e in extras.entries)
-                  _buildDetailField(e.key, e.value),
-              ],
-              if (stackTrace != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  context.l10n.appLogs_stackTrace,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: SelectableText(
-                    stackTrace,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontFamily: 'monospace',
-                      fontSize: 11,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final (key, text, monospace) in rows)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpace.s),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 56, child: Text(key, style: meta)),
+                        Expanded(
+                          child: SelectableText(
+                            text,
+                            style: monospace ? value.merge(mono) : value,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
+                if (extras.isNotEmpty)
+                  codeBlock(
+                    sheetContext.l10n.appLogs_otherFields,
+                    [for (final e in extras.entries) '${e.key}: ${e.value}']
+                        .join('\n'),
+                  ),
+                if (stackTrace != null)
+                  codeBlock(sheetContext.l10n.appLogs_stackTrace, stackTrace),
               ],
-            ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(context.l10n.common_close),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -617,8 +627,12 @@ class _AppLogsPageState extends State<AppLogsPage> {
       builder: (sheetContext) {
         final tokens = sheetContext.tokens;
         final base = Theme.of(sheetContext).textTheme.bodySmall!;
-        final meta = base.merge(tokens.text.meta).copyWith(color: tokens.colors.textMeta);
-        final value = base.merge(tokens.text.meta).copyWith(color: tokens.colors.textPrimary);
+        final meta = base
+            .merge(tokens.text.meta)
+            .copyWith(color: tokens.colors.textMeta);
+        final value = base
+            .merge(tokens.text.meta)
+            .copyWith(color: tokens.colors.textPrimary);
         const mono = TextStyle(fontFamily: 'monospace');
         Widget kv(String key, String text, {bool monospace = false}) => Padding(
           padding: const EdgeInsets.only(bottom: AppSpace.s),
@@ -688,28 +702,6 @@ class _AppLogsPageState extends State<AppLogsPage> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildDetailField(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          const SizedBox(height: 2),
-          SelectableText(
-            value,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-        ],
-      ),
     );
   }
 
@@ -811,7 +803,8 @@ class _AppLogsPageState extends State<AppLogsPage> {
           if (_searchController.text.isNotEmpty)
             AppIconButton(
               icon: AppIcons.close,
-              semanticLabel: MaterialLocalizations.of(context).clearButtonTooltip,
+              semanticLabel: MaterialLocalizations.of(context)
+                  .clearButtonTooltip,
               onPressed: () {
                 _searchController.clear();
                 setState(_applyFilters);
@@ -979,7 +972,9 @@ class _AppLogsPageState extends State<AppLogsPage> {
     final theme = Theme.of(context);
     final method = entry['method']?.toString() ?? '';
     final uri = Uri.tryParse(entry['url']?.toString() ?? '');
-    final path = uri == null ? '' : (uri.hasQuery ? '${uri.path}?${uri.query}' : uri.path);
+    final path = uri == null
+        ? ''
+        : (uri.hasQuery ? '${uri.path}?${uri.query}' : uri.path);
     final status = entry['statusCode'];
     final isError = status is int && status >= 400;
     final duration = entry['duration'];
@@ -1087,7 +1082,12 @@ class _AppLogsPageState extends State<AppLogsPage> {
             children: [
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(AppSpace.pageMargin, 8, AppSpace.pageMargin, 8),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpace.pageMargin,
+                    8,
+                    AppSpace.pageMargin,
+                    8,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1206,7 +1206,9 @@ class _AppLogsPageState extends State<AppLogsPage> {
           ),
           // 条数固定锚定右端：宽度变化不参与左侧布局
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpace.pageMargin),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpace.pageMargin,
+            ),
             child: Text(
               S.current.appLogs_entryCount(_filtered.length),
               style: theme.textTheme.labelSmall?.copyWith(

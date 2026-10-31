@@ -87,6 +87,9 @@ class _EditTopicPageState extends ConsumerState<EditTopicPage> {
   Category? _selectedCategory;
   List<String> _selectedTags = [];
   bool _isSubmitting = false;
+
+  /// 还有附件没传完（编辑器通知；头部「发送」据此置灰）
+  final ValueNotifier<bool> _uploadsPending = ValueNotifier<bool>(false);
   bool _showPreview = false;
   bool _showEmojiPanel = false;
   bool _isLoadingContent = true;
@@ -231,6 +234,7 @@ class _EditTopicPageState extends ConsumerState<EditTopicPage> {
 
   @override
   void dispose() {
+    _uploadsPending.dispose();
     _chrome.dispose();
     _titleController.dispose();
     _titleController.removeListener(_updateTitleLength);
@@ -614,6 +618,7 @@ class _EditTopicPageState extends ConsumerState<EditTopicPage> {
                 submitLabel: context.l10n.common_save,
                 submitIcon: AppIcons.check,
                 onSubmit: (_isSubmitting || _isLoadingContent) ? null : _submit,
+                submitDimmed: _uploadsPending,
                 submitting: _isSubmitting,
                 previewing: _showPreview,
                 onTogglePreview:
@@ -882,6 +887,7 @@ class _EditTopicPageState extends ConsumerState<EditTopicPage> {
                         ? (_isLoadingContent
                               ? const SizedBox.shrink()
                               : RichComposerEditor(
+                                  pendingUploadsNotifier: _uploadsPending,
                                   key: _richKey,
                                   onSwitchToSource: () =>
                                       _setViewMode(ComposerViewMode.source),
@@ -916,6 +922,7 @@ class _EditTopicPageState extends ConsumerState<EditTopicPage> {
                                   // 模式切换由编辑台承载。
                                 ))
                         : MarkdownEditor(
+                            pendingUploadsNotifier: _uploadsPending,
                             key: _editorKey,
                             onSwitchToRich:
                                 ref.watch(preferencesProvider).useRichComposer

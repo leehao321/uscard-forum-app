@@ -993,7 +993,7 @@ class TopicAiChatNotifier extends StateNotifier<TopicAiChatState> {
     );
   }
 
-  /// 重试最后一条失败消息
+  /// 重试最后一条失败消息；最后一条已完成时即「重新生成」
   ///
   /// 上层应该把当前的 thinkingConfig / imageAspect 透传进来,否则会用
   /// `sendMessage` 的默认值(ThinkingConfig.off / null aspect),跟原请求
@@ -1008,9 +1008,14 @@ class TopicAiChatNotifier extends StateNotifier<TopicAiChatState> {
     final messages = [...state.messages];
     if (messages.length < 2) return;
 
-    // 找到最后的 error 消息和它前面的用户消息
+    // 找到最后一条已结束（失败或完成）的 AI 消息和它前面的用户消息；
+    // 完成态用于「重新生成」
     final lastMsg = messages.last;
-    if (lastMsg.status != MessageStatus.error) return;
+    if (lastMsg.role != ChatRole.assistant) return;
+    if (lastMsg.status != MessageStatus.error &&
+        lastMsg.status != MessageStatus.completed) {
+      return;
+    }
 
     final userMsg = messages[messages.length - 2];
     final userContent = userMsg.content;

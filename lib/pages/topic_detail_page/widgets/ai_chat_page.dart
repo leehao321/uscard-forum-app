@@ -546,15 +546,16 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     TopicAiChatNotifier chatNotifier,
   ) {
     return Scaffold(
-      appBar: AppBar(
+      // v2：单行导航，标题 17 居中，右侧操作（设计说明 §3.2 导航 · 单行）
+      appBar: AppNavBar(
         automaticallyImplyLeading: false,
-        titleSpacing: 12,
-        title: _selectionMode
+        slotWidth: 110,
+        showDivider: true,
+        titleWidget: _selectionMode
             ? _buildSelectionToolbar(context, theme)
             : _buildHeaderTitle(context, chatState, dense: true),
-        centerTitle: false,
-        actions: _selectionMode
-            ? null
+        trailing: _selectionMode
+            ? const []
             : _buildToolbarActions(context, theme, chatState, chatNotifier),
       ),
       body: _buildBody(context, theme, chatState, chatNotifier),
@@ -578,7 +579,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         ref.watch(lastUsedTextAiModelProvider);
         ref.watch(lastUsedImageAiModelProvider);
         ref.watch(topicChatModeProvider(widget.topicId));
-        final current = _currentModel();
         final session = chatState.sessions
             .where((s) => s.id == chatState.currentSessionId)
             .cast<AiChatSession?>()
@@ -587,41 +587,15 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
             ? session!.title!
             : context.l10n.ai_title;
 
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      fontSize: dense ? 15 : 16,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (current != null)
-                    // AppBar 只显示当前模型名（不带图标，不点击 — 切换在底部）
-                    Padding(
-                      padding: const EdgeInsets.only(top: 1),
-                      child: Text(
-                        current.model.name ?? current.model.id,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontSize: 11,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
+        // v2：单行 17 Semibold 居中；模型改在筛选胶囊行里切换
+        return Text(
+          title,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleMedium
+              ?.merge(context.tokens.text.headline)
+              .copyWith(color: context.tokens.colors.textPrimary),
         );
       },
     );
@@ -799,9 +773,52 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                   final scope = ref.watch(
                     topicAiContextScopeProvider(widget.topicId),
                   );
-                  return AiContextSelector(
-                    currentScope: scope,
-                    onChanged: _onScopeChanged,
+                  // 模型胶囊随着模型切换刷新
+                  ref.watch(topicSelectedAiModelProvider(widget.topicId));
+                  ref.watch(defaultAiModelProvider);
+                  ref.watch(defaultTextAiModelProvider);
+                  ref.watch(defaultImageAiModelProvider);
+                  ref.watch(lastUsedAiAssistantModelProvider);
+                  ref.watch(lastUsedTextAiModelProvider);
+                  ref.watch(lastUsedImageAiModelProvider);
+                  ref.watch(topicChatModeProvider(widget.topicId));
+                  final model = _currentModel();
+                  final allModels = ref.watch(allAvailableAiModelsProvider);
+                  return Wrap(
+                    spacing: AppSpace.s,
+                    runSpacing: AppSpace.xs,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      AiContextSelector(
+                        currentScope: scope,
+                        onChanged: _onScopeChanged,
+                      ),
+                      // v2：筛选胶囊行里的模型胶囊（设计说明 §5.3「AI 对话」），
+                      // 输入栏只留输入框和发送
+                      if (model != null)
+                        Builder(
+                          builder: (pillContext) => FilterPill(
+                            label: model.model.name ?? model.model.id,
+                            showChevron: allModels.length > 1,
+                            onTap: allModels.length <= 1
+                                ? null
+                                : () async {
+                                    final picked = await showAiModelSelectSheet(
+                                      context: pillContext,
+                                      allModels: allModels,
+                                      current: model,
+                                      mode:
+                                          model.model.output.contains(
+                                            Modality.image,
+                                          )
+                                          ? PromptType.image
+                                          : PromptType.text,
+                                    );
+                                    if (picked != null) _rememberModel(picked);
+                                  },
+                          ),
+                        ),
+                    ],
                   );
                 },
               ),
@@ -855,13 +872,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
               },
               onStop: chatNotifier.stopGeneration,
               onEscape: widget.onEscape,
-              modelButton: currentModel == null
-                  ? null
-                  : _ModelLogoButton(
-                      allModels: ref.watch(allAvailableAiModelsProvider),
-                      current: currentModel,
-                      onChanged: _rememberModel,
-                    ),
               thinkingButton:
                   currentModel != null &&
                       currentModel.model.abilities.contains(
@@ -1037,6 +1047,29 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                       );
                 }
               : null,
+          // 只有列表里最后一条已完成的 AI 回复能「重新生成」
+          onRegenerate:
+              index == 0 &&
+                  message.role == ChatRole.assistant &&
+                  message.status == MessageStatus.completed &&
+                  message.content.isNotEmpty &&
+                  !chatState.isGenerating
+              ? () {
+                  final scope = ref.read(
+                    topicAiContextScopeProvider(widget.topicId),
+                  );
+                  final model = _currentModel();
+                  if (model == null) return;
+                  _rememberModel(model);
+                  ref
+                      .read(topicAiChatProvider(widget.topicId).notifier)
+                      .retryLastMessage(
+                        scope,
+                        selectedModel: model,
+                        thinkingConfig: ref.read(aiThinkingConfigProvider),
+                      );
+                }
+              : null,
           onShareAsImage:
               message.status == MessageStatus.completed &&
                   message.content.isNotEmpty
@@ -1140,54 +1173,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
             child: Text(context.l10n.ai_clearLabel),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// 输入框底部的模型按钮：圆形 logo，点击弹 [showAiModelSelectSheet]
-///
-/// 视觉参考 Kelivo 底部 model 按钮 —— 不带文字，只 logo，一目了然不占空间。
-class _ModelLogoButton extends StatelessWidget {
-  final List<({AiProvider provider, AiModel model})> allModels;
-  final ({AiProvider provider, AiModel model}) current;
-  final ValueChanged<({AiProvider provider, AiModel model})> onChanged;
-
-  const _ModelLogoButton({
-    required this.allModels,
-    required this.current,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final iconWidget = ModelIcon(
-      providerName: current.provider.name,
-      modelName: current.model.name ?? current.model.id,
-      size: 28,
-    );
-
-    if (allModels.length <= 1) {
-      // 只有一个模型，点击没意义 → 单纯展示 logo
-      return Padding(padding: const EdgeInsets.all(4), child: iconWidget);
-    }
-
-    return Tooltip(
-      message: S.current.ai_selectModel,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () async {
-          final picked = await showAiModelSelectSheet(
-            context: context,
-            allModels: allModels,
-            current: current,
-            mode: current.model.output.contains(Modality.image)
-                ? PromptType.image
-                : PromptType.text,
-          );
-          if (picked != null) onChanged(picked);
-        },
-        child: Padding(padding: const EdgeInsets.all(4), child: iconWidget),
       ),
     );
   }

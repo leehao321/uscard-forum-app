@@ -57,6 +57,7 @@
   "nested_lineStyleAuto": "Adaptive",
   "nested_lineStyleL": "L-shaped connectors",
   "nested_lineStyleStraight": "Simple vertical lines",
+  "pm_recipientLabel": "Recipients",
   "poll_closed": "Closed",
   "poll_count": "Count",
   "poll_percentage": "Percentage",

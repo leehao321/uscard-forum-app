@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,8 +32,7 @@ class PromptPresetEditPage extends ConsumerStatefulWidget {
       _PromptPresetEditPageState();
 }
 
-class _PromptPresetEditPageState
-    extends ConsumerState<PromptPresetEditPage> {
+class _PromptPresetEditPageState extends ConsumerState<PromptPresetEditPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _templateController;
@@ -84,165 +84,169 @@ class _PromptPresetEditPageState
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpace.pageMargin,
+            AppSpace.s,
+            AppSpace.pageMargin,
+            AppSpace.xl,
+          ),
           children: [
-            // 类型
-            _Label(text: AiL10n.current.quickPromptsType),
-            SegmentedButton<PromptType>(
-              segments: [
-                ButtonSegment(
-                  value: PromptType.image,
-                  label: Text(AiL10n.current.quickPromptsTypeImage),
-                  icon: const Icon(AppIcons.image),
-                ),
-                ButtonSegment(
-                  value: PromptType.text,
-                  label: Text(AiL10n.current.quickPromptsTypeText),
-                  icon: const Icon(AppIcons.message),
+            // v2 分组行表单（设计说明 §5.3）：灰底 r12 的分组，行与行之间发丝线
+            _FormGroup(
+              header: AiL10n.current.quickPromptsType,
+              children: [
+                FilterTabs(
+                  labels: [
+                    AiL10n.current.quickPromptsTypeText,
+                    AiL10n.current.quickPromptsTypeImage,
+                  ],
+                  selectedIndex: _type == PromptType.text ? 0 : 1,
+                  scrollable: false,
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpace.m),
+                  onSelected: _isBuiltIn
+                      ? (_) {}
+                      : (i) => setState(
+                            () => _type =
+                                i == 0 ? PromptType.text : PromptType.image,
+                          ),
                 ),
               ],
-              selected: {_type},
-              onSelectionChanged: _isBuiltIn
-                  ? null
-                  : (s) => setState(() => _type = s.first),
             ),
-            const SizedBox(height: 16),
-
-            // 名称
-            _Label(text: AiL10n.current.quickPromptsName),
-            TextFormField(
-              controller: _nameController,
-              enabled: !_isBuiltIn,
-              decoration: InputDecoration(
-                hintText: AiL10n.current.quickPromptsNameHint,
-                border: const OutlineInputBorder(),
-                isDense: true,
-              ),
-              validator: (v) {
-                if ((v ?? '').trim().isEmpty) {
-                  return AiL10n.current.quickPromptsValidateNameRequired;
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // 图标
-            _Label(text: AiL10n.current.quickPromptsIcon),
-            if (_isBuiltIn)
-              Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerHigh,
-                      borderRadius: BorderRadius.circular(8),
+            _FormGroup(
+              header: AiL10n.current.quickPromptsName,
+              children: [
+                _FieldRow(
+                  child: TextFormField(
+                    controller: _nameController,
+                    enabled: !_isBuiltIn,
+                    decoration: _plainDecoration(
+                      context,
+                      AiL10n.current.quickPromptsNameHint,
                     ),
-                    child: _DisabledIconPreview(iconRaw: _iconRaw),
+                    validator: (v) {
+                      if ((v ?? '').trim().isEmpty) {
+                        return AiL10n.current.quickPromptsValidateNameRequired;
+                      }
+                      return null;
+                    },
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    _iconRaw,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              )
-            else
-              IconEmojiPicker(
-                value: _iconRaw,
-                onChanged: (v) => setState(() => _iconRaw = v),
-              ),
-            const SizedBox(height: 16),
-
-            // Prompt 模板
-            _Label(text: AiL10n.current.quickPromptsTemplate),
-            TextFormField(
-              controller: _templateController,
-              enabled: !_isBuiltIn,
-              minLines: 4,
-              maxLines: 12,
-              decoration: InputDecoration(
-                hintText: AiL10n.current.quickPromptsTemplateHint,
-                border: const OutlineInputBorder(),
-                isDense: true,
-              ),
-              validator: (v) {
-                if ((v ?? '').trim().isEmpty) {
-                  return AiL10n
-                      .current.quickPromptsValidateTemplateRequired;
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            if (isImage) ...[
-              _Label(text: AiL10n.current.quickPromptsAspect),
-              Wrap(
-                spacing: 8,
-                children: [
-                  ChoiceChip(
-                    label: Text(AiL10n.current.quickPromptsAspectAuto),
-                    selected: _aspect == null,
-                    onSelected: (_) => setState(() => _aspect = null),
-                  ),
-                  for (final a in _kAspectChoices)
-                    ChoiceChip(
-                      label: Text(a),
-                      selected: _aspect == a,
-                      onSelected: (_) => setState(() => _aspect = a),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-            ],
-
-            // 标签
-            _Label(text: AiL10n.current.quickPromptsTags),
-            TextFormField(
-              controller: _tagsController,
-              enabled: !_isBuiltIn,
-              decoration: InputDecoration(
-                hintText: AiL10n.current.quickPromptsTagsHint,
-                border: const OutlineInputBorder(),
-                isDense: true,
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            if (_isBuiltIn)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHigh,
-                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
-                  children: [
-                    Icon(
-                      AppIcons.info,
-                      size: 16,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '内置快捷词的 name / 模板 / 图标 不可编辑，可调整比例与 Pin/隐藏',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+              ],
+            ),
+            _FormGroup(
+              header: AiL10n.current.quickPromptsIcon,
+              children: [
+                if (_isBuiltIn)
+                  _FieldRow(
+                    child: Row(
+                      children: [
+                        _DisabledIconPreview(iconRaw: _iconRaw),
+                        const SizedBox(width: AppSpace.m),
+                        Expanded(
+                          child: Text(
+                            _iconRaw,
+                            style: theme.textTheme.bodySmall
+                                ?.merge(context.tokens.text.meta)
+                                .copyWith(
+                                  color: context.tokens.colors.textMeta,
+                                ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.all(AppSpace.m),
+                    child: IconEmojiPicker(
+                      value: _iconRaw,
+                      onChanged: (v) => setState(() => _iconRaw = v),
+                    ),
+                  ),
+              ],
+            ),
+            _FormGroup(
+              header: AiL10n.current.quickPromptsTemplate,
+              children: [
+                _FieldRow(
+                  child: TextFormField(
+                    controller: _templateController,
+                    enabled: !_isBuiltIn,
+                    minLines: 4,
+                    maxLines: 12,
+                    decoration: _plainDecoration(
+                      context,
+                      AiL10n.current.quickPromptsTemplateHint,
+                    ),
+                    validator: (v) {
+                      if ((v ?? '').trim().isEmpty) {
+                        return AiL10n
+                            .current.quickPromptsValidateTemplateRequired;
+                      }
+                      return null;
+                    },
+                  ),
                 ),
+              ],
+            ),
+            if (isImage)
+              _FormGroup(
+                header: AiL10n.current.quickPromptsAspect,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(AppSpace.m),
+                    child: Wrap(
+                      spacing: AppSpace.s,
+                      runSpacing: AppSpace.s,
+                      children: [
+                        FilterPill(
+                          label: AiL10n.current.quickPromptsAspectAuto,
+                          selected: _aspect == null,
+                          showChevron: false,
+                          onTap: () => setState(() => _aspect = null),
+                        ),
+                        for (final a in _kAspectChoices)
+                          FilterPill(
+                            label: a,
+                            selected: _aspect == a,
+                            showChevron: false,
+                            onTap: () => setState(() => _aspect = a),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
+            _FormGroup(
+              header: AiL10n.current.quickPromptsTags,
+              footer: _isBuiltIn ? '内置快捷词的名称、模板、图标不可编辑，可调整比例与置顶 / 隐藏' : null,
+              children: [
+                _FieldRow(
+                  child: TextFormField(
+                    controller: _tagsController,
+                    enabled: !_isBuiltIn,
+                    decoration: _plainDecoration(
+                      context,
+                      AiL10n.current.quickPromptsTagsHint,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  InputDecoration _plainDecoration(BuildContext context, String hint) {
+    final tokens = context.tokens;
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: tokens.colors.textMeta),
+      border: InputBorder.none,
+      isDense: true,
+      contentPadding: EdgeInsets.zero,
     );
   }
 
@@ -289,20 +293,85 @@ class _PromptPresetEditPageState
   }
 }
 
-class _Label extends StatelessWidget {
-  const _Label({required this.text});
-  final String text;
+/// 分组：组页眉（13 meta）+ 灰底 r12 的卡片（行间发丝线）+ 可选组页脚
+class _FormGroup extends StatelessWidget {
+  const _FormGroup({required this.header, required this.children, this.footer});
+
+  final String header;
+  final List<Widget> children;
+  final String? footer;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final meta = Theme.of(context)
+        .textTheme
+        .bodySmall
+        ?.merge(tokens.text.meta)
+        .copyWith(color: tokens.colors.textMeta);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Text(
-        text,
-        style: theme.textTheme.labelMedium?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.w500,
+      padding: const EdgeInsets.only(bottom: AppSpace.l),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpace.m,
+              0,
+              AppSpace.m,
+              AppSpace.xs,
+            ),
+            child: Text(header, style: meta),
+          ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: tokens.colors.surfaceGrouped,
+              borderRadius: BorderRadius.circular(tokens.radius.card),
+            ),
+            child: Column(
+              children: [
+                for (var i = 0; i < children.length; i++) ...[
+                  if (i > 0) const AppHairline(),
+                  children[i],
+                ],
+              ],
+            ),
+          ),
+          if (footer != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpace.m,
+                AppSpace.xs,
+                AppSpace.m,
+                0,
+              ),
+              child: Text(footer!, style: meta),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 组里的输入行：左右 12，至少 48 高，文字 17
+class _FieldRow extends StatelessWidget {
+  const _FieldRow({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: AppSize.row48),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpace.m,
+          vertical: AppSpace.s,
+        ),
+        child: DefaultTextStyle.merge(
+          style: tokens.text.control.copyWith(color: tokens.colors.textPrimary),
+          child: Align(alignment: Alignment.centerLeft, child: child),
         ),
       ),
     );
