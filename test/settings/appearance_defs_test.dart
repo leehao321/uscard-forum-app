@@ -8,10 +8,11 @@ import 'package:fluxdo/providers/theme_provider.dart';
 import 'package:fluxdo/settings/definitions/appearance_defs.dart';
 import 'package:fluxdo/settings/definitions/bottom_nav_defs.dart';
 import 'package:fluxdo/settings/settings_renderer.dart';
+import 'package:fluxdo/widgets/settings/appearance_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// 0.4.0 M1 的临时外观页：v2 去掉的旧选项（计划 P11）不再出现，强调色
-// 四选一可用。完整的 v2 外观页在 M8。
+// 0.4.0 M8 外观页：v2 去掉的旧选项（计划 P11）不再出现；预设 / 外观模式 /
+// 强调色 / 字体 / 微调 / 语言都在，强调色四个圆可选。
 
 void main() {
   testWidgets('外观页去掉调色板、背景图、玻璃、弹窗模糊等旧选项，强调色可选', (tester) async {
@@ -90,10 +91,29 @@ void main() {
     ]) {
       expect(ids, isNot(contains(removed)), reason: removed);
     }
-    expect(ids, containsAll(['language', 'themeMode', 'accent', 'font']));
+    expect(
+      ids,
+      containsAll([
+        'presets',
+        'themeMode',
+        'accent',
+        'font',
+        'tuneFont',
+        'tuneLineHeight',
+        'tuneDensity',
+        'tuneRadius',
+        'tuneTranslucency',
+        'language',
+      ]),
+    );
 
-    expect(find.byType(RadioListTile<AccentPreset>), findsNWidgets(4));
-    await tester.tap(find.text('海军蓝'));
+    // 强调色：四个圆，第二个是海军蓝
+    final circles = find.descendant(
+      of: find.byType(AppearanceAccentRow),
+      matching: find.byType(AppPressable),
+    );
+    expect(circles, findsNWidgets(4));
+    await tester.tap(circles.at(1));
     await tester.pumpAndSettle();
     expect(container.read(themeProvider).accent, AccentPreset.navy);
     expect(prefs.getString('accent_preset'), 'navy');

@@ -212,19 +212,30 @@ class _NotionSettingsPageState extends ConsumerState<NotionSettingsPage> {
     final showSteps = !cfg.isComplete || _editing;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.notion_title),
-        actions: [
+      backgroundColor: context.tokens.colors.surfacePage,
+      appBar: AppNavBar(
+        title: context.l10n.notion_title,
+        slotWidth: 100,
+        trailing: [
           if (cfg.isComplete)
-            TextButton.icon(
-              icon: const Icon(Symbols.link_off_rounded, size: 16),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: context.tokens.colors.textDestructive,
+                minimumSize: const Size(AppSize.hit, AppSize.hit),
+                padding: EdgeInsets.zero,
+              ),
               onPressed: _testing ? null : _disconnect,
-              label: Text(context.l10n.notion_disconnect),
+              child: Text(context.l10n.notion_disconnect),
             ),
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpace.pageMargin,
+          AppSpace.s,
+          AppSpace.pageMargin,
+          AppSpace.x32,
+        ),
         children: [
           // 顶部说明
           _Header(),
@@ -253,7 +264,7 @@ class _NotionSettingsPageState extends ConsumerState<NotionSettingsPage> {
               children: [
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  icon: const Icon(Symbols.open_in_new_rounded, size: 16),
+                  icon: const Icon(AppIcons.openInNew, size: 16),
                   onPressed: _openIntegrationsPage,
                   label: Text(context.l10n.notion_openIntegrationsPage),
                   style: OutlinedButton.styleFrom(
@@ -276,8 +287,8 @@ class _NotionSettingsPageState extends ConsumerState<NotionSettingsPage> {
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureToken
-                            ? Symbols.visibility_off_rounded
-                            : Symbols.visibility_rounded,
+                            ? AppIcons.visibilityOff
+                            : AppIcons.visibility,
                         size: 18,
                       ),
                       onPressed: () =>
@@ -311,7 +322,7 @@ class _NotionSettingsPageState extends ConsumerState<NotionSettingsPage> {
                     ),
                     suffixIcon: IconButton(
                       tooltip: context.l10n.common_paste,
-                      icon: const Icon(Symbols.content_paste_rounded, size: 18),
+                      icon: const Icon(AppIcons.paste, size: 18),
                       onPressed: () async {
                         final data = await Clipboard.getData('text/plain');
                         final text = data?.text?.trim();
@@ -324,7 +335,7 @@ class _NotionSettingsPageState extends ConsumerState<NotionSettingsPage> {
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  icon: const Icon(Symbols.auto_awesome_rounded, size: 16),
+                  icon: const Icon(AppIcons.autoAwesome, size: 16),
                   onPressed: _testing ? null : _createTemplateDatabase,
                   label: Text(context.l10n.notion_createTemplateDb),
                   style: OutlinedButton.styleFrom(
@@ -355,7 +366,7 @@ class _NotionSettingsPageState extends ConsumerState<NotionSettingsPage> {
                               color: Colors.white,
                             ),
                           )
-                        : const Icon(Symbols.check_circle_rounded, size: 18),
+                        : const Icon(AppIcons.checkCircle, size: 18),
                     onPressed: _testing
                         ? null
                         : () async {
@@ -451,7 +462,7 @@ class _NotionSettingsPageState extends ConsumerState<NotionSettingsPage> {
             child: Row(
               children: [
                 Icon(
-                  Symbols.lock_rounded,
+                  AppIcons.lock,
                   size: 14,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -485,20 +496,19 @@ class _UpgradeBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accent = Colors.amber.shade700;
+    final accent = context.tokens.colors.brandPrimary;
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpace.m),
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: accent.withValues(alpha: 0.45)),
+        color: context.tokens.colors.surfaceGrouped,
+        borderRadius: BorderRadius.circular(context.tokens.radius.card),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Symbols.upgrade_rounded, color: accent, size: 20),
+              Icon(AppIcons.up, color: accent, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -532,7 +542,7 @@ class _UpgradeBanner extends StatelessWidget {
                         color: Colors.white,
                       ),
                     )
-                  : const Icon(Symbols.bolt_rounded, size: 16),
+                  : const Icon(AppIcons.rocket, size: 16),
               onPressed: upgrading ? null : onUpgrade,
               label: Text(context.l10n.notion_upgradeAction),
               style: FilledButton.styleFrom(
@@ -578,7 +588,7 @@ class _ConfiguredBanner extends StatelessWidget {
             ),
             alignment: Alignment.center,
             child: Icon(
-              Symbols.check_rounded,
+              AppIcons.check,
               size: 18,
               color: theme.colorScheme.onPrimary,
             ),
@@ -593,7 +603,7 @@ class _ConfiguredBanner extends StatelessWidget {
             ),
           ),
           TextButton.icon(
-            icon: const Icon(Symbols.edit_rounded, size: 16),
+            icon: const Icon(AppIcons.edit, size: 16),
             onPressed: onEdit,
             label: Text(context.l10n.notion_editConfig),
           ),
@@ -608,17 +618,10 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
+      padding: const EdgeInsets.all(AppSpace.m),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            theme.colorScheme.primary.withValues(alpha: 0.12),
-            theme.colorScheme.primary.withValues(alpha: 0.04),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(14),
+        color: context.tokens.colors.surfaceGrouped,
+        borderRadius: BorderRadius.circular(context.tokens.radius.card),
       ),
       child: Row(
         children: [
@@ -626,12 +629,12 @@ class _Header extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(10),
+              color: context.tokens.colors.avatarFill,
+              borderRadius: BorderRadius.circular(context.tokens.radius.field),
             ),
             child: Icon(
-              Symbols.cloud_sync_rounded,
-              color: theme.colorScheme.primary,
+              AppIcons.cloud,
+              color: context.tokens.colors.brandPrimary,
             ),
           ),
           const SizedBox(width: 12),
@@ -681,15 +684,15 @@ class _StepCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
+      padding: const EdgeInsets.all(AppSpace.m),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(14),
+        color: context.tokens.colors.surfaceGrouped,
+        borderRadius: BorderRadius.circular(context.tokens.radius.card),
         border: Border.all(
           color: done
-              ? theme.colorScheme.primary.withValues(alpha: 0.4)
-              : theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
-          width: done ? 1.2 : 1,
+              ? context.tokens.colors.brandPrimary
+              : context.tokens.colors.separator,
+          width: done ? 1 : AppSpace.hairline,
         ),
       ),
       child: Column(
@@ -703,14 +706,14 @@ class _StepCard extends StatelessWidget {
                 height: 24,
                 decoration: BoxDecoration(
                   color: done
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.surfaceContainerHighest,
+                      ? context.tokens.colors.brandPrimary
+                      : context.tokens.colors.avatarFill,
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
                 child: done
                     ? Icon(
-                        Symbols.check_rounded,
+                        AppIcons.check,
                         size: 16,
                         color: theme.colorScheme.onPrimary,
                       )

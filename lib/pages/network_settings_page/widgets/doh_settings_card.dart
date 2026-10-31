@@ -102,8 +102,8 @@ class _DohSettingsCardInner extends StatelessWidget {
           ),
           secondary: Icon(
             (vpnLocked ? isSuppressedByVpn : settings.dohEnabled)
-                ? Symbols.shield_rounded
-                : Symbols.shield_rounded,
+                ? AppIcons.shield
+                : AppIcons.shield,
             color: (vpnLocked ? isSuppressedByVpn : settings.dohEnabled)
                 ? theme.colorScheme.primary
                 : null,
@@ -137,7 +137,7 @@ class _DohSettingsCardInner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  Symbols.restart_alt_rounded,
+                  AppIcons.refresh,
                   size: 18,
                   color: theme.colorScheme.tertiary,
                 ),
@@ -178,10 +178,10 @@ class _DohSettingsCardInner extends StatelessWidget {
 
           // 更多设置入口
           ListTile(
-            leading: const Icon(Symbols.tune_rounded),
+            leading: const Icon(AppIcons.tune),
             title: Text(context.l10n.dohSettings_moreSettings),
             subtitle: Text(context.l10n.dohSettings_moreSettingsDesc),
-            trailing: const Icon(Symbols.chevron_right_rounded, size: 20),
+            trailing: const Icon(AppIcons.chevronRight, size: 20),
             onTap: () {
               Navigator.push(
                 context,
@@ -234,10 +234,10 @@ class _DohSettingsCardInner extends StatelessWidget {
                       'status_${isRunning}_${service.lastStartFailed}',
                     ),
                     icon: isRunning
-                        ? Symbols.check_circle_rounded
+                        ? AppIcons.checkCircle
                         : service.lastStartFailed
-                        ? Symbols.error_rounded
-                        : Symbols.hourglass_top_rounded,
+                        ? AppIcons.error
+                        : AppIcons.history,
                     label: isRunning
                         ? context.l10n.dohSettings_proxyRunning
                         : context.l10n.dohSettings_proxyNotStarted,
@@ -248,7 +248,7 @@ class _DohSettingsCardInner extends StatelessWidget {
           if (port != null && isRunning)
             _buildStatusChip(
               theme,
-              icon: Symbols.lan_rounded,
+              icon: AppIcons.hub,
               label: context.l10n.dohSettings_port(port),
               color: theme.colorScheme.secondary,
             ),
@@ -256,7 +256,7 @@ class _DohSettingsCardInner extends StatelessWidget {
             const Spacer(),
             IconButton(
               onPressed: isApplying ? null : service.restartProxy,
-              icon: const Icon(Symbols.refresh_rounded, size: 20),
+              icon: const Icon(AppIcons.refresh, size: 20),
               tooltip: context.l10n.dohSettings_restartProxy,
               visualDensity: VisualDensity.compact,
             ),
@@ -280,7 +280,7 @@ class _DohSettingsCardInner extends StatelessWidget {
           Row(
             children: [
               Icon(
-                Symbols.warning_amber_rounded,
+                AppIcons.warning,
                 size: 16,
                 color: theme.colorScheme.error,
               ),
@@ -323,7 +323,7 @@ class _DohSettingsCardInner extends StatelessWidget {
                       ToastService.showInfo(S.current.dohSettings_errorCopied);
                     },
                     child: Icon(
-                      Symbols.content_copy_rounded,
+                      AppIcons.copy,
                       size: 14,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -510,7 +510,7 @@ class _CertGuideState extends State<_CertGuide> {
     if (Platform.isIOS) {
       return ListTile(
         leading: Icon(
-          _installed ? Symbols.verified_user_rounded : Symbols.security_rounded,
+          _installed ? AppIcons.verifiedUser : AppIcons.security,
           color: _installed ? Colors.green : theme.colorScheme.error,
         ),
         title: Text(
@@ -545,7 +545,7 @@ class _CertGuideState extends State<_CertGuide> {
     if (Platform.isWindows) {
       return ListTile(
         leading: Icon(
-          _installed ? Symbols.verified_user_rounded : Symbols.security_rounded,
+          _installed ? AppIcons.verifiedUser : AppIcons.security,
           color: _installed ? Colors.green : theme.colorScheme.error,
         ),
         title: Text(
@@ -578,8 +578,8 @@ class _CertGuideState extends State<_CertGuide> {
     return SwitchListTile.adaptive(
       secondary: Icon(
         _perDeviceEnabled
-            ? Symbols.verified_user_rounded
-            : Symbols.security_rounded,
+            ? AppIcons.verifiedUser
+            : AppIcons.security,
         color: _perDeviceEnabled ? Colors.green : null,
       ),
       title: Text(l10n.dohSettings_perDeviceCert),

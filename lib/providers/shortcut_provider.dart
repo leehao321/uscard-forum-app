@@ -772,7 +772,8 @@ class ShortcutSurfaceBinding {
     _disposed = true;
     if (_registered) {
       _registered = false;
-      _registry.unregister(owner: _owner);
+      // 整个 ProviderScope 一起卸载时，注册表可能已先于本回调销毁
+      if (_registry.mounted) _registry.unregister(owner: _owner);
     }
   }
 

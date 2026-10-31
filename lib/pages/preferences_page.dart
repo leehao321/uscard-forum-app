@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/s.dart';
 import '../settings/definitions/preferences_defs.dart';
+import '../settings/settings_model.dart';
 import '../widgets/settings/settings_group_page.dart';
 
 class PreferencesPage extends StatelessWidget {
@@ -13,7 +14,7 @@ class PreferencesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SettingsGroupPage(
       title: context.l10n.preferences_title,
-      groupsBuilder: buildPreferencesGroups,
+      groupsBuilder: (c) => footerizeSubtitles(buildPreferencesGroups(c)),
       highlightId: highlightId,
     );
   }

@@ -19,6 +19,7 @@ import '../../utils/blocked_user_filter.dart';
 import '../../widgets/ai/ai_model_select_sheet.dart';
 import '../../providers/sticker_provider.dart';
 import '../../services/sticker_market_service.dart';
+import '../choice_sheet.dart';
 import '../settings_model.dart';
 
 /// 功能设置数据声明
@@ -27,13 +28,13 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
   return [
     SettingsGroup(
       title: l10n.preferences_basic,
-      icon: Symbols.tune_rounded,
+      icon: AppIcons.tune,
       items: [
         SwitchModel(
           id: 'anonymousShare',
           title: l10n.preferences_anonymousShare,
           subtitle: l10n.preferences_anonymousShareDesc,
-          icon: Symbols.visibility_off_rounded,
+          icon: AppIcons.visibilityOff,
           getValue: (ref) => ref.watch(preferencesProvider).anonymousShare,
           onChanged: (ref, v) =>
               ref.read(preferencesProvider.notifier).setAnonymousShare(v),
@@ -42,7 +43,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
           id: 'autoFillLogin',
           title: l10n.preferences_autoFillLogin,
           subtitle: l10n.preferences_autoFillLoginDesc,
-          icon: Symbols.password_rounded,
+          icon: AppIcons.lock,
           getValue: (ref) => ref.watch(preferencesProvider).autoFillLogin,
           onChanged: (ref, v) =>
               ref.read(preferencesProvider.notifier).setAutoFillLogin(v),
@@ -51,7 +52,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
           id: 'homeRefreshButton',
           title: l10n.preferences_homeRefreshButton,
           subtitle: l10n.preferences_homeRefreshButtonDesc,
-          icon: Symbols.refresh_rounded,
+          icon: AppIcons.refresh,
           getValue: (ref) => ref.watch(preferencesProvider).homeRefreshButton,
           onChanged: (ref, v) =>
               ref.read(preferencesProvider.notifier).setHomeRefreshButton(v),
@@ -60,7 +61,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
           id: 'clipboardTopicLinkDetection',
           title: l10n.preferences_clipboardTopicLinkDetection,
           subtitle: l10n.preferences_clipboardTopicLinkDetectionDesc,
-          icon: Symbols.content_paste_rounded,
+          icon: AppIcons.paste,
           getValue: (ref) =>
               ref.watch(preferencesProvider).clipboardTopicLinkDetection,
           onChanged: (ref, v) => ref
@@ -71,13 +72,13 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
     ),
     SettingsGroup(
       title: l10n.preferences_contentFilter,
-      icon: Symbols.filter_alt_rounded,
+      icon: AppIcons.filter,
       items: [
         ActionModel(
           id: 'topicFilterKeywords',
           title: l10n.preferences_topicFilterKeywords,
           subtitle: l10n.preferences_topicFilterKeywordsDesc,
-          icon: Symbols.filter_alt_off_rounded,
+          icon: AppIcons.filterOff,
           wrapSubtitle: true,
           getDynamicSubtitle: (ref) {
             final count = ref
@@ -93,7 +94,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
           id: 'blockedUsernames',
           title: l10n.preferences_blockedUsernames,
           subtitle: l10n.preferences_blockedUsernamesDesc,
-          icon: Symbols.person_off_rounded,
+          icon: AppIcons.block,
           wrapSubtitle: true,
           getDynamicSubtitle: (ref) {
             final count = ref
@@ -111,7 +112,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
           id: 'showFilterHint',
           title: l10n.preferences_showFilterHint,
           subtitle: l10n.preferences_showFilterHintDesc,
-          icon: Symbols.visibility_rounded,
+          icon: AppIcons.visibility,
           getValue: (ref) => ref.watch(preferencesProvider).showFilterHint,
           onChanged: (ref, v) =>
               ref.read(preferencesProvider.notifier).setShowFilterHint(v),
@@ -120,14 +121,14 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
     ),
     SettingsGroup(
       title: l10n.preferences_interaction,
-      icon: Symbols.gesture_rounded,
+      icon: AppIcons.touchApp,
       items: [
         PlatformConditionalModel(
           inner: SwitchModel(
             id: 'portraitLock',
             title: l10n.preferences_portraitLock,
             subtitle: l10n.preferences_portraitLockDesc,
-            icon: Symbols.screen_lock_portrait_rounded,
+            icon: AppIcons.lockClock,
             getValue: (ref) => ref.watch(preferencesProvider).portraitLock,
             onChanged: (ref, v) =>
                 ref.read(preferencesProvider.notifier).setPortraitLock(v),
@@ -139,7 +140,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
             id: 'fullscreenSwipeBack',
             title: l10n.preferences_fullscreenSwipeBack,
             subtitle: l10n.preferences_fullscreenSwipeBackDesc,
-            icon: Symbols.swipe_right_rounded,
+            icon: AppIcons.forward,
             getValue: (ref) =>
                 ref.watch(preferencesProvider).fullscreenSwipeBack,
             onChanged: (ref, v) => ref
@@ -153,7 +154,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
             id: 'exitOnSingleBack',
             title: l10n.preferences_exitOnSingleBack,
             subtitle: l10n.preferences_exitOnSingleBackDesc,
-            icon: Symbols.exit_to_app_rounded,
+            icon: AppIcons.logout,
             getValue: (ref) => ref.watch(preferencesProvider).exitOnSingleBack,
             onChanged: (ref, v) =>
                 ref.read(preferencesProvider.notifier).setExitOnSingleBack(v),
@@ -164,13 +165,13 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
     ),
     SettingsGroup(
       title: l10n.preferences_editor,
-      icon: Symbols.edit_note_rounded,
+      icon: AppIcons.edit,
       items: [
         SwitchModel(
           id: 'autoPanguSpacing',
           title: l10n.preferences_autoPanguSpacing,
           subtitle: l10n.preferences_autoPanguSpacingDesc,
-          icon: Symbols.auto_fix_high_rounded,
+          icon: AppIcons.autoFixHigh,
           getValue: (ref) => ref.watch(preferencesProvider).autoPanguSpacing,
           onChanged: (ref, v) =>
               ref.read(preferencesProvider.notifier).setAutoPanguSpacing(v),
@@ -179,7 +180,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
           id: 'useRichComposer',
           title: l10n.preferences_useRichComposer,
           subtitle: l10n.preferences_useRichComposerDesc,
-          icon: Symbols.edit_document_rounded,
+          icon: AppIcons.edit,
           getValue: (ref) => ref.watch(preferencesProvider).useRichComposer,
           onChanged: (ref, v) =>
               ref.read(preferencesProvider.notifier).setUseRichComposer(v),
@@ -188,7 +189,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
           id: 'composerEnterSoftBreak',
           title: l10n.preferences_composerEnterSoftBreak,
           subtitle: l10n.preferences_composerEnterSoftBreakDesc,
-          icon: Symbols.keyboard_return_rounded,
+          icon: AppIcons.undo,
           getValue: (ref) =>
               ref.watch(preferencesProvider).composerEnterSoftBreak,
           onChanged: (ref, v) => ref
@@ -201,7 +202,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
           id: 'composerLiveRender',
           title: l10n.preferences_composerLiveRender,
           subtitle: l10n.preferences_composerLiveRenderDesc,
-          icon: Symbols.preview_rounded,
+          icon: AppIcons.visibility,
           getValue: (ref) => ref.watch(preferencesProvider).composerLiveRender,
           onChanged: (ref, v) =>
               ref.read(preferencesProvider.notifier).setComposerLiveRender(v),
@@ -211,7 +212,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
         ActionModel(
           id: 'stickerSource',
           title: l10n.preferences_stickerSource,
-          icon: Symbols.sticky_note_2_rounded,
+          icon: AppIcons.note,
           getDynamicSubtitle: (ref) =>
               ref.watch(stickerMarketServiceProvider).baseUrl,
           onTap: (context, ref) => _showStickerBaseUrlDialog(context, ref),
@@ -220,13 +221,13 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
     ),
     SettingsGroup(
       title: l10n.preferences_ai,
-      icon: Symbols.psychology_rounded,
+      icon: AppIcons.autoAwesome,
       items: [
         SwitchModel(
           id: 'aiPostReview',
           title: l10n.preferences_aiPostReview,
           subtitle: l10n.preferences_aiPostReviewDesc,
-          icon: Symbols.fact_check_rounded,
+          icon: AppIcons.checkBox,
           getValue: (ref) => ref.watch(preferencesProvider).aiPostReviewEnabled,
           onChanged: (ref, v) async {
             final notifier = ref.read(preferencesProvider.notifier);
@@ -244,7 +245,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
         ActionModel(
           id: 'aiPostReviewModel',
           title: l10n.preferences_aiPostReviewModel,
-          icon: Symbols.psychology_alt_rounded,
+          icon: AppIcons.autoAwesome,
           getDynamicSubtitle: (ref) {
             final selected = ref.watch(aiPostReviewSelectedModelProvider);
             if (selected == null) {
@@ -259,7 +260,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
           id: 'aiTranslation',
           title: l10n.ai_translationEnabled,
           subtitle: l10n.ai_translationEnabledDesc,
-          icon: Symbols.translate_rounded,
+          icon: AppIcons.language,
           getValue: (ref) =>
               ref.watch(preferencesProvider).aiTranslationEnabled,
           onChanged: (ref, v) async {
@@ -278,7 +279,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
         ActionModel(
           id: 'aiTranslationTargetLanguage',
           title: l10n.ai_translationTargetLanguage,
-          icon: Symbols.translate_rounded,
+          icon: AppIcons.language,
           getDynamicSubtitle: (ref) {
             final preferred = ref.watch(
               preferencesProvider.select(
@@ -296,7 +297,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
         ActionModel(
           id: 'aiTranslationModel',
           title: l10n.ai_translationModel,
-          icon: Symbols.psychology_alt_rounded,
+          icon: AppIcons.autoAwesome,
           getDynamicSubtitle: (ref) {
             final selected = ref.watch(aiTranslationSelectedModelProvider);
             if (selected == null) {
@@ -312,13 +313,13 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
     if (Platform.isAndroid)
       SettingsGroup(
         title: l10n.preferences_advanced,
-        icon: Symbols.bug_report_rounded,
+        icon: AppIcons.code,
         items: [
           SwitchModel(
             id: 'crashlytics',
             title: l10n.preferences_crashlytics,
             subtitle: l10n.preferences_crashlyticsDesc,
-            icon: Symbols.bug_report_rounded,
+            icon: AppIcons.code,
             getValue: (ref) => ref.watch(preferencesProvider).crashlytics,
             onChanged: (ref, v) =>
                 ref.read(preferencesProvider.notifier).setCrashlytics(v),
@@ -331,7 +332,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
             id: 'renderGlesBackend',
             title: l10n.preferences_renderGlesBackend,
             subtitle: l10n.preferences_renderGlesBackendDesc,
-            icon: Symbols.layers_rounded,
+            icon: AppIcons.readLater,
             // 检测到过渲染崩溃时追加「建议开启」，让点过「暂不开启」
             // 的用户之后仍能在设置里找到线索
             subtitleBuilder: (ref) {
@@ -356,13 +357,13 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
 
     SettingsGroup(
       title: l10n.crypto_settingsGroup,
-      icon: Symbols.key_rounded,
+      icon: AppIcons.key,
       items: [
         SwitchModel(
           id: 'cryptoRememberPassword',
           title: l10n.crypto_settingsRememberPassword,
           subtitle: l10n.crypto_settingsRememberPasswordDesc,
-          icon: Symbols.password_rounded,
+          icon: AppIcons.lock,
           getValue: (ref) =>
               ref.watch(preferencesProvider).cryptoRememberPassword,
           onChanged: (ref, v) => ref
@@ -372,7 +373,7 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
         ActionModel(
           id: 'cryptoClearRememberedPasswords',
           title: l10n.crypto_settingsClearPasswords,
-          icon: Symbols.delete_rounded,
+          icon: AppIcons.delete,
           getDynamicSubtitle: (ref) => l10n.crypto_secureStorageNote,
           onTap: (context, ref) async {
             final confirmed = await showDialog<bool>(
@@ -455,57 +456,20 @@ Future<void> _showAiPostReviewModelSheet(
 
 void _showAiTranslationLanguagePicker(BuildContext context, WidgetRef ref) {
   final l10n = context.l10n;
-  final current = ref.read(preferencesProvider).aiTranslationTargetLanguage;
-  showAppDialog<String?>(
-    context: context,
-    builder: (dialogContext) => SimpleDialog(
-      title: Text(l10n.ai_translationTargetLanguage),
-      children: [
-        SimpleDialogOption(
-          onPressed: () => Navigator.pop(dialogContext, ''),
-          child: Row(
-            children: [
-              Icon(
-                current == null || current.isEmpty
-                    ? Symbols.radio_button_checked_rounded
-                    : Symbols.radio_button_unchecked_rounded,
-                color: current == null || current.isEmpty
-                    ? Theme.of(dialogContext).colorScheme.primary
-                    : null,
-                size: 20,
-              ),
-              const SizedBox(width: 12),
-              Text(l10n.ai_translationTargetLanguageFollowApp),
-            ],
-          ),
-        ),
-        for (final entry in aiTranslationLanguages.entries)
-          SimpleDialogOption(
-            onPressed: () => Navigator.pop(dialogContext, entry.key),
-            child: Row(
-              children: [
-                Icon(
-                  entry.key == current
-                      ? Symbols.radio_button_checked_rounded
-                      : Symbols.radio_button_unchecked_rounded,
-                  color: entry.key == current
-                      ? Theme.of(dialogContext).colorScheme.primary
-                      : null,
-                  size: 20,
-                ),
-                const SizedBox(width: 12),
-                Text(entry.value),
-              ],
-            ),
-          ),
-      ],
-    ),
-  ).then((selected) {
-    if (selected == null) return;
-    ref
+  final current = ref.read(preferencesProvider).aiTranslationTargetLanguage ?? '';
+  showSettingsChoiceSheet<String>(
+    context,
+    title: l10n.ai_translationTargetLanguage,
+    options: [
+      ('', l10n.ai_translationTargetLanguageFollowApp),
+      for (final entry in aiTranslationLanguages.entries)
+        (entry.key, entry.value),
+    ],
+    current: current,
+    onSelected: (selected) => ref
         .read(preferencesProvider.notifier)
-        .setAiTranslationTargetLanguage(selected.isEmpty ? null : selected);
-  });
+        .setAiTranslationTargetLanguage(selected.isEmpty ? null : selected),
+  );
 }
 
 Future<void> _showAiTranslationModelSheet(
@@ -611,7 +575,7 @@ class _TopicFilterKeywordsDialogState
             Align(
               alignment: Alignment.centerRight,
               child: TextButton.icon(
-                icon: const Icon(Symbols.clear_all_rounded, size: 18),
+                icon: const Icon(AppIcons.close, size: 18),
                 label: Text(l10n.common_clear),
                 onPressed: () => setState(() {
                   _keywords.clear();
@@ -722,7 +686,7 @@ class _BlockedUsernamesDialogState extends State<_BlockedUsernamesDialog> {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton.icon(
-                icon: const Icon(Symbols.clear_all_rounded, size: 18),
+                icon: const Icon(AppIcons.close, size: 18),
                 label: Text(l10n.common_clear),
                 onPressed: () => setState(() {
                   _usernames.clear();

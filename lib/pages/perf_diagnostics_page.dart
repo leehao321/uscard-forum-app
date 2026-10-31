@@ -2,6 +2,7 @@ import 'dart:io' show File;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:cross_file/cross_file.dart';
@@ -101,29 +102,32 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final tokens = context.tokens;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('性能诊断'),
-        actions: [
-          IconButton(
-            tooltip: '复制报告',
-            icon: const Icon(Symbols.content_copy_rounded),
+      backgroundColor: tokens.colors.surfacePage,
+      appBar: AppNavBar(
+        title: '性能诊断',
+        slotWidth: 190,
+        trailing: [
+          AppIconButton(
+            icon: AppIcons.copy,
+            semanticLabel: '复制报告',
             onPressed: _copy,
           ),
-          IconButton(
-            tooltip: '保存报告',
-            icon: const Icon(Symbols.save_alt_rounded),
+          AppIconButton(
+            icon: AppIcons.saveAlt,
+            semanticLabel: '保存报告',
             onPressed: () => _export(share: false),
           ),
           if (ShareUtils.canShareFiles)
-            IconButton(
-              tooltip: '分享报告',
-              icon: const Icon(Symbols.share_rounded),
+            AppIconButton(
+              icon: AppIcons.share,
+              semanticLabel: '分享报告',
               onPressed: () => _export(share: true),
             ),
-          IconButton(
-            tooltip: '清空记录',
-            icon: const Icon(Symbols.delete_sweep_rounded),
+          AppIconButton(
+            icon: AppIcons.delete,
+            semanticLabel: '清空记录',
             onPressed: _clear,
           ),
         ],
@@ -142,10 +146,10 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
           ]..sort((a, b) => b.$2.compareTo(a.$2));
 
           return ListView(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(AppSpace.pageMargin),
             children: [
               _summaryCard(theme),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpace.m),
               if (entries.isEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 48),
@@ -154,9 +158,9 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
                       FrameJankMonitor.isRunning
                           ? '暂无掉帧记录,去滚动几屏试试'
                           : '监控未启用',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      style: theme.textTheme.bodyMedium
+                          ?.merge(tokens.text.control)
+                          .copyWith(color: tokens.colors.textMeta),
                     ),
                   ),
                 )
@@ -175,8 +179,15 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
     final rate = frames == 0 ? 0.0 : janks / frames * 100;
     final refresh = FrameJankMonitor.displayRefreshRate();
     final semanticsNodes = FrameJankMonitor.countSemanticsNodes();
-    return Card(
-      margin: EdgeInsets.zero,
+    final tokens = context.tokens;
+    final metaStyle = theme.textTheme.bodySmall
+        ?.merge(tokens.text.meta)
+        .copyWith(color: tokens.colors.textMeta);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: tokens.colors.surfaceGrouped,
+        borderRadius: BorderRadius.circular(tokens.radius.card),
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
@@ -206,7 +217,7 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
                 if (mounted) setState(() {});
               },
             ),
-            const Divider(height: 1),
+            const AppHairline(),
             const SizedBox(height: 8),
             Text(
               '本次会话:$frames 帧,掉帧 $janks 次'
@@ -217,24 +228,18 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
             Text(
               'worst build ${_ms(FrameJankMonitor.sessionWorstBuild)}ms / '
               'worst raster ${_ms(FrameJankMonitor.sessionWorstRaster)}ms',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+              style: metaStyle,
             ),
             const SizedBox(height: 4),
             Text(
               '刷新率 ${refresh?.toStringAsFixed(0) ?? '?'}Hz · '
               '语义树 ${semanticsNodes < 0 ? '未启用' : '$semanticsNodes 节点'}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+              style: metaStyle,
             ),
             const SizedBox(height: 4),
             Text(
               '现场抓取 ${JankProfiler.status}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+              style: metaStyle,
             ),
             if (_snapshotFile != null) ...[
               const SizedBox(height: 4),
@@ -244,22 +249,18 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
                     child: Text(
                       '上次会话快照 '
                       '(${_fmtSnapshotTime(_snapshotFile!.lastModifiedSync())})',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      style: metaStyle,
                     ),
                   ),
-                  IconButton(
-                    tooltip: '保存上次会话快照',
-                    visualDensity: VisualDensity.compact,
-                    icon: const Icon(Symbols.save_alt_rounded, size: 18),
+                  AppIconButton(
+                    icon: AppIcons.saveAlt,
+                    semanticLabel: '保存上次会话快照',
                     onPressed: () => _deliverSnapshot(share: false),
                   ),
                   if (ShareUtils.canShareFiles)
-                    IconButton(
-                      tooltip: '分享上次会话快照',
-                      visualDensity: VisualDensity.compact,
-                      icon: const Icon(Symbols.share_rounded, size: 18),
+                    AppIconButton(
+                      icon: AppIcons.share,
+                      semanticLabel: '分享上次会话快照',
                       onPressed: () => _deliverSnapshot(share: true),
                     ),
                 ],
@@ -282,11 +283,12 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
 
   Widget _jankTile(ThemeData theme, JankRecord j) {
     final heavy = j.total.inMilliseconds >= 20;
-    final color = heavy ? theme.colorScheme.error : theme.colorScheme.tertiary;
+    final colors = AppTokens.of(context).colors;
+    final color = heavy ? colors.textDestructive : colors.textMeta;
     return ListTile(
       dense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-      leading: Icon(Symbols.warning_rounded, size: 18, color: color),
+      leading: Icon(AppIcons.warning, size: 18, color: color),
       title: Text(
         '${_ms(j.total)}ms · build ${_ms(j.buildDuration)} / '
         'raster ${_ms(j.rasterDuration)} / ov ${_ms(j.vsyncOverhead)}',
@@ -302,52 +304,39 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
                 if (j.cause != null)
                   Text(
                     j.cause!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontSize: 11,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colors.brandPrimary,
                     ),
                   ),
                 if (j.detail != null)
                   Text(
                     j.detail!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontSize: 11,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colors.textMeta,
                     ),
                   ),
               ],
             ),
       trailing: Text(
         _fmtTime(j.time),
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-          fontSize: 11,
-        ),
+        style: theme.textTheme.labelSmall?.copyWith(color: colors.textMeta),
       ),
     );
   }
 
   Widget _eventTile(ThemeData theme, DiagEvent e) {
+    final colors = AppTokens.of(context).colors;
     return ListTile(
       dense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-      leading: Icon(
-        Symbols.info_rounded,
-        size: 18,
-        color: theme.colorScheme.outline,
-      ),
+      leading: Icon(AppIcons.info, size: 18, color: colors.textMeta),
       title: Text(
         '[${e.tag}] ${e.message}',
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
+        style: theme.textTheme.bodySmall?.copyWith(color: colors.textMeta),
       ),
       trailing: Text(
         _fmtTime(e.time),
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-          fontSize: 11,
-        ),
+        style: theme.textTheme.labelSmall?.copyWith(color: colors.textMeta),
       ),
     );
   }

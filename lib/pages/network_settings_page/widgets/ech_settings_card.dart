@@ -29,7 +29,7 @@ class EchSettingsCard extends StatelessWidget {
       children: [
         serverSelector,
         SwitchListTile.adaptive(
-          secondary: const Icon(Symbols.encrypted_rounded),
+          secondary: const Icon(AppIcons.lock),
           title: Text(l10n.dohDetail_publicEch),
           subtitle: Text(
             policy.enabled

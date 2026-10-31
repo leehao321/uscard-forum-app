@@ -90,8 +90,8 @@ class _HttpProxyCardInner extends StatelessWidget {
               ),
               secondary: Icon(
                 (vpnLocked ? isSuppressedByVpn : proxySettings.enabled)
-                    ? Symbols.vpn_key_rounded
-                    : Symbols.vpn_key_rounded,
+                    ? AppIcons.key
+                    : AppIcons.key,
                 color: (vpnLocked ? isSuppressedByVpn : proxySettings.enabled)
                     ? theme.colorScheme.tertiary
                     : null,
@@ -130,21 +130,21 @@ class _HttpProxyCardInner extends StatelessWidget {
             ),
             if (proxySettings.hasServer || proxySettings.enabled) ...[
               ListTile(
-                leading: const Icon(Symbols.dns_rounded),
+                leading: const Icon(AppIcons.serverOff),
                 title: Text(context.l10n.httpProxy_server),
                 subtitle: Text(
                   proxySettings.host.isNotEmpty
                       ? _buildProxySummary(proxySettings)
                       : context.l10n.common_notConfigured,
                 ),
-                trailing: const Icon(Symbols.edit_rounded, size: 20),
+                trailing: const Icon(AppIcons.edit, size: 20),
                 onTap: () => _showProxyConfigDialog(context, proxySettings),
               ),
               if (!proxySettings.isShadowsocks &&
                   proxySettings.username != null &&
                   proxySettings.username!.isNotEmpty)
                 ListTile(
-                  leading: const Icon(Symbols.person_rounded),
+                  leading: const Icon(AppIcons.person),
                   title: Text(context.l10n.httpProxy_auth),
                   subtitle: Text(context.l10n.httpProxy_username(proxySettings.username!)),
                   dense: true,
@@ -178,7 +178,7 @@ class _HttpProxyCardInner extends StatelessWidget {
                       child: Row(
                         children: [
                           Icon(
-                            Symbols.hub_rounded,
+                            AppIcons.hub,
                             size: 16,
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -203,7 +203,7 @@ class _HttpProxyCardInner extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      Symbols.info_rounded,
+                      AppIcons.info,
                       size: 16,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -329,7 +329,7 @@ class _HttpProxyCardInner extends StatelessWidget {
                                   : S.current.httpProxy_ssImportSuccess,
                             );
                           },
-                          icon: const Icon(Symbols.download_rounded),
+                          icon: const Icon(AppIcons.download),
                           label: Text(S.current.httpProxy_importSsLink),
                         ),
                       ),
@@ -552,12 +552,12 @@ class _HttpProxyCardInner extends StatelessWidget {
 
   IconData _resolveTestIcon(bool isTesting, ProxyTestResult? testResult) {
     if (isTesting) {
-      return Symbols.network_check_rounded;
+      return AppIcons.serverOff;
     }
     if (testResult == null) {
-      return Symbols.checklist_rtl_rounded;
+      return AppIcons.checkAll;
     }
-    return testResult.success ? Symbols.check_circle_rounded : Symbols.error_rounded;
+    return testResult.success ? AppIcons.checkCircle : AppIcons.error;
   }
 
   Color? _resolveTestColor(

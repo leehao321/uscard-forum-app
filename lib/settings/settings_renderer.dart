@@ -75,9 +75,9 @@ class SettingsRenderer extends ConsumerWidget {
                     Text(m.title),
                     Text(
                       m.labelBuilder(value),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      style: theme.textTheme.bodySmall
+                          ?.merge(context.tokens.text.meta)
+                          .copyWith(color: context.tokens.colors.textMeta),
                     ),
                   ],
                 ),
@@ -129,9 +129,9 @@ class SettingsRenderer extends ConsumerWidget {
                 if (m.subtitle != null)
                   Text(
                     m.subtitle!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+                    style: theme.textTheme.bodySmall
+                        ?.merge(context.tokens.text.meta)
+                        .copyWith(color: context.tokens.colors.textMeta),
                   ),
                 Slider(
                   value: value.toDouble(),
@@ -150,7 +150,7 @@ class SettingsRenderer extends ConsumerWidget {
               '$value$suffix',
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
-                color: theme.colorScheme.primary,
+                color: context.tokens.colors.brandPrimary,
               ),
               textAlign: TextAlign.end,
             ),
@@ -168,8 +168,13 @@ class SettingsRenderer extends ConsumerWidget {
   ) {
     final dynamicSub = m.getDynamicSubtitle?.call(ref);
     final displaySub = dynamicSub ?? m.subtitle;
+    final value = m.valueBuilder?.call(ref);
 
-    final colors = context.tokens.colors;
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final metaStyle = theme.textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
     return ListTile(
       leading: Icon(m.icon, color: colors.brandPrimary),
       title: Text(m.title),
@@ -182,10 +187,23 @@ class SettingsRenderer extends ConsumerWidget {
                   : TextOverflow.ellipsis,
             )
           : null,
-      trailing: Icon(
-        AppIcons.chevronRight,
-        size: AppSize.iconS,
-        color: colors.textMeta,
+      // 右侧：当前值（13 meta）+ chevron-right 16
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (value != null)
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 160),
+              child: Text(
+                value,
+                style: metaStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          if (value != null) const SizedBox(width: AppSpace.xs),
+          Icon(AppIcons.chevronRight, size: AppSize.iconS, color: colors.textMeta),
+        ],
       ),
       onTap: () => m.onTap(context, ref),
     );

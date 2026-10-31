@@ -8,13 +8,18 @@ import 'appearance_tiers.dart';
 /// （用户选的字体 + 中文回退）。行高用比例，跟着动态字体一起缩放。
 @immutable
 class AppTextStyles {
-  const AppTextStyles({this.bodyHeight = 1.75});
+  const AppTextStyles({this.bodyHeight = 1.75, this.bodyFontFamily});
 
   /// 正文行高（行高档：1.5 / 1.75 / 2.0）
   final double bodyHeight;
 
-  factory AppTextStyles.forTier(LineHeightTier tier) =>
-      AppTextStyles(bodyHeight: tier.height);
+  /// 正文字体（外观 › 字体 › 正文字体）；null = 跟随界面字体
+  final String? bodyFontFamily;
+
+  factory AppTextStyles.forTier(
+    LineHeightTier tier, {
+    String? bodyFontFamily,
+  }) => AppTextStyles(bodyHeight: tier.height, bodyFontFamily: bodyFontFamily);
 
   /// 22 Semibold：阅读页主题标题、64 大头像字母
   TextStyle get title => const TextStyle(
@@ -31,8 +36,12 @@ class AppTextStyles {
   );
 
   /// 17 Regular 正文、引用正文（行高随行高档）
-  TextStyle get body =>
-      TextStyle(fontSize: 17, fontWeight: FontWeight.w400, height: bodyHeight);
+  TextStyle get body => TextStyle(
+    fontSize: 17,
+    fontWeight: FontWeight.w400,
+    height: bodyHeight,
+    fontFamily: bodyFontFamily,
+  );
 
   /// 17 Regular 控件：输入框、按钮、半屏选项、菜单
   TextStyle get control => const TextStyle(
@@ -110,8 +119,10 @@ class AppTextStyles {
 
   @override
   bool operator ==(Object other) =>
-      other is AppTextStyles && other.bodyHeight == bodyHeight;
+      other is AppTextStyles &&
+      other.bodyHeight == bodyHeight &&
+      other.bodyFontFamily == bodyFontFamily;
 
   @override
-  int get hashCode => bodyHeight.hashCode;
+  int get hashCode => Object.hash(bodyHeight, bodyFontFamily);
 }

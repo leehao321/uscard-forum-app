@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/s.dart';
 import '../settings/definitions/reading_defs.dart';
+import '../settings/settings_model.dart';
 import '../widgets/settings/settings_group_page.dart';
 
 class ReadingSettingsPage extends StatelessWidget {
@@ -13,7 +14,7 @@ class ReadingSettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SettingsGroupPage(
       title: context.l10n.reading_title,
-      groupsBuilder: buildReadingGroups,
+      groupsBuilder: (c) => footerizeSubtitles(buildReadingGroups(c)),
       highlightId: highlightId,
     );
   }

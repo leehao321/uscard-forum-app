@@ -66,40 +66,36 @@ class _EngineCardState extends State<EngineCard> {
         final isCustom = _customExpanded || autoPreset == _EnginePreset.custom;
         final shownPreset = isCustom ? _EnginePreset.custom : autoPreset;
 
-        return Card(
-          clipBehavior: Clip.antiAlias,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 预设单选
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-                child: _buildPresetSelector(theme, shownPreset, rhttp, webview),
-              ),
-              _divider(theme),
-              // 当前生效引擎（压一行）
-              _buildCurrentEngineRow(theme, fallbackService),
-              // 自定义展开区
-              AnimatedCrossFade(
-                duration: const Duration(milliseconds: 200),
-                crossFadeState: isCustom
-                    ? CrossFadeState.showSecond
-                    : CrossFadeState.showFirst,
-                firstChild: const SizedBox(width: double.infinity),
-                secondChild: _buildCustomSection(
-                  theme,
-                  rhttp,
-                  rhttpSettings,
-                  webview,
-                  webviewEnabled,
-                  fallbackService,
+        // v2：引擎单选（标准 ✓ / 高性能 / 兼容 / 自定义 ›），页脚写当前生效引擎，
+        // 自定义展开后下面多一组开关
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildPresetSelector(theme, shownPreset, rhttp, webview),
+            _buildCurrentEngineRow(theme, fallbackService),
+            AnimatedCrossFade(
+              duration: const Duration(milliseconds: 200),
+              crossFadeState: isCustom
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              firstChild: const SizedBox(width: double.infinity),
+              secondChild: Padding(
+                padding: const EdgeInsets.only(top: AppSpace.m),
+                child: SegmentedCardGroup(
+                  children: [
+                    _buildCustomSection(
+                      theme,
+                      rhttp,
+                      rhttpSettings,
+                      webview,
+                      webviewEnabled,
+                      fallbackService,
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );
@@ -114,37 +110,52 @@ class _EngineCardState extends State<EngineCard> {
     WebViewAdapterSettingsService webview,
   ) {
     final l10n = context.l10n;
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     final items = <(_EnginePreset, String)>[
       (_EnginePreset.standard, l10n.enginePreset_standard),
       (_EnginePreset.performance, l10n.enginePreset_performance),
       (_EnginePreset.compat, l10n.enginePreset_compat),
       (_EnginePreset.custom, l10n.enginePreset_custom),
     ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return SegmentedCardGroup(
       children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final item in items)
-              ChoiceChip(
-                label: Text(item.$2),
-                selected: item.$1 == shown,
-                onSelected: (s) async {
-                  if (s) await _applyPreset(item.$1, rhttp, webview);
-                },
-              ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Text(
-          _presetDesc(shown),
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+        for (final item in items)
+          Semantics(
+            inMutuallyExclusiveGroup: true,
+            checked: item.$1 == shown,
+            child: ListTile(
+              title: Text(item.$2),
+              subtitle: item.$1 == shown
+                  ? Text(
+                      _presetDesc(shown),
+                      style: theme.textTheme.bodySmall!
+                          .merge(tokens.text.meta)
+                          .copyWith(color: colors.textMeta),
+                    )
+                  : null,
+              trailing: item.$1 == _EnginePreset.custom
+                  ? Icon(
+                      shown == _EnginePreset.custom
+                          ? AppIcons.check
+                          : AppIcons.chevronRight,
+                      size: shown == _EnginePreset.custom
+                          ? AppSize.iconM
+                          : AppSize.iconS,
+                      color: shown == _EnginePreset.custom
+                          ? colors.brandPrimary
+                          : colors.textMeta,
+                    )
+                  : (item.$1 == shown
+                        ? Icon(
+                            AppIcons.check,
+                            size: AppSize.iconM,
+                            color: colors.brandPrimary,
+                          )
+                        : null),
+              onTap: () => _applyPreset(item.$1, rhttp, webview),
+            ),
           ),
-        ),
       ],
     );
   }
@@ -232,56 +243,39 @@ class _EngineCardState extends State<EngineCard> {
     // WebView 在最外层分流：主站 API 走 WebView，其余走推算出的引擎。
     // 它不参与 resolveEffectiveAdapter()，所以开启时要单独显示分流，
     // 否则「兼容」预设会错误地只显示 native/Cronet。
-    final IconData icon;
-    final Color iconColor;
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final meta = theme.textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
     final InlineSpan span;
     if (webviewEnabled) {
-      icon = Symbols.call_split_rounded;
-      iconColor = theme.colorScheme.tertiary;
       span = TextSpan(
         text: context.l10n.engineStatus_webviewSplit(engineName),
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
+        style: meta,
       );
     } else {
-      icon = _engineIcon(effective.type);
-      iconColor = isFallback
-          ? theme.colorScheme.error
-          : theme.colorScheme.primary;
       span = TextSpan(
         children: [
           TextSpan(
             text: '${context.l10n.engineStatus_currentEngine}: ',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            style: meta,
           ),
           TextSpan(
             text: engineName,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: isFallback
-                  ? theme.colorScheme.error
-                  : theme.colorScheme.onSurface,
-              fontWeight: FontWeight.w600,
+            style: meta.copyWith(
+              color: isFallback ? colors.textDestructive : colors.textPrimary,
             ),
           ),
-          TextSpan(
-            text: '  ·  ${_reasonText(effective.reason)}',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
+          TextSpan(text: '  ·  ${_reasonText(effective.reason)}', style: meta),
         ],
       );
     }
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(16, 10, showReset ? 4 : 16, 10),
+      padding: const EdgeInsets.fromLTRB(AppSpace.m, AppSpace.s, AppSpace.m, 0),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: iconColor),
-          const SizedBox(width: 8),
           Expanded(
             child: Text.rich(
               span,
@@ -290,17 +284,15 @@ class _EngineCardState extends State<EngineCard> {
             ),
           ),
           if (showReset)
-            IconButton(
-              tooltip: context.l10n.networkAdapter_resetFallback,
-              icon: const Icon(Symbols.refresh_rounded, size: 20),
-              visualDensity: VisualDensity.compact,
+            AppIconButton(
+              icon: AppIcons.refresh,
+              semanticLabel: context.l10n.networkAdapter_resetFallback,
               onPressed: () => _resetFallbackState(fallbackService),
             ),
           if (sessionFallback)
-            IconButton(
-              tooltip: S.current.cf_sessionCompatDisable,
-              icon: const Icon(Symbols.close_rounded, size: 20),
-              visualDensity: VisualDensity.compact,
+            AppIconButton(
+              icon: AppIcons.close,
+              semanticLabel: S.current.cf_sessionCompatDisable,
               onPressed: webviewSettings.disableSessionFallback,
             ),
         ],
@@ -332,7 +324,7 @@ class _EngineCardState extends State<EngineCard> {
         SwitchListTile.adaptive(
           dense: true,
           secondary: Icon(
-            Symbols.rocket_launch_rounded,
+            AppIcons.rocket,
             fill: rhttpEnabled ? 1 : 0,
             color: rhttpEnabled ? theme.colorScheme.primary : null,
           ),
@@ -380,7 +372,7 @@ class _EngineCardState extends State<EngineCard> {
         SwitchListTile.adaptive(
           dense: true,
           secondary: Icon(
-            Symbols.language_rounded,
+            AppIcons.language,
             fill: webviewEnabled ? 1 : 0,
             color: webviewEnabled ? theme.colorScheme.primary : null,
           ),
@@ -410,7 +402,7 @@ class _EngineCardState extends State<EngineCard> {
     return [
       _divider(theme),
       SwitchListTile.adaptive(
-        secondary: const Icon(Symbols.swap_horiz_rounded),
+        secondary: const Icon(AppIcons.sync),
         title: Text(l10n.networkAdapter_forceFallback),
         subtitle: Text(l10n.networkAdapter_forceFallbackDesc),
         value: forceFallback,
@@ -421,24 +413,24 @@ class _EngineCardState extends State<EngineCard> {
       ),
       if (autoFellBack) ...[
         ListTile(
-          leading: Icon(Symbols.info_rounded, color: theme.colorScheme.error),
+          leading: Icon(AppIcons.info, color: theme.colorScheme.error),
           title: Text(l10n.networkAdapter_autoFallback),
           subtitle: Text(l10n.networkAdapter_autoFallbackDesc),
           dense: true,
         ),
         if (failureReason != null)
           ListTile(
-            leading: const Icon(Symbols.bug_report_rounded),
+            leading: const Icon(AppIcons.code),
             title: Text(l10n.networkAdapter_viewReason),
-            trailing: const Icon(Symbols.chevron_right_rounded, size: 20),
+            trailing: const Icon(AppIcons.chevronRight, size: 20),
             dense: true,
             onTap: () => _showFailureReasonDialog(failureReason),
           ),
         ListTile(
-          leading: const Icon(Symbols.refresh_rounded),
+          leading: const Icon(AppIcons.refresh),
           title: Text(l10n.networkAdapter_resetFallback),
           subtitle: Text(l10n.networkAdapter_resetFallbackDesc),
-          trailing: const Icon(Symbols.chevron_right_rounded, size: 20),
+          trailing: const Icon(AppIcons.chevronRight, size: 20),
           dense: true,
           onTap: () => _resetFallbackState(fallbackService),
         ),
@@ -446,12 +438,12 @@ class _EngineCardState extends State<EngineCard> {
       if (kDebugMode && !hasFallenBack)
         ListTile(
           leading: Icon(
-            Symbols.science_rounded,
+            AppIcons.autoAwesome,
             color: theme.colorScheme.tertiary,
           ),
           title: Text(l10n.networkAdapter_simulateError),
           subtitle: Text(l10n.networkAdapter_simulateErrorDesc),
-          trailing: const Icon(Symbols.chevron_right_rounded, size: 20),
+          trailing: const Icon(AppIcons.chevronRight, size: 20),
           dense: true,
           onTap: () => _simulateCronetError(fallbackService),
         ),
@@ -469,8 +461,8 @@ class _EngineCardState extends State<EngineCard> {
         children: [
           Icon(
             color != null
-                ? Symbols.warning_amber_rounded
-                : Symbols.info_rounded,
+                ? AppIcons.warning
+                : AppIcons.info,
             size: 13,
             color: c,
           ),
@@ -493,24 +485,6 @@ class _EngineCardState extends State<EngineCard> {
     height: 1,
     color: theme.colorScheme.outlineVariant.withValues(alpha: 0.2),
   );
-
-  IconData _engineIcon(AdapterType type) => switch (type) {
-    AdapterType.rhttp => Symbols.rocket_launch_rounded,
-    AdapterType.network => Symbols.hub_rounded,
-    AdapterType.webview => Symbols.language_rounded,
-    AdapterType.native => Symbols.bolt_rounded,
-  };
-
-  String _reasonText(AdapterReason reason) {
-    final l10n = context.l10n;
-    return switch (reason) {
-      AdapterReason.rhttp => l10n.engineStatus_reasonRhttp,
-      AdapterReason.gateway => l10n.engineStatus_reasonGateway,
-      AdapterReason.proxy => l10n.engineStatus_reasonProxy,
-      AdapterReason.fallback => l10n.engineStatus_reasonFallback,
-      AdapterReason.native => l10n.engineStatus_reasonNative,
-    };
-  }
 
   // ---- 降级对话框 ----
 
@@ -540,6 +514,17 @@ class _EngineCardState extends State<EngineCard> {
         ],
       ),
     );
+  }
+
+  String _reasonText(AdapterReason reason) {
+    final l10n = context.l10n;
+    return switch (reason) {
+      AdapterReason.rhttp => l10n.engineStatus_reasonRhttp,
+      AdapterReason.gateway => l10n.engineStatus_reasonGateway,
+      AdapterReason.proxy => l10n.engineStatus_reasonProxy,
+      AdapterReason.fallback => l10n.engineStatus_reasonFallback,
+      AdapterReason.native => l10n.engineStatus_reasonNative,
+    };
   }
 
   Future<void> _resetFallbackState(

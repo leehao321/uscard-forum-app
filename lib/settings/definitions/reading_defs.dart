@@ -8,6 +8,7 @@ import '../../config/sites/uscard.dart';
 import '../../l10n/s.dart';
 import '../../providers/preferences_provider.dart';
 import '../../services/preloaded_data_service.dart';
+import '../choice_sheet.dart';
 import '../settings_model.dart';
 
 /// 阅读设置数据声明
@@ -16,13 +17,13 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
   return [
     SettingsGroup(
       title: l10n.appearance_reading,
-      icon: Symbols.chrome_reader_mode_rounded,
+      icon: AppIcons.autoStories,
       items: [
         SwitchModel(
           id: 'displayPanguSpacing',
           title: l10n.appearance_panguSpacing,
           subtitle: l10n.appearance_panguSpacingDesc,
-          icon: Symbols.auto_fix_high_rounded,
+          icon: AppIcons.autoFixHigh,
           getValue: (ref) => ref.watch(preferencesProvider).displayPanguSpacing,
           onChanged: (ref, v) =>
               ref.read(preferencesProvider.notifier).setDisplayPanguSpacing(v),
@@ -31,7 +32,7 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
           id: 'showSuggestedTopics',
           title: l10n.reading_showSuggestedTopics,
           subtitle: l10n.reading_showSuggestedTopicsDesc,
-          icon: Symbols.forum_rounded,
+          icon: AppIcons.forum,
           getValue: (ref) => ref.watch(preferencesProvider).showSuggestedTopics,
           onChanged: (ref, v) =>
               ref.read(preferencesProvider.notifier).setShowSuggestedTopics(v),
@@ -40,13 +41,13 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
     ),
     SettingsGroup(
       title: l10n.preferences_basic,
-      icon: Symbols.touch_app_rounded,
+      icon: AppIcons.touchApp,
       items: [
         SwitchModel(
           id: 'longPressPreview',
           title: l10n.preferences_longPressPreview,
           subtitle: l10n.preferences_longPressPreviewDesc,
-          icon: Symbols.touch_app_rounded,
+          icon: AppIcons.touchApp,
           getValue: (ref) => ref.watch(preferencesProvider).longPressPreview,
           onChanged: (ref, v) =>
               ref.read(preferencesProvider.notifier).setLongPressPreview(v),
@@ -55,7 +56,7 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
           id: 'openExternalLinksInAppBrowser',
           title: l10n.preferences_openLinksInApp,
           subtitle: l10n.preferences_openLinksInAppDesc,
-          icon: Symbols.open_in_browser_rounded,
+          icon: AppIcons.openInNew,
           getValue: (ref) =>
               ref.watch(preferencesProvider).openExternalLinksInAppBrowser,
           onChanged: (ref, v) => ref
@@ -66,7 +67,7 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
           id: 'expandRelatedLinks',
           title: l10n.reading_expandRelatedLinks,
           subtitle: l10n.reading_expandRelatedLinksDesc,
-          icon: Symbols.link_rounded,
+          icon: AppIcons.link,
           getValue: (ref) => ref.watch(preferencesProvider).expandRelatedLinks,
           onChanged: (ref, v) =>
               ref.read(preferencesProvider.notifier).setExpandRelatedLinks(v),
@@ -77,7 +78,7 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
             id: 'showSignatures',
             title: l10n.reading_showSignatures,
             subtitle: l10n.reading_showSignaturesDesc,
-            icon: Symbols.draw_rounded,
+            icon: AppIcons.edit,
             getValue: (ref) => ref.watch(preferencesProvider).showSignatures,
             onChanged: (ref, v) =>
                 ref.read(preferencesProvider.notifier).setShowSignatures(v),
@@ -87,45 +88,37 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
             id: 'adaptiveSignatureFrameRate',
             title: l10n.reading_adaptiveSignatureFrameRate,
             subtitle: l10n.reading_adaptiveSignatureFrameRateDesc,
-            icon: Symbols.speed_rounded,
+            icon: AppIcons.speed,
             getValue: (ref) =>
                 ref.watch(preferencesProvider).adaptiveSignatureFrameRate,
             onChanged: (ref, v) => ref
                 .read(preferencesProvider.notifier)
                 .setAdaptiveSignatureFrameRate(v),
           ),
-        CustomModel(
+        ActionModel(
           id: 'bookmarksOpenMode',
           title: l10n.reading_bookmarksOpenMode,
-          builder: (context, ref) {
-            final currentMode = ref
-                .watch(preferencesProvider)
-                .bookmarksOpenMode;
-            final l = context.l10n;
-            return ListTile(
-              leading: Icon(
-                Symbols.tab_rounded,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              title: Text(l.reading_bookmarksOpenMode),
-              subtitle: Text(switch (currentMode) {
-                BookmarksOpenMode.defaultRoute =>
-                  l.reading_bookmarksOpenModeDefault,
-                BookmarksOpenMode.tabbedWorkspace =>
-                  l.reading_bookmarksOpenModeTabbedWorkspace,
-              }),
-              trailing: const Icon(Symbols.chevron_right_rounded),
-              onTap: () =>
-                  _showBookmarksOpenModePicker(context, ref, currentMode),
-            );
+          icon: AppIcons.menu,
+          valueBuilder: (ref) => switch (ref
+              .watch(preferencesProvider)
+              .bookmarksOpenMode) {
+            BookmarksOpenMode.defaultRoute =>
+              l10n.reading_bookmarksOpenModeDefault,
+            BookmarksOpenMode.tabbedWorkspace =>
+              l10n.reading_bookmarksOpenModeTabbedWorkspace,
           },
+          onTap: (context, ref) => _showBookmarksOpenModePicker(
+            context,
+            ref,
+            ref.read(preferencesProvider).bookmarksOpenMode,
+          ),
         ),
         PlatformConditionalModel(
           inner: SwitchModel(
             id: 'aiSwipeEntry',
             title: l10n.reading_aiSwipeEntry,
             subtitle: l10n.reading_aiSwipeEntryDesc,
-            icon: Symbols.swipe_left_rounded,
+            icon: AppIcons.back,
             getValue: (ref) => ref.watch(preferencesProvider).aiSwipeEntry,
             onChanged: (ref, v) =>
                 ref.read(preferencesProvider.notifier).setAiSwipeEntry(v),
@@ -138,40 +131,33 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
     if (uscardCustomization.supportsNestedView)
       SettingsGroup(
         title: l10n.nested_title,
-        icon: Symbols.account_tree_rounded,
+        icon: AppIcons.accountTree,
         items: [
           SwitchModel(
             id: 'defaultNestedView',
             title: l10n.nested_defaultView,
             subtitle: l10n.nested_defaultViewDesc,
-            icon: Symbols.account_tree_rounded,
+            icon: AppIcons.accountTree,
             getValue: (ref) => ref.watch(preferencesProvider).defaultNestedView,
             onChanged: (ref, v) =>
                 ref.read(preferencesProvider.notifier).setDefaultNestedView(v),
           ),
-          CustomModel(
+          ActionModel(
             id: 'nestedLineStyle',
             title: l10n.nested_lineStyle,
-            builder: (context, ref) {
-              final currentStyle = ref
-                  .watch(preferencesProvider)
-                  .nestedLineStyle;
-              final l = context.l10n;
-              return ListTile(
-                leading: Icon(
-                  Symbols.linear_scale_rounded,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                title: Text(l.nested_lineStyle),
-                subtitle: Text(switch (currentStyle) {
-                  NestedLineStyle.auto => l.nested_lineStyleAuto,
-                  NestedLineStyle.lLine => l.nested_lineStyleL,
-                  NestedLineStyle.straight => l.nested_lineStyleStraight,
-                }),
-                trailing: const Icon(Symbols.chevron_right_rounded),
-                onTap: () => _showLineStylePicker(context, ref, currentStyle),
-              );
+            icon: AppIcons.sort,
+            valueBuilder: (ref) => switch (ref
+                .watch(preferencesProvider)
+                .nestedLineStyle) {
+              NestedLineStyle.auto => l10n.nested_lineStyleAuto,
+              NestedLineStyle.lLine => l10n.nested_lineStyleL,
+              NestedLineStyle.straight => l10n.nested_lineStyleStraight,
             },
+            onTap: (context, ref) => _showLineStylePicker(
+              context,
+              ref,
+              ref.read(preferencesProvider).nestedLineStyle,
+            ),
           ),
         ],
       ),
@@ -184,43 +170,18 @@ void _showLineStylePicker(
   NestedLineStyle current,
 ) {
   final l10n = context.l10n;
-  final options = [
-    (NestedLineStyle.auto, l10n.nested_lineStyleAuto),
-    (NestedLineStyle.lLine, l10n.nested_lineStyleL),
-    (NestedLineStyle.straight, l10n.nested_lineStyleStraight),
-  ];
-
-  showDialog<NestedLineStyle>(
-    context: context,
-    builder: (context) => SimpleDialog(
-      title: Text(l10n.nested_lineStyle),
-      children: [
-        for (final (style, label) in options)
-          SimpleDialogOption(
-            onPressed: () => Navigator.pop(context, style),
-            child: Row(
-              children: [
-                Icon(
-                  style == current
-                      ? Symbols.radio_button_checked_rounded
-                      : Symbols.radio_button_unchecked_rounded,
-                  color: style == current
-                      ? Theme.of(context).colorScheme.primary
-                      : null,
-                  size: 20,
-                ),
-                const SizedBox(width: 12),
-                Text(label),
-              ],
-            ),
-          ),
-      ],
-    ),
-  ).then((selected) {
-    if (selected != null) {
-      ref.read(preferencesProvider.notifier).setNestedLineStyle(selected);
-    }
-  });
+  showSettingsChoiceSheet<NestedLineStyle>(
+    context,
+    title: l10n.nested_lineStyle,
+    options: [
+      (NestedLineStyle.auto, l10n.nested_lineStyleAuto),
+      (NestedLineStyle.lLine, l10n.nested_lineStyleL),
+      (NestedLineStyle.straight, l10n.nested_lineStyleStraight),
+    ],
+    current: current,
+    onSelected: (v) =>
+        ref.read(preferencesProvider.notifier).setNestedLineStyle(v),
+  );
 }
 
 void _showBookmarksOpenModePicker(
@@ -229,43 +190,18 @@ void _showBookmarksOpenModePicker(
   BookmarksOpenMode current,
 ) {
   final l10n = context.l10n;
-  final options = [
-    (BookmarksOpenMode.defaultRoute, l10n.reading_bookmarksOpenModeDefault),
-    (
-      BookmarksOpenMode.tabbedWorkspace,
-      l10n.reading_bookmarksOpenModeTabbedWorkspace,
-    ),
-  ];
-
-  showDialog<BookmarksOpenMode>(
-    context: context,
-    builder: (context) => SimpleDialog(
-      title: Text(l10n.reading_bookmarksOpenMode),
-      children: [
-        for (final (mode, label) in options)
-          SimpleDialogOption(
-            onPressed: () => Navigator.pop(context, mode),
-            child: Row(
-              children: [
-                Icon(
-                  mode == current
-                      ? Symbols.radio_button_checked_rounded
-                      : Symbols.radio_button_unchecked_rounded,
-                  color: mode == current
-                      ? Theme.of(context).colorScheme.primary
-                      : null,
-                  size: 20,
-                ),
-                const SizedBox(width: 12),
-                Text(label),
-              ],
-            ),
-          ),
-      ],
-    ),
-  ).then((selected) {
-    if (selected != null) {
-      ref.read(preferencesProvider.notifier).setBookmarksOpenMode(selected);
-    }
-  });
+  showSettingsChoiceSheet<BookmarksOpenMode>(
+    context,
+    title: l10n.reading_bookmarksOpenMode,
+    options: [
+      (BookmarksOpenMode.defaultRoute, l10n.reading_bookmarksOpenModeDefault),
+      (
+        BookmarksOpenMode.tabbedWorkspace,
+        l10n.reading_bookmarksOpenModeTabbedWorkspace,
+      ),
+    ],
+    current: current,
+    onSelected: (v) =>
+        ref.read(preferencesProvider.notifier).setBookmarksOpenMode(v),
+  );
 }

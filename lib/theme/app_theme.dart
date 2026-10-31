@@ -61,12 +61,14 @@ ThemeData buildAppTheme({
   List<String>? fontFamilyFallback,
   AccentPreset accent = AccentPreset.meika,
   AppearanceTiers tiers = const AppearanceTiers(),
+  String? bodyFontFamily,
   PageTransitionsTheme? pageTransitionsTheme,
 }) {
   final tokens = AppTokens.resolve(
     brightness: brightness,
     accent: accent,
     tiers: tiers,
+    bodyFontFamily: bodyFontFamily,
   );
   final c = tokens.colors;
   final t = tokens.text;

@@ -50,9 +50,15 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
         final settings = _service.current;
 
         return Scaffold(
-          appBar: AppBar(title: Text(context.l10n.dohDetail_title)),
+          backgroundColor: context.tokens.colors.surfacePage,
+          appBar: AppNavBar(title: context.l10n.dohDetail_title),
           body: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: EdgeInsets.fromLTRB(
+              AppSpace.pageMargin,
+              AppSpace.s,
+              AppSpace.pageMargin,
+              MediaQuery.paddingOf(context).bottom + AppSpace.x32,
+            ),
             children: [
               // IPv6 开关
               SegmentedCardGroup(
@@ -64,7 +70,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
                           ? context.l10n.dohDetail_gatewayEnabledDesc
                           : context.l10n.dohDetail_gatewayDisabledDesc,
                     ),
-                    secondary: const Icon(Symbols.swap_horiz_rounded),
+                    secondary: const Icon(AppIcons.sync),
                     value: settings.gatewayEnabled,
                     onChanged: (value) => _service.setGatewayEnabled(value),
                   ),
@@ -75,20 +81,20 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
                           ? context.l10n.dohDetail_h2MitmEnabledDesc
                           : context.l10n.dohDetail_h2MitmDisabledDesc,
                     ),
-                    secondary: const Icon(Symbols.bolt_rounded),
+                    secondary: const Icon(AppIcons.rocket),
                     value: settings.h2Mitm,
                     onChanged: (value) => _service.setH2Mitm(value),
                   ),
                   SwitchListTile.adaptive(
                     title: Text(context.l10n.dohDetail_ipv6Prefer),
                     subtitle: Text(context.l10n.dohDetail_ipv6PreferDesc),
-                    secondary: const Icon(Symbols.language_rounded),
+                    secondary: const Icon(AppIcons.language),
                     value: settings.preferIPv6,
                     onChanged: (value) => _service.setPreferIPv6(value),
                   ),
                   // Server IP
                   ListTile(
-                    leading: const Icon(Symbols.dns_rounded),
+                    leading: const Icon(AppIcons.serverOff),
                     title: Text(context.l10n.dohDetail_serverIp),
                     subtitle: Text(
                       settings.serverIp != null &&
@@ -103,7 +109,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
                         settings.serverIp != null &&
                             settings.serverIp!.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Symbols.clear_rounded, size: 20),
+                            icon: const Icon(AppIcons.close, size: 20),
                             tooltip: context.l10n.common_clear,
                             onPressed: () => _service.setServerIp(null),
                           )
@@ -177,7 +183,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Icon(Symbols.speed_rounded, size: 16),
+                      : const Icon(AppIcons.speed, size: 16),
                   label: Text(
                     _testingAll
                         ? context.l10n.dohDetail_testingSpeed
@@ -192,7 +198,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
                 ),
                 TextButton.icon(
                   onPressed: _showAddServerDialog,
-                  icon: const Icon(Symbols.add_rounded, size: 16),
+                  icon: const Icon(AppIcons.add, size: 16),
                   label: Text(context.l10n.common_add),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
@@ -236,13 +242,13 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
               margin: const EdgeInsets.only(left: 8),
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: theme.colorScheme.tertiaryContainer,
+                color: context.tokens.colors.avatarFill,
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
                 S.current.common_custom,
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onTertiaryContainer,
+                  color: context.tokens.colors.brandPrimary,
                 ),
               ),
             ),
@@ -287,7 +293,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
             SizedBox(
               width: 48,
               child: IconButton(
-                icon: const Icon(Symbols.speed_rounded, size: 20),
+                icon: const Icon(AppIcons.speed, size: 20),
                 tooltip: S.current.dohDetail_testSpeed,
                 onPressed: () => _testServer(server),
                 visualDensity: VisualDensity.compact,
@@ -295,7 +301,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
             ),
           SwipeDismissiblePopupMenuButton<String>(
             icon: Icon(
-              Symbols.more_vert_rounded,
+              AppIcons.moreVert,
               size: 20,
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -316,7 +322,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
               PopupMenuItem(
                 value: 'copy',
                 child: ListTile(
-                  leading: const Icon(Symbols.content_copy_rounded, size: 20),
+                  leading: const Icon(AppIcons.copy, size: 20),
                   title: Text(S.current.dohDetail_copyAddress),
                   dense: true,
                   contentPadding: EdgeInsets.zero,
@@ -326,7 +332,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
                 PopupMenuItem(
                   value: 'edit',
                   child: ListTile(
-                    leading: const Icon(Symbols.edit_rounded, size: 20),
+                    leading: const Icon(AppIcons.edit, size: 20),
                     title: Text(S.current.common_edit),
                     dense: true,
                     contentPadding: EdgeInsets.zero,
@@ -336,7 +342,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
                   value: 'delete',
                   child: ListTile(
                     leading: Icon(
-                      Symbols.delete_rounded,
+                      AppIcons.delete,
                       size: 20,
                       color: theme.colorScheme.error,
                     ),
@@ -358,11 +364,8 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
     );
   }
 
-  Color _getLatencyColor(int latency) {
-    if (latency < 100) return Colors.green;
-    if (latency < 300) return Colors.orange;
-    return Colors.red;
-  }
+  /// 延迟不再按快慢着色（超时也写「超时」不变色），统一 meta 色
+  Color _getLatencyColor(int latency) => context.tokens.colors.textMeta;
 
   Future<void> _testServer(DohServer server) async {
     if (_testingServers.contains(server.url)) return;
@@ -419,7 +422,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
     }
 
     return ListTile(
-      leading: const Icon(Symbols.security_rounded),
+      leading: const Icon(AppIcons.security),
       title: Text(S.current.dohDetail_echServer),
       subtitle: Text(
         echLabel,
@@ -427,7 +430,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
           color: theme.colorScheme.onSurfaceVariant,
         ),
       ),
-      trailing: const Icon(Symbols.chevron_right_rounded),
+      trailing: const Icon(AppIcons.chevronRight),
       onTap: () => _showEchServerDialog(servers, currentEch),
     );
   }
@@ -437,10 +440,10 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
     return SegmentedCardGroup(
       children: [
         ListTile(
-          leading: const Icon(Symbols.storage_rounded),
+          leading: const Icon(AppIcons.folder),
           title: Text(S.current.dohDetail_localDnsCache),
           trailing: IconButton(
-            icon: const Icon(Symbols.list_alt_rounded),
+            icon: const Icon(AppIcons.article),
             tooltip: S.current.dohDetail_viewDnsRecords,
             onPressed: _showDnsCacheRecords,
           ),
@@ -464,7 +467,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Icon(Symbols.delete_rounded),
+                      : const Icon(AppIcons.delete),
                   label: Text(
                     _dnsCacheBusy
                         ? S.current.dohDetail_processing
@@ -483,7 +486,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Icon(Symbols.refresh_rounded),
+                      : const Icon(AppIcons.refresh),
                   label: Text(
                     _dnsCacheBusy
                         ? S.current.dohDetail_processing
@@ -1049,7 +1052,7 @@ class _DnsRecordsSheetState extends State<_DnsRecordsSheet> {
           TextField(
             controller: _searchController,
             decoration: InputDecoration(
-              prefixIcon: const Icon(Symbols.search_rounded, size: 20),
+              prefixIcon: const Icon(AppIcons.search, size: 20),
               hintText: l10n.dohDetail_searchHosts,
               isDense: true,
               border: OutlineInputBorder(
@@ -1075,7 +1078,7 @@ class _DnsRecordsSheetState extends State<_DnsRecordsSheet> {
               suffixIcon: _query.isEmpty
                   ? null
                   : IconButton(
-                      icon: const Icon(Symbols.close_rounded, size: 18),
+                      icon: const Icon(AppIcons.close, size: 18),
                       onPressed: () => _searchController.clear(),
                     ),
             ),
@@ -1180,7 +1183,7 @@ class _DnsRecordGroupCardState extends State<_DnsRecordGroupCard> {
                         child: Padding(
                           padding: const EdgeInsets.all(6),
                           child: Icon(
-                            Symbols.content_copy_rounded,
+                            AppIcons.copy,
                             size: 16,
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -1191,7 +1194,7 @@ class _DnsRecordGroupCardState extends State<_DnsRecordGroupCard> {
                           turns: _expanded ? 0.5 : 0,
                           duration: const Duration(milliseconds: 180),
                           child: Icon(
-                            Symbols.expand_more_rounded,
+                            AppIcons.expandMore,
                             size: 20,
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -1206,29 +1209,29 @@ class _DnsRecordGroupCardState extends State<_DnsRecordGroupCard> {
                     children: [
                       if (group.ips.isNotEmpty)
                         _StatusChip(
-                          icon: Symbols.public_rounded,
+                          icon: AppIcons.language,
                           label: '${group.ips.length} IP',
                         ),
                       if (group.maxTtl > Duration.zero)
                         _StatusChip(
-                          icon: Symbols.timer_rounded,
+                          icon: AppIcons.history,
                           label: 'TTL ${_formatDnsRecordTtl(group.maxTtl)}',
                         ),
                       if (group.hasEch)
                         _StatusChip(
-                          icon: Symbols.shield_rounded,
+                          icon: AppIcons.shield,
                           label: l10n.dohDetail_echAvailable,
                           tone: _ChipTone.success,
                         )
                       else if (group.hasEchNegative)
                         _StatusChip(
-                          icon: Symbols.shield_rounded,
+                          icon: AppIcons.shield,
                           label: l10n.dohDetail_echUnavailable,
                           tone: _ChipTone.muted,
                         ),
                       if (group.stickyIp != null)
                         _StatusChip(
-                          icon: Symbols.push_pin_rounded,
+                          icon: AppIcons.pushPin,
                           label: '${l10n.dohDetail_stickyIp} ${group.stickyIp}',
                         ),
                     ],
@@ -1246,7 +1249,7 @@ class _DnsRecordGroupCardState extends State<_DnsRecordGroupCard> {
                 children: [
                   if (group.ips.isNotEmpty)
                     _RecordSection(
-                      icon: Symbols.public_rounded,
+                      icon: AppIcons.language,
                       label: l10n.dohDetail_ipAddresses,
                       values: group.ips,
                       copyText: group.ips.join('\n'),
@@ -1254,7 +1257,7 @@ class _DnsRecordGroupCardState extends State<_DnsRecordGroupCard> {
                   if (group.echConfig != null) ...[
                     if (group.ips.isNotEmpty) const SizedBox(height: 10),
                     _RecordSection(
-                      icon: Symbols.security_rounded,
+                      icon: AppIcons.security,
                       label: l10n.dohDetail_echConfig,
                       values: [group.echConfig!],
                       copyText: group.echConfig!,
@@ -1294,8 +1297,8 @@ class _StatusChip extends StatelessWidget {
     final theme = Theme.of(context);
     final (bg, fg) = switch (tone) {
       _ChipTone.success => (
-        theme.colorScheme.tertiaryContainer.withValues(alpha: 0.7),
-        theme.colorScheme.onTertiaryContainer,
+        AppTokens.of(context).colors.avatarFill,
+        AppTokens.of(context).colors.brandPrimary,
       ),
       _ChipTone.muted => (
         theme.colorScheme.surfaceContainerHighest,
@@ -1376,7 +1379,7 @@ class _RecordSection extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(4),
                 child: Icon(
-                  Symbols.content_copy_rounded,
+                  AppIcons.copy,
                   size: 14,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),

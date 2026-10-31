@@ -16,6 +16,7 @@ import '../services/data_management/cache_size_service.dart';
 import '../services/data_management/data_backup_service.dart';
 import '../services/toast_service.dart';
 import '../settings/definitions/data_management_defs.dart';
+import '../settings/settings_model.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 import 'package:path/path.dart' as p;
 import '../widgets/settings/settings_group_page.dart';
@@ -30,7 +31,7 @@ class DataManagementPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SettingsGroupPage(
       title: context.l10n.dataManagement_title,
-      groupsBuilder: buildDataManagementGroups,
+      groupsBuilder: (c) => footerizeSubtitles(buildDataManagementGroups(c)),
       highlightId: highlightId,
     );
   }
@@ -48,7 +49,11 @@ class DataManagementPage extends StatelessWidget {
 ///   保持独立行 + 各自确认 —— 对齐 Telegram 把 Local Database 与
 ///   可再下载缓存分离的原则。
 class CacheManagementSection extends ConsumerStatefulWidget {
-  const CacheManagementSection({super.key});
+  const CacheManagementSection({super.key, this.localOnly = false});
+
+  /// true = 只显示「清除本地数据」破坏性分组（AI 聊天记录、Cookie），
+  /// false = 只显示图片缓存勾选与「清理所选」
+  final bool localOnly;
 
   @override
   ConsumerState<CacheManagementSection> createState() =>
@@ -116,23 +121,6 @@ class _CacheManagementSectionState
           S.current.dataManagement_categoryExternal,
         ImageCacheCategory.other => S.current.dataManagement_categoryOther,
       };
-
-  /// 分类色:固定统计色板（0.4.0 起不再向主题色调和；本页在 M8 按 v2 重做）。
-  ///
-  /// 不能从 colorScheme 派生(primary/secondary/tertiary 在单色主题下
-  /// 几乎同色,六类无法区分);固定色板保证区分度 —— Telegram 统计色板
-  /// 同款思路。
-  Color _categoryColor(ImageCacheCategory c) {
-    const palette = {
-      ImageCacheCategory.content: Color(0xFF4C8DF6), // 蓝
-      ImageCacheCategory.sticker: Color(0xFFF2A03F), // 橙
-      ImageCacheCategory.emoji: Color(0xFF41BA6D), // 绿
-      ImageCacheCategory.avatar: Color(0xFF45B7D2), // 青
-      ImageCacheCategory.external: Color(0xFF9B7BF0), // 紫
-      ImageCacheCategory.other: Color(0xFF95A1AC), // 灰
-    };
-    return palette[c]!;
-  }
 
   Future<void> _clearSelected() async {
     final size = _selectedSize;
@@ -243,6 +231,7 @@ class _CacheManagementSectionState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    if (widget.localOnly) return _buildLocalGroup(theme);
     final breakdown = _breakdown;
 
     // 按大小降序(Telegram 同款);计算中保持枚举顺序。
@@ -256,47 +245,6 @@ class _CacheManagementSectionState
       children: [
         SegmentedCardGroup(
           children: [
-            // 顶部总览:总量 + 分段彩条
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          context.l10n.dataManagement_imageCache,
-                          style: theme.textTheme.titleSmall,
-                        ),
-                      ),
-                      Text(
-                        _formatCacheSize(_imageTotal),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _SegmentedBar(
-                    segments: breakdown == null
-                        ? null
-                        : [
-                            for (final c in categories)
-                              if (_selected.contains(c) &&
-                                  (breakdown[c] ?? 0) > 0)
-                                (
-                                  color: _categoryColor(c),
-                                  size: breakdown[c]!,
-                                ),
-                          ],
-                  ),
-                ],
-              ),
-            ),
             // 六类勾选行
             for (final c in categories)
               _buildCategoryTile(theme, c, breakdown?[c]),
@@ -305,8 +253,8 @@ class _CacheManagementSectionState
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
               child: SizedBox(
                 width: double.infinity,
-                height: 44,
                 child: FilledButton(
+                  style: AppButtonStyles.secondary(context),
                   onPressed: _isClearing ||
                           breakdown == null ||
                           _selectedSize <= 0
@@ -324,25 +272,27 @@ class _CacheManagementSectionState
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        // 本地数据(非"可再下载"):独立区块,不进多选
-        SegmentedCardGroup(
-          children: [
-            _buildLocalDataTile(
-              theme: theme,
-              icon: Symbols.smart_toy_rounded,
-              title: context.l10n.dataManagement_aiChatData,
-              size: _aiChatDataSize,
-              onClear: _isClearing ? null : _clearAiChatData,
-            ),
-            _buildLocalDataTile(
-              theme: theme,
-              icon: Symbols.cookie_rounded,
-              title: context.l10n.dataManagement_cookieCache,
-              size: _cookieCacheSize,
-              onClear: _isClearing ? null : _clearCookieCache,
-            ),
-          ],
+      ],
+    );
+  }
+
+  /// 破坏性单独一组：清除 AI 聊天记录、清除 Cookie 并退出登录，均需确认
+  Widget _buildLocalGroup(ThemeData theme) {
+    return SegmentedCardGroup(
+      children: [
+        _buildLocalDataTile(
+          theme: theme,
+          icon: AppIcons.autoAwesome,
+          title: context.l10n.dataManagement_clearAiChat,
+          size: _aiChatDataSize,
+          onClear: _isClearing ? null : _clearAiChatData,
+        ),
+        _buildLocalDataTile(
+          theme: theme,
+          icon: AppIcons.lock,
+          title: context.l10n.dataManagement_clearCookieLogout,
+          size: _cookieCacheSize,
+          onClear: _isClearing ? null : _clearCookieCache,
         ),
       ],
     );
@@ -353,7 +303,8 @@ class _CacheManagementSectionState
     ImageCacheCategory c,
     int? size,
   ) {
-    final color = _categoryColor(c);
+    final tokens = context.tokens;
+    final color = tokens.colors.brandPrimary;
     final empty = size != null && size <= 0;
     final checked = _selected.contains(c) && !empty;
     final total = _imageTotal;
@@ -371,8 +322,8 @@ class _CacheManagementSectionState
         shape: const CircleBorder(),
         activeColor: color,
         side: BorderSide(
-          color: empty ? theme.colorScheme.outlineVariant : color,
-          width: 2,
+          color: empty ? tokens.colors.separator : tokens.colors.quoteRule,
+          width: 1.5,
         ),
         onChanged: empty || _isClearing
             ? null
@@ -391,10 +342,9 @@ class _CacheManagementSectionState
             if (percent != null)
               TextSpan(
                 text: '  $percent',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+                style: theme.textTheme.bodySmall!
+                    .merge(tokens.text.meta)
+                    .copyWith(color: tokens.colors.textMeta),
               ),
           ],
         ),
@@ -403,11 +353,9 @@ class _CacheManagementSectionState
           ? _ShimmerBox(width: 48, height: 14, theme: theme)
           : Text(
               _formatCacheSize(size),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: empty
-                    ? theme.colorScheme.outline
-                    : theme.colorScheme.onSurfaceVariant,
-              ),
+              style: theme.textTheme.bodySmall!
+                  .merge(tokens.text.meta)
+                  .copyWith(color: tokens.colors.textMeta),
             ),
       onTap: empty || _isClearing
           ? null
@@ -428,111 +376,24 @@ class _CacheManagementSectionState
     required int size,
     required VoidCallback? onClear,
   }) {
+    final tokens = context.tokens;
     return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      subtitle: Text(_formatCacheSize(size)),
-      trailing: TextButton(
-        onPressed: size <= 0 ? null : onClear,
-        child: Text(S.current.common_clear),
+      title: Text(
+        title,
+        style: TextStyle(color: tokens.colors.textDestructive),
       ),
+      trailing: Text(
+        _formatCacheSize(size),
+        style: theme.textTheme.bodySmall!
+            .merge(tokens.text.meta)
+            .copyWith(color: tokens.colors.textMeta),
+      ),
+      enabled: size > 0 && onClear != null,
+      onTap: size <= 0 ? null : onClear,
     );
   }
 }
 
-/// 分段彩条:分类按占比着色的水平条(环形图的轻量等价物)。
-/// segments 为 null = 计算中,画灰条。
-class _SegmentedBar extends StatelessWidget {
-  const _SegmentedBar({required this.segments});
-
-  final List<({Color color, int size})>? segments;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return SizedBox(
-      height: 12,
-      child: segments == null
-          ? _ShimmerBox(width: double.infinity, height: 12, theme: theme)
-          : CustomPaint(
-              painter: _SegmentedBarPainter(
-                segments: segments!,
-                emptyColor: theme.colorScheme.surfaceContainerHighest,
-              ),
-              size: const Size(double.infinity, 12),
-            ),
-    );
-  }
-}
-
-class _SegmentedBarPainter extends CustomPainter {
-  _SegmentedBarPainter({required this.segments, required this.emptyColor});
-
-  final List<({Color color, int size})> segments;
-  final Color emptyColor;
-
-  static const double _gap = 3;
-
-  /// 单段保底宽度:极小分类(几 MB vs 几百 MB)也要有可见的一段,
-  /// 否则彩条退化成单色条,分类色与列表的对应关系断掉。
-  static const double _minSegWidth = 10;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint();
-    final radius = Radius.circular(size.height / 2);
-    final total = segments.fold<int>(0, (a, s) => a + s.size);
-    if (total <= 0 || segments.isEmpty) {
-      paint.color = emptyColor;
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(Offset.zero & size, radius),
-        paint,
-      );
-      return;
-    }
-    final gapTotal = _gap * (segments.length - 1);
-    final usable = (size.width - gapTotal).clamp(0.0, double.infinity);
-
-    // 先按占比分宽,再把不足保底的段抬到保底,超出部分从最大段扣回。
-    final widths = [
-      for (final s in segments) usable * s.size / total,
-    ];
-    var deficit = 0.0;
-    for (var i = 0; i < widths.length; i++) {
-      if (widths[i] < _minSegWidth) {
-        deficit += _minSegWidth - widths[i];
-        widths[i] = _minSegWidth;
-      }
-    }
-    if (deficit > 0) {
-      var maxIdx = 0;
-      for (var i = 1; i < widths.length; i++) {
-        if (widths[i] > widths[maxIdx]) maxIdx = i;
-      }
-      widths[maxIdx] =
-          (widths[maxIdx] - deficit).clamp(_minSegWidth, double.infinity);
-    }
-
-    var x = 0.0;
-    for (var i = 0; i < segments.length; i++) {
-      paint.color = segments[i].color;
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(x, 0, widths[i], size.height),
-          radius,
-        ),
-        paint,
-      );
-      x += widths[i] + _gap;
-    }
-  }
-
-  @override
-  bool shouldRepaint(_SegmentedBarPainter old) =>
-      old.segments != segments || old.emptyColor != emptyColor;
-}
-
-/// 计算中的静态灰底占位(不做动画,页面停留短)。
 class _ShimmerBox extends StatelessWidget {
   const _ShimmerBox({
     required this.width,
@@ -550,7 +411,7 @@ class _ShimmerBox extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
+        color: AppTokens.of(context).colors.avatarFill,
         borderRadius: BorderRadius.circular(4),
       ),
     );
@@ -666,28 +527,25 @@ class DataBackupSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     return SegmentedCardGroup(
       children: [
         ListTile(
-          leading: const Icon(Symbols.save_alt_rounded),
+          leading: Icon(AppIcons.upload, color: context.tokens.colors.brandPrimary),
           title: Text(context.l10n.dataManagement_exportData),
-          subtitle: Text(context.l10n.dataManagement_exportDesc),
           trailing: Icon(
-            Symbols.chevron_right_rounded,
-            color: theme.colorScheme.outline.withValues(alpha: 0.4),
-            size: 20,
+            AppIcons.chevronRight,
+            color: context.tokens.colors.textMeta,
+            size: AppSize.iconS,
           ),
           onTap: () => _exportData(context, ref),
         ),
         ListTile(
-          leading: const Icon(Symbols.folder_open_rounded),
+          leading: Icon(AppIcons.download, color: context.tokens.colors.brandPrimary),
           title: Text(context.l10n.dataManagement_importData),
-          subtitle: Text(context.l10n.dataManagement_importDesc),
           trailing: Icon(
-            Symbols.chevron_right_rounded,
-            color: theme.colorScheme.outline.withValues(alpha: 0.4),
-            size: 20,
+            AppIcons.chevronRight,
+            color: context.tokens.colors.textMeta,
+            size: AppSize.iconS,
           ),
           onTap: () => _importData(context, ref),
         ),

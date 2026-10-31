@@ -27,17 +27,26 @@ class ThemeState {
 
   final AppFontFamily fontFamily;
 
+  /// 导入字体做界面字体时的 family 名（0.4.0 外观 › 字体）；null = 用 [fontFamily]
+  final String? importedUiFamily;
+
+  /// 正文字体：null = 跟随界面字体；否则是 family 名（MiSans 或导入字体）
+  final String? bodyFontFamily;
+
   /// 强调色预设：只替换 brand/primary 与 brand/button
   final AccentPreset accent;
 
   const ThemeState({
     required this.mode,
     this.fontFamily = AppFontFamily.system,
+    this.importedUiFamily,
+    this.bodyFontFamily,
     this.accent = AccentPreset.meika,
   });
 
   /// 获取实际用于 ThemeData 的 fontFamily 字符串
   String? get fontFamilyName {
+    if (importedUiFamily != null) return importedUiFamily;
     switch (fontFamily) {
       case AppFontFamily.miSans:
         return 'MiSans';
@@ -46,6 +55,11 @@ class ThemeState {
     }
   }
 
+  /// 正文实际用的字体（供 token 使用）
+  String? get bodyFontFamilyName => bodyFontFamily;
+
+  /// 保留 [importedUiFamily] / [bodyFontFamily]；要改它们用 [withImportedUi] /
+  /// [withBodyFont]（可以置空）。
   ThemeState copyWith({
     ThemeMode? mode,
     AppFontFamily? fontFamily,
@@ -54,19 +68,40 @@ class ThemeState {
     return ThemeState(
       mode: mode ?? this.mode,
       fontFamily: fontFamily ?? this.fontFamily,
+      importedUiFamily: importedUiFamily,
+      bodyFontFamily: bodyFontFamily,
       accent: accent ?? this.accent,
     );
   }
+
+  ThemeState withImportedUi(String? family) => ThemeState(
+    mode: mode,
+    fontFamily: fontFamily,
+    importedUiFamily: family,
+    bodyFontFamily: bodyFontFamily,
+    accent: accent,
+  );
+
+  ThemeState withBodyFont(String? family) => ThemeState(
+    mode: mode,
+    fontFamily: fontFamily,
+    importedUiFamily: importedUiFamily,
+    bodyFontFamily: family,
+    accent: accent,
+  );
 
   @override
   bool operator ==(Object other) =>
       other is ThemeState &&
       other.mode == mode &&
       other.fontFamily == fontFamily &&
+      other.importedUiFamily == importedUiFamily &&
+      other.bodyFontFamily == bodyFontFamily &&
       other.accent == accent;
 
   @override
-  int get hashCode => Object.hash(mode, fontFamily, accent);
+  int get hashCode =>
+      Object.hash(mode, fontFamily, importedUiFamily, bodyFontFamily, accent);
 }
 
 /// App Theme Notifier
@@ -74,6 +109,8 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
   static const String _themeModeKey = 'theme_mode';
   static const String _fontFamilyKey = 'font_family';
   static const String _accentPresetKey = 'accent_preset';
+  static const String _importedUiFamilyKey = 'font_ui_imported_family';
+  static const String _bodyFontFamilyKey = 'font_body_family';
 
   final SharedPreferences _prefs;
 
@@ -95,6 +132,8 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
     return ThemeState(
       mode: mode,
       fontFamily: fontFamily,
+      importedUiFamily: prefs.getString(_importedUiFamilyKey),
+      bodyFontFamily: prefs.getString(_bodyFontFamilyKey),
       accent: AccentPreset.fromName(prefs.getString(_accentPresetKey)),
     );
   }
@@ -115,8 +154,29 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
     await _prefs.setString(_accentPresetKey, accent.name);
   }
 
+  /// 界面字体选导入的字体（null = 回到 [setFontFamily] 选的内置字体）
+  Future<void> setImportedUiFamily(String? family) async {
+    state = state.withImportedUi(family);
+    if (family == null) {
+      await _prefs.remove(_importedUiFamilyKey);
+    } else {
+      await _prefs.setString(_importedUiFamilyKey, family);
+    }
+  }
+
+  /// 正文字体（null = 跟随界面字体）
+  Future<void> setBodyFontFamily(String? family) async {
+    state = state.withBodyFont(family);
+    if (family == null) {
+      await _prefs.remove(_bodyFontFamilyKey);
+    } else {
+      await _prefs.setString(_bodyFontFamilyKey, family);
+    }
+  }
+
   Future<void> setFontFamily(AppFontFamily fontFamily) async {
-    state = state.copyWith(fontFamily: fontFamily);
+    state = state.copyWith(fontFamily: fontFamily).withImportedUi(null);
+    await _prefs.remove(_importedUiFamilyKey);
     switch (fontFamily) {
       case AppFontFamily.miSans:
         await _prefs.setString(_fontFamilyKey, 'miSans');

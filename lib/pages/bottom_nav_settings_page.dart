@@ -1,8 +1,3 @@
-import 'package:flutter/gestures.dart'
-    show
-        DelayedMultiDragGestureRecognizer,
-        ImmediateMultiDragGestureRecognizer,
-        PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
@@ -21,7 +16,6 @@ import '../settings/definitions/bottom_nav_defs.dart';
 import '../settings/settings_model.dart';
 import '../settings/settings_renderer.dart';
 import '../utils/dialog_utils.dart';
-import '../utils/responsive.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 
 /// 底栏设置页
@@ -55,18 +49,8 @@ class _BottomNavSettingsPageState
   final Map<String, GlobalKey> _itemKeys = {};
   String? _highlightedId;
 
-  /// 手机横向底栏容易被挤,上限保守;平板竖排 rail 空间宽裕给到 7;
-  /// 桌面宽屏干脆不设人为上限,放开到当前全部已注册入口数。
-  int get _maxCount {
-    switch (Responsive.getDeviceType(context)) {
-      case DeviceType.mobile:
-        return 5;
-      case DeviceType.tablet:
-        return 7;
-      case DeviceType.desktop:
-        return NavEntryRegistry.buildAll().length;
-    }
-  }
+  /// 底栏最多 4 项（首页在首、我的在尾固定），见 kMaxBottomNavItems
+  int get _maxCount => kMaxBottomNavItems;
 
   late List<String> _enabledIds;
 
@@ -139,9 +123,18 @@ class _BottomNavSettingsPageState
   }
 
   void _onReorder(int oldIndex, int newIndex) {
-    // 首页锁 0 位
-    if (_enabledIds[oldIndex] == NavEntryIds.home) return;
-    if (newIndex == 0) newIndex = 1;
+    // 首页锁在第一位，locked 的入口（我的）锁在最后一位
+    final locked = NavEntryRegistry.lockedIds();
+    if (_enabledIds[oldIndex] == NavEntryIds.home ||
+        locked.contains(_enabledIds[oldIndex])) {
+      return;
+    }
+    if (newIndex < 1) newIndex = 1;
+    final lastFree = _enabledIds.length -
+        1 -
+        _enabledIds.where((id) => locked.contains(id)).length;
+    if (newIndex > lastFree) newIndex = lastFree;
+    if (newIndex == oldIndex) return;
     setState(() {
       final item = _enabledIds.removeAt(oldIndex);
       _enabledIds.insert(newIndex, item);
@@ -200,7 +193,8 @@ class _BottomNavSettingsPageState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     final user = ref.watch(currentUserProvider).value;
 
     final all = NavEntryRegistry.buildAll();
@@ -210,354 +204,237 @@ class _BottomNavSettingsPageState
     final available =
         all.where((e) => !_enabledIds.contains(e.id)).toList();
 
+    final meta = Theme.of(context).textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
+
+    Widget header(String text) => Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpace.m,
+        AppSpace.s,
+        AppSpace.m,
+        AppSpace.s,
+      ),
+      child: Semantics(header: true, child: Text(text, style: meta)),
+    );
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.bottomNav_title),
-        actions: [
+      backgroundColor: colors.surfacePage,
+      appBar: AppNavBar(
+        title: l10n.bottomNav_title,
+        slotWidth: 100,
+        trailing: [
           TextButton(
+            style: TextButton.styleFrom(
+              minimumSize: const Size(AppSize.hit, AppSize.hit),
+              padding: EdgeInsets.zero,
+              textStyle: Theme.of(context).textTheme.bodySmall!
+                  .merge(tokens.text.meta),
+            ),
             onPressed: _restoreDefault,
             child: Text(l10n.bottomNav_editorRestoreDefault),
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        // 搜索定位目标(手势分组)在页尾,懒加载不挂载会导致 ensureVisible
-        // 拿不到 context;带 highlightId 时强制全量布局(与 SettingsGroupPage 同策)
-        scrollCacheExtent: widget.highlightId != null
-            ? const ScrollCacheExtent.pixels(double.maxFinite)
-            : null,
-        children: [
-          _SectionHeader(
-            title: l10n.bottomNav_editorTitle,
-            subtitle: l10n.bottomNav_editorPreviewHint,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: _PreviewBar(
-              entries: enabled,
-              minCount: _minCount,
-              onReorder: _onReorder,
-              onRemove: _removeEntry,
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: kReadableMaxWidth),
+          child: ListView(
+            padding: EdgeInsets.fromLTRB(
+              AppSpace.pageMargin,
+              AppSpace.s,
+              AppSpace.pageMargin,
+              MediaQuery.paddingOf(context).bottom + AppSpace.x32,
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-            child: Text(
-              l10n.bottomNav_editorEnabledHint(
-                enabled.length,
-                _minCount,
-                _maxCount,
-              ),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          _SectionHeader(
-            title: l10n.bottomNav_editorAvailable,
-            subtitle:
-                available.isEmpty ? l10n.bottomNav_editorEmptyAvailable : null,
-          ),
-          if (available.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 12,
-              ),
-              child: Text(
-                l10n.bottomNav_editorEmptyAvailable,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            )
-          else
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SegmentedCardGroup(
+            // 搜索定位目标(手势分组)在页尾,懒加载不挂载会导致 ensureVisible
+            // 拿不到 context;带 highlightId 时强制全量布局(与 SettingsGroupPage 同策)
+            scrollCacheExtent: widget.highlightId != null
+                ? const ScrollCacheExtent.pixels(double.maxFinite)
+                : null,
+            children: [
+              // 顶部浮动胶囊实时预览（卡片内）
+              _PreviewCard(entries: enabled),
+              const SizedBox(height: AppSpace.xl),
+              header(l10n.bottomNav_shownHeader),
+              SegmentedCardGroup(
                 children: [
-                  for (final entry in available)
-                    _AvailableTile(
-                      entry: entry,
-                      canAdd: NavEntryRegistry.isAvailable(
-                            entry,
-                            user,
-                          ) &&
-                          enabled.length < _maxCount,
-                      needsLogin: entry.requiresLogin && user == null,
-                      onAdd: () => _addEntry(entry),
-                    ),
+                  ReorderableListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    buildDefaultDragHandles: false,
+                    onReorderItem: _onReorder,
+                    onReorderStart: (_) => HapticFeedback.mediumImpact(),
+                    onReorderEnd: (_) => HapticFeedback.selectionClick(),
+                    itemCount: enabled.length,
+                    itemBuilder: (ctx, i) {
+                      final e = enabled[i];
+                      final pinned = e.locked || e.id == NavEntryIds.home;
+                      return _EnabledTile(
+                        key: ValueKey('enabled-${e.id}'),
+                        entry: e,
+                        index: i,
+                        pinned: pinned,
+                        canRemove: !pinned && enabled.length > _minCount,
+                        onRemove: () => _removeEntry(e),
+                      );
+                    },
+                  ),
                 ],
               ),
-            ),
-          const SizedBox(height: 20),
-          for (final group in buildBottomNavGroups(context))
-            _GestureGroup(
-              group: group,
-              itemKeys: _itemKeys,
-              highlightedId: _highlightedId,
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title, this.subtitle});
-  final String title;
-  final String? subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: theme.colorScheme.primary,
-            ),
-          ),
-          if (subtitle != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              subtitle!,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+              const SizedBox(height: AppSpace.xl),
+              header(l10n.bottomNav_editorAvailable),
+              if (available.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpace.m),
+                  child: Text(l10n.bottomNav_editorEmptyAvailable, style: meta),
+                )
+              else
+                SegmentedCardGroup(
+                  children: [
+                    for (final entry in available)
+                      _AvailableTile(
+                        entry: entry,
+                        canAdd:
+                            NavEntryRegistry.isAvailable(entry, user) &&
+                            enabled.length < _maxCount,
+                        needsLogin: entry.requiresLogin && user == null,
+                        onAdd: () => _addEntry(entry),
+                      ),
+                  ],
+                ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpace.m,
+                  AppSpace.s,
+                  AppSpace.m,
+                  0,
+                ),
+                child: Text(l10n.bottomNav_footerMax(_maxCount), style: meta),
               ),
-            ),
-          ],
-        ],
+              const SizedBox(height: AppSpace.xl),
+              for (final group in buildBottomNavGroups(context))
+                _GestureGroup(
+                  group: group,
+                  itemKeys: _itemKeys,
+                  highlightedId: _highlightedId,
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-/// 水平 ReorderableListView 模拟底栏样式
-class _PreviewBar extends StatelessWidget {
-  const _PreviewBar({
-    required this.entries,
-    required this.minCount,
-    required this.onReorder,
-    required this.onRemove,
-  });
+/// 预览卡：surface/elevated 卡片里放一条和真实底栏同款的浮动胶囊
+class _PreviewCard extends StatelessWidget {
+  const _PreviewCard({required this.entries});
 
   final List<NavEntry> entries;
-  final int minCount;
-  final void Function(int, int) onReorder;
-  final void Function(NavEntry) onRemove;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final tokens = context.tokens;
     return Container(
-      height: 108,
+      padding: const EdgeInsets.symmetric(vertical: AppSpace.l),
+      alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(20),
+        color: tokens.colors.surfaceGrouped,
+        borderRadius: BorderRadius.circular(tokens.radius.card),
       ),
-      clipBehavior: Clip.antiAlias,
-      child: ReorderableListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        buildDefaultDragHandles: false,
-        onReorderItem: onReorder,
-        onReorderStart: (_) => HapticFeedback.mediumImpact(),
-        onReorderEnd: (_) => HapticFeedback.selectionClick(),
-        itemCount: entries.length,
-        proxyDecorator: (child, index, anim) {
-          return AnimatedBuilder(
-            animation: anim,
-            builder: (ctx, c) {
-              final lift = Curves.easeOut.transform(anim.value);
-              return Transform.scale(
-                scale: 1.0 + 0.08 * lift,
-                child: Material(
-                  color: Colors.transparent,
-                  elevation: 12 * lift,
-                  shadowColor: Colors.black.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(20),
-                  child: c,
-                ),
-              );
-            },
-            child: child,
-          );
-        },
-        itemBuilder: (ctx, i) {
-          final e = entries[i];
-          final canRemove = !e.locked && entries.length > minCount;
-          return _PreviewItem(
-            key: ValueKey('preview-${e.id}'),
-            entry: e,
-            index: i,
-            canDrag: e.id != NavEntryIds.home,
-            canRemove: canRemove,
-            onRemove: () => onRemove(e),
-          );
-        },
+      child: ExcludeSemantics(
+        child: IgnorePointer(
+          child: FloatingTabBar(
+            items: [
+              for (final e in entries.take(kMaxBottomNavItems))
+                FloatingTabItem(icon: e.selectedIconData, label: e.label(context)),
+            ],
+            currentIndex: 0,
+            onTap: (_) {},
+          ),
+        ),
       ),
     );
   }
 }
 
-class _PreviewItem extends StatelessWidget {
-  const _PreviewItem({
+/// 已显示的一行：首页 / 我的带 lock 固定首尾，其余 circle-minus 移除 + grip 拖动
+class _EnabledTile extends StatelessWidget {
+  const _EnabledTile({
     required super.key,
     required this.entry,
     required this.index,
-    required this.canDrag,
+    required this.pinned,
     required this.canRemove,
     required this.onRemove,
   });
 
   final NavEntry entry;
   final int index;
-  final bool canDrag;
+  final bool pinned;
   final bool canRemove;
   final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final core = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: SizedBox(
-        width: 84,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.secondaryContainer,
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(
-                      entry.selectedIconData,
-                      size: 22,
-                      color: theme.colorScheme.onSecondaryContainer,
-                    ),
-                  ),
-                  if (canRemove)
-                    Positioned(
-                      top: -6,
-                      right: 0,
-                      child: InkResponse(
-                        onTap: onRemove,
-                        radius: 16,
-                        child: Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.errorContainer,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: theme.colorScheme.surface,
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Icon(
-                            Symbols.close_rounded,
-                            size: 12,
-                            color: theme.colorScheme.onErrorContainer,
-                          ),
-                        ),
-                      ),
-                    )
-                  else if (entry.locked)
-                    Positioned(
-                      top: -4,
-                      right: 0,
-                      child: Icon(
-                        Symbols.lock_rounded,
-                        size: 14,
-                        color: theme.colorScheme.onSurfaceVariant
-                            .withValues(alpha: 0.55),
-                      ),
-                    ),
-                ],
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final l10n = context.l10n;
+    final name = entry.label(context);
+    return ListTile(
+      leading: pinned
+          ? SizedBox.square(
+              dimension: AppSize.hit,
+              child: Icon(
+                AppIcons.lock,
+                size: AppSize.iconM,
+                color: colors.textMeta,
+                semanticLabel: l10n.bottomNav_editorLockedHint,
               ),
-              const SizedBox(height: 6),
-              Text(
-                entry.label(context),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelSmall,
-              ),
-            ],
-          ),
-        ),
+            )
+          : AppIconButton(
+              icon: AppIcons.removeCircle,
+              color: colors.textDestructive,
+              semanticLabel: l10n.bottomNav_removeLabel(name),
+              onPressed: canRemove ? onRemove : null,
+            ),
+      title: Row(
+        children: [
+          Icon(entry.selectedIconData, size: AppSize.iconM, color: colors.brandPrimary),
+          const SizedBox(width: AppSpace.m),
+          Expanded(child: Text(name)),
+        ],
       ),
-    );
-
-    if (canDrag) {
-      // 按指针类型分流手感（见 _PointerAwareDragStartListener）；
-      // 只有首页固定在第一位。
-      return _PointerAwareDragStartListener(
-        key: key,
-        index: index,
-        child: core,
-      );
-    }
-    // 首页固定项：不包拖动监听，但仍需要有 Key
-    return KeyedSubtree(key: key, child: core);
-  }
-}
-
-/// 按指针类型分流的拖拽监听：鼠标/触控板按下即拖（桌面手感），触屏
-/// 长按进入拖拽。触屏若也即按即拖，手指落在预览条上就无法滚动页面
-/// （拖拽识别器会立刻抢占滚动手势）。
-class _PointerAwareDragStartListener extends StatelessWidget {
-  const _PointerAwareDragStartListener({
-    super.key,
-    required this.index,
-    required this.child,
-  });
-
-  final int index;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Listener(
-      onPointerDown: (event) {
-        final list = SliverReorderableList.maybeOf(context);
-        if (list == null) return;
-        final recognizer = switch (event.kind) {
-          PointerDeviceKind.mouse ||
-          PointerDeviceKind.trackpad =>
-            ImmediateMultiDragGestureRecognizer(debugOwner: this),
-          _ => DelayedMultiDragGestureRecognizer(debugOwner: this),
-        };
-        list.startItemDragReorder(
-          index: index,
-          event: event,
-          recognizer: recognizer
-            ..gestureSettings = MediaQuery.maybeGestureSettingsOf(context),
-        );
-      },
-      child: child,
+      trailing: pinned
+          ? Padding(
+              padding: const EdgeInsets.only(right: AppSpace.xs),
+              child: Text(
+                entry.id == NavEntryIds.home
+                    ? l10n.bottomNav_pinnedFirst
+                    : l10n.bottomNav_pinnedLast,
+                style: Theme.of(context).textTheme.bodySmall!
+                    .merge(tokens.text.meta)
+                    .copyWith(color: colors.textMeta),
+              ),
+            )
+          : ReorderableDragStartListener(
+              index: index,
+              child: SizedBox.square(
+                dimension: AppSize.hit,
+                child: Icon(
+                  AppIcons.menu,
+                  size: AppSize.iconM,
+                  color: colors.textMeta,
+                  semanticLabel: l10n.bottomNav_dragLabel(name),
+                ),
+              ),
+            ),
     );
   }
 }
 
+/// 可添加的一行：circle-plus brand
 class _AvailableTile extends StatelessWidget {
   const _AvailableTile({
     required this.entry,
@@ -573,27 +450,31 @@ class _AvailableTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final name = entry.label(context);
     return ListTile(
-      leading: Icon(entry.iconData),
-      title: Text(entry.label(context)),
+      leading: AppIconButton(
+        icon: AppIcons.addCircle,
+        color: canAdd ? colors.brandPrimary : colors.textMeta,
+        semanticLabel: context.l10n.bottomNav_addLabel(name),
+        onPressed: canAdd ? onAdd : null,
+      ),
+      title: Row(
+        children: [
+          Icon(entry.iconData, size: AppSize.iconM, color: colors.textPrimary),
+          const SizedBox(width: AppSpace.m),
+          Expanded(child: Text(name)),
+        ],
+      ),
       subtitle: needsLogin
           ? Text(
               context.l10n.bottomNav_editorRequiresLogin,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+              style: Theme.of(context).textTheme.bodySmall!
+                  .merge(tokens.text.meta)
+                  .copyWith(color: colors.textMeta),
             )
           : null,
-      trailing: IconButton(
-        icon: Icon(
-          Symbols.add_circle_rounded,
-          color: canAdd
-              ? theme.colorScheme.primary
-              : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-        ),
-        onPressed: canAdd ? onAdd : null,
-      ),
       onTap: canAdd ? onAdd : null,
     );
   }
@@ -614,7 +495,7 @@ class _GestureGroup extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
+    final tokens = context.tokens;
     // 隐藏项（如依赖前置开关的条目）不进卡片组，否则零高占位会顶掉
     // 组尾的大圆角（SegmentedCardGroup 按位置分配圆角）
     final visibleItems =
@@ -623,39 +504,36 @@ class _GestureGroup extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-          child: Row(
-            children: [
-              Icon(group.icon, size: 18, color: theme.colorScheme.primary),
-              const SizedBox(width: 8),
-              Text(
-                group.title,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpace.m,
+            AppSpace.s,
+            AppSpace.m,
+            AppSpace.s,
+          ),
+          child: Semantics(
+            header: true,
+            child: Text(
+              group.title,
+              style: Theme.of(context).textTheme.bodySmall!
+                  .merge(tokens.text.meta)
+                  .copyWith(color: tokens.colors.textMeta),
+            ),
+          ),
+        ),
+        SegmentedCardGroup(
+          children: [
+            for (final item in visibleItems)
+              AnimatedContainer(
+                key: itemKeys.putIfAbsent(item.id, () => GlobalKey()),
+                duration: const Duration(milliseconds: 500),
+                color: highlightedId == item.id
+                    ? tokens.colors.brandPrimary.withValues(alpha: 0.12)
+                    : Colors.transparent,
+                child: SettingsRenderer(model: item),
               ),
-            ],
-          ),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: SegmentedCardGroup(
-            children: [
-              for (final item in visibleItems)
-                AnimatedContainer(
-                  key: itemKeys.putIfAbsent(item.id, () => GlobalKey()),
-                  duration: const Duration(milliseconds: 500),
-                  color: highlightedId == item.id
-                      ? theme.colorScheme.primaryContainer.withValues(
-                          alpha: 0.4,
-                        )
-                      : Colors.transparent,
-                  child: SettingsRenderer(model: item),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
+        const SizedBox(height: AppSpace.xl),
       ],
     );
   }

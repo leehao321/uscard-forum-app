@@ -47,25 +47,25 @@ class _DebugToolsCardState extends State<DebugToolsCard> {
     return SegmentedCardGroup(
       children: [
         ListTile(
-          leading: const Icon(Symbols.article_rounded),
+          leading: const Icon(AppIcons.article),
           title: Text(context.l10n.appLogs_title),
-          trailing: const Icon(Symbols.chevron_right_rounded, size: 20),
+          trailing: const Icon(AppIcons.chevronRight, size: 20),
           onTap: () => _openLogs(LogTypeFilter.all),
         ),
         ListTile(
-          leading: const Icon(Symbols.dns_rounded),
+          leading: const Icon(AppIcons.serverOff),
           title: Text(context.l10n.debugTools_networkLogs),
           subtitle: Text(context.l10n.debugTools_networkLogsDesc),
-          trailing: const Icon(Symbols.chevron_right_rounded, size: 20),
+          trailing: const Icon(AppIcons.chevronRight, size: 20),
           onTap: () => _openLogs(LogTypeFilter.network),
         ),
         // CF 验证日志（开发者模式）
         if (_isDeveloperMode)
           ListTile(
-            leading: const Icon(Symbols.shield_rounded),
+            leading: const Icon(AppIcons.shield),
             title: Text(context.l10n.debugTools_cfLogs),
             subtitle: Text(context.l10n.debugTools_cfLogsDesc),
-            trailing: const Icon(Symbols.chevron_right_rounded, size: 20),
+            trailing: const Icon(AppIcons.chevronRight, size: 20),
             onTap: () => _openLogs(LogTypeFilter.cfChallenge),
           ),
       ],

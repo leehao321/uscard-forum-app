@@ -21,7 +21,7 @@ class CfVerifyCard extends ConsumerWidget {
     return SegmentedCardGroup(
       children: [
         SwitchListTile.adaptive(
-          secondary: const Icon(Symbols.shield_rounded),
+          secondary: const Icon(AppIcons.shield),
           title: Text(context.l10n.cfVerify_autoTitle),
           subtitle: Text(context.l10n.cfVerify_autoDesc),
           value: autoEnabled,
@@ -30,10 +30,10 @@ class CfVerifyCard extends ConsumerWidget {
               .setAutoCfChallenge(value),
         ),
         ListTile(
-          leading: const Icon(Symbols.security_rounded),
+          leading: const Icon(AppIcons.security),
           title: Text(context.l10n.cf_securityVerifyTitle),
           subtitle: Text(context.l10n.error_securityChallenge),
-          trailing: const Icon(Symbols.chevron_right_rounded, size: 20),
+          trailing: const Icon(AppIcons.chevronRight, size: 20),
           onTap: () => _showManualVerify(context),
         ),
       ],

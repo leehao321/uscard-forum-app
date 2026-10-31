@@ -34,7 +34,7 @@ class VpnAutoToggleCard extends StatelessWidget {
               title: Text(context.l10n.vpnToggle_title),
               subtitle: Text(context.l10n.vpnToggle_subtitle),
               secondary: Icon(
-                Symbols.swap_horiz_rounded,
+                AppIcons.sync,
                 fill: enabled ? 1 : 0,
                 color: enabled ? theme.colorScheme.primary : null,
               ),
@@ -43,7 +43,7 @@ class VpnAutoToggleCard extends StatelessWidget {
             ),
             if (enabled)
               ListTile(
-                leading: const Icon(Symbols.rule_rounded),
+                leading: const Icon(AppIcons.checkBox),
                 title: Text(context.l10n.vpnToggle_detectionMode),
                 subtitle: Text(_detectionDescription(context, service)),
                 trailing: SwipeDismissiblePopupMenuButton<VpnDetectionMode>(
@@ -61,7 +61,7 @@ class VpnAutoToggleCard extends StatelessWidget {
                           children: [
                             if (mode == service.detectionMode)
                               Icon(
-                                Symbols.check_rounded,
+                                AppIcons.check,
                                 size: 18,
                                 color: theme.colorScheme.primary,
                               )
@@ -83,7 +83,7 @@ class VpnAutoToggleCard extends StatelessWidget {
                       children: [
                         Text(_detectionLabel(context, service.detectionMode)),
                         const SizedBox(width: 4),
-                        const Icon(Symbols.arrow_drop_down_rounded, size: 20),
+                        const Icon(AppIcons.dropdown, size: 20),
                       ],
                     ),
                   ),
@@ -98,7 +98,7 @@ class VpnAutoToggleCard extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      Symbols.vpn_lock_rounded,
+                      AppIcons.lock,
                       fill: vpnActive ? 1 : 0,
                       size: 16,
                       color: vpnActive
@@ -130,7 +130,7 @@ class VpnAutoToggleCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
-                      Symbols.info_rounded,
+                      AppIcons.info,
                       size: 16,
                       color: theme.colorScheme.primary,
                     ),

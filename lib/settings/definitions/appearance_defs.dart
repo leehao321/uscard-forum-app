@@ -8,174 +8,234 @@ import 'package:common_ui/common_ui.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ai_model_manager/ai_model_manager.dart';
-import 'package:m3e_ui/m3e_ui.dart';
+import 'package:m3e_ui/m3e_ui.dart' show LoadingSpinner;
 
 import '../../l10n/s.dart';
+import '../../pages/font_settings_page.dart';
 import '../../providers/app_icon_provider.dart';
+import '../../providers/appearance_provider.dart';
+import '../../providers/font_provider.dart';
 import '../../providers/locale_provider.dart';
 import '../../providers/preferences_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/toast_service.dart';
-import '../../theme/app_theme.dart';
 import '../../utils/dialog_utils.dart';
 import '../../widgets/common/app_bottom_sheet.dart';
+import '../../widgets/settings/appearance_widgets.dart';
 import '../settings_model.dart';
 
-/// 外观设置数据声明
+/// 外观设置数据声明（0.4.0 v2）
+///
+/// 顺序：预设 → 外观模式 → 强调色 → 字体 → 微调 → 语言 → 应用图标 → 屏幕帧率。
+/// 顶部固定的实时预览卡不在这里，见 AppearancePage。
 List<SettingsGroup> buildAppearanceGroups(BuildContext context) {
   final l10n = context.l10n;
   return [
-    // ── 语言 ──────────────────────────────────────────────────────
+    // ── 预设 ──────────────────────────────────────────────────────
     SettingsGroup(
-      title: l10n.appearance_language,
-      icon: Symbols.language_rounded,
+      title: l10n.appearance_presets,
+      icon: AppIcons.tune,
+      wrapInCard: false,
       items: [
         CustomModel(
-          id: 'language',
-          title: l10n.appearance_language,
-          builder: (context, ref) {
-            final locale = ref.watch(localeProvider);
-            final label = _localeLabel(context.l10n, locale);
-            return ListTile(
-              leading: Icon(
-                Symbols.translate_rounded,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              title: Text(label),
-              trailing: const Icon(Symbols.chevron_right_rounded),
-              onTap: () => _showLanguagePicker(context, ref, locale),
-            );
-          },
+          id: 'presets',
+          title: l10n.appearance_presets,
+          builder: (context, ref) => const AppearancePresetGrid(),
         ),
       ],
     ),
 
-    // ── 主题模式 ───────────────────────────────────────────────────
+    // ── 外观模式 ───────────────────────────────────────────────────
     SettingsGroup(
       title: l10n.appearance_themeMode,
-      icon: Symbols.brightness_6_rounded,
-      wrapInCard: false,
+      icon: AppIcons.visibility,
       items: [
         CustomModel(
           id: 'themeMode',
           title: l10n.appearance_themeMode,
+          builder: (context, ref) => const AppearanceModeRows(),
+        ),
+      ],
+    ),
+
+    // ── 强调色（四选一，只换 brand/primary 与 brand/button）──────────
+    SettingsGroup(
+      title: l10n.appearance_accent,
+      icon: AppIcons.palette,
+      items: [
+        CustomModel(
+          id: 'accent',
+          title: l10n.appearance_accent,
+          builder: (context, ref) => const AppearanceAccentRow(),
+        ),
+      ],
+    ),
+
+    // ── 字体 ──────────────────────────────────────────────────────
+    SettingsGroup(
+      title: l10n.appearance_font,
+      icon: AppIcons.description,
+      items: [
+        ActionModel(
+          id: 'font',
+          title: l10n.appearance_font,
+          icon: AppIcons.description,
+          valueBuilder: (ref) {
+            final theme = ref.watch(themeProvider);
+            if (theme.importedUiFamily != null) {
+              final font = ref
+                  .watch(importedFontsProvider)
+                  .where((f) => f.family == theme.importedUiFamily)
+                  .firstOrNull;
+              return font?.displayName ?? l10n.appearance_fontSystem;
+            }
+            return theme.fontFamily == AppFontFamily.miSans
+                ? 'MiSans'
+                : l10n.appearance_fontSystem;
+          },
+          onTap: (context, ref) => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const FontSettingsPage()),
+          ),
+        ),
+      ],
+    ),
+
+    // ── 微调（「恢复默认」在组页眉右侧）─────────────────────────────
+    SettingsGroup(
+      title: l10n.appearance_tuning,
+      icon: AppIcons.tune,
+      footer: l10n.appearance_tuneFooter,
+      headerAction: Consumer(
+        builder: (context, ref, _) => TextButton(
+          style: TextButton.styleFrom(
+            minimumSize: const Size(AppSize.hit, AppSize.hit),
+            padding: EdgeInsets.zero,
+            textStyle: Theme.of(context).textTheme.bodySmall!
+                .merge(context.tokens.text.meta),
+          ),
+          onPressed: () => ref
+              .read(appearanceProvider.notifier)
+              .setTiers(const AppearanceTiers()),
+          child: Text(l10n.appearance_tuneReset),
+        ),
+      ),
+      items: [
+        CustomModel(
+          id: 'tuneFont',
+          title: l10n.appearance_tuneFont,
           builder: (context, ref) {
-            final themeState = ref.watch(themeProvider);
-            final currentMode = themeState.mode;
-            final theme = Theme.of(context);
-            final l10n = context.l10n;
-
-            // 卡片预览用 v2 配色（跟随当前强调色）
-            ColorScheme preview(Brightness b) =>
-                appColorScheme(AppColors.resolve(b, themeState.accent), b);
-            final lightScheme = preview(Brightness.light);
-            final darkScheme = preview(Brightness.dark);
-
-            final modes = [
-              (
-                ThemeMode.system,
-                Symbols.auto_mode_rounded,
-                l10n.appearance_modeAuto,
-                null,
-              ),
-              (
-                ThemeMode.light,
-                Symbols.light_mode_rounded,
-                l10n.appearance_modeLight,
-                lightScheme,
-              ),
-              (
-                ThemeMode.dark,
-                Symbols.dark_mode_rounded,
-                l10n.appearance_modeDark,
-                darkScheme,
-              ),
-            ];
-
-            return Align(
-              alignment: Alignment.centerLeft,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: Row(
-                  children: [
-                    for (int i = 0; i < modes.length; i++) ...[
-                      if (i > 0) const SizedBox(width: 12),
-                      Expanded(
-                        child: _ThemeModeCard(
-                          mode: modes[i].$1,
-                          icon: modes[i].$2,
-                          label: modes[i].$3,
-                          previewScheme: modes[i].$4,
-                          lightScheme: lightScheme,
-                          darkScheme: darkScheme,
-                          isSelected: modes[i].$1 == currentMode,
-                          currentTheme: theme,
-                          onTap: () => ref
-                              .read(themeProvider.notifier)
-                              .setThemeMode(modes[i].$1),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+            final tiers = ref.watch(appearanceProvider);
+            return AppearanceTierRow(
+              title: l10n.appearance_tuneFont,
+              labels: [
+                l10n.appearance_tierSmall,
+                l10n.appearance_tierStandard,
+                l10n.appearance_tierLarge,
+                l10n.appearance_tierExtraLarge,
+              ],
+              value: tiers.font.index,
+              showTextSizeEnds: true,
+              onChanged: (i) => ref
+                  .read(appearanceProvider.notifier)
+                  .setTiers(tiers.copyWith(font: FontTier.values[i])),
+            );
+          },
+        ),
+        CustomModel(
+          id: 'tuneLineHeight',
+          title: l10n.appearance_tuneLineHeight,
+          builder: (context, ref) {
+            final tiers = ref.watch(appearanceProvider);
+            return AppearanceTierRow(
+              title: l10n.appearance_tuneLineHeight,
+              labels: [
+                l10n.appearance_tierCompact,
+                l10n.appearance_tierStandard,
+                l10n.appearance_tierRelaxed,
+              ],
+              value: tiers.lineHeight.index,
+              onChanged: (i) => ref
+                  .read(appearanceProvider.notifier)
+                  .setTiers(tiers.copyWith(lineHeight: LineHeightTier.values[i])),
+            );
+          },
+        ),
+        CustomModel(
+          id: 'tuneDensity',
+          title: l10n.appearance_tuneDensity,
+          builder: (context, ref) {
+            final tiers = ref.watch(appearanceProvider);
+            return AppearanceTierRow(
+              title: l10n.appearance_tuneDensity,
+              labels: [
+                l10n.appearance_tierCompact,
+                l10n.appearance_tierStandard,
+                l10n.appearance_tierComfortable,
+              ],
+              value: tiers.density.index,
+              onChanged: (i) => ref
+                  .read(appearanceProvider.notifier)
+                  .setTiers(tiers.copyWith(density: DensityTier.values[i])),
+            );
+          },
+        ),
+        CustomModel(
+          id: 'tuneRadius',
+          title: l10n.appearance_tuneRadius,
+          builder: (context, ref) {
+            final tiers = ref.watch(appearanceProvider);
+            return AppearanceTierRow(
+              title: l10n.appearance_tuneRadius,
+              labels: [
+                l10n.appearance_tierSmall,
+                l10n.appearance_tierStandard,
+                l10n.appearance_tierLarge,
+              ],
+              value: tiers.radius.index,
+              onChanged: (i) => ref
+                  .read(appearanceProvider.notifier)
+                  .setTiers(tiers.copyWith(radius: RadiusTier.values[i])),
+            );
+          },
+        ),
+        CustomModel(
+          id: 'tuneTranslucency',
+          title: l10n.appearance_tuneTranslucency,
+          builder: (context, ref) {
+            final tiers = ref.watch(appearanceProvider);
+            return AppearanceTierRow(
+              title: l10n.appearance_tuneTranslucency,
+              labels: [
+                l10n.appearance_tierOff,
+                l10n.appearance_tierStandard,
+                l10n.appearance_tierStrong,
+              ],
+              value: tiers.translucency.index,
+              onChanged: (i) => ref
+                  .read(appearanceProvider.notifier)
+                  .setTiers(
+                    tiers.copyWith(translucency: TranslucencyTier.values[i]),
+                  ),
             );
           },
         ),
       ],
     ),
 
-    // ── 强调色（四选一，只换 brand/primary 与 brand/button；完整的 v2
-    // 外观页在 M8 做）────────────────────────────────────────────────
+    // ── 语言 ──────────────────────────────────────────────────────
     SettingsGroup(
-      title: l10n.appearance_accent,
-      icon: Symbols.color_lens_rounded,
+      title: l10n.appearance_language,
+      icon: AppIcons.language,
       items: [
-        CustomModel(
-          id: 'accent',
-          title: l10n.appearance_accent,
-          builder: (context, ref) {
-            final accent = ref.watch(themeProvider.select((s) => s.accent));
-            final brightness = Theme.of(context).brightness;
-            final l10n = context.l10n;
-            final options = <(AccentPreset, String)>[
-              (AccentPreset.meika, l10n.appearance_accentMeika),
-              (AccentPreset.navy, l10n.appearance_accentNavy),
-              (AccentPreset.graphite, l10n.appearance_accentGraphite),
-              (AccentPreset.wisteria, l10n.appearance_accentWisteria),
-            ];
-            return RadioGroup<AccentPreset>(
-              groupValue: accent,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(themeProvider.notifier).setAccent(value);
-                }
-              },
-              child: Column(
-                children: [
-                  for (final (preset, label) in options)
-                    RadioListTile<AccentPreset>(
-                      value: preset,
-                      title: Text(label),
-                      secondary: ExcludeSemantics(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: AppColors.resolve(
-                              brightness,
-                              preset,
-                            ).brandPrimary,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const SizedBox.square(
-                            dimension: AppSize.iconM,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          },
+        ActionModel(
+          id: 'language',
+          title: l10n.appearance_language,
+          icon: AppIcons.language,
+          valueBuilder: (ref) =>
+              _localeLabel(l10n, ref.watch(localeProvider)),
+          onTap: (context, ref) =>
+              _showLanguagePicker(context, ref, ref.read(localeProvider)),
         ),
       ],
     ),
@@ -183,7 +243,7 @@ List<SettingsGroup> buildAppearanceGroups(BuildContext context) {
     // ── 应用图标（仅 iOS/Android）────────────────────────────────
     SettingsGroup(
       title: l10n.appearance_appIcon,
-      icon: Symbols.app_shortcut_rounded,
+      icon: AppIcons.category,
       wrapInCard: false,
       items: [
         PlatformConditionalModel(
@@ -193,10 +253,8 @@ List<SettingsGroup> buildAppearanceGroups(BuildContext context) {
             title: l10n.appearance_appIcon,
             builder: (context, ref) {
               final iconState = ref.watch(appIconProvider);
-              final theme = Theme.of(context);
-              final isDark = theme.brightness == Brightness.dark;
+              final isDark = Theme.of(context).brightness == Brightness.dark;
               final l10n = context.l10n;
-
               final options = [
                 (
                   AppIconStyle.classic,
@@ -213,38 +271,29 @@ List<SettingsGroup> buildAppearanceGroups(BuildContext context) {
                       : 'assets/images/icon_modern_light_preview.png',
                 ),
               ];
-
-              // 与主题模式卡片同宽（400 宽放 3 张 → 2 张为 264）
-              return Align(
-                alignment: Alignment.centerLeft,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 264),
-                  child: Row(
-                    children: [
-                      for (int i = 0; i < options.length; i++) ...[
-                        if (i > 0) const SizedBox(width: 12),
-                        Expanded(
-                          child: _AppIconCard(
-                            label: options[i].$2,
-                            assetPath: options[i].$3,
-                            isSelected: iconState.currentStyle == options[i].$1,
-                            isChanging: iconState.isChanging,
-                            onTap: () async {
-                              final success = await ref
-                                  .read(appIconProvider.notifier)
-                                  .setIconStyle(options[i].$1);
-                              if (!success) {
-                                ToastService.showError(
-                                  l10n.appearance_switchIconFailed,
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
+              return Row(
+                children: [
+                  for (final (style, label, asset) in options)
+                    Padding(
+                      padding: const EdgeInsets.only(right: AppSpace.l),
+                      child: _AppIconChoice(
+                        label: label,
+                        assetPath: asset,
+                        isSelected: iconState.currentStyle == style,
+                        isChanging: iconState.isChanging,
+                        onTap: () async {
+                          final success = await ref
+                              .read(appIconProvider.notifier)
+                              .setIconStyle(style);
+                          if (!success) {
+                            ToastService.showError(
+                              l10n.appearance_switchIconFailed,
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                ],
               );
             },
           ),
@@ -252,68 +301,23 @@ List<SettingsGroup> buildAppearanceGroups(BuildContext context) {
       ],
     ),
 
-    // ── 字体 ──────────────────────────────────────────────────────
-    SettingsGroup(
-      title: l10n.appearance_font,
-      icon: Symbols.font_download_rounded,
-      items: [
-        CustomModel(
-          id: 'font',
-          title: l10n.appearance_font,
-          builder: (context, ref) {
-            final fontFamily = ref.watch(
-              themeProvider.select((s) => s.fontFamily),
-            );
-            final l10n = context.l10n;
-            final options = <(String, AppFontFamily)>[
-              (l10n.appearance_fontSystem, AppFontFamily.system),
-              ('MiSans', AppFontFamily.miSans),
-            ];
-
-            return RadioGroup<AppFontFamily>(
-              groupValue: fontFamily,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(themeProvider.notifier).setFontFamily(value);
-                }
-              },
-              child: Column(
-                children: [
-                  for (final (label, ff) in options)
-                    RadioListTile<AppFontFamily>(
-                      title: Text(
-                        label,
-                        style: ff == AppFontFamily.miSans
-                            ? const TextStyle(fontFamily: 'MiSans')
-                            : null,
-                      ),
-                      value: ff,
-                    ),
-                ],
-              ),
-            );
-          },
-        ),
-      ],
-    ),
-
     // ── 屏幕帧率（仅 Android）──────────────────────────────────────
     SettingsGroup(
       title: l10n.appearance_displayMode,
-      icon: Symbols.monitor_rounded,
+      icon: AppIcons.speed,
       items: [
         PlatformConditionalModel(
           condition: () => !kIsWeb && Platform.isAndroid,
           inner: ActionModel(
             id: 'displayMode',
             title: l10n.appearance_displayMode,
-            icon: Symbols.monitor_heart_rounded,
-            getDynamicSubtitle: (ref) {
+            icon: AppIcons.speed,
+            valueBuilder: (ref) {
               final rate = ref
                   .watch(preferencesProvider)
                   .displayModeRefreshRate;
               return rate == 0
-                  ? context.l10n.appearance_displayModeAuto
+                  ? l10n.appearance_displayModeAuto
                   : '${rate}Hz';
             },
             onTap: (context, ref) => _showDisplayModeSheet(context, ref),
@@ -352,7 +356,7 @@ void _showLanguagePicker(
               title: Text(label),
               trailing: _localeKey(locale) == _localeKey(currentLocale)
                   ? Icon(
-                      Symbols.check_rounded,
+                      AppIcons.check,
                       color: Theme.of(sheetContext).colorScheme.primary,
                     )
                   : null,
@@ -561,99 +565,17 @@ String _localeKey(Locale? locale) {
       : locale.languageCode;
 }
 
-// ── 应用图标选择卡片 ─────────────────────────────────────────────
+// ── 应用图标选择 ──────────────────────────────────────────────────
 
-/// 图标设计稿背景：细网格 + 中心十字线 + keyline 参考形状（圆 / 圆角方），
-/// 模拟 icon 设计工具的规格线稿。
-class _IconKeylinePainter extends CustomPainter {
-  final Color backgroundColor;
-  final Color gridColor;
-  final Color accentColor;
-
-  _IconKeylinePainter({
-    required this.backgroundColor,
-    required this.gridColor,
-    required this.accentColor,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint();
-
-    // 底色
-    paint.color = backgroundColor;
-    canvas.drawRect(Offset.zero & size, paint);
-
-    final center = Offset(size.width / 2, size.height / 2);
-
-    // ── 细网格 ──
-    paint
-      ..color = gridColor.withValues(alpha: 0.08)
-      ..strokeWidth = 0.5
-      ..style = PaintingStyle.stroke;
-    const step = 8.0;
-    // 以中心为基准向两侧铺开，保证十字线落在网格上
-    for (double x = center.dx % step; x < size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = center.dy % step; y < size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-
-    // ── 中心十字线 ──
-    paint.color = accentColor.withValues(alpha: 0.25);
-    canvas.drawLine(
-      Offset(center.dx, 0),
-      Offset(center.dx, size.height),
-      paint,
-    );
-    canvas.drawLine(Offset(0, center.dy), Offset(size.width, center.dy), paint);
-
-    // ── keyline 参考形状（略大于图标，露出图标四周）──
-    paint
-      ..color = accentColor.withValues(alpha: 0.35)
-      ..strokeWidth = 1;
-    // 外接圆
-    canvas.drawCircle(center, 27, paint);
-    // 圆角方形
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(center: center, width: 54, height: 54),
-        const Radius.circular(12),
-      ),
-      paint,
-    );
-
-    // ── 四角对角短线（斜向 keyline 的示意）──
-    paint.color = accentColor.withValues(alpha: 0.2);
-    const d = 19.0; // 45° 方向上的偏移
-    const len = 6.0;
-    for (final (sx, sy) in [(-1, -1), (1, -1), (-1, 1), (1, 1)]) {
-      final from = center + Offset(sx * d, sy * d);
-      final to = center + Offset(sx * (d + len), sy * (d + len));
-      canvas.drawLine(from, to, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _IconKeylinePainter oldDelegate) {
-    return oldDelegate.backgroundColor != backgroundColor ||
-        oldDelegate.gridColor != gridColor ||
-        oldDelegate.accentColor != accentColor;
-  }
-}
-
-/// 应用图标选择卡片，样式与 [_ThemeModeCard] 保持一致：
-/// 顶部为迷你"设计稿"预览（keyline 网格线稿 + 悬浮应用图标），
-/// 底部显示勾选 + 文字，选中态高亮边框 + 容器底色。
-class _AppIconCard extends StatelessWidget {
+/// 64 方块（r16）预览 + 名称；选中外圈 2pt brand 环
+class _AppIconChoice extends StatelessWidget {
   final String label;
   final String assetPath;
   final bool isSelected;
   final bool isChanging;
   final VoidCallback onTap;
 
-  const _AppIconCard({
+  const _AppIconChoice({
     required this.label,
     required this.assetPath,
     required this.isSelected,
@@ -663,415 +585,61 @@ class _AppIconCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
-    return GestureDetector(
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: label,
+      excludeSemantics: true,
       onTap: isChanging ? null : onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOutCubic,
-        decoration: BoxDecoration(
-          color: isSelected
-              ? cs.secondaryContainer.withValues(alpha: 0.5)
-              : cs.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected
-                ? cs.primary
-                : cs.outlineVariant.withValues(alpha: 0.3),
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            // 迷你设计稿：keyline 网格背景 + 悬浮图标
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: SizedBox(
-                  height: 64,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      CustomPaint(
-                        painter: _IconKeylinePainter(
-                          backgroundColor: cs.surfaceContainerHighest
-                              .withValues(alpha: 0.35),
-                          gridColor: cs.outline,
-                          accentColor: isSelected ? cs.primary : cs.outline,
-                        ),
+      child: AppPressable(
+        onTap: isChanging ? null : onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: AppSize.hit),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: isSelected ? colors.brandPrimary : Colors.transparent,
+                    width: 2,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset(
+                      assetPath,
+                      width: 64,
+                      height: 64,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => SizedBox.square(
+                        dimension: 64,
+                        child: ColoredBox(color: colors.avatarFill),
                       ),
-                      Center(
-                        child: AnimatedScale(
-                          scale: isSelected ? 1.0 : 0.88,
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeOutBack,
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            clipBehavior: Clip.antiAlias,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(
-                                    alpha: isSelected ? 0.25 : 0.15,
-                                  ),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: Image.asset(assetPath, fit: BoxFit.cover),
-                          ),
-                        ),
-                      ),
-                      if (isChanging && isSelected)
-                        Container(
-                          color: Colors.black26,
-                          child: const Center(
-                            child: LoadingSpinner(size: 24, color: Colors.white),
-                          ),
-                        ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            // 勾选 + 文字（与主题模式卡片同款底部行）
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (isSelected) ...[
-                    Icon(
-                      Symbols.check_circle_rounded,
-                      size: 14,
-                      fill: 1,
-                      color: cs.primary,
+              const SizedBox(height: AppSpace.xs),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall!
+                    .merge(tokens.text.meta)
+                    .copyWith(
+                      color: isSelected
+                          ? colors.brandPrimary
+                          : colors.textMeta,
                     ),
-                    const SizedBox(width: 4),
-                  ],
-                  Text(
-                    label,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: isSelected ? cs.primary : cs.onSurfaceVariant,
-                      fontWeight: isSelected
-                          ? FontWeight.w500
-                          : FontWeight.normal,
-                    ),
-                  ),
-                ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
-  }
-}
-
-// ══════════════════════════════════════════════════════════════════
-// 主题模式卡片（浅色/深色/跟随系统）
-// ══════════════════════════════════════════════════════════════════
-
-class _ThemeModeCard extends StatelessWidget {
-  final ThemeMode mode;
-  final IconData icon;
-  final String label;
-
-  /// 该模式对应的配色方案，system 模式为 null（需同时展示 light + dark）
-  final ColorScheme? previewScheme;
-  final ColorScheme lightScheme;
-  final ColorScheme darkScheme;
-  final bool isSelected;
-  final ThemeData currentTheme;
-  final VoidCallback onTap;
-
-  const _ThemeModeCard({
-    required this.mode,
-    required this.icon,
-    required this.label,
-    required this.previewScheme,
-    required this.lightScheme,
-    required this.darkScheme,
-    required this.isSelected,
-    required this.currentTheme,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = currentTheme.colorScheme;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOutCubic,
-        decoration: BoxDecoration(
-          color: isSelected
-              ? cs.secondaryContainer.withValues(alpha: 0.5)
-              : cs.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected
-                ? cs.primary
-                : cs.outlineVariant.withValues(alpha: 0.3),
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            // 迷你屏幕预览
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-              child: _buildPreview(),
-            ),
-            const SizedBox(height: 8),
-            // 图标 + 文字
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    icon,
-                    size: 14,
-                    color: isSelected ? cs.primary : cs.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    label,
-                    style: currentTheme.textTheme.labelSmall?.copyWith(
-                      color: isSelected ? cs.primary : cs.onSurfaceVariant,
-                      fontWeight: isSelected
-                          ? FontWeight.w500
-                          : FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 绘制迷你屏幕预览
-  Widget _buildPreview() {
-    if (mode == ThemeMode.system) {
-      // 跟随系统：同一个屏幕，左半亮色右半暗色
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: SizedBox(
-          height: 64,
-          child: CustomPaint(
-            painter: _SplitThemePreviewPainter(
-              lightScheme: lightScheme,
-              darkScheme: darkScheme,
-            ),
-            size: Size.infinite,
-          ),
-        ),
-      );
-    }
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: SizedBox(height: 64, child: _buildMiniScreen(previewScheme!)),
-    );
-  }
-
-  /// 单个迷你屏幕：模拟 app bar + 内容行
-  Widget _buildMiniScreen(ColorScheme scheme) {
-    return Container(
-      color: scheme.surface,
-      padding: const EdgeInsets.all(4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 模拟 app bar
-          Container(
-            height: 10,
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(3),
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: 3),
-                Container(
-                  width: 16,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: scheme.onSurface.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 3),
-          // 模拟内容行
-          _buildContentLine(scheme, 0.7),
-          const SizedBox(height: 2),
-          _buildContentLine(scheme, 0.5),
-          const SizedBox(height: 2),
-          // 模拟按钮
-          Align(
-            alignment: Alignment.centerRight,
-            child: Container(
-              width: 14,
-              height: 6,
-              decoration: BoxDecoration(
-                color: scheme.primary,
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static Widget _buildContentLine(ColorScheme scheme, double widthFactor) {
-    return FractionallySizedBox(
-      widthFactor: widthFactor,
-      child: Container(
-        height: 4,
-        decoration: BoxDecoration(
-          color: scheme.onSurface.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(2),
-        ),
-      ),
-    );
-  }
-}
-
-/// 跟随系统预览：同一个屏幕背景，左半亮色右半暗色，
-/// UI 元素在分界线处自然切换颜色。
-class _SplitThemePreviewPainter extends CustomPainter {
-  final ColorScheme lightScheme;
-  final ColorScheme darkScheme;
-
-  _SplitThemePreviewPainter({
-    required this.lightScheme,
-    required this.darkScheme,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final midX = size.width / 2;
-    final paint = Paint();
-
-    // ── 背景：左亮右暗 ──
-    paint.color = lightScheme.surface;
-    canvas.drawRect(Rect.fromLTRB(0, 0, midX, size.height), paint);
-    paint.color = darkScheme.surface;
-    canvas.drawRect(Rect.fromLTRB(midX, 0, size.width, size.height), paint);
-
-    final pad = 4.0;
-
-    // ── app bar 背景条 ──
-    _drawSplitRRect(
-      canvas,
-      size,
-      rect: Rect.fromLTWH(pad, pad, size.width - pad * 2, 10),
-      radius: 3,
-      lightColor: lightScheme.surfaceContainerHighest,
-      darkColor: darkScheme.surfaceContainerHighest,
-    );
-
-    // ── app bar 标题 ──
-    _drawSplitRRect(
-      canvas,
-      size,
-      rect: Rect.fromLTWH(pad + 3, pad + 2.5, 16, 5),
-      radius: 2,
-      lightColor: lightScheme.onSurface.withValues(alpha: 0.6),
-      darkColor: darkScheme.onSurface.withValues(alpha: 0.6),
-    );
-
-    // ── 内容行 1 ──
-    final y1 = pad + 13.0;
-    _drawSplitRRect(
-      canvas,
-      size,
-      rect: Rect.fromLTWH(pad, y1, (size.width - pad * 2) * 0.7, 4),
-      radius: 2,
-      lightColor: lightScheme.onSurface.withValues(alpha: 0.15),
-      darkColor: darkScheme.onSurface.withValues(alpha: 0.15),
-    );
-
-    // ── 内容行 2 ──
-    final y2 = y1 + 6;
-    _drawSplitRRect(
-      canvas,
-      size,
-      rect: Rect.fromLTWH(pad, y2, (size.width - pad * 2) * 0.5, 4),
-      radius: 2,
-      lightColor: lightScheme.onSurface.withValues(alpha: 0.15),
-      darkColor: darkScheme.onSurface.withValues(alpha: 0.15),
-    );
-
-    // ── 按钮 ──
-    final btnW = 14.0;
-    final btnH = 6.0;
-    final btnY = y2 + 8;
-    _drawSplitRRect(
-      canvas,
-      size,
-      rect: Rect.fromLTWH(size.width - pad - btnW, btnY, btnW, btnH),
-      radius: 3,
-      lightColor: lightScheme.primary,
-      darkColor: darkScheme.primary,
-    );
-
-    // ── 中线分隔（半透明细线，暗示分界）──
-    paint
-      ..color = lightScheme.outline.withValues(alpha: 0.1)
-      ..strokeWidth = 0.5;
-    canvas.drawLine(Offset(midX, 0), Offset(midX, size.height), paint);
-  }
-
-  /// 绘制一个跨越亮暗分界的圆角矩形，
-  /// 左半用 lightColor，右半用 darkColor。
-  void _drawSplitRRect(
-    Canvas canvas,
-    Size size, {
-    required Rect rect,
-    required double radius,
-    required Color lightColor,
-    required Color darkColor,
-  }) {
-    final midX = size.width / 2;
-    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(radius));
-    final paint = Paint();
-
-    // 左半（亮色）
-    canvas.save();
-    canvas.clipRect(Rect.fromLTRB(0, 0, midX, size.height));
-    paint.color = lightColor;
-    canvas.drawRRect(rrect, paint);
-    canvas.restore();
-
-    // 右半（暗色）
-    canvas.save();
-    canvas.clipRect(Rect.fromLTRB(midX, 0, size.width, size.height));
-    paint.color = darkColor;
-    canvas.drawRRect(rrect, paint);
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant _SplitThemePreviewPainter oldDelegate) {
-    return oldDelegate.lightScheme != lightScheme ||
-        oldDelegate.darkScheme != darkScheme;
   }
 }

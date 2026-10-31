@@ -354,7 +354,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
       if (statusCode != null) parts.add('$statusCode');
       if (duration != null) parts.add('${duration}ms');
       if (adapter != null) parts.add(adapter);
-      return parts.join(' · ');
+      return parts.join('\n');
     }
 
     if (type == 'lifecycle') {
@@ -424,7 +424,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
               ),
             ),
             IconButton(
-              icon: const Icon(Symbols.content_copy_rounded, size: 20),
+              icon: const Icon(AppIcons.copy, size: 20),
               onPressed: () {
                 final detail = StringBuffer()
                   ..writeln('${S.current.appLogs_time}: $timestamp')
@@ -489,7 +489,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
               ),
             ),
             IconButton(
-              icon: const Icon(Symbols.content_copy_rounded, size: 20),
+              icon: const Icon(AppIcons.copy, size: 20),
               onPressed: () {
                 final detail = StringBuffer()
                   ..writeln('${S.current.appLogs_time}: $timestamp')
@@ -579,6 +579,8 @@ class _AppLogsPageState extends State<AppLogsPage> {
     );
   }
 
+  /// 请求详情半屏：标题「GET 请求」+ 复制 + x；键值分组（键 13 meta 56 宽，
+  /// URL 等宽可换行）；其余字段放「附加字段」代码块。
   void _showRequestDetail(Map<String, dynamic> entry) {
     final timestamp = entry['timestamp']?.toString() ?? '';
     final method = entry['method']?.toString() ?? '';
@@ -589,78 +591,103 @@ class _AppLogsPageState extends State<AppLogsPage> {
     final adapter = _getRequestAdapterLabel(entry);
     final extras = _extraFields(entry);
 
-    showAppDialog(
+    String copyText() {
+      final detail = StringBuffer()
+        ..writeln('${S.current.appLogs_time}: $timestamp')
+        ..writeln('${S.current.appLogs_method}: $method')
+        ..writeln('URL: $url')
+        ..writeln('${S.current.appLogs_statusCode}: $statusCode');
+      if (duration != null) {
+        detail.writeln('${S.current.appLogs_duration}: ${duration}ms');
+      }
+      if (adapter != null) {
+        detail.writeln('${S.current.networkAdapter_adapterType}: $adapter');
+      }
+      detail.writeln('${S.current.appLogs_level}: $level');
+      for (final e in extras.entries) {
+        detail.writeln('${e.key}: ${e.value}');
+      }
+      return detail.toString();
+    }
+
+    showAppBottomSheet<void>(
       context: context,
-      builder: (context) => AppAlertDialog(
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                '$method ${context.l10n.appLogs_request}',
-                style: Theme.of(context).textTheme.titleMedium,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        final tokens = sheetContext.tokens;
+        final base = Theme.of(sheetContext).textTheme.bodySmall!;
+        final meta = base.merge(tokens.text.meta).copyWith(color: tokens.colors.textMeta);
+        final value = base.merge(tokens.text.meta).copyWith(color: tokens.colors.textPrimary);
+        const mono = TextStyle(fontFamily: 'monospace');
+        Widget kv(String key, String text, {bool monospace = false}) => Padding(
+          padding: const EdgeInsets.only(bottom: AppSpace.s),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(width: 56, child: Text(key, style: meta)),
+              Expanded(
+                child: SelectableText(
+                  text,
+                  style: monospace ? value.merge(mono) : value,
+                ),
               ),
-            ),
-            IconButton(
-              icon: const Icon(Symbols.content_copy_rounded, size: 20),
+            ],
+          ),
+        );
+        return AppSheetScaffold(
+          title: '$method ${sheetContext.l10n.appLogs_request}',
+          maxHeightFactor: 0.85,
+          actions: [
+            AppIconButton(
+              icon: AppIcons.copy,
+              semanticLabel: sheetContext.l10n.appLogs_copyAll,
               onPressed: () {
-                final detail = StringBuffer()
-                  ..writeln('${S.current.appLogs_time}: $timestamp')
-                  ..writeln('${S.current.appLogs_method}: $method')
-                  ..writeln('URL: $url')
-                  ..writeln('${S.current.appLogs_statusCode}: $statusCode');
-                if (duration != null) detail.writeln('${S.current.appLogs_duration}: ${duration}ms');
-                if (adapter != null) {
-                  detail.writeln('${S.current.networkAdapter_adapterType}: $adapter');
-                }
-                detail.writeln('${S.current.appLogs_level}: $level');
-                for (final e in extras.entries) {
-                  detail.writeln('${e.key}: ${e.value}');
-                }
-                Clipboard.setData(ClipboardData(text: detail.toString()));
+                Clipboard.setData(ClipboardData(text: copyText()));
                 ToastService.showSuccess(S.current.common_copiedToClipboard);
               },
             ),
           ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildDetailField(context.l10n.appLogs_time, timestamp),
-              _buildDetailField(context.l10n.appLogs_method, method),
-              _buildDetailField('URL', url),
-              _buildDetailField(context.l10n.appLogs_statusCode, statusCode),
-              if (duration != null)
-                _buildDetailField(context.l10n.appLogs_duration, '${duration}ms'),
-              if (adapter != null)
-                _buildDetailField(
-                  context.l10n.networkAdapter_adapterType,
-                  adapter,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                kv(sheetContext.l10n.appLogs_time, timestamp),
+                kv('URL', url, monospace: true),
+                kv(sheetContext.l10n.appLogs_statusCode, statusCode),
+                if (duration != null)
+                  kv(sheetContext.l10n.appLogs_duration, '${duration}ms'),
+                if (adapter != null)
+                  kv(sheetContext.l10n.networkAdapter_adapterType, adapter),
+                kv(
+                  sheetContext.l10n.appLogs_level,
+                  level == 'warning'
+                      ? sheetContext.l10n.common_loadFailed
+                      : sheetContext.l10n.common_done,
                 ),
-              _buildDetailField(context.l10n.appLogs_level, level == 'warning' ? context.l10n.common_loadFailed : context.l10n.common_done),
-              if (extras.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Text(
-                  context.l10n.appLogs_otherFields,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
+                if (extras.isNotEmpty) ...[
+                  const SizedBox(height: AppSpace.m),
+                  Text(sheetContext.l10n.appLogs_otherFields, style: meta),
+                  const SizedBox(height: AppSpace.xs),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(AppSpace.m),
+                    decoration: BoxDecoration(
+                      color: tokens.colors.surfaceElevated,
+                      borderRadius: BorderRadius.circular(tokens.radius.table),
+                    ),
+                    child: SelectableText(
+                      [for (final e in extras.entries) '${e.key}: ${e.value}']
+                          .join('\n'),
+                      style: value.merge(mono).copyWith(fontSize: 11),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                for (final e in extras.entries)
-                  _buildDetailField(e.key, e.value),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(context.l10n.common_close),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -756,15 +783,23 @@ class _AppLogsPageState extends State<AppLogsPage> {
   }
 
   PreferredSizeWidget _buildAppBar() {
+    final tokens = context.tokens;
     if (_searching) {
-      return AppBar(
-        leading: IconButton(
-          icon: const Icon(Symbols.arrow_back_rounded),
+      return AppNavBar(
+        showDivider: true,
+        automaticallyImplyLeading: false,
+        leading: AppIconButton(
+          icon: AppIcons.back,
+          semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
           onPressed: _stopSearch,
         ),
-        title: TextField(
+        titleWidget: TextField(
           controller: _searchController,
           autofocus: true,
+          cursorColor: tokens.colors.brandPrimary,
+          style: Theme.of(context).textTheme.bodyMedium
+              ?.merge(tokens.text.control)
+              .copyWith(color: tokens.colors.textPrimary),
           decoration: InputDecoration(
             hintText: context.l10n.appLogs_search,
             border: InputBorder.none,
@@ -772,10 +807,11 @@ class _AppLogsPageState extends State<AppLogsPage> {
           textInputAction: TextInputAction.search,
           onChanged: (_) => setState(_applyFilters),
         ),
-        actions: [
+        trailing: [
           if (_searchController.text.isNotEmpty)
-            IconButton(
-              icon: const Icon(Symbols.clear_rounded),
+            AppIconButton(
+              icon: AppIcons.close,
+              semanticLabel: MaterialLocalizations.of(context).clearButtonTooltip,
               onPressed: () {
                 _searchController.clear();
                 setState(_applyFilters);
@@ -785,16 +821,20 @@ class _AppLogsPageState extends State<AppLogsPage> {
       );
     }
 
-    return AppBar(
-      title: Text(context.l10n.appLogs_title),
-      centerTitle: true,
-      actions: [
-        IconButton(
-          icon: const Icon(Symbols.search_rounded),
-          tooltip: context.l10n.appLogs_search,
+    final l10n = context.l10n;
+    return AppNavBar(
+      title: l10n.appLogs_title,
+      showDivider: true,
+      slotWidth: 100,
+      trailing: [
+        AppIconButton(
+          icon: AppIcons.search,
+          semanticLabel: l10n.appLogs_search,
           onPressed: _startSearch,
         ),
-        SwipeDismissiblePopupMenuButton<String>(
+        AppMenuButton<String>(
+          icon: AppIcons.moreHoriz,
+          semanticLabel: l10n.topicDetail_moreOptions,
           onSelected: (value) {
             switch (value) {
               case 'deviceInfo':
@@ -811,63 +851,44 @@ class _AppLogsPageState extends State<AppLogsPage> {
                 _clearLogs();
             }
           },
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'deviceInfo',
-              child: ListTile(
-                leading: const Icon(Symbols.smartphone_rounded),
-                title: Text(context.l10n.appLogs_copyDeviceInfo),
-                dense: true,
-                contentPadding: EdgeInsets.zero,
+          sectionsBuilder: (context) => [
+            [
+              AppMenuItem(
+                label: l10n.appLogs_copyDeviceInfo,
+                value: 'deviceInfo',
+                icon: AppIcons.copy,
               ),
-            ),
-            PopupMenuItem(
-              value: 'copy',
-              child: ListTile(
-                leading: const Icon(Symbols.content_copy_rounded),
-                title: Text(context.l10n.appLogs_copyAll),
-                dense: true,
-                contentPadding: EdgeInsets.zero,
+              AppMenuItem(
+                label: l10n.appLogs_copyAll,
+                value: 'copy',
+                icon: AppIcons.copy,
               ),
-            ),
-            PopupMenuItem(
-              value: 'save',
-              child: ListTile(
-                leading: const Icon(Symbols.save_alt_rounded),
-                title: Text(context.l10n.appLogs_saveLogs),
-                dense: true,
-                contentPadding: EdgeInsets.zero,
+              AppMenuItem(
+                label: l10n.appLogs_saveLogs,
+                value: 'save',
+                icon: AppIcons.saveAlt,
               ),
-            ),
-            // Linux 上 share_plus 不支持分享文件,隐藏该项
-            if (ShareUtils.canShareFiles)
-              PopupMenuItem(
-                value: 'share',
-                child: ListTile(
-                  leading: const Icon(Symbols.share_rounded),
-                  title: Text(context.l10n.appLogs_shareLogs),
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
+              // Linux 上 share_plus 不支持分享文件,隐藏该项
+              if (ShareUtils.canShareFiles)
+                AppMenuItem(
+                  label: l10n.appLogs_shareLogs,
+                  value: 'share',
+                  icon: AppIcons.share,
                 ),
+              AppMenuItem(
+                label: l10n.appLogs_sendFeedback,
+                value: 'feedback',
+                icon: AppIcons.mail,
               ),
-            PopupMenuItem(
-              value: 'feedback',
-              child: ListTile(
-                leading: const Icon(Symbols.mail_rounded),
-                title: Text(context.l10n.appLogs_sendFeedback),
-                dense: true,
-                contentPadding: EdgeInsets.zero,
+            ],
+            [
+              AppMenuItem(
+                label: l10n.appLogs_clearLogs,
+                value: 'clear',
+                icon: AppIcons.delete,
+                destructive: true,
               ),
-            ),
-            PopupMenuItem(
-              value: 'clear',
-              child: ListTile(
-                leading: const Icon(Symbols.delete_rounded),
-                title: Text(context.l10n.appLogs_clearLogs),
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
+            ],
           ],
         ),
       ],
@@ -877,6 +898,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.tokens.colors.surfacePage,
       appBar: _buildAppBar(),
       body: _buildBody(),
     );
@@ -888,47 +910,22 @@ class _AppLogsPageState extends State<AppLogsPage> {
     }
 
     if (_entries.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Symbols.article_rounded,
-              size: 64,
-              color: Theme.of(context).colorScheme.outline,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              context.l10n.appLogs_noLogs,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
-            ),
-          ],
-        ),
+      return AppStateView(
+        icon: AppIcons.article,
+        title: context.l10n.appLogs_noLogs,
       );
     }
 
     return Column(
       children: [
         _buildFilterBar(),
-        Divider(
-          height: 1,
-          color: Theme.of(context)
-              .colorScheme
-              .outlineVariant
-              .withValues(alpha: 0.3),
-        ),
+        const AppHairline(),
         // 日志列表
         Expanded(
           child: _filtered.isEmpty
-              ? Center(
-                  child: Text(
-                    context.l10n.appLogs_noMatchingLogs,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
-                  ),
+              ? AppStateView(
+                  icon: AppIcons.searchOff,
+                  title: context.l10n.appLogs_noMatchingLogs,
                 )
               : M3eRefreshIndicator(
                   onRefresh: _loadLogs,
@@ -975,8 +972,84 @@ class _AppLogsPageState extends State<AppLogsPage> {
     );
   }
 
-  /// 紧凑控制台风日志行：左侧级别色条（仅错误/警告）+ 时间戳列 + 标题/副行
+  /// 网络请求行（设计说明 §5.4）：「GET /latest.json」13 等宽 + 右侧状态码 13
+  /// （错误用 text/destructive），下面「时间 · 耗时 · 适配器」11 meta。
+  Widget _buildRequestRow(Map<String, dynamic> entry) {
+    final tokens = context.tokens;
+    final theme = Theme.of(context);
+    final method = entry['method']?.toString() ?? '';
+    final uri = Uri.tryParse(entry['url']?.toString() ?? '');
+    final path = uri == null ? '' : (uri.hasQuery ? '${uri.path}?${uri.query}' : uri.path);
+    final status = entry['statusCode'];
+    final isError = status is int && status >= 400;
+    final duration = entry['duration'];
+    final adapter = _getRequestAdapterLabel(entry);
+    final time = _formatTime(entry['timestamp']?.toString());
+    final detail = [
+      if (time.isNotEmpty) time,
+      if (duration != null) '${duration}ms',
+      ?adapter,
+    ].join(' · ');
+    const mono = TextStyle(fontFamily: 'monospace', fontSize: 13);
+    return InkWell(
+      onTap: () => _showDetail(entry),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpace.pageMargin,
+          vertical: AppSpace.s,
+        ),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: tokens.colors.separator,
+              width: AppSpace.hairline,
+            ),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '$method $path',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: mono.copyWith(color: tokens.colors.textPrimary),
+                  ),
+                ),
+                const SizedBox(width: AppSpace.s),
+                if (status != null)
+                  Text(
+                    '$status',
+                    style: mono.copyWith(
+                      color: isError
+                          ? tokens.colors.textDestructive
+                          : tokens.colors.textMeta,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: AppSpace.xxs),
+            Text(
+              detail,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: tokens.colors.textMeta,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 紧凑控制台风日志行：时间戳列 + 标题/副行（错误行标题用 destructive 文字色）
   Widget _buildLogRow(Map<String, dynamic> entry) {
+    if (entry['type']?.toString() == 'request') {
+      return _buildRequestRow(entry);
+    }
     final theme = Theme.of(context);
     final barColor = _levelBarColor(context, entry);
     final title = _getTitle(entry);
@@ -987,7 +1060,12 @@ class _AppLogsPageState extends State<AppLogsPage> {
       color: theme.colorScheme.outline,
       fontFeatures: const [FontFeature.tabularFigures()],
     );
-    final titleStyle = theme.textTheme.bodyMedium?.copyWith(fontSize: 13.5);
+    // v2：不再用彩色左边条，错误行只把标题改成 destructive 文字色
+    final isErrorRow = barColor == theme.colorScheme.error;
+    final titleStyle = theme.textTheme.bodyMedium?.copyWith(
+      fontSize: 13.5,
+      color: isErrorRow ? context.tokens.colors.textDestructive : null,
+    );
     final subtitleStyle = theme.textTheme.bodySmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
     );
@@ -998,7 +1076,8 @@ class _AppLogsPageState extends State<AppLogsPage> {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.15),
+              color: context.tokens.colors.separator,
+              width: AppSpace.hairline,
             ),
           ),
         ),
@@ -1006,11 +1085,9 @@ class _AppLogsPageState extends State<AppLogsPage> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 级别色条（普通行透明占位，保持文本列对齐）
-              Container(width: 3, color: barColor),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(11, 8, 16, 8),
+                  padding: const EdgeInsets.fromLTRB(AppSpace.pageMargin, 8, AppSpace.pageMargin, 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1057,12 +1134,9 @@ class _AppLogsPageState extends State<AppLogsPage> {
     final type = entry['type']?.toString();
     final statusCode = entry['statusCode'];
     if (type == 'request' && statusCode is int) {
-      final scheme = Theme.of(context).colorScheme;
       final statusColor = statusCode >= 400
-          ? scheme.error
-          : statusCode >= 300
-              ? Colors.orange
-              : Colors.green;
+          ? context.tokens.colors.textDestructive
+          : context.tokens.colors.textMeta;
       final rest = subtitle.startsWith('$statusCode')
           ? subtitle.substring('$statusCode'.length)
           : ' $subtitle';
@@ -1094,64 +1168,25 @@ class _AppLogsPageState extends State<AppLogsPage> {
 
   /// 筛选区：级别 chips 平铺（高频、一击直达）+ 类型下拉（低频、收纳）+ 条数
   Widget _buildFilterBar() {
+    final tokens = context.tokens;
     final theme = Theme.of(context);
-
-    // 自绘 toggle：尺寸恒定（边框选中时透明占位）、无隐式动画，避免切换时布局抖动
-    Widget buildChip({
-      required String label,
-      required bool selected,
-      required VoidCallback onTap,
-    }) {
-      return Material(
-        color: selected
-            ? theme.colorScheme.secondaryContainer
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: onTap,
-          child: Container(
-            height: 32,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: selected
-                    ? Colors.transparent
-                    : theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              label,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: selected
-                    ? theme.colorScheme.onSecondaryContainer
-                    : theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      height: 48,
-      color: theme.colorScheme.surfaceContainerLow,
+    // 筛选胶囊行：级别（再点一次取消）+ 类型（点开菜单）；条数固定在右端
+    return SizedBox(
+      height: AppSize.categoryBar,
       child: Row(
         children: [
-          // 筛选控件区：占弹性空间、必要时横向滚动，与右侧条数互不影响
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.only(left: 12),
+              padding: const EdgeInsets.only(left: AppSpace.pageMargin),
               child: Row(
                 children: [
-                  for (final filter in _LogLevelFilter.values) ...[
+                  for (final filter in _LogLevelFilter.values)
                     if (filter != _LogLevelFilter.all) ...[
-                      buildChip(
+                      FilterPill(
                         label: _levelFilterLabel(filter),
                         selected: _levelFilter == filter,
+                        showChevron: false,
                         onTap: () {
                           setState(() {
                             // 再点一次已选级别 = 取消级别筛选
@@ -1162,22 +1197,20 @@ class _AppLogsPageState extends State<AppLogsPage> {
                           });
                         },
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpace.s),
                     ],
-                  ],
-                  const SizedBox(width: 4),
-                  _buildTypeDropdown(theme),
+                  _buildTypePill(),
                 ],
               ),
             ),
           ),
           // 条数固定锚定右端：宽度变化不参与左侧布局
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpace.pageMargin),
             child: Text(
               S.current.appLogs_entryCount(_filtered.length),
               style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.outline,
+                color: tokens.colors.textMeta,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
@@ -1187,65 +1220,33 @@ class _AppLogsPageState extends State<AppLogsPage> {
     );
   }
 
-  /// 类型筛选下拉：显示当前选中类型，激活非「全部」筛选时高亮
-  Widget _buildTypeDropdown(ThemeData theme) {
-    final active = _typeFilter != LogTypeFilter.all;
-    final fgColor = active
-        ? theme.colorScheme.onSecondaryContainer
-        : theme.colorScheme.onSurfaceVariant;
-
-    return SwipeDismissiblePopupMenuButton<LogTypeFilter>(
-      initialValue: _typeFilter,
-      tooltip: S.current.appLogs_type,
-      onSelected: (filter) {
-        setState(() {
-          _typeFilter = filter;
-          _applyFilters();
-        });
-      },
-      itemBuilder: (context) => [
-        for (final filter in LogTypeFilter.values)
-          PopupMenuItem(
-            value: filter,
-            height: 40,
-            child: Row(
-              children: [
-                Icon(
-                  Symbols.check_rounded,
-                  size: 18,
-                  color: filter == _typeFilter
-                      ? theme.colorScheme.primary
-                      : Colors.transparent,
-                ),
-                const SizedBox(width: 8),
-                Text(_typeFilterLabel(filter)),
+  /// 类型筛选胶囊：点开 v2 菜单，非「全部」时高亮
+  Widget _buildTypePill() {
+    return Builder(
+      builder: (pillContext) => FilterPill(
+        label: _typeFilterLabel(_typeFilter),
+        selected: _typeFilter != LogTypeFilter.all,
+        onTap: () async {
+          final picked = await showAppMenu<LogTypeFilter>(
+            context: pillContext,
+            anchor: globalRectOf(pillContext),
+            sections: [
+              [
+                for (final filter in LogTypeFilter.values)
+                  AppMenuItem<LogTypeFilter>(
+                    label: _typeFilterLabel(filter),
+                    value: filter,
+                    checked: filter == _typeFilter,
+                  ),
               ],
-            ),
-          ),
-      ],
-      child: Container(
-        padding: const EdgeInsets.only(left: 10, right: 4),
-        height: 32,
-        decoration: BoxDecoration(
-          color: active ? theme.colorScheme.secondaryContainer : null,
-          border: active
-              ? null
-              : Border.all(
-                  color:
-                      theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
-                ),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              _typeFilterLabel(_typeFilter),
-              style: theme.textTheme.labelMedium?.copyWith(color: fgColor),
-            ),
-            Icon(Symbols.arrow_drop_down_rounded, size: 18, color: fgColor),
-          ],
-        ),
+            ],
+          );
+          if (picked == null || !mounted) return;
+          setState(() {
+            _typeFilter = picked;
+            _applyFilters();
+          });
+        },
       ),
     );
   }

@@ -28,6 +28,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     required Brightness brightness,
     AccentPreset accent = AccentPreset.meika,
     AppearanceTiers tiers = const AppearanceTiers(),
+    String? bodyFontFamily,
   }) {
     final colors = AppColors.resolve(brightness, accent);
     return AppTokens(
@@ -35,7 +36,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
       accent: accent,
       tiers: tiers,
       colors: colors,
-      text: AppTextStyles.forTier(tiers.lineHeight),
+      text: AppTextStyles.forTier(
+        tiers.lineHeight,
+        bodyFontFamily: bodyFontFamily,
+      ),
       radius: AppRadius.forTier(tiers.radius),
       materials: AppMaterials.resolve(brightness, colors, tiers.translucency),
     );

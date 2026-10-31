@@ -15,9 +15,7 @@ import '../utils/app_version.dart';
 import '../utils/dialog_utils.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 import '../widgets/update_dialog.dart';
-import 'app_logs_page.dart';
 import 'dev/ui_gallery_page.dart';
-import 'perf_diagnostics_page.dart';
 
 class AboutPage extends StatefulWidget {
   const AboutPage({super.key});
@@ -186,7 +184,7 @@ class _AboutPageState extends State<AboutPage> {
     showAppDialog(
       context: context,
       builder: (context) => AppAlertDialog(
-        icon: const Icon(Symbols.check_circle_rounded, size: 48, color: Colors.green),
+        icon: Icon(AppIcons.checkCircle, size: 48, color: context.tokens.colors.brandPrimary),
         title: Text(context.l10n.about_latestVersion),
         content: Text(context.l10n.about_noUpdateContent(currentVersion)),
         actions: [
@@ -203,7 +201,7 @@ class _AboutPageState extends State<AboutPage> {
     showAppDialog(
       context: context,
       builder: (context) => AppAlertDialog(
-        icon: const Icon(Symbols.error_rounded, size: 48, color: Colors.red),
+        icon: Icon(AppIcons.error, size: 48, color: context.tokens.colors.textDestructive),
         title: Text(context.l10n.about_checkUpdateFailed),
         content: Text(context.l10n.about_checkUpdateError(error)),
         actions: [
@@ -218,206 +216,212 @@ class _AboutPageState extends State<AboutPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final l10n = context.l10n;
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    final meta = base.merge(tokens.text.meta).copyWith(color: colors.textMeta);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.about_title),
-        centerTitle: true,
-      ),
-      body: ListView(
-        children: [
-          const SizedBox(height: 40),
-          // Logo Header
-          Center(
-            child: SizedBox(
-              width: 100,
-              height: 100,
-              child: ScalableImageWidget.fromSISource(
-                si: ScalableImageSource.fromSvg(
-                  DefaultAssetBundle.of(context),
-                  'assets/logo.svg',
-                  warnF: (_) {},
-                ),
-              ),
+      backgroundColor: colors.surfacePage,
+      appBar: AppNavBar(title: l10n.about_title),
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: kReadableMaxWidth),
+          child: ListView(
+            padding: EdgeInsets.fromLTRB(
+              AppSpace.pageMargin,
+              AppSpace.x32,
+              AppSpace.pageMargin,
+              MediaQuery.paddingOf(context).bottom + AppSpace.x32,
             ),
-          ),
-          const SizedBox(height: 24),
-          Center(
-            child: Column(
-              children: [
-                Text(
-                  'USCard Forum',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: _onVersionTap,
-                  child: Text(
-                    'Version $_version',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+            children: [
+              // App 图标 96 + 名称 + 版本 + 非官方说明
+              Center(
+                child: SizedBox(
+                  width: 96,
+                  height: 96,
+                  child: ExcludeSemantics(
+                    child: ScalableImageWidget.fromSISource(
+                      si: ScalableImageSource.fromSvg(
+                        DefaultAssetBundle.of(context),
+                        'assets/logo.svg',
+                        warnF: (_) {},
+                      ),
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 48),
+              ),
+              const SizedBox(height: AppSpace.l),
+              Center(
+                child: Text(
+                  l10n.about_appName,
+                  style: base
+                      .merge(tokens.text.title)
+                      .copyWith(color: colors.textPrimary),
+                ),
+              ),
+              const SizedBox(height: AppSpace.xs),
+              // 连点 7 次开开发者模式（行为不变）
+              Center(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _onVersionTap,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: AppSize.hit),
+                    child: Center(
+                      widthFactor: 1,
+                      child: Text(_version, style: meta),
+                    ),
+                  ),
+                ),
+              ),
+              Center(child: Text(l10n.about_unofficial, style: meta)),
+              const SizedBox(height: AppSpace.x32),
 
-          // Action List
-          _buildSectionTitle(context, context.l10n.about_info),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SegmentedCardGroup(
-              children: [
-                _buildListTile(
-                  context,
-                  icon: Symbols.update_rounded,
-                  title: context.l10n.about_checkUpdate,
-                  onTap: _checkForUpdate,
-                ),
-                _buildListTile(
-                  context,
-                  icon: Symbols.swap_horiz_rounded,
-                  title: context.l10n.update_githubProxy,
-                  subtitle: _githubProxy.isEmpty
-                      ? context.l10n.update_githubProxyDirect
-                      : _githubProxy,
-                  onTap: _showGithubProxyDialog,
-                ),
-                _buildListTile(
-                  context,
-                  icon: Symbols.description_rounded,
-                  title: context.l10n.about_openSourceLicense,
-                  onTap: () => showLicensePage(
-                    context: context,
-                    applicationName: 'USCard Forum',
-                    applicationVersion: _version,
-                    applicationLegalese: context.l10n.about_legalese,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          _buildSectionTitle(context, context.l10n.about_develop),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SegmentedCardGroup(
-              children: [
-                if (_developerMode)
-                  SwitchListTile.adaptive(
-                    title: Text(context.l10n.about_developerMode),
-                    subtitle: Text(context.l10n.about_tapToDisableDeveloperMode),
-                    value: true,
-                    onChanged: (value) {
-                      if (!value) {
-                        _setDeveloperMode(false);
-                      }
-                    },
-                  ),
-                _buildListTile(
-                  context,
-                  icon: Symbols.code_rounded,
-                  title: context.l10n.about_sourceCode,
-                  subtitle: 'GitHub',
-                  onTap: () => launchUrl(
-                    Uri.parse('https://github.com/leehao321/uscard-forum-app'),
-                    mode: LaunchMode.externalApplication,
-                  ),
-                ),
-                _buildListTile(
-                  context,
-                  icon: Symbols.article_rounded,
-                  title: context.l10n.about_appLogs,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AppLogsPage()),
-                  ),
-                ),
-                // 组件样本(0.4.0 v2 组件对照,只在开发者模式出现)
-                if (_developerMode)
+              SegmentedCardGroup(
+                children: [
                   _buildListTile(
                     context,
-                    icon: AppIcons.category,
-                    title: context.l10n.about_uiGallery,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const UiGalleryPage()),
-                    ),
+                    icon: AppIcons.refresh,
+                    title: l10n.about_checkUpdate,
+                    onTap: _checkForUpdate,
                   ),
-                // 性能诊断(开发者向工具,文案暂不接入 l10n)
-                _buildListTile(
-                  context,
-                  icon: Symbols.speed_rounded,
-                  title: '性能诊断',
-                  onTap: () => Navigator.push(
+                  _buildListTile(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => const PerfDiagnosticsPage(),
+                    icon: AppIcons.download,
+                    title: l10n.update_githubProxy,
+                    value: _githubProxy.isEmpty
+                        ? l10n.update_githubProxyDirect
+                        : _githubProxy,
+                    onTap: _showGithubProxyDialog,
+                  ),
+                  _buildListTile(
+                    context,
+                    icon: AppIcons.description,
+                    title: l10n.about_openSourceLicense,
+                    onTap: () => showLicensePage(
+                      context: context,
+                      applicationName: l10n.about_appName,
+                      applicationVersion: _version,
+                      applicationLegalese: l10n.about_legalese,
                     ),
                   ),
-                ),
-                _buildListTile(
-                  context,
-                  icon: Symbols.bug_report_rounded,
-                  title: context.l10n.about_feedback,
-                  onTap: () => launchUrl(
-                    Uri.parse('https://github.com/leehao321/uscard-forum-app/issues'),
-                    mode: LaunchMode.externalApplication,
+                ],
+              ),
+              const SizedBox(height: AppSpace.xl),
+              SegmentedCardGroup(
+                children: [
+                  _buildListTile(
+                    context,
+                    icon: AppIcons.code,
+                    title: l10n.about_sourceCode,
+                    external: true,
+                    onTap: () => launchUrl(
+                      Uri.parse(
+                        'https://github.com/leehao321/uscard-forum-app',
+                      ),
+                      mode: LaunchMode.externalApplication,
+                    ),
                   ),
+                  _buildListTile(
+                    context,
+                    icon: AppIcons.message,
+                    title: l10n.about_feedback,
+                    external: true,
+                    onTap: () => launchUrl(
+                      Uri.parse(
+                        'https://github.com/leehao321/uscard-forum-app/issues',
+                      ),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                  ),
+                ],
+              ),
+              if (_developerMode) ...[
+                const SizedBox(height: AppSpace.xl),
+                SegmentedCardGroup(
+                  children: [
+                    SwitchListTile.adaptive(
+                      secondary: Icon(
+                        AppIcons.code,
+                        color: colors.brandPrimary,
+                      ),
+                      title: Text(l10n.about_developerMode),
+                      value: true,
+                      onChanged: (value) {
+                        if (!value) _setDeveloperMode(false);
+                      },
+                    ),
+                    // 组件样本(0.4.0 v2 组件对照,只在开发者模式出现)
+                    _buildListTile(
+                      context,
+                      icon: AppIcons.category,
+                      title: l10n.about_uiGallery,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const UiGalleryPage(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpace.m,
+                    AppSpace.s,
+                    AppSpace.m,
+                    0,
+                  ),
+                  child: Text(l10n.about_tapToDisableDeveloperMode, style: meta),
                 ),
               ],
-            ),
+            ],
           ),
-
-          const SizedBox(height: 40),
-          Center(
-            child: Text(
-              'Made with Flutter & \u2764\uFE0F',
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.outline,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
 
+  /// 分组行：20 brand 图标 + 17 标题 + 右侧当前值 / chevron（外链用 external 图标）
   Widget _buildListTile(
     BuildContext context, {
     required IconData icon,
     required String title,
-    String? subtitle,
+    String? value,
+    bool external = false,
     required VoidCallback onTap,
   }) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
+      leading: Icon(icon, color: colors.brandPrimary),
       title: Text(title),
-      subtitle: subtitle != null ? Text(subtitle) : null,
-      trailing: const Icon(Symbols.chevron_right_rounded, size: 20, color: Colors.grey),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (value != null)
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 160),
+              child: Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall!
+                    .merge(tokens.text.meta)
+                    .copyWith(color: colors.textMeta),
+              ),
+            ),
+          if (value != null) const SizedBox(width: AppSpace.xs),
+          Icon(
+            external ? AppIcons.openInNew : AppIcons.chevronRight,
+            size: AppSize.iconS,
+            color: colors.textMeta,
+          ),
+        ],
+      ),
       onTap: onTap,
     );
   }

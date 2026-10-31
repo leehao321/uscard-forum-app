@@ -17,14 +17,14 @@ List<SettingsGroup> buildBottomNavGroups(BuildContext context) {
   return [
     SettingsGroup(
       title: l10n.bottomNav_gesturesGroup,
-      icon: Symbols.touch_app_rounded,
+      icon: AppIcons.touchApp,
       items: [
         ActionModel(
           id: 'bottomSingleTapAction',
           title: l10n.bottomNav_singleTapAction,
           subtitle: l10n.bottomNav_singleTapActionDesc,
-          icon: Symbols.radio_button_checked_rounded,
-          getDynamicSubtitle: (ref) =>
+          icon: AppIcons.radioButton,
+          valueBuilder: (ref) =>
               ref.watch(preferencesProvider).bottomSingleTapAction.label,
           onTap: (ctx, ref) => _pickAction(
             ctx,
@@ -37,8 +37,8 @@ List<SettingsGroup> buildBottomNavGroups(BuildContext context) {
           id: 'bottomDoubleTapAction',
           title: l10n.bottomNav_doubleTapAction,
           subtitle: l10n.bottomNav_doubleTapActionDesc,
-          icon: Symbols.double_arrow_rounded,
-          getDynamicSubtitle: (ref) =>
+          icon: AppIcons.forward,
+          valueBuilder: (ref) =>
               ref.watch(preferencesProvider).bottomDoubleTapAction.label,
           onTap: (ctx, ref) => _pickAction(
             ctx,
@@ -105,13 +105,13 @@ class _ActionOptionTile extends StatelessWidget {
                   : theme.colorScheme.onSurfaceVariant,
             )
           : Icon(
-              Symbols.block_rounded,
+              AppIcons.block,
               color: theme.colorScheme.onSurfaceVariant,
             ),
       title: Text(action.label),
       trailing: selected
           ? Icon(
-              Symbols.check_rounded,
+              AppIcons.check,
               color: theme.colorScheme.primary,
             )
           : null,

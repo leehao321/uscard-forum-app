@@ -18,7 +18,7 @@ List<SettingsGroup> buildShortcutGroups(BuildContext context) {
   return [
     SettingsGroup(
       title: l10n.shortcuts_navigation,
-      icon: Symbols.navigation_rounded,
+      icon: AppIcons.forward,
       items: [
         _maybeShortcutCustomModel(ShortcutAction.navigateBack, l10n),
         _maybeShortcutCustomModel(ShortcutAction.navigateBackAlt, l10n),
@@ -34,7 +34,7 @@ List<SettingsGroup> buildShortcutGroups(BuildContext context) {
     ),
     SettingsGroup(
       title: l10n.shortcuts_content,
-      icon: Symbols.article_rounded,
+      icon: AppIcons.article,
       items: [
         _maybeShortcutCustomModel(ShortcutAction.closeOverlay, l10n),
         _maybeShortcutCustomModel(ShortcutAction.refresh, l10n),
@@ -48,7 +48,7 @@ List<SettingsGroup> buildShortcutGroups(BuildContext context) {
     ),
     SettingsGroup(
       title: l10n.shortcuts_topic,
-      icon: Symbols.topic_rounded,
+      icon: AppIcons.article,
       items: [
         _maybeShortcutCustomModel(ShortcutAction.jumpToPost, l10n),
         _maybeShortcutCustomModel(ShortcutAction.goToUnreadPost, l10n),
@@ -59,7 +59,7 @@ List<SettingsGroup> buildShortcutGroups(BuildContext context) {
     ),
     SettingsGroup(
       title: l10n.shortcuts_post,
-      icon: Symbols.forum_rounded,
+      icon: AppIcons.forum,
       items: [
         _maybeShortcutCustomModel(ShortcutAction.replyPost, l10n),
         _maybeShortcutCustomModel(ShortcutAction.quotePost, l10n),
@@ -150,7 +150,7 @@ class _ShortcutTile extends ConsumerWidget {
               ),
               const SizedBox(width: 12),
               Icon(
-                Symbols.chevron_right_rounded,
+                AppIcons.chevronRight,
                 color: theme.colorScheme.outline.withValues(alpha: 0.42),
                 size: 18,
               ),
@@ -263,7 +263,7 @@ class _RecordKeyDialogState extends State<_RecordKeyDialog> {
               Row(
                 children: [
                   Icon(
-                    Symbols.warning_amber_rounded,
+                    AppIcons.warning,
                     color: theme.colorScheme.error,
                     size: 18,
                   ),
