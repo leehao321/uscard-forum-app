@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -16,7 +17,6 @@ import '../../../utils/number_utils.dart';
 import '../../../widgets/topic/topic_notification_button.dart';
 import '../../../widgets/layout/home_workspace_scope.dart';
 import 'topic_vote_button.dart';
-import '../../../widgets/common/topic_badges.dart';
 import '../../category_topics_page.dart';
 import '../../tag_topics_page.dart';
 import '../../../widgets/topic/assign_sheet.dart';
@@ -66,226 +66,210 @@ class TopicDetailHeader extends ConsumerWidget {
       }
     }
 
-    return Container(
-      padding: EdgeInsets.fromLTRB(16, showTitle ? 20 : 12, 16, 16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-            width: 0.5,
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final metaStyle = theme.textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
+
+    Widget metaLink(String text, VoidCallback onTap, {bool brand = false}) =>
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: Text(
+            text,
+            style: brand ? metaStyle.copyWith(color: colors.brandPrimary) : metaStyle,
           ),
+        );
+
+    final tags = detail.tags ?? const [];
+    final showCategoryRow =
+        !detail.isPrivateMessage && (category != null || tags.isNotEmpty);
+
+    // v2 主题头（设计说明 §3.2）：pad 8 20 12，间距 8；标题 22 Semibold；
+    // 元信息 13 meta：「分类 #标签」、回复数、浏览数、日期
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        AppSpace.pageMargin,
+        showTitle ? AppSpace.s : AppSpace.xs,
+        AppSpace.pageMargin,
+        AppSpace.m,
+      ),
+      decoration: BoxDecoration(
+        color: colors.surfacePage,
+        border: Border(
+          bottom: BorderSide(color: colors.separator, width: AppSpace.hairline),
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (showTitle)
-            SelectableText.rich(
-              TextSpan(
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  height: 1.4,
-                  letterSpacing: 0.2,
+            Semantics(
+              header: true,
+              child: SelectableText.rich(
+                TextSpan(
+                  style: theme.textTheme.titleLarge
+                      ?.merge(tokens.text.title)
+                      .copyWith(color: colors.textPrimary),
+                  children: [
+                    if (detail.isPrivateMessage)
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: AppSpace.s),
+                          child: Icon(
+                            AppIcons.mail,
+                            size: AppSize.iconM,
+                            color: colors.brandPrimary,
+                          ),
+                        ),
+                      ),
+                    if (detail.closed)
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: AppSpace.s),
+                          child: Icon(
+                            AppIcons.lock,
+                            size: AppSize.iconM,
+                            color: colors.textMeta,
+                          ),
+                        ),
+                      ),
+                    if (detail.hasAcceptedAnswer)
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: AppSpace.s),
+                          child: Icon(
+                            AppIcons.checkCircle,
+                            size: AppSize.iconM,
+                            color: colors.brandPrimary,
+                          ),
+                        ),
+                      ),
+                    ...EmojiText.buildEmojiSpans(
+                      context,
+                      detail.title,
+                      theme.textTheme.titleLarge
+                          ?.merge(tokens.text.title)
+                          .copyWith(color: colors.textPrimary),
+                    ),
+                  ],
                 ),
-                children: [
-                  if (detail.isPrivateMessage)
-                    WidgetSpan(
-                      alignment: PlaceholderAlignment.middle,
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: Icon(
-                          Symbols.mail_rounded,
-                          size: 20,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  if (detail.closed)
-                    WidgetSpan(
-                      alignment: PlaceholderAlignment.middle,
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: Icon(
-                          Symbols.lock_rounded,
-                          size: 20,
-                          color: theme.colorScheme.outline,
-                        ),
-                      ),
-                    ),
-                  if (detail.hasAcceptedAnswer)
-                    WidgetSpan(
-                      alignment: PlaceholderAlignment.middle,
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: Icon(
-                          Symbols.check_box_rounded,
-                          size: 20,
-                          color: Colors.green,
-                        ),
-                      ),
-                    ),
-                  ...EmojiText.buildEmojiSpans(
-                    context,
-                    detail.title,
-                    theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
+                key: headerKey,
               ),
-              key: headerKey,
             )
           else
             SizedBox(key: headerKey),
 
-          SizedBox(height: showTitle ? 16 : 8),
+          SizedBox(height: showTitle ? AppSpace.s : AppSpace.xs),
 
-          // 分类与标签（私信话题不显示）
-          if (!detail.isPrivateMessage &&
-              (category != null ||
-                  (detail.tags != null && detail.tags!.isNotEmpty))) ...[
+          // 分类与标签（私信话题不显示）：纯文字一行，可点
+          if (showCategoryRow) ...[
             Wrap(
-              spacing: 6,
-              runSpacing: 8,
+              spacing: AppSpace.m,
+              runSpacing: AppSpace.xs,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                // 分类 Badge
                 if (category != null)
-                  CategoryBadge(
-                    category: category,
-                    faIcon: faIcon,
-                    logoUrl: logoUrl,
-                    onTap: () {
-                      final workspace = HomeWorkspaceScope.maybeOf(context);
-                      if (workspace != null) {
-                        workspace.onShowCategory(category);
-                        return;
-                      }
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              CategoryTopicsPage(category: category),
-                        ),
-                      );
-                    },
-                  ),
-
-                // 标签 Badges
-                if (detail.tags != null)
-                  ...detail.tags!.map(
-                    (tag) => TagBadge(
-                      name: tag.name,
-                      onTap: () {
-                        final workspace = HomeWorkspaceScope.maybeOf(context);
-                        if (workspace != null) {
-                          workspace.onShowTag(tag.name);
-                          return;
-                        }
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => TagTopicsPage(tagName: tag.name),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                  metaLink(category.name, () {
+                    final workspace = HomeWorkspaceScope.maybeOf(context);
+                    if (workspace != null) {
+                      workspace.onShowCategory(category);
+                      return;
+                    }
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CategoryTopicsPage(category: category),
+                      ),
+                    );
+                  }, brand: true),
+                for (final tag in tags)
+                  metaLink('#${tag.name}', () {
+                    final workspace = HomeWorkspaceScope.maybeOf(context);
+                    if (workspace != null) {
+                      workspace.onShowTag(tag.name);
+                      return;
+                    }
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TagTopicsPage(tagName: tag.name),
+                      ),
+                    );
+                  }),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpace.s),
           ],
 
           // 指定(discourse-assign)标识:有指定对象才显示,点开直接跳到
           // 指定弹窗——之前只在"更多"菜单的文字里标了状态,标题区域完全
           // 看不出来,指定完等于白指定。
           if (detail.isAssigned) ...[
-            InkWell(
-              borderRadius: BorderRadius.circular(16),
+            AppPressable(
               onTap: () => unawaited(
                 showAssignSheet(context, ref, topicId: detail.id),
               ),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(
-                    alpha: 0.5,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpace.m,
+                  vertical: AppSpace.xs,
+                ),
+                decoration: ShapeDecoration(
+                  color: colors.surfaceGrouped,
+                  shape: const StadiumBorder(),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.assignment_ind_rounded,
-                      size: 16,
-                      color: theme.colorScheme.primary,
+                      AppIcons.assign,
+                      size: AppSize.iconS,
+                      color: colors.brandPrimary,
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: AppSpace.xs),
                     Text(
                       '已指定给 '
                       '${detail.assignedToUser?.displayName ?? detail.assignedToGroupName ?? ''}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: metaStyle.copyWith(color: colors.brandPrimary),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpace.s),
           ],
 
-          // Metadata Row (Replies, Views, Date, Vote Button)
+          // 元信息行：回复数、浏览数、日期，右侧投票按钮
           Row(
             children: [
               Expanded(
                 child: Wrap(
-                  spacing: 12,
-                  runSpacing: 4,
+                  spacing: AppSpace.m,
+                  runSpacing: AppSpace.xs,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     _buildMetadataItem(
                       context,
-                      Symbols.chat_bubble_rounded,
+                      AppIcons.chatBubble,
                       '${detail.postsCount - 1}',
                       label: context.l10n.topicDetail_replyLabel,
                     ),
                     _buildMetadataItem(
                       context,
-                      Symbols.visibility_rounded,
+                      AppIcons.visibility,
                       NumberUtils.formatCount(detail.views),
                       label: context.l10n.topicDetail_viewsLabel,
                     ),
                     Tooltip(
                       message: TimeUtils.formatTooltipTime(detail.createdAt),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Symbols.schedule_rounded,
-                            size: 14,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurfaceVariant
-                                .withValues(alpha: 0.7),
-                          ),
-                          const SizedBox(width: 4),
-                          RelativeTimeText(
-                            dateTime: detail.createdAt,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant
-                                      .withValues(alpha: 0.8),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                          ),
-                        ],
+                      child: RelativeTimeText(
+                        dateTime: detail.createdAt,
+                        style: metaStyle,
                       ),
                     ),
                   ],
@@ -296,8 +280,8 @@ class TopicDetailHeader extends ConsumerWidget {
             ],
           ),
 
-          // AI 摘要 & 订阅按钮
-          const SizedBox(height: 16),
+          // AI 摘要 & 订阅按钮（卡片内容 M5 再换皮）
+          const SizedBox(height: AppSpace.m),
           CollapsibleTopicSummary(
             topicId: detail.id,
             topicDetail: detail,
@@ -319,33 +303,22 @@ class TopicDetailHeader extends ConsumerWidget {
     String text, {
     String? label,
   }) {
-    final theme = Theme.of(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          icon,
-          size: 14,
-          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          text,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        if (label != null) ...[
-          const SizedBox(width: 2),
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-            ),
-          ),
+    final tokens = context.tokens;
+    final style = Theme.of(context).textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: tokens.colors.textMeta);
+    // 图标 14 + 数字；标签只给读屏用（「12 回复」），视觉上不再显示
+    return Semantics(
+      label: label == null ? text : '$text $label',
+      excludeSemantics: true,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: tokens.colors.textMeta),
+          const SizedBox(width: AppSpace.xs),
+          Text(text, style: style),
         ],
-      ],
+      ),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../../l10n/s.dart';
@@ -60,7 +61,7 @@ class PostAvatar extends StatefulWidget {
     super.key,
     required this.post,
     required this.theme,
-    this.radius = 20,
+    this.radius = 17,
     this.topicId,
     this.onMentionUser,
   });
@@ -112,10 +113,6 @@ class _PostAvatarState extends State<PostAvatar> {
         imageUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
         radius: widget.radius,
         fallbackText: widget.post.username,
-        border: Border.all(
-          color: widget.theme.colorScheme.outlineVariant,
-          width: 1,
-        ),
       ),
     );
 
@@ -215,13 +212,14 @@ class PostHeader extends StatelessWidget {
                       (post.name != null && post.name!.isNotEmpty)
                           ? post.name!
                           : post.username,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: (post.moderator || post.admin)
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurface,
-                      ),
+                      // v2：名字 13 Semibold；版主 / 管理员用 brand 色
+                      style: theme.textTheme.bodySmall
+                          ?.merge(context.tokens.text.metaStrong)
+                          .copyWith(
+                            color: (post.moderator || post.admin)
+                                ? context.tokens.colors.brandPrimary
+                                : context.tokens.colors.textPrimary,
+                          ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
@@ -252,11 +250,23 @@ class PostHeader extends StatelessWidget {
                   ],
                   if (isTopicOwner && post.postNumber > 1) ...[
                     const SizedBox(width: 4),
-                    buildCompactBadge(
-                      context,
-                      context.l10n.post_opBadge,
-                      theme.colorScheme.primaryContainer,
-                      theme.colorScheme.onPrimaryContainer,
+                    // v2 楼主标签：1px brand 描边、r4、11 brand
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: context.tokens.colors.brandPrimary,
+                        ),
+                        borderRadius: BorderRadius.circular(
+                          context.tokens.radius.tag,
+                        ),
+                      ),
+                      child: Text(
+                        context.l10n.post_opBadge,
+                        style: theme.textTheme.labelSmall
+                            ?.merge(context.tokens.text.caption)
+                            .copyWith(color: context.tokens.colors.brandPrimary),
+                      ),
                     ),
                   ],
                   if (isOwnPost) ...[
@@ -281,10 +291,10 @@ class PostHeader extends StatelessWidget {
                   children: [
                     Text(
                       '@${post.username}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontSize: 11,
-                      ),
+                      // v2：@handle 11 meta；名字与 handle 间距 2
+                      style: theme.textTheme.bodySmall
+                          ?.merge(context.tokens.text.caption)
+                          .copyWith(color: context.tokens.colors.textMeta),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),

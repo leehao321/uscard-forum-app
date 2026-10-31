@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
+import '../../../content/render_theme.dart';
 import '../../../../l10n/s.dart';
 import '../../../../models/topic.dart';
 
@@ -34,7 +36,7 @@ class PostSegmentFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final targetColor = buildPostTargetColor(theme, post, highlight);
-    final borderColor = theme.colorScheme.outlineVariant.withValues(alpha: 0.5);
+    final borderColor = AppTokens.of(context).colors.separator;
 
     // 删除/隐藏帖才降透明,常规帖不挂 Opacity 节点(1.0 也要占一个
     // RenderObject 位)
@@ -48,7 +50,7 @@ class PostSegmentFrame extends StatelessWidget {
             color: targetColor,
             border: Border(
               bottom: showBottomBorder
-                  ? BorderSide(color: borderColor, width: 0.5)
+                  ? BorderSide(color: borderColor, width: AppSpace.hairline)
                   : BorderSide.none,
             ),
           ),
@@ -66,18 +68,16 @@ class PostSegmentFrame extends StatelessWidget {
                         vertical: 6,
                         horizontal: 12,
                       ),
-                      color: theme.colorScheme.primaryContainer.withValues(
-                        alpha: 0.3,
-                      ),
+                      color: AppTokens.of(context).colors.surfaceGrouped,
                       child: Text(
                         context.l10n.post_lastReadHere,
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.primary,
+                          color: AppTokens.of(context).colors.brandPrimary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                  child,
+                  RenderTheme(child: child),
                 ],
               ),
               if (showTopDateSeparator && topDateSeparatorLabel != null)
@@ -169,19 +169,24 @@ class _PostSelectionIndicator extends StatelessWidget {
 }
 
 Color buildPostTargetColor(ThemeData theme, Post post, bool highlight) {
-  final backgroundColor = theme.colorScheme.surface;
-  final highlightColor = theme.colorScheme.primaryContainer.withValues(
-    alpha: 0.3,
-  );
-  return highlight
-      ? Color.alphaBlend(highlightColor, backgroundColor)
-      : post.isDeleted
-      ? theme.colorScheme.errorContainer.withValues(alpha: 0.15)
-      : post.hidden
-      ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3)
-      : backgroundColor;
+  // v2：楼层底色就是页面底；高亮 = brand 12% 叠在页面底上；删除 / 隐藏帖用 grouped
+  final colors =
+      (theme.extension<AppTokens>() ??
+              AppTokens.resolve(brightness: theme.brightness))
+          .colors;
+  if (highlight) {
+    return Color.alphaBlend(
+      colors.brandPrimary.withValues(alpha: 0.12),
+      colors.surfacePage,
+    );
+  }
+  if (post.isDeleted || post.hidden) return colors.surfaceGrouped;
+  return colors.surfacePage;
 }
 
 Color buildPostSelectionIndicatorColor(ThemeData theme) {
-  return theme.colorScheme.primary;
+  return (theme.extension<AppTokens>() ??
+          AppTokens.resolve(brightness: theme.brightness))
+      .colors
+      .brandPrimary;
 }

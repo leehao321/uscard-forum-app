@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart';
 import '../../../../l10n/s.dart';
@@ -13,6 +14,12 @@ import '../../../../services/emoji_handler.dart';
 import '../../../../services/preloaded_data_service.dart';
 import '../../../../utils/platform_utils.dart';
 import 'post_reaction_picker.dart';
+
+/// 页脚用的 v2 颜色 token（theme 里没挂扩展时按亮度解析）
+AppColors _pc(ThemeData theme) =>
+    (theme.extension<AppTokens>() ??
+            AppTokens.resolve(brightness: theme.brightness))
+        .colors;
 
 /// 获取 emoji 图片 URL（未加载完成时返回空字符串，由 errorBuilder 处理）
 String _getEmojiUrl(String emojiName) {
@@ -280,12 +287,12 @@ class _PostActionBarState extends State<PostActionBar>
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
                   color: showReplies
-                      ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
-                      : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                      ? _pc(theme).brandPrimary.withValues(alpha: 0.12)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
                     color: showReplies
-                        ? theme.colorScheme.primary.withValues(alpha: 0.2)
+                        ? _pc(theme).brandPrimary.withValues(alpha: 0.2)
                         : Colors.transparent,
                   ),
                 ),
@@ -303,16 +310,16 @@ class _PostActionBarState extends State<PostActionBar>
                         Symbols.chat_bubble_rounded,
                         size: 15,
                         color: showReplies
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurfaceVariant,
+                            ? _pc(theme).brandPrimary
+                            : _pc(theme).textMeta,
                       ),
                       const SizedBox(width: 6),
                       Text(
                         '${widget.post.replyCount}',
                         style: theme.textTheme.labelMedium?.copyWith(
                           color: showReplies
-                              ? theme.colorScheme.primary
-                              : theme.colorScheme.onSurfaceVariant,
+                              ? _pc(theme).brandPrimary
+                              : _pc(theme).textMeta,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -323,8 +330,8 @@ class _PostActionBarState extends State<PostActionBar>
                             : Symbols.keyboard_arrow_down_rounded,
                         size: 18,
                         color: showReplies
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurfaceVariant,
+                            ? _pc(theme).brandPrimary
+                            : _pc(theme).textMeta,
                       ),
                     ],
                   ],
@@ -392,13 +399,13 @@ class _PostActionBarState extends State<PostActionBar>
         width: 36,
         decoration: BoxDecoration(
           color:
-              theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              Colors.transparent,
           shape: BoxShape.circle,
         ),
         child: Icon(
           icon,
           size: 18,
-          color: theme.colorScheme.onSurfaceVariant,
+          color: _pc(theme).textMeta,
         ),
       ),
     );
@@ -434,7 +441,7 @@ class _PostActionBarState extends State<PostActionBar>
                 // 描边的作用是「咬掉」压在下面的表情一圈，
                 // 最下层没有压着任何表情，无需描边
                 outlineColor:
-                    i == shown.length - 1 ? null : theme.colorScheme.surface,
+                    i == shown.length - 1 ? null : _pc(theme).surfacePage,
                 size: size,
               ),
             ),
@@ -469,8 +476,8 @@ class _PostActionBarState extends State<PostActionBar>
                   '${widget.reactions.fold(0, (sum, r) => sum + r.count)}',
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: widget.currentUserReaction != null
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurfaceVariant,
+                        ? _pc(theme).brandPrimary
+                        : _pc(theme).textMeta,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -514,7 +521,7 @@ class _PostActionBarState extends State<PostActionBar>
           : Icon(
               Symbols.favorite_rounded,
               size: 20,
-              color: theme.colorScheme.onSurfaceVariant,
+              color: _pc(theme).textMeta,
             ),
     );
 
@@ -534,12 +541,12 @@ class _PostActionBarState extends State<PostActionBar>
       height: 36,
       decoration: BoxDecoration(
         color: widget.currentUserReaction != null
-            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
-            : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            ? _pc(theme).brandPrimary.withValues(alpha: 0.12)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: widget.currentUserReaction != null
-              ? theme.colorScheme.primary.withValues(alpha: 0.2)
+              ? _pc(theme).brandPrimary.withValues(alpha: 0.2)
               : Colors.transparent,
         ),
       ),

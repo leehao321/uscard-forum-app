@@ -19,7 +19,7 @@ class TopicScrollState {
 
   const TopicScrollState({
     this.showBackToTop = false,
-    this.showBottomBar = false,
+    this.showBottomBar = true,
     this.hasInitialScrolled = false,
     this.isPositioned = false,
     this.jumpTargetPostNumber,
@@ -71,9 +71,10 @@ class TopicDetailController extends ChangeNotifier {
 
   TopicScrollState _scrollState;
   double _accumulatedScrollDelta = 0;
+  Timer? _expandToolbarTimer;
 
   /// 底部栏显示状态
-  final ValueNotifier<bool> showBottomBarNotifier = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> showBottomBarNotifier = ValueNotifier<bool>(true);
 
   /// 定位完成状态
   final ValueNotifier<bool> isPositionedNotifier = ValueNotifier<bool>(false);
@@ -231,6 +232,13 @@ class TopicDetailController extends ChangeNotifier {
 
     if (notification is ScrollEndNotification) {
       _accumulatedScrollDelta = 0;
+      // 停止滚动后工具栏回到展开态（收起只发生在下滚期间）
+      _expandToolbarTimer?.cancel();
+      _expandToolbarTimer = Timer(const Duration(milliseconds: 700), () {
+        if (_scrollState.showBottomBar) return;
+        _scrollState = _scrollState.copyWith(showBottomBar: true);
+        showBottomBarNotifier.value = true;
+      });
     }
 
     return false;
@@ -258,6 +266,7 @@ class TopicDetailController extends ChangeNotifier {
       _accumulatedScrollDelta = 0;
     } else if (_accumulatedScrollDelta > threshold &&
         _scrollState.showBottomBar) {
+      _expandToolbarTimer?.cancel();
       _scrollState = _scrollState.copyWith(showBottomBar: false);
       showBottomBarNotifier.value = false;
       _accumulatedScrollDelta = 0;
@@ -552,6 +561,7 @@ class TopicDetailController extends ChangeNotifier {
   @override
   void dispose() {
     // 滚动相关
+    _expandToolbarTimer?.cancel();
     showBottomBarNotifier.dispose();
     isPositionedNotifier.dispose();
     scrollController.dispose();

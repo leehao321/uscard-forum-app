@@ -193,6 +193,12 @@ abstract final class AppIcons {
   static const doNotDisturb = LucideIcons300.circleMinus;
   static const block = LucideIcons300.ban;
   static const wifiOff = LucideIcons300.wifiOff;
+  static const readLater = LucideIcons300.layers;
+  static const note = LucideIcons300.stickyNote;
+  static const hot = LucideIcons300.flame;
+  static const assign = LucideIcons300.userCheck;
+  static const archive = LucideIcons300.archive;
+  static const unarchive = LucideIcons300.archiveRestore;
   static const serverOff = LucideIcons300.serverOff;
   static const shieldAlert = LucideIcons300.shieldAlert;
   static const timerOff = LucideIcons300.timerOff;

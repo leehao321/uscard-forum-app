@@ -1,5 +1,46 @@
 {
+  "topic_backToBeforeJump": "回到跳转前",
+  "topic_backToLastRead": "回到上次阅读位置",
   "topic_editCategoryBar": "编辑分类条",
+  "topic_floorButton": "第 {n} 楼，共 {max} 楼，打开楼层跳转",
+  "@topic_floorButton": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_floorInputHint": "输入楼层号（1–{max}）",
+  "@topic_floorInputHint": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_floorInvalid": "请输入 1–{max} 之间的楼层号",
+  "@topic_floorInvalid": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_floorSliderValue": "第 {n} 楼，共 {max} 楼",
+  "@topic_floorSliderValue": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_jumpToFloor": "跳转到楼层",
   "topic_newRepliesCount": "{count} 条新回复",
   "@topic_newRepliesCount": {
     "placeholders": {

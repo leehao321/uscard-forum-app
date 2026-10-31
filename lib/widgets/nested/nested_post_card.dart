@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -722,12 +723,9 @@ class _NestedPostCardState extends ConsumerState<NestedPostCard> {
                     topicId: widget.topicId,
                   ).render(
                     cookedHtml: post.cooked,
-                    baseTextStyle: theme.textTheme.bodyMedium?.copyWith(
-                      height: 1.5,
-                      fontSize:
-                          (theme.textTheme.bodyMedium?.fontSize ?? 14) *
-                          ref.watch(preferencesProvider).contentFontScale,
-                    ),
+                    baseTextStyle: theme.textTheme.bodyMedium
+                        ?.merge(context.tokens.text.body)
+                        .copyWith(color: context.tokens.colors.textPrimary),
                     selectionEnabled: true,
                     selectionScopeId: post.id,
                     onQuoteRequest: widget.onQuoteSelection == null

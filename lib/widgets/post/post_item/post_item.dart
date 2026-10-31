@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxdo_render/fluxdo_render.dart';
@@ -259,7 +260,11 @@ class _PostItemState extends ConsumerState<PostItem> {
       bottomDateSeparatorLabel: widget.bottomDateSeparatorLabel,
       showBottomBorder: true,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        // v2：楼层 pad 12 20（密度档可调上下），不再是卡片
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSpace.pageMargin,
+          vertical: context.tokens.rowPadV,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -279,7 +284,7 @@ class _PostItemState extends ConsumerState<PostItem> {
                         .setDanmakuOff(post.id, showDanmaku)
                   : null,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpace.s),
             if (post.notice != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -325,14 +330,14 @@ class _PostItemState extends ConsumerState<PostItem> {
                             parsedNodes: data.parsedNodes,
                             // 正文字号经 baseTextStyle 注入 contentFontScale
                             // (此前新引擎分支未接入,顺带修复)。
-                            baseTextStyle: theme.textTheme.bodyMedium?.copyWith(
-                              height: 1.5,
-                              fontSize:
-                                  (theme.textTheme.bodyMedium?.fontSize ?? 14) *
-                                  ref
-                                      .watch(preferencesProvider)
-                                      .contentFontScale,
-                            ),
+                            // v2：正文 17 / 行高档（1.5 / 1.75 / 2.0），颜色 text/primary；
+                            // 字号随系统字号 × 外观字号档（全局 textScaler），不再乘
+                            // contentFontScale
+                            baseTextStyle: theme.textTheme.bodyMedium
+                                ?.merge(context.tokens.text.body)
+                                .copyWith(
+                                  color: context.tokens.colors.textPrimary,
+                                ),
                             // 自研选区恒开(外层系统 SelectionArea 已拆):
                             // 未登录时 onQuoteRequest 为 null,toolbar 自动
                             // 降级只留「复制/复制引用」。

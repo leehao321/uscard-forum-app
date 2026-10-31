@@ -1213,53 +1213,8 @@ extension _UserActions on _TopicDetailPageState {
     }
   }
 
-  void _showJumpToPostDialog() {
-    final detail = ref.read(topicDetailProvider(_params)).value;
-    if (detail == null) return;
-
-    final controller = TextEditingController(
-      text: _resolvedShortcutPostNumber?.toString() ?? '',
-    );
-
-    showAppDialog(
-      context: context,
-      shortcutSurface: const ShortcutSurfaceConfig(
-        id: ShortcutSurfaceIds.topicJumpToPost,
-        triggerAction: ShortcutAction.jumpToPost,
-        repeatBehavior: ShortcutSurfaceRepeatBehavior.toggle,
-      ),
-      builder: (context) => AppAlertDialog(
-        title: Text(context.l10n.topic_jump),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: context.l10n.topic_currentFloor,
-            hintText: '1 - ${detail.postsCount}',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(context.l10n.common_cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              final postNumber = int.tryParse(controller.text.trim());
-              Navigator.pop(context);
-              if (postNumber != null && postNumber > 0) {
-                unawaited(
-                  _jumpToPostInTopic(postNumber.clamp(1, detail.postsCount)),
-                );
-              }
-            },
-            child: Text(context.l10n.topic_jump),
-          ),
-        ],
-      ),
-    );
-  }
+  /// 跳转到楼层（桌面快捷键等入口）：打开楼层跳转半屏（0.4.0 v2）
+  void _showJumpToPostDialog() => _openFloorJumpSheet();
 
   Future<void> _jumpToUnreadPost() async {
     final detail = ref.read(topicDetailProvider(_params)).value;

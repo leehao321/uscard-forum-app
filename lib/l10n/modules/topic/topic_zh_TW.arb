@@ -1,5 +1,46 @@
 {
+  "topic_backToBeforeJump": "回到跳轉前",
+  "topic_backToLastRead": "回到上次閱讀位置",
   "topic_editCategoryBar": "編輯分類條",
+  "topic_floorButton": "第 {n} 樓，共 {max} 樓，開啟樓層跳轉",
+  "@topic_floorButton": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_floorInputHint": "輸入樓層號（1–{max}）",
+  "@topic_floorInputHint": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_floorInvalid": "請輸入 1–{max} 之間的樓層號",
+  "@topic_floorInvalid": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_floorSliderValue": "第 {n} 樓，共 {max} 樓",
+  "@topic_floorSliderValue": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_jumpToFloor": "跳轉到樓層",
   "topic_newRepliesCount": "{count} 則新回覆",
   "@topic_newRepliesCount": {
     "placeholders": {

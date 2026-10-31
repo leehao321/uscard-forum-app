@@ -1,5 +1,12 @@
 {
+  "topic_backToBeforeJump": "Back to before the jump",
+  "topic_backToLastRead": "Back to where I stopped",
   "topic_editCategoryBar": "Edit category bar",
+  "topic_floorButton": "Floor {n} of {max}, open floor jump",
+  "topic_floorInputHint": "Floor number (1–{max})",
+  "topic_floorInvalid": "Enter a number from 1 to {max}",
+  "topic_floorSliderValue": "Floor {n} of {max}",
+  "topic_jumpToFloor": "Jump to floor",
   "topic_newRepliesCount": "{count} new replies",
   "topic_pinnedLabel": "Pinned",
   "topic_rowBookmark": "Bookmark",

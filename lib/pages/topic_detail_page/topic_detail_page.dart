@@ -60,7 +60,6 @@ import '../../widgets/post/post_item/widgets/post_flag_sheet.dart';
 import '../../widgets/post/post_replies_sheet.dart';
 import '../../widgets/post/post_revision/revision_modal.dart';
 import '../../widgets/post/reply_sheet.dart';
-import '../../widgets/topic/topic_progress.dart';
 import '../../widgets/topic/topic_notification_button.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:m3e_ui/m3e_ui.dart';
@@ -71,7 +70,8 @@ import 'controllers/topic_detail_controller.dart';
 import 'controllers/topic_toc_controller.dart';
 import 'widgets/nested_post_list.dart';
 import 'widgets/invite_private_message_dialog.dart';
-import 'widgets/topic_detail_overlay.dart';
+import 'widgets/reading_toolbar.dart';
+import 'widgets/floor_jump_sheet.dart';
 import 'widgets/topic_post_list.dart';
 import 'widgets/topic_toc_panel.dart';
 import 'widgets/topic_detail_header.dart';
@@ -1351,35 +1351,33 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
                 );
               }
 
-              return AppBar(
-                automaticallyImplyLeading: !widget.embeddedMode,
+              final actions = _buildAppBarActions(
+                detail: detail,
+                notifier: notifier,
+                shouldShowTitle: shouldShowTitle,
+                expandProgress: expandProgress,
+              );
+              // 两侧槽等宽、容得下全部按钮（每个 44，槽宽比热区少 10 的出血）
+              final slot = (44.0 * actions.length - 10).clamp(70.0, 200.0);
+              return AppNavBar(
                 // 平行视界导航栈：embeddedMode 下默认不显示返回按钮（双栏
                 // 选中态没有"返回"概念），但栈深度 > 1（内部链接跳转堆上来
                 // 的层）时，onEmbeddedBack 会被显式传入，这里补一个返回按钮
                 // 弹出当前层，退回上一层。
+                automaticallyImplyLeading: !widget.embeddedMode,
                 leading: widget.embeddedMode && widget.onEmbeddedBack != null
-                    ? BackButton(onPressed: widget.onEmbeddedBack)
+                    ? AppBackButton(onPressed: widget.onEmbeddedBack)
                     : null,
-                elevation: currentElevation,
-                scrolledUnderElevation: currentElevation,
-                shadowColor: Colors.transparent,
-                surfaceTintColor: theme.colorScheme.surfaceTint.withValues(
-                  alpha: (1.0 - expandProgress).clamp(0.0, 1.0),
-                ),
-                backgroundColor: theme.colorScheme.surface,
-                title: _buildAppBarTitle(
+                slotWidth: slot,
+                // 正文滚到导航栏下面时才出底部发丝线
+                showDivider: isScrolledUnder,
+                titleWidget: _buildAppBarTitle(
                   theme: theme,
                   detail: detail,
                   shouldShowTitle: shouldShowTitle,
                   expandProgress: expandProgress,
                 ),
-                centerTitle: false,
-                actions: _buildAppBarActions(
-                  detail: detail,
-                  notifier: notifier,
-                  shouldShowTitle: shouldShowTitle,
-                  expandProgress: expandProgress,
-                ),
+                trailing: actions,
               );
             },
           ),
@@ -1404,8 +1402,12 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
           }
         },
         child: Text.rich(
+          textAlign: TextAlign.center,
+          maxLines: 1,
           TextSpan(
-            style: theme.textTheme.titleMedium,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: context.tokens.colors.textPrimary,
+            ),
             children: [
               if (detail?.isPrivateMessage ?? false)
                 WidgetSpan(
@@ -1576,12 +1578,12 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
   }
 
   Widget _buildSearchAction() {
-    return IconButton(
+    return AppIconButton(
       key: _usesEmbeddedMobileWorkspaceChrome
           ? const ValueKey('bookmark-workspace-mobile-search')
           : null,
-      icon: const Icon(Symbols.search_rounded),
-      tooltip: context.l10n.topicDetail_searchTopic,
+      icon: AppIcons.search,
+      semanticLabel: context.l10n.topicDetail_searchTopic,
       onPressed: () {
         ref
             .read(topicSearchProvider(widget.topicId).notifier)
@@ -1618,10 +1620,23 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
     return [
       // AI 助手按钮（滑动入口模式下隐藏）
       if (!useSwipeEntry && hasAiModel)
-        IconButton(
-          icon: _AiAssistantActionIcon(isGenerating: isAiGenerating),
-          tooltip: context.l10n.topicDetail_aiAssistant,
-          onPressed: () => _showAiAssistantSheet(detail),
+        Tooltip(
+          message: context.l10n.topicDetail_aiAssistant,
+          child: Semantics(
+            button: true,
+            label: context.l10n.topicDetail_aiAssistant,
+            excludeSemantics: true,
+            onTap: () => _showAiAssistantSheet(detail),
+            child: AppPressable(
+              onTap: () => _showAiAssistantSheet(detail),
+              child: SizedBox.square(
+                dimension: AppSize.hit,
+                child: Center(
+                  child: _AiAssistantActionIcon(isGenerating: isAiGenerating),
+                ),
+              ),
+            ),
+          ),
         ),
       _buildSearchAction(),
       _buildMoreMenuAction(
@@ -1637,8 +1652,6 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
     required TopicDetailNotifier notifier,
     required bool canEditTopic,
   }) {
-    final bookmarkTarget = _bookmarkEditTarget(detail);
-    final hasEditableBookmark = bookmarkTarget != null || detail.bookmarked;
     final isInReadLater = ref
         .read(readLaterProvider.notifier)
         .contains(widget.topicId);
@@ -1660,35 +1673,6 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
     final isAuthorFilter =
         userFilter != null && userFilter == detail.createdBy?.username;
     final isOtherUserFilter = userFilter != null && !isAuthorFilter;
-    final bool subscribed =
-        detail.notificationLevel.value >= TopicNotificationLevel.tracking.value;
-
-    void doBookmark() {
-      final traceTarget = _bookmarkEditTarget(detail);
-      final traceId = createBookmarkEditTraceId();
-      writeBookmarkEditTrace(
-        phase: 'menu_selected',
-        traceId: traceId,
-        source: 'topic_detail_topic_menu',
-        message: '详情页更多菜单已选中编辑书签',
-        topicId: widget.topicId,
-        postId: traceTarget?.postId,
-        bookmarkId: traceTarget?.bookmarkId ?? detail.bookmarkId,
-        bookmarkName: traceTarget?.initialName ?? detail.bookmarkName,
-        bookmarked: detail.bookmarked,
-        hasReminder:
-            traceTarget?.initialReminderAt != null ||
-            detail.bookmarkReminderAt != null,
-        selectedAction: 'bookmark',
-      );
-      unawaited(
-        _handleBookmark(
-          notifier,
-          traceId: traceId,
-          source: 'topic_detail_topic_menu',
-        ),
-      );
-    }
 
     void doSubscribe() {
       showNotificationLevelSheet(
@@ -1698,146 +1682,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
       );
     }
 
-    return SwipeDismissiblePopupMenuButton<String>(
-      key: _usesEmbeddedMobileWorkspaceChrome
-          ? const ValueKey('bookmark-workspace-mobile-more')
-          : null,
-      icon: const Icon(Symbols.more_vert_rounded),
-      tooltip: context.l10n.topicDetail_moreOptions,
-      headerActions: [
-        MenuQuickAction(
-          icon: Symbols.bookmark_rounded,
-          tooltip: hasEditableBookmark
-              ? context.l10n.topicDetail_editBookmark
-              : context.l10n.common_addBookmark,
-          active: hasEditableBookmark,
-          onTap: doBookmark,
-        ),
-        MenuQuickAction(
-          icon: Symbols.layers_rounded,
-          tooltip: isInReadLater
-              ? context.l10n.topicDetail_removeFromReadLater
-              : context.l10n.topicDetail_addToReadLater,
-          active: isInReadLater,
-          onTap: _handleReadLater,
-        ),
-        MenuQuickAction(
-          icon: TopicNotificationButton.getIcon(detail.notificationLevel),
-          tooltip: context.l10n.topic_notificationSettings,
-          active: subscribed,
-          submenu: MenuQuickActionSubmenu(
-            icon: TopicNotificationButton.getIcon(detail.notificationLevel),
-            label: context.l10n.topic_notificationSettings,
-            iconColor: subscribed
-                ? Theme.of(context).colorScheme.primary
-                : null,
-            children: [
-              for (final level in TopicNotificationLevel.values)
-                MenuQuickActionSubmenuChild(
-                  icon: TopicNotificationButton.getIcon(level),
-                  label: level.label,
-                  subtitle: level.description,
-                  selected: level == detail.notificationLevel,
-                  onTap: () => _handleNotificationLevelChanged(notifier, level),
-                ),
-            ],
-          ),
-        ),
-        if (!detail.isPrivateMessage)
-          MenuQuickAction(
-            icon: Symbols.link_rounded,
-            tooltip: context.l10n.topicDetail_shareLink,
-            onTap: _shareTopic,
-          ),
-        MenuQuickAction(
-          icon: Symbols.filter_list_rounded,
-          tooltip: context.l10n.topicDetail_filter,
-          active: hasFilter,
-          submenu: MenuQuickActionSubmenu(
-            icon: Symbols.filter_list_rounded,
-            label: context.l10n.topicDetail_filter,
-            iconColor: hasFilter ? Theme.of(context).colorScheme.primary : null,
-            children: [
-              // 问答话题:默认按票排序,可切按活动(时间流)
-              if (detail.isPostVoting)
-                MenuQuickActionSubmenuChild(
-                  icon: Symbols.history_rounded,
-                  label: context.l10n.topicDetail_sortByActivity,
-                  selected: notifier.isActivityMode,
-                  onTap: () {
-                    if (notifier.isActivityMode) {
-                      _handleCancelFilter();
-                    } else {
-                      _handleShowByActivity();
-                    }
-                  },
-                ),
-              if (detail.hasSummary)
-                MenuQuickActionSubmenuChild(
-                  icon: notifier.isSummaryMode
-                      ? Symbols.local_fire_department_rounded
-                      : Symbols.local_fire_department_rounded,
-                  label: context.l10n.topicDetail_hotOnly,
-                  selected: notifier.isSummaryMode,
-                  onTap: () {
-                    if (notifier.isSummaryMode) {
-                      _handleCancelFilter();
-                    } else {
-                      _handleShowTopReplies();
-                    }
-                  },
-                ),
-              MenuQuickActionSubmenuChild(
-                icon: Symbols.person_rounded,
-                label: context.l10n.topicDetail_authorOnly,
-                selected: isAuthorFilter,
-                onTap: () {
-                  if (isAuthorFilter) {
-                    _handleCancelFilter();
-                  } else {
-                    _handleShowAuthorOnly();
-                  }
-                },
-              ),
-              if (isOtherUserFilter)
-                MenuQuickActionSubmenuChild(
-                  icon: Symbols.person_search_rounded,
-                  label: context.l10n.topicDetail_userOnly(userFilter),
-                  selected: true,
-                  onTap: _handleCancelFilter,
-                ),
-              MenuQuickActionSubmenuChild(
-                icon: notifier.isTopLevelMode
-                    ? Symbols.account_tree_rounded
-                    : Symbols.account_tree_rounded,
-                label: context.l10n.topicDetail_topLevelOnly,
-                selected: notifier.isTopLevelMode,
-                onTap: () {
-                  if (notifier.isTopLevelMode) {
-                    _handleCancelFilter();
-                  } else {
-                    _handleShowTopLevelReplies();
-                  }
-                },
-              ),
-              if (AppConstants.siteCustomization.supportsNestedView)
-                MenuQuickActionSubmenuChild(
-                  icon: Symbols.forum_rounded,
-                  label: context.l10n.nested_title,
-                  selected: _isNestedView,
-                  onTap: _toggleNestedView,
-                ),
-              if (hasFilter)
-                MenuQuickActionSubmenuChild(
-                  icon: Symbols.filter_list_off_rounded,
-                  label: context.l10n.common_cancel,
-                  onTap: _handleCancelFilter,
-                ),
-            ],
-          ),
-        ),
-      ],
-      onSelected: (value) {
+    void onSelected(String value) {
         // 行内展开的订阅子项：value 形如 'subscribe_level_<int>'
         const subscribePrefix = 'subscribe_level_';
         if (value.startsWith(subscribePrefix)) {
@@ -1940,210 +1785,224 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
             );
           },
         );
-      },
-      itemBuilder: (context) => [
-        if (canEditTopic)
-          PopupMenuItem(
-            value: 'edit_topic',
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Symbols.edit_rounded,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                const SizedBox(width: 12),
-                Text(context.l10n.topicDetail_editTopic),
+    }
+
+    AppMenuItem<String> item(
+      String label,
+      String value,
+      IconData icon, {
+      bool destructive = false,
+    }) => AppMenuItem<String>(
+      label: label,
+      value: value,
+      icon: icon,
+      destructive: destructive,
+    );
+
+    final filterItems = <AppMenuItem<String>>[
+      // 问答话题:默认按票排序,可切按活动(时间流)
+      if (detail.isPostVoting)
+        AppMenuItem(
+          icon: AppIcons.history,
+          label: context.l10n.topicDetail_sortByActivity,
+          checked: notifier.isActivityMode,
+          onTap: () {
+            if (notifier.isActivityMode) {
+              _handleCancelFilter();
+            } else {
+              _handleShowByActivity();
+            }
+          },
+        ),
+      if (detail.hasSummary)
+        AppMenuItem(
+          icon: AppIcons.hot,
+          label: context.l10n.topicDetail_hotOnly,
+          checked: notifier.isSummaryMode,
+          onTap: () {
+            if (notifier.isSummaryMode) {
+              _handleCancelFilter();
+            } else {
+              _handleShowTopReplies();
+            }
+          },
+        ),
+      AppMenuItem(
+        icon: AppIcons.person,
+        label: context.l10n.topicDetail_authorOnly,
+        checked: isAuthorFilter,
+        onTap: () {
+          if (isAuthorFilter) {
+            _handleCancelFilter();
+          } else {
+            _handleShowAuthorOnly();
+          }
+        },
+      ),
+      if (isOtherUserFilter)
+        AppMenuItem(
+          icon: AppIcons.person,
+          label: context.l10n.topicDetail_userOnly(userFilter),
+          checked: true,
+          onTap: _handleCancelFilter,
+        ),
+      AppMenuItem(
+        icon: AppIcons.accountTree,
+        label: context.l10n.topicDetail_topLevelOnly,
+        checked: notifier.isTopLevelMode,
+        onTap: () {
+          if (notifier.isTopLevelMode) {
+            _handleCancelFilter();
+          } else {
+            _handleShowTopLevelReplies();
+          }
+        },
+      ),
+      if (AppConstants.siteCustomization.supportsNestedView)
+        AppMenuItem(
+          icon: AppIcons.forum,
+          label: context.l10n.nested_title,
+          checked: _isNestedView,
+          onTap: _toggleNestedView,
+        ),
+      if (hasFilter)
+        AppMenuItem(
+          icon: AppIcons.filterOff,
+          label: context.l10n.common_cancel,
+          onTap: _handleCancelFilter,
+        ),
+    ];
+
+    return AppMenuButton<String>(
+      key: _usesEmbeddedMobileWorkspaceChrome
+          ? const ValueKey('bookmark-workspace-mobile-more')
+          : null,
+      icon: AppIcons.moreHoriz,
+      semanticLabel: context.l10n.topicDetail_moreOptions,
+      onSelected: onSelected,
+      sectionsBuilder: (context) => [
+        [
+          AppMenuItem<String>(
+            label: isInReadLater
+                ? context.l10n.topicDetail_removeFromReadLater
+                : context.l10n.topicDetail_addToReadLater,
+            value: 'read_later',
+            icon: AppIcons.readLater,
+            checked: isInReadLater,
+          ),
+          item('笔记', 'notes', AppIcons.note),
+          item('AI 总结', 'ai_summary', AppIcons.autoAwesome),
+          if (!detail.isPrivateMessage)
+            item(
+              context.l10n.topicDetail_generateShareImage,
+              'share_image',
+              AppIcons.image,
+            ),
+          item(
+            context.l10n.topicDetail_exportArticle,
+            'export',
+            AppIcons.download,
+          ),
+          item(
+            context.l10n.topicDetail_openInBrowser,
+            'open_in_browser',
+            AppIcons.openInNew,
+          ),
+          if (canAssignTopic)
+            item(
+              detail.isAssigned
+                  ? '已指定 · ${detail.assignedToUser?.displayName ?? detail.assignedToGroupName ?? ''}'
+                  : '指定',
+              'assign',
+              AppIcons.assign,
+            ),
+          AppMenuItem<String>(
+            label: context.l10n.topicDetail_filter,
+            icon: AppIcons.filter,
+            checked: false,
+            detail: hasFilter ? '✓' : null,
+            submenu: [filterItems],
+          ),
+        ],
+        [
+          if (canEditTopic)
+            item(context.l10n.topicDetail_editTopic, 'edit_topic', AppIcons.edit),
+          // 私信归档双态入口:对齐官方 topic footer 的 archive 按钮
+          if (detail.isPrivateMessage)
+            item(
+              detail.messageArchived
+                  ? context.l10n.topicDetail_moveMessageToInbox
+                  : context.l10n.topicDetail_archiveMessage,
+              'archive_message',
+              detail.messageArchived ? AppIcons.unarchive : AppIcons.archive,
+            ),
+          if (ref.read(currentUserProvider).value != null)
+            AppMenuItem<String>(
+              label: context.l10n.topicDetail_markUnread,
+              icon: AppIcons.mail,
+              submenu: [
+                [
+                  item(
+                    context.l10n.topicDetail_markUnreadLast,
+                    'mark_unread',
+                    AppIcons.mail,
+                  ),
+                  item(
+                    context.l10n.topicDetail_markUnreadAll,
+                    'mark_unread_all',
+                    AppIcons.refresh,
+                  ),
+                ],
               ],
             ),
+          item(
+            context.l10n.settings_reading,
+            'reading_settings',
+            AppIcons.book,
           ),
-        if (!detail.isPrivateMessage)
-          PopupMenuItem(
-            value: 'share_image',
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Symbols.image_rounded,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                const SizedBox(width: 12),
-                Text(context.l10n.topicDetail_generateShareImage),
-              ],
-            ),
-          ),
-        // 私信归档双态入口:对齐官方 topic footer 的 archive 按钮
-        // (message_archived 决定图标与文案)。
-        if (detail.isPrivateMessage)
-          PopupMenuItem(
-            value: 'archive_message',
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  detail.messageArchived
-                      ? Symbols.move_to_inbox_rounded
-                      : Symbols.archive_rounded,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  detail.messageArchived
-                      ? context.l10n.topicDetail_moveMessageToInbox
-                      : context.l10n.topicDetail_archiveMessage,
-                ),
-              ],
-            ),
-          ),
-        PopupMenuItem(
-          value: 'notes',
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Symbols.edit_note_rounded,
-                size: 20,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-              const SizedBox(width: 12),
-              const Text('笔记'),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: 'ai_summary',
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Symbols.auto_awesome_rounded,
-                size: 20,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-              const SizedBox(width: 12),
-              const Text('AI 总结'),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: 'export',
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Symbols.download_rounded,
-                size: 20,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-              const SizedBox(width: 12),
-              Text(context.l10n.topicDetail_exportArticle),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: 'open_in_browser',
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Symbols.language_rounded,
-                size: 20,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-              const SizedBox(width: 12),
-              Text(context.l10n.topicDetail_openInBrowser),
-            ],
-          ),
-        ),
-        if (canAssignTopic)
-          PopupMenuItem(
-            value: 'assign',
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.assignment_ind_outlined,
-                  size: 20,
-                  color: detail.isAssigned
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.onSurface,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  detail.isAssigned
-                      ? '已指定 · ${detail.assignedToUser?.displayName ?? detail.assignedToGroupName ?? ''}'
-                      : '指定',
-                ),
-              ],
-            ),
-          ),
-        if (ref.read(currentUserProvider).value != null)
-          ExpandablePopupMenuEntry<String>(
-            icon: Symbols.mark_email_unread_rounded,
-            label: context.l10n.topicDetail_markUnread,
-            children: [
-              ExpandableMenuChild(
-                value: 'mark_unread',
-                icon: Symbols.remove_done_rounded,
-                label: context.l10n.topicDetail_markUnreadLast,
-                subtitle: context.l10n.topicDetail_markUnreadLastDesc,
-              ),
-              ExpandableMenuChild(
-                value: 'mark_unread_all',
-                icon: Symbols.restart_alt_rounded,
-                label: context.l10n.topicDetail_markUnreadAll,
-                subtitle: context.l10n.topicDetail_markUnreadAllDesc,
-              ),
-            ],
-          ),
-        const PopupMenuDivider(),
-        PopupMenuItem(
-          value: 'reading_settings',
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Symbols.auto_stories_rounded,
-                size: 20,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-              const SizedBox(width: 12),
-              Text(context.l10n.settings_reading),
-            ],
-          ),
-        ),
+        ],
       ],
     );
   }
 
-  void _showTimelineSheet(TopicDetail detail) {
-    showTopicTimelineSheet(
-      context: context,
-      currentIndex: _controller.currentVisibleStreamIndex,
-      stream: detail.postStream.stream,
-      onJumpToPostId: _jumpToPostByIdInTopic,
-      title: detail.title,
+  /// 楼层跳转前所在的楼层（「回到跳转前」用）
+  int? _postNumberBeforeJump;
+
+  /// 打开楼层跳转半屏（0.4.0 v2）。楼层号 = 流里的序号（和工具栏上的
+  /// 「#n / N」同口径），按 postId 跳转，树形视图也能用。
+  void _openFloorJumpSheet() {
+    final detail = ref.read(topicDetailProvider(_params)).value;
+    if (detail == null) return;
+    final stream = detail.postStream.stream;
+    if (stream.isEmpty) return;
+    final lastRead = detail.lastReadPostNumber;
+    unawaited(
+      showFloorJumpSheet(
+        context,
+        total: stream.length,
+        current: _controller.streamIndexNotifier.value,
+        onJump: (n) {
+          _postNumberBeforeJump = _controller.viewportPostNumberNotifier.value;
+          // 第 1 楼就是回到顶部（带主题头的平滑滚动）
+          unawaited(
+            n == 1 ? _scrollToTop() : _jumpToPostByIdInTopic(stream[n - 1]),
+          );
+        },
+        onBackToLastRead: lastRead == null || lastRead <= 0
+            ? null
+            : () => unawaited(_jumpToPostInTopic(lastRead)),
+        onBackToBeforeJump: _postNumberBeforeJump == null
+            ? null
+            : () {
+                final target = _postNumberBeforeJump!;
+                _postNumberBeforeJump = null;
+                unawaited(_jumpToPostInTopic(target));
+              },
+      ),
     );
   }
 
-  /// 供缓存的 [TopicDetailOverlay] 实例回调:现取最新 detail,
-  /// 避免闭包捕获构建时的旧 detail(实例缓存后闭包生命周期变长)。
-  void _showTimelineSheetForCurrent() {
-    final detail = ref.read(topicDetailProvider(_params)).value;
-    if (detail != null) _showTimelineSheet(detail);
-  }
-
-  void _handleProgressGestureForCurrent(ProgressGestureAction action) {
-    final detail = ref.read(topicDetailProvider(_params)).value;
-    if (detail == null) return;
-    final notifier = ref.read(topicDetailProvider(_params).notifier);
-    _handleProgressGesture(action, detail, notifier);
-  }
-
-  /// [TopicDetailOverlay] 的实例缓存(输入签名比对):见调用处注释。
+  /// 阅读工具栏的实例缓存(输入签名比对):见调用处注释。
   ({Object signature, Widget widget})? _overlayCache;
 
   Widget _buildOverlayCached(
@@ -2151,56 +2010,67 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
     TopicDetailNotifier notifier,
     bool isLoggedIn,
   ) {
-    // Overlay 及其子树实际消费的全部低频输入;detail 对象本身不入签名
-    // (它每次更新都是新实例),只取 Overlay 用到的字段。
+    // 工具栏及其子树实际消费的全部低频输入;detail 对象本身不入签名
+    // (它每次更新都是新实例),只取用到的字段。
     final signature = (
       isLoggedIn: isLoggedIn,
       totalCount: detail.postStream.stream.length,
-      hasSummary: detail.hasSummary,
-      isPostVoting: detail.isPostVoting,
+      bookmarked: detail.bookmarked,
+      notificationLevel: detail.notificationLevel,
       isPrivateMessage: detail.isPrivateMessage,
-      isSummaryMode: notifier.isSummaryMode,
-      isActivityMode: notifier.isActivityMode,
-      isAuthorOnlyMode: notifier.isAuthorOnlyMode,
-      isTopLevelMode: notifier.isTopLevelMode,
-      isNestedMode: _isNestedView,
-      isLoading: _isSwitchingMode,
     );
     final cached = _overlayCache;
     if (cached != null && cached.signature == signature) {
       return cached.widget;
     }
-    final overlay = TopicDetailOverlay(
-      showBottomBarListenable: _controller.showBottomBarNotifier,
-      isLoggedIn: isLoggedIn,
-      streamIndexListenable: _controller.streamIndexNotifier,
-      totalCount: detail.postStream.stream.length,
-      detail: detail,
-      onScrollToTop: _scrollToTop,
-      onShare: _shareTopic,
-      onShareAsImage: _shareAsImage,
-      onExport: _showExportSheet,
-      onOpenInBrowser: _openInBrowser,
-      onReply: () => _handleReply(null),
-      onProgressTap: _showTimelineSheetForCurrent,
-      onProgressGesture: _handleProgressGestureForCurrent,
-      isSummaryMode: notifier.isSummaryMode,
-      isActivityMode: notifier.isActivityMode,
-      isAuthorOnlyMode: notifier.isAuthorOnlyMode,
-      isTopLevelMode: notifier.isTopLevelMode,
-      isNestedMode: _isNestedView,
-      isLoading: _isSwitchingMode,
-      onShowTopReplies: _handleShowTopReplies,
-      onShowByActivity: _handleShowByActivity,
-      onShowAuthorOnly: _handleShowAuthorOnly,
-      onShowTopLevelReplies: _handleShowTopLevelReplies,
-      onCancelFilter: _handleCancelFilter,
-      onShowNestedView: AppConstants.siteCustomization.supportsNestedView
-          ? _toggleNestedView
-          : null,
+    final toolbar = Positioned(
+      key: const ValueKey('reading_toolbar'),
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: ReadingToolbar(
+        expandedListenable: _controller.showBottomBarNotifier,
+        floorListenable: _controller.streamIndexNotifier,
+        total: detail.postStream.stream.length,
+        isLoggedIn: isLoggedIn,
+        bookmarked: detail.bookmarked,
+        notificationIcon: TopicNotificationButton.getIcon(
+          detail.notificationLevel,
+        ),
+        showShare: !detail.isPrivateMessage,
+        onReply: () => _handleReply(null),
+        onNotification: () {
+          final current = ref.read(topicDetailProvider(_params)).value;
+          if (current == null) return;
+          showNotificationLevelSheet(
+            context,
+            current.notificationLevel,
+            (level) => _handleNotificationLevelChanged(notifier, level),
+          );
+        },
+        onBookmark: () {
+          final traceId = createBookmarkEditTraceId();
+          writeBookmarkEditTrace(
+            phase: 'toolbar_tapped',
+            traceId: traceId,
+            source: 'topic_detail_reading_toolbar',
+            message: '阅读工具栏点了书签',
+            topicId: widget.topicId,
+          );
+          unawaited(
+            _handleBookmark(
+              notifier,
+              traceId: traceId,
+              source: 'topic_detail_reading_toolbar',
+            ),
+          );
+        },
+        onShare: _shareTopic,
+        onOpenFloorJump: _openFloorJumpSheet,
+      ),
     );
-    _overlayCache = (signature: signature, widget: overlay);
-    return overlay;
+    _overlayCache = (signature: signature, widget: toolbar);
+    return toolbar;
   }
 
   /// 话题目录(TOC)浮层:宽屏右侧常驻可折叠面板,窄屏右下浮动按钮
@@ -2243,10 +2113,13 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
       return ValueListenableBuilder<bool>(
         valueListenable: _controller.showBottomBarNotifier,
         builder: (context, showBottomBar, _) {
-          // 回复 FAB 的底部定位公式(见 TopicDetailOverlay),TOC 叠其上
-          final replyBottom = showBottomBar
-              ? bottomPadding + (80 - bottomPadding - 56) / 2
-              : 16 + bottomPadding;
+          // 叠在阅读工具栏上方（展开 64 / 收起 44，再加底部安全区）
+          final replyBottom =
+              (showBottomBar
+                  ? ReadingToolbar.expandedHeight
+                  : ReadingToolbar.collapsedHeight) +
+              bottomPadding -
+              56;
           return AnimatedPositioned(
             key: const ValueKey('toc_fab'),
             duration: const Duration(milliseconds: 200),
@@ -2292,83 +2165,6 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
     // 段映射基于过滤后列表,跳转目标必须同口径
     final posts = _filteredDetail(detail).postStream.posts;
     unawaited(_tocController.scrollToHeading(entry, posts));
-  }
-
-  /// 路由进度悬浮条手势触发的 [ProgressGestureAction] 到对应业务方法
-  void _handleProgressGesture(
-    ProgressGestureAction action,
-    TopicDetail detail,
-    TopicDetailNotifier notifier,
-  ) {
-    switch (action) {
-      case ProgressGestureAction.none:
-        return;
-      case ProgressGestureAction.openTimeline:
-        _showTimelineSheet(detail);
-      case ProgressGestureAction.scrollToTop:
-        unawaited(_scrollToTop());
-      case ProgressGestureAction.jumpToUnread:
-        unawaited(_jumpToUnreadPost());
-      case ProgressGestureAction.nextPost:
-        _scrollToNextPost();
-      case ProgressGestureAction.previousPost:
-        _scrollToPreviousPost();
-      case ProgressGestureAction.reply:
-        unawaited(_handleReply(null));
-      case ProgressGestureAction.share:
-        _shareTopic();
-      case ProgressGestureAction.shareImage:
-        _shareAsImage();
-      case ProgressGestureAction.exportArticle:
-        _showExportSheet();
-      case ProgressGestureAction.openInBrowser:
-        _openInBrowser();
-      case ProgressGestureAction.bookmark:
-        final traceId = createBookmarkEditTraceId();
-        writeBookmarkEditTrace(
-          phase: 'gesture_triggered',
-          traceId: traceId,
-          source: 'topic_detail_progress_gesture',
-          message: '进度悬浮条手势触发编辑书签',
-          topicId: widget.topicId,
-        );
-        unawaited(
-          _handleBookmark(
-            notifier,
-            traceId: traceId,
-            source: 'topic_detail_progress_gesture',
-          ),
-        );
-      case ProgressGestureAction.readLater:
-        _handleReadLater();
-      case ProgressGestureAction.notification:
-        showNotificationLevelSheet(
-          context,
-          detail.notificationLevel,
-          (level) => _handleNotificationLevelChanged(notifier, level),
-        );
-      case ProgressGestureAction.filter:
-        _showFilterSheet();
-      case ProgressGestureAction.toggleNestedView:
-        _toggleNestedView();
-      case ProgressGestureAction.aiAssistant:
-        _onToggleAiPanel();
-      case ProgressGestureAction.readingSettings:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const ReadingSettingsPage()),
-        );
-      case ProgressGestureAction.search:
-        ref
-            .read(topicSearchProvider(widget.topicId).notifier)
-            .enterSearchMode();
-      case ProgressGestureAction.refresh:
-        unawaited(_handleRefresh());
-      case ProgressGestureAction.goBack:
-        if (mounted) {
-          unawaited(Navigator.of(context).maybePop());
-        }
-    }
   }
 
   @override

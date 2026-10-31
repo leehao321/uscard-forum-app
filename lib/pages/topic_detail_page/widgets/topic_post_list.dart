@@ -3,6 +3,7 @@ import 'dart:async' show Timer;
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import '../../../utils/idle_task.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
@@ -748,14 +749,12 @@ class _TopicPostListState extends State<TopicPostList> {
     }
   }
 
-  /// 在大屏上为内容添加宽度约束
+  /// 阅读列（0.4.0 v2，计划 §7）：所有宽度都按 640 规则居中，竖屏手机
+  /// 窄于 640 时就是满宽；列内的 20 边距由各楼层自己留。
   Widget _wrapContent(BuildContext context, Widget child) {
-    if (Responsive.isMobile(context)) return child;
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: Breakpoints.maxContentWidth,
-        ),
+        constraints: const BoxConstraints(maxWidth: kReadableMaxWidth),
         child: child,
       ),
     );
