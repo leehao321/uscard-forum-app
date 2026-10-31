@@ -1,18 +1,19 @@
+import 'package:app_icons/app_icons.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:app_icons/app_icons.dart';
-import 'package:m3e_ui/m3e_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/ai_l10n.dart';
 import '../providers/ai_chat_providers.dart';
 import '../providers/ai_provider_providers.dart';
-import '../l10n/ai_l10n.dart';
 import 'ai_advanced_settings_page.dart';
 import 'ai_chat_history_page.dart';
 import 'ai_model_config_page.dart';
 import 'ai_provider_list_page.dart';
 import 'prompt_presets_page.dart';
 
+/// AI 模型服务入口页（0.4.0 v2，Figma 51:162）：
+/// 单行导航 + 一组分组行（图标 20、标题 17、右侧当前值 + chevron 16）+ 组页脚。
 class AiProvidersPage extends ConsumerWidget {
   final OpenSessionCallback? onOpenSession;
 
@@ -22,73 +23,99 @@ class AiProvidersPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final providerCount = ref.watch(aiProviderListProvider).length;
     final hasModels = ref.watch(hasAvailableAiModelProvider);
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    final l10n = AiL10n.current;
+
+    void open(Widget page) =>
+        Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+
+    final rows = <Widget>[
+      _EntryRow(
+        icon: AppIcons.server,
+        title: l10n.providersTitle,
+        value: providerCount > 0 ? l10n.providerCountLabel(providerCount) : null,
+        subtitle: providerCount > 0 ? null : l10n.noProviderConfigured,
+        onTap: () => open(const AiProviderListPage()),
+      ),
+      if (hasModels)
+        _EntryRow(
+          icon: AppIcons.tune,
+          title: l10n.modelConfig,
+          onTap: () => open(const AiModelConfigPage()),
+        ),
+      _EntryRow(
+        icon: AppIcons.history,
+        title: l10n.chatHistory,
+        onTap: () =>
+            open(AiChatHistoryPage(onOpenSession: onOpenSession)),
+      ),
+      _EntryRow(
+        icon: AppIcons.zap,
+        title: l10n.quickPromptsManageTitle,
+        subtitle: l10n.quickPromptsManageHint,
+        onTap: () => open(const PromptPresetsPage()),
+      ),
+      _EntryRow(
+        icon: AppIcons.settings,
+        title: l10n.advancedSettings,
+        onTap: () => open(const AiAdvancedSettingsPage()),
+      ),
+    ];
 
     return Scaffold(
-      appBar: AppBar(title: Text(AiL10n.current.aiModelService)),
+      backgroundColor: colors.surfacePage,
+      appBar: AppNavBar(title: l10n.aiModelService, slotWidth: 70),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.zero,
         children: [
-          SegmentedCardGroup(
-            children: [
-              // 供应商管理
-              _SettingsEntry(
-                icon: AppIcons.server,
-                title: AiL10n.current.addProvider.replaceAll('添加', '').trim().isEmpty
-                    ? 'Providers'
-                    : AiL10n.current.addProvider.replaceAll('添加', '').trim(),
-                subtitle: providerCount > 0
-                    ? '$providerCount'
-                    : AiL10n.current.noProviderConfigured,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AiProviderListPage()),
-                ),
+          ReadableColumn(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpace.pageMargin,
+                AppSpace.s,
+                AppSpace.pageMargin,
+                0,
               ),
-              // 模型配置
-              if (hasModels)
-                _SettingsEntry(
-                  icon: AppIcons.tune,
-                  title: AiL10n.current.modelConfig,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const AiModelConfigPage()),
-                  ),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: colors.surfaceGrouped,
+                  borderRadius: BorderRadius.circular(tokens.radius.card),
                 ),
-              // 聊天记录
-              _SettingsEntry(
-                icon: AppIcons.history,
-                title: AiL10n.current.chatHistory,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        AiChatHistoryPage(onOpenSession: onOpenSession),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(tokens.radius.card),
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < rows.length; i++) ...[
+                        if (i > 0)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 44),
+                            child: AppHairline(),
+                          ),
+                        rows[i],
+                      ],
+                    ],
                   ),
                 ),
               ),
-              // 快捷词管理
-              _SettingsEntry(
-                icon: AppIcons.zap,
-                title: AiL10n.current.quickPromptsManageTitle,
-                subtitle: AiL10n.current.quickPromptsManageHint,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const PromptPresetsPage()),
-                ),
+            ),
+          ),
+          ReadableColumn(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpace.pageMargin + AppSpace.m,
+                AppSpace.s,
+                AppSpace.pageMargin + AppSpace.m,
+                AppSpace.xl,
               ),
-              // 高级设置
-              _SettingsEntry(
-                icon: AppIcons.settings,
-                title: AiL10n.current.advancedSettings,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const AiAdvancedSettingsPage()),
-                ),
+              child: Text(
+                l10n.aiRequestFooter,
+                style: base
+                    .merge(tokens.text.meta)
+                    .copyWith(color: colors.textMeta),
               ),
-            ],
+            ),
           ),
         ],
       ),
@@ -96,42 +123,86 @@ class AiProvidersPage extends ConsumerWidget {
   }
 }
 
-class _SettingsEntry extends StatelessWidget {
+class _EntryRow extends StatelessWidget {
+  const _EntryRow({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.subtitle,
+    this.value,
+  });
+
   final IconData icon;
   final String title;
   final String? subtitle;
+  final String? value;
   final VoidCallback onTap;
-
-  const _SettingsEntry({
-    required this.icon,
-    required this.title,
-    this.subtitle,
-    required this.onTap,
-  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return ListTile(
-      leading: Icon(icon, color: theme.colorScheme.onSurfaceVariant),
-      title: Text(title),
-      subtitle: subtitle != null
-          ? Text(
-              subtitle!,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: AppFontSize.meta,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            )
-          : null,
-      trailing: Icon(
-        AppIcons.chevronRight,
-        color: theme.colorScheme.outline.withValues(alpha: 0.4),
-        size: 20,
-      ),
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    return AppPressable(
+      highlight: true,
       onTap: onTap,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: AppSize.row48),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpace.m,
+            vertical: AppSpace.xs,
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: AppSize.iconM, color: colors.brandPrimary),
+              const SizedBox(width: AppSpace.m),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: base
+                          .merge(tokens.text.control)
+                          .copyWith(color: colors.textPrimary),
+                    ),
+                    if (subtitle != null)
+                      Text(
+                        subtitle!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: base
+                            .merge(tokens.text.meta)
+                            .copyWith(color: colors.textMeta),
+                      ),
+                  ],
+                ),
+              ),
+              if (value != null) ...[
+                const SizedBox(width: AppSpace.s),
+                Flexible(
+                  child: Text(
+                    value!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: base
+                        .merge(tokens.text.control)
+                        .copyWith(color: colors.textMeta),
+                  ),
+                ),
+              ],
+              const SizedBox(width: AppSpace.s),
+              Icon(
+                AppIcons.chevronRight,
+                size: AppSize.iconS,
+                color: colors.textMeta,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

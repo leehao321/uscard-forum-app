@@ -259,6 +259,15 @@ void main() {
         ),
         isTrue,
       );
+      // Figma 55:2712 / 55:2730：统计卡高 65（pad 12 + 数字 24 + 间距 4 + 标签 13 + pad 12）；
+      // 分组行 48、图标 20
+      final card = tester.getSize(find.byType(ProfileStatsCard)).height;
+      expect(card, anyOf(closeTo(65, 1), closeTo(69, 1)));
+      // 相邻两行文字基线距离 = 行高 48 + 发丝线 0.5
+      final step =
+          tester.getTopLeft(find.text('我的书签')).dy -
+          tester.getTopLeft(find.text('我的话题')).dy;
+      expect(step, closeTo(48.5, 0.6));
       await uiShot(tester, 'm6_profile_in_light');
       await _unmount(tester);
     });

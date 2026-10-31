@@ -99,6 +99,9 @@ class AiL10n {
   String get addProvider => '添加供应商';
   String get editProvider => '编辑供应商';
   String get noProviderConfigured => '还没有配置 AI 供应商';
+  String providerCountLabel(int n) => '$n 个';
+  String get aiRequestFooter =>
+      'AI 请求直接从这台设备发给你配置的服务商，不经过论坛。API Key 只存在本机钥匙串。';
   String get addProviderHint => '添加供应商后可以使用 AI 助手功能';
   String get confirmDelete => '确认删除';
   String confirmDeleteProvider(String name) => '确定要删除供应商「$name」吗？';

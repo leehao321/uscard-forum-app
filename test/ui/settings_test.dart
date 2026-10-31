@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxdo/models/user.dart';
 import 'package:fluxdo/pages/appearance_page.dart';
+import 'package:fluxdo/widgets/settings/appearance_widgets.dart';
 import 'package:fluxdo/pages/bottom_nav_settings_page.dart';
 import 'package:fluxdo/pages/diagnostics_page.dart';
 import 'package:fluxdo/pages/font_settings_page.dart';
@@ -145,6 +146,35 @@ void main() {
         await tester.pump(const Duration(seconds: 1));
       });
     }
+
+    // Figma 55:3077（393）：预览卡 351 宽、预设格高 57、强调色块 36
+    testUi('393 宽：预览卡、预设格、强调色块尺寸对上 Figma', (tester) async {
+      await pumpUi(
+        tester,
+        const AppearancePage(),
+        variant: const UiVariant(Brightness.light, 1, UiDevice.pro),
+        overrides: await _overrides(),
+        settle: false,
+      );
+      await tester.pump(const Duration(milliseconds: 500));
+      expectNoUiException(tester);
+      // 外边距 8 + 卡 208.5；卡宽 = 393 − 2×20
+      final card = tester.getSize(find.byType(AppearancePreviewCard));
+      expect(card.height, closeTo(216.5, 1.5));
+      final box = tester.getSize(
+        find.descendant(
+          of: find.byType(AppearancePreviewCard),
+          matching: find.byType(DecoratedBox),
+        ).first,
+      );
+      expect(box.width, closeTo(353, 1));
+      final grid = tester.getSize(find.byType(AppearancePresetGrid));
+      expect(grid.height, closeTo(57, 1));
+      final accent = tester.getSize(find.byType(AppearanceAccentRow));
+      expect(accent.height, closeTo(77, 1));
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
+    });
 
     testUi('预设：点「紧凑」套用档位，预览卡右上角跟着变', (tester) async {
       final container = ProviderContainer(overrides: await _overrides());

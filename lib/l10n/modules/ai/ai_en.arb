@@ -12,7 +12,7 @@
   "ai_generateFailed": "Generation failed",
   "ai_highlights": "What's worth noting",
   "ai_highlightsPrompt": "What notable information or highlights are in this topic?",
-  "ai_inputHint": "Enter message...",
+  "ai_inputHint": "Ask about this topic…",
   "ai_likeInDev": "Like feature in development...",
   "ai_listViewpoints": "List main viewpoints",
   "ai_listViewpointsPrompt": "Please list the main viewpoints and positions from each post.",

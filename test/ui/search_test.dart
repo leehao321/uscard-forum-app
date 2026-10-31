@@ -137,6 +137,20 @@ void main() {
       await _unmount(tester);
     });
 
+    // Figma 55:3000：标题一行 24 + 摘要两行 32 + 元信息 16，上下 12、间距 8 = 112
+    testUi('标题一行、摘要两行时行高 112（Figma 搜索结果行）', (tester) async {
+      await _pump(
+        tester,
+        ListView(
+          children: [SearchPostCard(post: _post(blurb: '很长的摘要 ' * 40))],
+        ),
+        variant: const UiVariant(Brightness.light, 1, UiDevice.pro),
+      );
+      final h = tester.getSize(find.byType(SearchPostCard)).height;
+      expect(h, closeTo(112, 1));
+      await _unmount(tester);
+    });
+
     testUi('整行可点，高度符合列表行', (tester) async {
       var tapped = 0;
       await _pump(

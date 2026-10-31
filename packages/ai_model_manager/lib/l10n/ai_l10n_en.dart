@@ -123,6 +123,9 @@ class AiL10nEn extends AiL10n {
   String get editProvider => 'Edit Provider';
   @override
   String get noProviderConfigured => 'No AI provider configured';
+  String providerCountLabel(int n) => '$n';
+  String get aiRequestFooter =>
+      'AI requests go straight from this device to the providers you configure, never through the forum. API keys stay in the device keychain.';
   @override
   String get addProviderHint =>
       'Add a provider to use the AI assistant feature';

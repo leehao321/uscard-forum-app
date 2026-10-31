@@ -155,20 +155,12 @@ class _AiChatInputState extends State<AiChatInput> {
 
     return Container(
       padding: EdgeInsets.only(
-        left: 12,
-        right: 8,
-        top: 8,
-        bottom: 4 + bottomPadding,
+        left: AppSpace.pageMargin,
+        right: AppSpace.pageMargin,
+        top: AppSpace.s,
+        bottom: AppSpace.s + bottomPadding,
       ),
-      decoration: BoxDecoration(
-        color: context.tokens.colors.surfaceElevated,
-        border: Border(
-          top: BorderSide(
-            color: context.tokens.colors.separator,
-            width: AppSpace.hairline,
-          ),
-        ),
-      ),
+      decoration: BoxDecoration(color: context.tokens.colors.surfacePage),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -192,74 +184,75 @@ class _AiChatInputState extends State<AiChatInput> {
             ),
             const SizedBox(height: 6),
           ],
-          // 输入框
-          TextField(
-            controller: _controller,
-            focusNode: _focusNode,
-            maxLines: 5,
-            minLines: 1,
-            textInputAction: TextInputAction.newline,
-            decoration: InputDecoration(
-              hintText: context.l10n.ai_inputHint,
-              hintStyle: TextStyle(
-                color: theme.colorScheme.onSurfaceVariant.withValues(
-                  alpha: 0.5,
-                ),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 10,
-              ),
-              isDense: true,
-              filled: true,
-              fillColor: context.tokens.colors.surfaceGrouped,
-              hoverColor: Colors.transparent,
-            ),
-            onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: 4),
-          // 底部栏：左侧模型 logo 按钮，右侧 [+] [发送/停止]
+          // v2 输入行（Figma 51:1088）：输入框（grouped、r10、最低 44）+ 44 圆形发送钮；
+          // 「+」工具入口放在输入框左侧，模型 / 思考按钮只在有传入时显示
           Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (widget.modelButton != null) widget.modelButton!,
               if (widget.thinkingButton != null) ...[
-                const SizedBox(width: 4),
+                const SizedBox(width: AppSpace.xs),
                 widget.thinkingButton!,
               ],
-              const Spacer(),
-              // + 号：默认无背景，只 hover/按下时才有色调；展开时旋转成 ×。
-              // 尺寸跟发送按钮对齐（36×36 + icon 20）
-              IconButton(
-                onPressed: widget.isGenerating ? null : _toggleTools,
-                icon: AnimatedRotation(
-                  turns: _toolsExpanded ? 0.125 : 0,
-                  duration: const Duration(milliseconds: 200),
-                  child: const Icon(AppIcons.add, size: 20),
-                ),
-                tooltip: _toolsExpanded
+              // + 号：展开时旋转成 ×
+              AppIconButton(
+                icon: AppIcons.add,
+                semanticLabel: _toolsExpanded
                     ? context.l10n.common_close
                     : context.l10n.ai_toolsTooltip,
-                style: IconButton.styleFrom(
-                  minimumSize: const Size(36, 36),
-                  padding: EdgeInsets.zero,
-                ),
+                onPressed: widget.isGenerating ? null : _toggleTools,
                 color: _toolsExpanded
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurfaceVariant,
+                    ? context.tokens.colors.brandPrimary
+                    : context.tokens.colors.textMeta,
               ),
-              const SizedBox(width: 6),
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  maxLines: 5,
+                  minLines: 1,
+                  textInputAction: TextInputAction.newline,
+                  style: theme.textTheme.bodyMedium
+                      ?.merge(context.tokens.text.control)
+                      .copyWith(color: context.tokens.colors.textPrimary),
+                  cursorColor: context.tokens.colors.brandPrimary,
+                  decoration: InputDecoration(
+                    hintText: context.l10n.ai_inputHint,
+                    hintStyle: theme.textTheme.bodyMedium
+                        ?.merge(context.tokens.text.control)
+                        .copyWith(color: context.tokens.colors.textMeta),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        context.tokens.radius.field,
+                      ),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        context.tokens.radius.field,
+                      ),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        context.tokens.radius.field,
+                      ),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: AppSpace.m,
+                      vertical: AppSpace.m,
+                    ),
+                    constraints: const BoxConstraints(minHeight: AppSize.hit),
+                    isDense: true,
+                    filled: true,
+                    fillColor: context.tokens.colors.surfaceGrouped,
+                    hoverColor: Colors.transparent,
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+              const SizedBox(width: AppSpace.s),
               widget.isGenerating
                   ? IconButton.filled(
                       onPressed: widget.onStop,
@@ -268,14 +261,15 @@ class _AiChatInputState extends State<AiChatInput> {
                         backgroundColor: context.tokens.colors.avatarFill,
                         foregroundColor: context.tokens.colors.textDestructive,
                         minimumSize: const Size(AppSize.hit, AppSize.hit),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         padding: EdgeInsets.zero,
                       ),
                       tooltip: context.l10n.ai_stopGenerate,
                     )
                   : IconButton.filled(
-                      // v2：44 圆形发送钮，brand/button 底
+                      // 44 圆形发送钮，brand/button 底，纸飞机图标
                       onPressed: _canSend ? _handleSend : null,
-                      icon: const Icon(AppIcons.up, size: 20),
+                      icon: const Icon(AppIcons.send, size: 20),
                       style: IconButton.styleFrom(
                         backgroundColor: context.tokens.colors.brandButton,
                         foregroundColor: AppFixedColors.white,
@@ -283,6 +277,7 @@ class _AiChatInputState extends State<AiChatInput> {
                             context.tokens.colors.avatarFill,
                         disabledForegroundColor: context.tokens.colors.textMeta,
                         minimumSize: const Size(AppSize.hit, AppSize.hit),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         padding: EdgeInsets.zero,
                       ),
                       tooltip: context.l10n.ai_sendTooltip,

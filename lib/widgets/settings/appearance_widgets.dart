@@ -46,9 +46,9 @@ class AppearancePreviewCard extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpace.pageMargin,
-        AppSpace.xs,
-        AppSpace.pageMargin,
         AppSpace.s,
+        AppSpace.pageMargin,
+        0,
       ),
       child: Semantics(
         container: true,
@@ -62,73 +62,114 @@ class AppearancePreviewCard extends ConsumerWidget {
               width: AppSpace.hairline,
             ),
           ),
+          // Figma 55:3086（393）：卡高 208.5 = 头行 21 + 列表行 64 + 发丝线 + 楼层 122
           child: ExcludeSemantics(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpace.m),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpace.m,
+                    AppSpace.s,
+                    AppSpace.m,
+                    0,
+                  ),
+                  child: Row(
                     children: [
-                      Text(l10n.appearance_previewTitle, style: meta),
+                      Text(
+                        l10n.appearance_previewTitle,
+                        style: meta.copyWith(height: 1),
+                      ),
                       const Spacer(),
                       Text(
                         presetLabel ?? presetName(context, tiers),
-                        style: meta.copyWith(color: colors.brandPrimary),
+                        style: meta.copyWith(
+                          color: colors.brandPrimary,
+                          height: 1,
+                        ),
                       ),
                     ],
                   ),
-                  SizedBox(height: tokens.rowPadV),
-                  Text(
-                    l10n.appearance_previewRowTitle,
-                    style: headline,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSpace.m,
+                    vertical: tokens.rowPadV - AppSpace.xs,
                   ),
-                  const SizedBox(height: AppSpace.xs),
-                  Text(l10n.appearance_previewRowMeta, style: meta),
-                  SizedBox(height: tokens.rowPadV),
-                  const AppHairline(),
-                  SizedBox(height: tokens.rowPadV),
-                  Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const LetterAvatar(name: 'Chase', size: AppSize.avatarS),
-                      const SizedBox(width: AppSpace.s),
                       Text(
-                        'Chase',
-                        style: meta
-                            .merge(tokens.text.metaStrong)
-                            .copyWith(color: colors.textPrimary),
+                        l10n.appearance_previewRowTitle,
+                        style: headline,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(width: AppSpace.xs),
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: colors.brandPrimary),
-                          borderRadius: BorderRadius.circular(
-                            tokens.radius.tag,
+                      const SizedBox(height: AppSpace.s),
+                      Text(l10n.appearance_previewRowMeta, style: meta),
+                    ],
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(left: AppSpace.m),
+                  child: AppHairline(),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpace.m,
+                    AppSpace.s,
+                    AppSpace.m,
+                    AppSpace.m,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const LetterAvatar(
+                            name: 'Chase',
+                            size: AppSize.avatarS,
                           ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: Text(
-                            l10n.appearance_previewOwner,
-                            style: base
-                                .merge(tokens.text.caption)
-                                .copyWith(color: colors.brandPrimary),
+                          const SizedBox(width: AppSpace.s),
+                          Text(
+                            'Chase',
+                            style: meta
+                                .merge(tokens.text.metaStrong)
+                                .copyWith(color: colors.textPrimary),
                           ),
-                        ),
+                          const SizedBox(width: AppSpace.s),
+                          DecoratedBox(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: colors.brandPrimary),
+                              borderRadius: BorderRadius.circular(
+                                tokens.radius.tag,
+                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
+                              child: Text(
+                                l10n.appearance_previewOwner,
+                                style: base
+                                    .merge(tokens.text.caption)
+                                    .copyWith(color: colors.brandPrimary),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpace.s),
+                      Text(
+                        l10n.appearance_previewPostBody,
+                        style: body,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpace.s),
-                  Text(
-                    l10n.appearance_previewPostBody,
-                    style: body,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -180,9 +221,10 @@ class AppearancePresetGrid extends ConsumerWidget {
                 child: Container(
                   constraints: const BoxConstraints(minHeight: AppSize.hit),
                   alignment: Alignment.center,
+                  // Figma 55:3114：格高 57 = 上下 12 + 名称 16 + 4 + 说明 13
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpace.xs,
-                    vertical: AppSpace.s,
+                    vertical: AppSpace.m,
                   ),
                   decoration: BoxDecoration(
                     color: colors.surfaceGrouped,
@@ -208,6 +250,7 @@ class AppearancePresetGrid extends ConsumerWidget {
                                   : colors.textPrimary,
                             ),
                       ),
+                      const SizedBox(height: AppSpace.xs),
                       Text(
                         captions[preset]!,
                         textAlign: TextAlign.center,
@@ -283,16 +326,21 @@ class AppearanceAccentRow extends ConsumerWidget {
       (AccentPreset.graphite, l10n.appearance_accentGraphite),
       (AccentPreset.wisteria, l10n.appearance_accentWisteria),
     ];
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    // Figma 55:3172：色块行高 77 = 上下 12 + 色块 36 + 4 + 名称 13；
+    // 色块 36，间距 20（单格 36 + 20 = 56），名称 11 / 13
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpace.l,
-        vertical: AppSpace.xs,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpace.m,
+        AppSpace.m,
+        AppSpace.m,
+        AppSpace.m,
       ),
       child: Row(
         children: [
           for (final (preset, label) in options)
             Padding(
-              padding: const EdgeInsets.only(right: AppSpace.xs),
+              padding: const EdgeInsets.only(right: AppSpace.xl),
               child: Semantics(
                 button: true,
                 selected: preset == accent,
@@ -302,46 +350,46 @@ class AppearanceAccentRow extends ConsumerWidget {
                 child: AppPressable(
                   onTap: () =>
                       ref.read(themeProvider.notifier).setAccent(preset),
-                  // 点击区 ≥ 44，圆 28，选中环外扩 4，圆下面写名称
-                  child: SizedBox(
-                    width: 64,
+                  // 视觉 36 宽，点击区由外层行高保证 ≥ 44
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minWidth: AppSize.hit,
+                      minHeight: AppSize.hit,
+                    ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        SizedBox.square(
-                          dimension: AppSize.hit,
-                          child: Center(
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: preset == accent
+                                  ? colors.brandPrimary
+                                  : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(2),
                             child: DecoratedBox(
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: preset == accent
-                                      ? colors.brandPrimary
-                                      : Colors.transparent,
-                                  width: 2,
-                                ),
+                                color: AppColors.resolve(
+                                  brightness,
+                                  preset,
+                                ).brandPrimary,
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(2),
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppColors.resolve(
-                                      brightness,
-                                      preset,
-                                    ).brandPrimary,
-                                  ),
-                                  child: const SizedBox.square(dimension: 28),
-                                ),
-                              ),
+                              child: const SizedBox.square(dimension: 32),
                             ),
                           ),
                         ),
+                        const SizedBox(height: AppSpace.xs),
                         Text(
                           label,
                           maxLines: 1,
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(
+                          style: base
+                              .merge(context.tokens.text.caption)
+                              .copyWith(
                                 color: preset == accent
                                     ? colors.brandPrimary
                                     : colors.textMeta,

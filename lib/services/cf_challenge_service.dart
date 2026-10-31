@@ -2587,9 +2587,8 @@ document.readyState === 'complete' && document.body && document.body.innerHTML.t
             left: 0,
             right: 0,
             bottom:
-                MediaQuery.paddingOf(context).bottom +
-                AppSize.toolbar +
-                AppSpace.l,
+                // Figma 54:1422：胶囊底边距屏幕底 120 = 安全区 34 + 86
+                MediaQuery.paddingOf(context).bottom + AppSize.toolbar + 22,
             child: Center(
               child: _BackgroundVerifyCapsule(
                 label: S.current.cf_backgroundVerifying,
@@ -2642,8 +2641,8 @@ class _BackgroundVerifyCapsule extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(
-                width: 18,
-                height: 18,
+                width: 16,
+                height: 16,
                 child: CircularProgressIndicator.adaptive(strokeWidth: 2),
               ),
               const SizedBox(width: AppSpace.s),

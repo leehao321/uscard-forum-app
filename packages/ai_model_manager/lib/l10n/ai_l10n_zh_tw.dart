@@ -120,6 +120,9 @@ class AiL10nZhTW extends AiL10n {
   String get editProvider => '編輯供應商';
   @override
   String get noProviderConfigured => '還沒有設定 AI 供應商';
+  String providerCountLabel(int n) => '$n 個';
+  String get aiRequestFooter =>
+      'AI 請求直接從這台裝置發給你設定的服務商，不經過論壇。API Key 只存在本機鑰匙串。';
   @override
   String get addProviderHint => '新增供應商後可以使用 AI 助手功能';
   @override
