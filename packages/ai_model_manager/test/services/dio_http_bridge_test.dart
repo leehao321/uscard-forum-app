@@ -39,6 +39,34 @@ class _RecordingAdapter implements HttpClientAdapter {
   }
 }
 
+/// 模拟 cupertino_http：有请求在进行时 close 会抛 StateError，也不会自己中断响应流
+class _CupertinoLikeAdapter implements HttpClientAdapter {
+  _CupertinoLikeAdapter(this.stream);
+
+  final Stream<Uint8List> stream;
+  bool cancelFutureFired = false;
+  bool running = false;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    await requestStream?.drain<void>();
+    running = true;
+    cancelFuture?.then((_) => cancelFutureFired = true);
+    return ResponseBody(stream, 200, headers: {
+      'content-type': ['text/event-stream'],
+    });
+  }
+
+  @override
+  void close({bool force = false}) {
+    if (running) throw StateError('cannot close with running requests');
+  }
+}
+
 void main() {
   group('DioBackedHttpClient', () {
     test('GET 透传 method/url/headers，并解析响应 body', () async {
@@ -175,6 +203,45 @@ void main() {
         throwsA(isA<http.ClientException>()),
       );
       expect(adapter.closed, isTrue);
+    });
+  });
+
+  group('取消与关闭（审查第 5 批）', () {
+    test('close 先取消进行中的请求：读流的一方收到 RequestAbortedException，close 不抛', () async {
+      final body = StreamController<Uint8List>();
+      final adapter = _CupertinoLikeAdapter(body.stream);
+      final client = DioBackedHttpClient(adapter);
+      final response = await client.send(
+        http.Request('POST', Uri.parse('https://api.example.com/v1/x'))..body = 'x',
+      );
+      final errors = <Object>[];
+      final done = Completer<void>();
+      response.stream.listen((_) {}, onError: errors.add, onDone: done.complete);
+      body.add(Uint8List.fromList([1]));
+      await Future<void>.delayed(Duration.zero);
+
+      // 模拟 CupertinoClient：有请求在进行时 close 抛 StateError；这里不能抛出来
+      expect(client.close, returnsNormally);
+      await done.future.timeout(const Duration(seconds: 2));
+      expect(errors.single, isA<http.RequestAbortedException>());
+      expect(adapter.cancelFutureFired, isTrue);
+    });
+
+    test('Abortable 请求：abortTrigger 触发后流被打断（适配器自己不会中断）', () async {
+      final body = StreamController<Uint8List>();
+      final adapter = _CupertinoLikeAdapter(body.stream);
+      final client = DioBackedHttpClient(adapter);
+      final abort = Completer<void>();
+      final response = await client.send(
+        http.AbortableRequest('POST', Uri.parse('https://api.example.com/v1/x'), abortTrigger: abort.future)
+          ..body = 'x',
+      );
+      final errors = <Object>[];
+      final done = Completer<void>();
+      response.stream.listen((_) {}, onError: errors.add, onDone: done.complete);
+      abort.complete();
+      await done.future.timeout(const Duration(seconds: 2));
+      expect(errors.single, isA<http.RequestAbortedException>());
     });
   });
 }

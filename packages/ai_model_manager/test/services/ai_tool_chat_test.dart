@@ -8,7 +8,27 @@ import 'package:http/testing.dart';
 
 /// 回放手写的 SSE 夹具，并记下发出的请求。不联网。
 class _Replay {
-  _Replay(this.sse, {this.status = 200});
+  _Replay(String sse, {this.status = 200, bool raw = false})
+      : sse = (raw || status != 200) ? sse : _terminated(sse);
+
+  /// 夹具没写结束标记时补上各家的（现在没有结束标记会当作「已中断」）
+  static String _terminated(String s) {
+    if (s.contains('[DONE]') ||
+        s.contains('message_stop') ||
+        s.contains('response.completed') ||
+        s.contains('response.incomplete') ||
+        s.contains('finishReason') ||
+        s.contains('finish_reason')) {
+      return s;
+    }
+    const tail = [
+      'data: [DONE]',
+      'data: {"type":"message_stop"}',
+      'data: {"type":"response.completed","response":{}}',
+      'data: {"candidates":[{"finishReason":"STOP"}]}',
+    ];
+    return '$s${tail.map((e) => '$e\n\n').join()}';
+  }
 
   final String sse;
   final int status;
@@ -304,7 +324,7 @@ void main() {
           },
         },
       ]));
-      expect(_run(r, provider), throwsA(isA<AiToolChatHttpException>()));
+      expect(_run(r, provider), throwsA(isA<AiToolInterruptedException>()));
     });
   });
 
@@ -636,7 +656,7 @@ void main() {
       var used = 0;
       final client = MockClient.streaming((req, _) async {
         used++;
-        return http.StreamedResponse(Stream.value(utf8.encode(_sse([]))), 200);
+        return http.StreamedResponse(Stream.value(utf8.encode(_sse(['[DONE]']))), 200);
       });
       await AiToolChatService(bridgedClient: client)
           .stream(

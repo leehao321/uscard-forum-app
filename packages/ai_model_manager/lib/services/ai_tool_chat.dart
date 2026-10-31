@@ -124,6 +124,22 @@ class AiToolTurnDone extends AiToolEvent {
   final String? stopReason;
 }
 
+/// 流里收到了数据（推理分片、工具参数分片、心跳等，没有别的事件可发时用它）。
+/// 上层的空闲超时按「收到任何数据」重新计时，不会把长时间思考误判成卡死。
+class AiToolActivity extends AiToolEvent {
+  const AiToolActivity();
+}
+
+/// 流中途出错，或者没有结束标记就断开：已经生成的部分在 [partialText] 里，
+/// 不能当成完整回答。
+class AiToolInterruptedException implements Exception {
+  const AiToolInterruptedException(this.message, {this.partialText = ''});
+  final String message;
+  final String partialText;
+  @override
+  String toString() => message;
+}
+
 /// 服务商 / 模型不支持工具调用
 class AiToolsUnsupportedException implements Exception {
   const AiToolsUnsupportedException(this.message);
@@ -151,6 +167,12 @@ class AiToolChatHttpException implements Exception {
 
 typedef _Sse = ({String? event, String data});
 
+class _OaCall {
+  String id = '';
+  String name = '';
+  final StringBuffer args = StringBuffer();
+}
+
 /// 工具对话服务。网络客户端由调用方注入（应用网络栈 / 可取消的 client）。
 class AiToolChatService {
   AiToolChatService({this.bridgedClient});
@@ -167,41 +189,136 @@ class AiToolChatService {
     AiToolChoice toolChoice = AiToolChoice.auto,
     int maxOutputTokens = 2000,
     http.Client? requestClient,
-  }) async* {
+  }) {
+    // 取消订阅时主动打断这一次请求（abortTrigger + 自己创建的 client），
+    // 不能等生成器走到下一个 yield。
+    final abort = Completer<void>();
     final client = requestClient ?? bridgedClient ?? http.Client();
     final ownsClient = requestClient == null && bridgedClient == null;
+    StreamSubscription<AiToolEvent>? inner;
+    late final StreamController<AiToolEvent> out;
+    out = StreamController<AiToolEvent>(
+      onListen: () {
+        inner = _run(
+          client,
+          abort,
+          provider,
+          model,
+          apiKey,
+          turns,
+          tools,
+          systemPrompt,
+          toolChoice,
+          maxOutputTokens,
+        ).listen(
+          out.add,
+          onError: out.addError,
+          onDone: () {
+            if (ownsClient) client.close();
+            out.close();
+          },
+        );
+      },
+      onPause: () => inner?.pause(),
+      onResume: () => inner?.resume(),
+      onCancel: () {
+        if (!abort.isCompleted) abort.complete();
+        if (ownsClient) client.close();
+        // 不 await：生成器停在读网络的 await 上时，取消要等它走到下一步才完成，
+        // 这里已经主动打断了请求，不用等
+        inner?.cancel().then<void>((_) {}, onError: (Object _) {});
+      },
+    );
+    return out.stream;
+  }
+
+  Stream<AiToolEvent> _run(
+    http.Client client,
+    Completer<void> abort,
+    AiProvider provider,
+    String model,
+    String apiKey,
+    List<AiToolTurn> turns,
+    List<AiToolSpec> tools,
+    String? systemPrompt,
+    AiToolChoice toolChoice,
+    int maxOutputTokens,
+  ) async* {
+    final trigger = abort.future;
+    final req = switch (provider.type) {
+      AiProviderType.openai => _openAiRequest(provider.baseUrl, apiKey, model,
+          turns, tools, systemPrompt, toolChoice, maxOutputTokens, trigger),
+      AiProviderType.openaiResponse => _responsesRequest(provider.baseUrl,
+          apiKey, model, turns, tools, systemPrompt, toolChoice,
+          maxOutputTokens, trigger),
+      AiProviderType.anthropic => _anthropicRequest(provider.baseUrl, apiKey,
+          model, turns, tools, systemPrompt, toolChoice, maxOutputTokens,
+          trigger),
+      AiProviderType.gemini => _geminiRequest(provider.baseUrl, apiKey, model,
+          turns, tools, systemPrompt, toolChoice, maxOutputTokens, trigger),
+    };
+    final http.StreamedResponse response;
     try {
-      final req = switch (provider.type) {
-        AiProviderType.openai => _openAiRequest(provider.baseUrl, apiKey,
-            model, turns, tools, systemPrompt, toolChoice, maxOutputTokens),
-        AiProviderType.openaiResponse => _responsesRequest(provider.baseUrl,
-            apiKey, model, turns, tools, systemPrompt, toolChoice,
-            maxOutputTokens),
-        AiProviderType.anthropic => _anthropicRequest(provider.baseUrl, apiKey,
-            model, turns, tools, systemPrompt, toolChoice, maxOutputTokens),
-        AiProviderType.gemini => _geminiRequest(provider.baseUrl, apiKey,
-            model, turns, tools, systemPrompt, toolChoice, maxOutputTokens),
-      };
-      final response = await client.send(req);
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        final body = await response.stream.bytesToString();
-        throw classifyHttpError(response.statusCode, body);
-      }
-      final events = _sse(response.stream);
+      response = await client.send(req);
+    } on http.RequestAbortedException {
+      return;
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final body = await response.stream
+          .bytesToString()
+          .timeout(const Duration(seconds: 10), onTimeout: () => '');
+      throw classifyHttpError(response.statusCode, body);
+    }
+    // 200 但不是 SSE（代理把错误包成 JSON 返回）：带上原文报错，不当成「没有内容」
+    final contentType = (response.headers['content-type'] ?? '').toLowerCase();
+    if (contentType.isNotEmpty && !contentType.contains('event-stream')) {
+      final body = await response.stream
+          .bytesToString()
+          .timeout(const Duration(seconds: 10), onTimeout: () => '');
+      final msg = _errorMessage(body);
+      throw AiToolChatHttpException(
+        response.statusCode,
+        msg.isEmpty ? '服务商没有返回流式数据' : msg,
+      );
+    }
+    final events = _sse(response.stream);
+    try {
       yield* switch (provider.type) {
         AiProviderType.openai => _parseOpenAi(events),
         AiProviderType.openaiResponse => _parseResponses(events),
         AiProviderType.anthropic => _parseAnthropic(events),
         AiProviderType.gemini => _parseGemini(events),
       };
-    } finally {
-      if (ownsClient) client.close();
+    } on http.RequestAbortedException {
+      return;
     }
   }
 
   // ───────────────────────── 错误分类 ─────────────────────────
 
-  /// 把非 2xx 的响应归类：不支持工具、不接受 tool_choice、其他。
+  /// 只认明确的「不支持工具」说法；上下文超长、文档链接里的 #tool-calls、
+  /// FastAPI 422 里的 `tool_call_id` 之类都不算。
+  static final List<RegExp> _unsupportedPatterns = [
+    RegExp(r'does(?:n.t| not) support (?:the )?(?:tools?|function)', caseSensitive: false),
+    RegExp(r'tools? (?:are|is) not supported', caseSensitive: false),
+    RegExp(r'tool use is not supported', caseSensitive: false),
+    RegExp(r'no endpoints found that support tool', caseSensitive: false),
+    RegExp(r'function[ _-]?calling is not supported', caseSensitive: false),
+    RegExp(r'(?:does not|doesn.t) support (?:function[ _-]?calling|tool[ _-]?use)', caseSensitive: false),
+    RegExp(r'unrecognized request arguments? supplied:?[^"]*\btools?\b', caseSensitive: false),
+    RegExp(r'tools? param requires --jinja', caseSensitive: false),
+  ];
+
+  /// 是不是明确的「不支持工具」报错（返回 400/404/422，llama.cpp 的 --jinja 提示是 500）
+  static bool isToolsUnsupported(int status, String message, String body) {
+    final text = '$message\n$body';
+    final llama = RegExp(r'tools? param requires --jinja', caseSensitive: false);
+    if (status == 500) return llama.hasMatch(text);
+    if (status != 400 && status != 404 && status != 422) return false;
+    return _unsupportedPatterns.any((p) => p.hasMatch(text));
+  }
+
+  /// 把非 2xx 的响应归类：不支持工具、不接受 tool_choice、Key 无效、其他。
   static Exception classifyHttpError(int status, String body) {
     final message = _errorMessage(body);
     final lower = '$message $body'.toLowerCase();
@@ -212,9 +329,14 @@ class AiToolChatService {
           lower.contains('functioncallingconfig')) {
         return AiToolChoiceUnsupportedException(message);
       }
-      if (lower.contains('tool') || lower.contains('function')) {
-        return AiToolsUnsupportedException(message);
-      }
+    }
+    if (isToolsUnsupported(status, message, body)) {
+      return AiToolsUnsupportedException(message);
+    }
+    // Gemini 的 Key 错误是 400 + API_KEY_INVALID：按鉴权失败处理
+    if (status == 400 &&
+        (lower.contains('api_key_invalid') || lower.contains('api key not valid'))) {
+      return AiToolChatHttpException(401, message);
     }
     return AiToolChatHttpException(status, message);
   }
@@ -246,7 +368,10 @@ class AiToolChatService {
         data.clear();
         continue;
       }
-      if (line.startsWith(':')) continue;
+      if (line.startsWith(':')) {
+        yield (event: ':', data: ''); // 心跳：只用来表示连接还活着
+        continue;
+      }
       if (line.startsWith('event:')) {
         event = line.substring(6).trim();
       } else if (line.startsWith('data:')) {
@@ -287,8 +412,10 @@ class AiToolChatService {
     String? system,
     AiToolChoice choice,
     int maxTokens,
+    Future<void> abort,
   ) {
-    final base = ApiHostFormatter.format(baseUrl);
+    final b = _splitBase(baseUrl);
+    final base = b.query.isEmpty ? b.head : '${b.head}?${b.query}';
     final messages = <Map<String, Object?>>[
       if (system != null && system.isNotEmpty)
         {'role': 'system', 'content': system},
@@ -309,7 +436,7 @@ class AiToolChatService {
                 {
                   'id': c.id,
                   'type': 'function',
-                  'function': {'name': c.name, 'arguments': c.argumentsJson},
+                  'function': {'name': c.name, 'arguments': _safeArgs(c)},
                 },
             ];
           }
@@ -328,7 +455,7 @@ class AiToolChatService {
       }
     }
     // OpenAI 官方的新模型不认 max_tokens；兼容服务（DeepSeek、Ollama 等）认 max_tokens
-    final official = base.contains('api.openai.com');
+    final official = b.head.contains('api.openai.com');
     final body = <String, Object?>{
       'model': model,
       'messages': messages,
@@ -352,19 +479,31 @@ class AiToolChatService {
     };
     return _post(_join(base, '/chat/completions'), body, {
       'Authorization': 'Bearer $apiKey',
-    });
+    }, abort);
   }
 
   static Stream<AiToolEvent> _parseOpenAi(Stream<_Sse> events) async* {
     final text = StringBuffer();
     final reasoning = StringBuffer();
-    final calls = <int, ({String id, String name, StringBuffer args})>{};
+    final list = <_OaCall>[];
+    final byIndex = <int, _OaCall>{};
     String? stop;
+    var finished = false;
     int? prompt, completion, cached;
     await for (final e in events) {
-      if (e.data.trim() == '[DONE]') break;
+      yield const AiToolActivity();
+      if (e.data.trim() == '[DONE]') {
+        finished = true;
+        break;
+      }
       final j = _json(e.data);
       if (j == null) continue;
+      // OpenRouter 等：流中间给 error 分片
+      final err = j['error'];
+      if (err != null) {
+        final msg = err is Map ? (err['message'] ?? '$err') : '$err';
+        throw AiToolInterruptedException('$msg', partialText: text.toString());
+      }
       final usage = j['usage'];
       if (usage is Map) {
         prompt = _int(usage['prompt_tokens']) ?? prompt;
@@ -377,7 +516,13 @@ class AiToolChatService {
       final choice = choices.first;
       if (choice is! Map) continue;
       final fr = choice['finish_reason'];
-      if (fr is String) stop = fr;
+      if (fr is String) {
+        if (fr == 'error') {
+          throw AiToolInterruptedException('服务商在生成中途出错', partialText: text.toString());
+        }
+        stop = fr;
+        finished = true;
+      }
       final delta = choice['delta'];
       if (delta is! Map) continue;
       final c = delta['content'];
@@ -391,21 +536,39 @@ class AiToolChatService {
       if (tcs is List) {
         for (final tc in tcs) {
           if (tc is! Map) continue;
-          final index = _int(tc['index']) ?? 0;
-          final fn = tc['function'];
-          final prev = calls[index];
-          final id = (tc['id'] is String && (tc['id'] as String).isNotEmpty)
+          final index = _int(tc['index']);
+          final idStr = (tc['id'] is String && (tc['id'] as String).isNotEmpty)
               ? tc['id'] as String
-              : prev?.id ?? 'call_$index';
-          final name =
-              fn is Map && fn['name'] is String && (fn['name'] as String).isNotEmpty
-                  ? fn['name'] as String
-                  : prev?.name ?? '';
-          final args = prev?.args ?? StringBuffer();
-          if (fn is Map && fn['arguments'] is String) args.write(fn['arguments']);
-          calls[index] = (id: id, name: name, args: args);
+              : null;
+          final fn = tc['function'];
+          // 找当前这个调用：有 index 按 index，没有就按 id，再没有接在最后一个后面
+          _OaCall? cur = index != null
+              ? byIndex[index]
+              : (idStr != null
+                  ? list.where((x) => x.id == idStr).firstOrNull
+                  : list.lastOrNull);
+          // 同一个 index 出现新的 id：是另一个调用
+          if (cur != null && idStr != null && cur.id.isNotEmpty && cur.id != idStr) {
+            cur = null;
+          }
+          if (cur == null) {
+            cur = _OaCall()..id = idStr ?? '';
+            list.add(cur);
+          } else if (cur.id.isEmpty && idStr != null) {
+            cur.id = idStr;
+          }
+          if (index != null) byIndex[index] = cur;
+          if (fn is Map) {
+            if (fn['name'] is String && (fn['name'] as String).isNotEmpty) {
+              cur.name = fn['name'] as String;
+            }
+            if (fn['arguments'] is String) cur.args.write(fn['arguments']);
+          }
         }
       }
+    }
+    if (!finished) {
+      throw AiToolInterruptedException('连接在回答结束前断开了', partialText: text.toString());
     }
     if (prompt != null || completion != null) {
       yield AiToolUsage(
@@ -414,16 +577,15 @@ class AiToolChatService {
         cachedTokens: cached,
       );
     }
-    final ordered = calls.keys.toList()..sort();
     yield AiToolTurnDone(
       AiAssistantTurn(
         text: text.toString(),
         toolCalls: [
-          for (final i in ordered)
+          for (var i = 0; i < list.length; i++)
             AiToolCall(
-              id: calls[i]!.id,
-              name: calls[i]!.name,
-              argumentsJson: calls[i]!.args.toString(),
+              id: list[i].id.isEmpty ? 'call_$i' : list[i].id,
+              name: list[i].name,
+              argumentsJson: list[i].args.toString(),
             ),
         ],
         providerState: reasoning.isEmpty
@@ -447,8 +609,10 @@ class AiToolChatService {
     String? system,
     AiToolChoice choice,
     int maxTokens,
+    Future<void> abort,
   ) {
-    final base = ApiHostFormatter.format(baseUrl);
+    final b = _splitBase(baseUrl);
+    final base = b.query.isEmpty ? b.head : '${b.head}?${b.query}';
     final input = <Map<String, Object?>>[];
     for (final t in turns) {
       switch (t) {
@@ -461,7 +625,10 @@ class AiToolChatService {
               state['output'] is List) {
             // 原样放回上一轮的全部输出项（reasoning、message、function_call）
             for (final item in state['output'] as List) {
-              if (item is Map) input.add(Map<String, Object?>.from(item));
+              if (item is! Map) continue;
+              // 没有 encrypted_content 的推理项在 store:false 下放回去会 400，不放
+              if (item['type'] == 'reasoning' && item['encrypted_content'] == null) continue;
+              input.add(Map<String, Object?>.from(item));
             }
           } else {
             if (t.text.isNotEmpty) {
@@ -472,7 +639,7 @@ class AiToolChatService {
                 'type': 'function_call',
                 'call_id': c.id,
                 'name': c.name,
-                'arguments': c.argumentsJson,
+                'arguments': _safeArgs(c),
               });
             }
           }
@@ -506,7 +673,7 @@ class AiToolChatService {
         'tool_choice': _choiceName(choice, 'auto', 'required', 'none'),
       },
     };
-    return _post(_join(base, '/responses'), body, {'Authorization': 'Bearer $apiKey'});
+    return _post(_join(base, '/responses'), body, {'Authorization': 'Bearer $apiKey'}, abort);
   }
 
   static Stream<AiToolEvent> _parseResponses(Stream<_Sse> events) async* {
@@ -514,8 +681,10 @@ class AiToolChatService {
     final output = <Map<String, dynamic>>[];
     int? prompt, completion, cached;
     String? stop;
+    var finished = false;
+    List<dynamic>? completedOutput;
     await for (final e in events) {
-      if (e.data.trim() == '[DONE]') break;
+      yield const AiToolActivity();
       final j = _json(e.data);
       if (j == null) continue;
       switch (j['type']) {
@@ -529,6 +698,8 @@ class AiToolChatService {
           final item = j['item'];
           if (item is Map<String, dynamic>) output.add(item);
         case 'response.completed':
+        case 'response.incomplete':
+          finished = true;
           final r = j['response'];
           if (r is Map) {
             final u = r['usage'];
@@ -539,13 +710,42 @@ class AiToolChatService {
               if (d is Map) cached = _int(d['cached_tokens']);
             }
             stop = r['status'] as String?;
+            if (j['type'] == 'response.incomplete') {
+              final d = r['incomplete_details'];
+              final reason = d is Map ? d['reason'] as String? : null;
+              stop = reason == 'max_output_tokens'
+                  ? 'length'
+                  : (reason == 'content_filter' ? 'content_filter' : 'incomplete');
+            }
+            // 只在 completed 里给完整输出（没有 output_item.done）时从这里取
+            if (r['output'] is List) completedOutput = r['output'] as List;
           }
         case 'response.failed':
         case 'error':
           final r = j['response'];
           final err = (r is Map ? r['error'] : null) ?? j['error'] ?? j;
           final msg = err is Map ? (err['message'] ?? '$err') : '$err';
-          throw AiToolChatHttpException(500, '$msg');
+          throw AiToolInterruptedException('$msg', partialText: text.toString());
+      }
+    }
+    if (!finished) {
+      throw AiToolInterruptedException('连接在回答结束前断开了', partialText: text.toString());
+    }
+    if (output.isEmpty && completedOutput != null) {
+      for (final item in completedOutput) {
+        if (item is Map<String, dynamic>) output.add(item);
+      }
+      if (text.isEmpty) {
+        for (final item in output) {
+          if (item['type'] == 'message' && item['content'] is List) {
+            for (final c in item['content'] as List) {
+              if (c is Map && c['type'] == 'output_text' && c['text'] is String) {
+                text.write(c['text']);
+                yield AiToolTextDelta(c['text'] as String);
+              }
+            }
+          }
+        }
       }
     }
     if (prompt != null || completion != null) {
@@ -587,8 +787,10 @@ class AiToolChatService {
     String? system,
     AiToolChoice choice,
     int maxTokens,
+    Future<void> abort,
   ) {
-    final base = ApiHostFormatter.format(baseUrl);
+    final b = _splitBase(baseUrl);
+    final base = b.query.isEmpty ? b.head : '${b.head}?${b.query}';
     final messages = <Map<String, Object?>>[];
     List<Map<String, Object?>>? pendingResults;
     void flush() {
@@ -663,7 +865,7 @@ class AiToolChatService {
     return _post(_join(base, '/messages'), body, {
       'x-api-key': apiKey,
       'anthropic-version': '2023-06-01',
-    });
+    }, abort);
   }
 
   static Stream<AiToolEvent> _parseAnthropic(Stream<_Sse> events) async* {
@@ -672,10 +874,14 @@ class AiToolChatService {
     final jsonBuf = <int, StringBuffer>{};
     int? prompt, completion, cached;
     String? stop;
+    var finished = false;
     await for (final e in events) {
+      yield const AiToolActivity();
       final j = _json(e.data);
       if (j == null) continue;
       switch (j['type']) {
+        case 'message_stop':
+          finished = true;
         case 'message_start':
           final m = j['message'];
           if (m is Map && m['usage'] is Map) {
@@ -736,8 +942,11 @@ class AiToolChatService {
         case 'error':
           final err = j['error'];
           final msg = err is Map ? (err['message'] ?? '$err') : '$err';
-          throw AiToolChatHttpException(500, '$msg');
+          throw AiToolInterruptedException('$msg', partialText: text.toString());
       }
+    }
+    if (!finished) {
+      throw AiToolInterruptedException('连接在回答结束前断开了', partialText: text.toString());
     }
     if (prompt != null || completion != null) {
       yield AiToolUsage(
@@ -775,10 +984,17 @@ class AiToolChatService {
 
   // ───────────────────────── Gemini ─────────────────────────
 
-  static String _geminiBase(String baseUrl) {
-    if (baseUrl.trim().isEmpty) return 'https://generativelanguage.googleapis.com';
-    final b = ApiHostFormatter.format(baseUrl, supportApiVersion: false);
-    return b.replaceFirst(RegExp(r'/v1(beta)?$', caseSensitive: false), '');
+  /// Gemini：地址里的查询串（`?key=…`）留到最后；用户写的 `/v1` `/v1beta`
+  /// 先去掉，请求路径里自己带 `/v1beta`，不会重复。
+  static ({String head, String query}) _geminiUrl(String baseUrl) {
+    if (baseUrl.trim().isEmpty) {
+      return (head: 'https://generativelanguage.googleapis.com', query: '');
+    }
+    final b = _splitBase(baseUrl, withVersion: false);
+    return (
+      head: b.head.replaceFirst(RegExp(r'/v1(beta)?$', caseSensitive: false), ''),
+      query: b.query,
+    );
   }
 
   /// Gemini 的 schema 类型名用大写
@@ -804,8 +1020,10 @@ class AiToolChatService {
     String? system,
     AiToolChoice choice,
     int maxTokens,
+    Future<void> abort,
   ) {
-    final base = _geminiBase(baseUrl);
+    final g = _geminiUrl(baseUrl);
+    final base = g.query.isEmpty ? g.head : '${g.head}?${g.query}';
     final contents = <Map<String, Object?>>[];
     List<Map<String, Object?>>? pending;
     void flush() {
@@ -845,6 +1063,15 @@ class AiToolChatService {
                 },
             ];
           }
+          // 没有内容也没有签名的空 text 部件不放回（和 Anthropic 一致）
+          parts.removeWhere(
+            (p) =>
+                p is Map &&
+                p['text'] is String &&
+                (p['text'] as String).isEmpty &&
+                p['thoughtSignature'] == null &&
+                p['functionCall'] == null,
+          );
           if (parts.isEmpty) parts = [{'text': '…'}];
           contents.add({'role': 'model', 'parts': parts});
         case AiToolResultTurn():
@@ -897,6 +1124,7 @@ class AiToolChatService {
       _join(base, '/v1beta/models/$model:streamGenerateContent', query: 'alt=sse'),
       body,
       {'x-goog-api-key': apiKey},
+      abort,
     );
   }
 
@@ -906,9 +1134,16 @@ class AiToolChatService {
     final calls = <AiToolCall>[];
     int? prompt, completion, cached;
     String? stop;
+    var finished = false;
     await for (final e in events) {
+      yield const AiToolActivity();
       final j = _json(e.data);
       if (j == null) continue;
+      final err = j['error'];
+      if (err != null) {
+        final msg = err is Map ? (err['message'] ?? '$err') : '$err';
+        throw AiToolInterruptedException('$msg', partialText: text.toString());
+      }
       final u = j['usageMetadata'];
       if (u is Map) {
         prompt = _int(u['promptTokenCount']) ?? prompt;
@@ -918,7 +1153,10 @@ class AiToolChatService {
       final cands = j['candidates'];
       if (cands is! List || cands.isEmpty || cands.first is! Map) continue;
       final cand = cands.first as Map;
-      if (cand['finishReason'] is String) stop = cand['finishReason'] as String;
+      if (cand['finishReason'] is String) {
+        stop = cand['finishReason'] as String;
+        finished = true;
+      }
       final content = cand['content'];
       final ps = content is Map ? content['parts'] : null;
       if (ps is! List) continue;
@@ -941,6 +1179,9 @@ class AiToolChatService {
         }
       }
     }
+    if (!finished) {
+      throw AiToolInterruptedException('连接在回答结束前断开了', partialText: text.toString());
+    }
     if (prompt != null || completion != null) {
       yield AiToolUsage(
         promptTokens: prompt,
@@ -961,8 +1202,30 @@ class AiToolChatService {
 
   // ───────────────────────── 公共 ─────────────────────────
 
-  /// 把路径接在用户配置的地址后面：地址里自带的查询串（Azure 的
-  /// `?api-version=…`）留在最后，不会被路径冲掉。
+  /// 规范化用户配置的地址：先拆出查询串，再按 ApiHostFormatter 的规则处理路径
+  /// （末尾 `#` 严格使用、已有版本段不重复补），查询串原样留到最后。
+  static ({String head, String query}) _splitBase(
+    String baseUrl, {
+    bool withVersion = true,
+  }) {
+    var s = baseUrl.trim();
+    var strict = false;
+    if (s.endsWith('#')) {
+      strict = true;
+      s = s.substring(0, s.length - 1);
+    }
+    final q = s.indexOf('?');
+    var head = q < 0 ? s : s.substring(0, q);
+    final query = q < 0 ? '' : s.substring(q + 1);
+    while (head.endsWith('/')) {
+      head = head.substring(0, head.length - 1);
+    }
+    if (!strict) {
+      head = ApiHostFormatter.format(head, supportApiVersion: withVersion);
+    }
+    return (head: head, query: query);
+  }
+
   static String _join(String base, String path, {String? query}) {
     final q = base.indexOf('?');
     final head = q < 0 ? base : base.substring(0, q);
@@ -971,12 +1234,39 @@ class AiToolChatService {
     return '$head$path${all.isEmpty ? '' : '?$all'}';
   }
 
+  /// 各协议实际请求的地址（测试用）
+  static String urlFor(AiProviderType type, String baseUrl, String model) {
+    switch (type) {
+      case AiProviderType.openai:
+        final b = _splitBase(baseUrl);
+        return _join(b.query.isEmpty ? b.head : '${b.head}?${b.query}', '/chat/completions');
+      case AiProviderType.openaiResponse:
+        final b = _splitBase(baseUrl);
+        return _join(b.query.isEmpty ? b.head : '${b.head}?${b.query}', '/responses');
+      case AiProviderType.anthropic:
+        final b = _splitBase(baseUrl);
+        return _join(b.query.isEmpty ? b.head : '${b.head}?${b.query}', '/messages');
+      case AiProviderType.gemini:
+        final g = _geminiUrl(baseUrl);
+        return _join(
+          g.query.isEmpty ? g.head : '${g.head}?${g.query}',
+          '/v1beta/models/$model:streamGenerateContent',
+          query: 'alt=sse',
+        );
+    }
+  }
+
+  /// 参数原文不合法或为空时回传 `{}`（各家都要求 arguments 是合法 JSON）
+  static String _safeArgs(AiToolCall c) =>
+      c.argumentsJson.trim().isEmpty || c.arguments == null ? '{}' : c.argumentsJson;
+
   static http.Request _post(
     String url,
     Map<String, Object?> body,
     Map<String, String> headers,
+    Future<void> abortTrigger,
   ) {
-    final req = http.Request('POST', Uri.parse(url));
+    final req = http.AbortableRequest('POST', Uri.parse(url), abortTrigger: abortTrigger);
     req.headers.addAll({
       'Content-Type': 'application/json',
       'Accept': 'text/event-stream',

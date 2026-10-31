@@ -23,6 +23,10 @@ class DioBackedHttpClient extends http.BaseClient {
   final HttpClientAdapter _adapter;
   bool _closed = false;
 
+  /// 进行中的请求：close 时先逐个取消（否则 cupertino_http 的 close 会因为
+  /// 还有请求在跑抛 StateError，IO 适配器下也不会打断正在读的流）
+  final Set<Completer<void>> _inflight = {};
+
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     if (_closed) {
@@ -47,14 +51,28 @@ class DioBackedHttpClient extends http.BaseClient {
           request.headers['Content-Type'],
     );
 
+    // 取消：调用方的 abortTrigger（Abortable 请求）或 close 都会触发
+    final cancel = Completer<void>();
+    _inflight.add(cancel);
+    if (request is http.Abortable && request.abortTrigger != null) {
+      unawaited(request.abortTrigger!.then((_) {
+        if (!cancel.isCompleted) cancel.complete();
+      }));
+    }
+
     final ResponseBody responseBody;
     try {
-      responseBody = await _adapter.fetch(options, requestStream, null);
+      responseBody = await _adapter.fetch(options, requestStream, cancel.future);
     } on DioException catch (e) {
+      _inflight.remove(cancel);
+      if (cancel.isCompleted) throw http.RequestAbortedException(request.url);
       throw http.ClientException(
         e.message ?? e.toString(),
         request.url,
       );
+    } catch (_) {
+      _inflight.remove(cancel);
+      rethrow;
     }
 
     final headers = _flattenHeaders(responseBody.headers);
@@ -75,7 +93,7 @@ class DioBackedHttpClient extends http.BaseClient {
     final contentLength = _parseContentLength(responseBody.headers);
 
     return http.StreamedResponse(
-      responseBody.stream.cast<List<int>>(),
+      _cancellable(responseBody.stream.cast<List<int>>(), cancel, request.url),
       responseBody.statusCode,
       contentLength: contentLength,
       request: request,
@@ -85,11 +103,58 @@ class DioBackedHttpClient extends http.BaseClient {
     );
   }
 
+  /// 响应流：取消时立刻把流打断（给读流的一方抛 [http.RequestAbortedException]），
+  /// 不依赖适配器自己会不会中断已经返回了响应头的连接
+  Stream<List<int>> _cancellable(
+    Stream<List<int>> source,
+    Completer<void> cancel,
+    Uri url,
+  ) {
+    late final StreamController<List<int>> out;
+    StreamSubscription<List<int>>? sub;
+    void finish() => _inflight.remove(cancel);
+    out = StreamController<List<int>>(
+      onListen: () {
+        sub = source.listen(
+          out.add,
+          onError: out.addError,
+          onDone: () {
+            finish();
+            out.close();
+          },
+        );
+        cancel.future.then((_) {
+          if (out.isClosed) return;
+          sub?.cancel().then<void>((_) {}, onError: (Object _) {});
+          finish();
+          out.addError(http.RequestAbortedException(url));
+          out.close();
+        });
+      },
+      onPause: () => sub?.pause(),
+      onResume: () => sub?.resume(),
+      onCancel: () {
+        finish();
+        return sub?.cancel();
+      },
+    );
+    return out.stream;
+  }
+
   @override
   void close() {
     if (_closed) return;
     _closed = true;
-    _adapter.close(force: false);
+    for (final c in _inflight.toList()) {
+      if (!c.isCompleted) c.complete();
+    }
+    _inflight.clear();
+    try {
+      _adapter.close(force: false);
+    } catch (_) {
+      // cupertino_http 在还有请求时 close 会抛 StateError；已经取消了进行中的请求，
+      // 这里的异常不该影响调用方（停止、关页面）
+    }
   }
 
   /// 命中条件：200 + JSON + images/{generations,edits} 路径。
