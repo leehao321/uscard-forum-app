@@ -168,7 +168,7 @@ class FilterTabItem extends StatelessWidget {
   }
 }
 
-/// 筛选胶囊：32 高 surface/grouped，13 字 + chevron-down 16；选中（筛选
+/// 筛选胶囊：32 高（浅色 surface/grouped、深色 surface/elevated），13 字 + chevron-down 16；选中（筛选
 /// 生效）时文字和图标换成 brand/primary。上下各留 6 透明热区凑足 44。
 class FilterPill extends StatelessWidget {
   const FilterPill({
@@ -188,6 +188,11 @@ class FilterPill extends StatelessWidget {
   /// 文字前的图标（可选，16）
   final IconData? icon;
 
+  /// 胶囊底色：深色用 surface/elevated（和页面 #000、半屏 #1C1C1E 都不同），浅色用 surface/grouped
+  static Color _fill(AppTokens tokens) => tokens.brightness == Brightness.dark
+      ? tokens.colors.surfaceElevated
+      : tokens.colors.surfaceGrouped;
+
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
@@ -200,8 +205,22 @@ class FilterPill extends StatelessWidget {
       constraints: const BoxConstraints(minWidth: AppSize.hit),
       padding: const EdgeInsets.symmetric(horizontal: AppSpace.m),
       decoration: ShapeDecoration(
-        color: tokens.colors.surfaceGrouped,
-        shape: const StadiumBorder(),
+        // 深色下半屏底（sheetFill）就是 surface/grouped，胶囊换成 elevated 才分得出来；
+        // 浅色下页面和半屏都是白底，grouped 本来就够。选中时叠一层 brand 淡底 + 细描边
+        color: selected
+            ? Color.alphaBlend(
+                tokens.colors.brandPrimary.withValues(alpha: 0.14),
+                _fill(tokens),
+              )
+            : _fill(tokens),
+        shape: StadiumBorder(
+          side: selected
+              ? BorderSide(
+                  color: tokens.colors.brandPrimary,
+                  width: AppSpace.hairline,
+                )
+              : BorderSide.none,
+        ),
       ),
       child: Center(
         widthFactor: 1,
