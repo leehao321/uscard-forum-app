@@ -267,6 +267,24 @@ void expectReadableBody(WidgetTester tester, UiVariant variant) {
   expect(widest, lessThanOrEqualTo(640), reason: '横屏正文列应限宽 640');
 }
 
+/// 编辑器页（发帖 / 编辑 / 回复半屏）的横屏正文列：编辑器的滚动区是通栏的（底部工具条
+/// 背景要铺满屏宽），限宽靠两侧留白，所以量里面最宽的输入区（标题、正文）不超过 640，
+/// 并且至少有一个输入区。竖屏、平板不做要求。
+void expectEditorColumn(WidgetTester tester, UiVariant variant) {
+  final size = variant.device.size;
+  final padding = variant.device.padding;
+  if (size.shortestSide >= 600) return;
+  if (size.width - padding.left - padding.right < 640) return;
+  var widest = 0.0;
+  for (final element in find.byType(EditableText).evaluate()) {
+    final box = element.renderObject as RenderBox?;
+    if (box == null || !box.hasSize) continue;
+    if (box.size.width > widest) widest = box.size.width;
+  }
+  expect(widest, greaterThan(0), reason: '页面里没有输入区');
+  expect(widest, lessThanOrEqualTo(640), reason: '横屏编辑器正文列应限宽 640');
+}
+
 /// 渲染过程中没有异常（RenderFlex 溢出等都会在这里暴露）
 void expectNoUiException(WidgetTester tester) {
   expect(tester.takeException(), isNull);

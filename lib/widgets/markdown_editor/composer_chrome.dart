@@ -397,19 +397,33 @@ class ComposerReadingPadding extends StatelessWidget {
   final EdgeInsets vertical;
   final double? minLeading;
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.fromLTRB(
-      math.max(
-        minLeading ?? ComposerReadingGutter.of(context),
-        (MediaQuery.sizeOf(context).width - 800) / 2,
+  Widget build(BuildContext context) {
+    final side = composerReadingSide(context);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        math.max(minLeading ?? ComposerReadingGutter.of(context), side.left),
+        vertical.top,
+        math.max(ComposerReadingGutter.trailingOf(context), side.right),
+        vertical.bottom,
       ),
-      vertical.top,
-      math.max(
-        ComposerReadingGutter.trailingOf(context),
-        (MediaQuery.sizeOf(context).width - 800) / 2,
-      ),
-      vertical.bottom,
-    ),
-    child: child,
-  );
+      child: child,
+    );
+  }
+}
+
+/// 编辑器正文列两侧的留白下限（不含页边距）：
+/// - **手机横屏**（短边 < 600、去掉安全区后宽 ≥ 640）：正文列限宽 640 居中（设计 §5.6，
+///   和阅读页同一条规则），两侧至少让开安全区；底部工具条的背景仍然横跨整个屏宽，
+///   里面的按钮另按 `readableInsets` 对齐这一列；
+/// - 其余（竖屏、平板、桌面）：列宽 800 居中，和原来一样。
+({double left, double right}) composerReadingSide(BuildContext context) {
+  final size = MediaQuery.sizeOf(context);
+  final safe = MediaQuery.paddingOf(context);
+  final available = size.width - safe.left - safe.right;
+  if (size.shortestSide < 600 && available >= kReadableMaxWidth) {
+    final side = (size.width - kReadableMaxWidth) / 2;
+    return (left: math.max(safe.left, side), right: math.max(safe.right, side));
+  }
+  final side = math.max(0.0, (size.width - 800) / 2);
+  return (left: side, right: side);
 }

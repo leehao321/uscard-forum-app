@@ -23,6 +23,7 @@ import 'package:fluxdo/pages/about_page.dart';
 import 'package:fluxdo/pages/create_topic_page.dart';
 import 'package:fluxdo/pages/edit_topic_page.dart';
 import 'package:fluxdo/pages/image_viewer_page.dart';
+import 'package:fluxdo/widgets/post/reply_sheet.dart';
 import 'package:fluxdo/services/discourse_cook_service.dart';
 
 import 'dart:convert';
@@ -153,6 +154,9 @@ class _FakeHistory extends BrowsingHistoryNotifier {
 /// 数据类页面用的假服务：只实现巡检里被调用的几个方法，其余返回 null
 class _AuditService implements DiscourseService {
   @override
+  Future<String?> getPostRaw(int postId) async => '最近重新整理了写作环境。 常用工具应该留在手边。';
+
+  @override
   Future<List<String>> getRecentSearches() async => const ['chase 125k'];
 
   @override
@@ -226,6 +230,7 @@ class PageCase {
     this.prefs = const {},
     this.readable = true,
     this.editor = false,
+    this.editorColumn = false,
   });
 
   /// false = 全屏沉浸页（图片查看器等），只查溢出，不要求 640 限宽
@@ -233,6 +238,9 @@ class PageCase {
 
   /// true = 编辑器页：先灌入站点设置和 cook 服务（和 composer_workbench_test 一样）
   final bool editor;
+
+  /// true = 编辑器页：滚动区通栏，限宽靠两侧留白，改用 [expectEditorColumn] 量输入区
+  final bool editorColumn;
 
   /// 预置的 SharedPreferences 值（例如不弹引导）
   final Map<String, Object> prefs;
@@ -347,8 +355,9 @@ final List<PageCase> pageCases = [
     () =>
         const CreateTopicPage(initialTitle: '分享最近的开发体验', initialContent: '正文'),
     editor: true,
-    // 正文通栏：编辑器自带的工具条按 §7 横屏通栏，正文编辑区限宽 640 要拆编辑器内部布局
+    // 编辑器的滚动区通栏（底部工具条背景要铺满屏宽），正文列限宽 640 靠两侧留白
     readable: false,
+    editorColumn: true,
   ),
   PageCase(
     '编辑话题',
@@ -362,6 +371,15 @@ final List<PageCase> pageCases = [
     },
     editor: true,
     readable: false,
+    editorColumn: true,
+    extra: () => [discourseServiceProvider.overrideWithValue(_AuditService())],
+  ),
+  PageCase(
+    '回复半屏',
+    () => ReplySheet(topicId: 1001, preloadedDraftFuture: Future.value(null)),
+    editor: true,
+    readable: false,
+    editorColumn: true,
   ),
   PageCase(
     '图片查看器',
@@ -418,6 +436,7 @@ void main() {
         try {
           expectNoUiException(tester);
           if (c.readable) expectReadableBody(tester, variant);
+          if (c.editorColumn) expectEditorColumn(tester, variant);
         } catch (_) {
           await uiShot(tester, 'landscape_fail_${c.name}_${device.name}');
           rethrow;
