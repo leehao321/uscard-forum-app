@@ -19,6 +19,7 @@ import 'package:fluxdo/widgets/topic/painted_topic_card.dart';
 import 'package:fluxdo/widgets/common/cached_image.dart';
 import 'package:fluxdo/widgets/topic/topic_expandable_excerpt.dart';
 import 'package:fluxdo/widgets/topic/topic_item_builder.dart';
+import 'package:fluxdo/widgets/topic/topic_row.dart';
 import 'package:fluxdo/widgets/topic/topic_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -121,62 +122,47 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('默认使用自绘卡，不展示正文、不请求首楼', (tester) async {
+  // 0.4.0 v2：用 buildTopicItem 的列表统一是 TopicRow，不再展示正文摘要、首图，
+  // 也不会为列表里的话题请求首楼（卡片样式里的这些开关等 M8 一起撤掉）。
+  testWidgets('默认列表行（v2）：不展示正文、不请求首楼', (tester) async {
     await tester.pumpWidget(app(card()));
     await tester.pumpAndSettle();
-    expect(find.byType(PaintedTopicCard), findsOneWidget);
+    expect(find.byType(TopicRow), findsOneWidget);
+    expect(find.byType(PaintedTopicCard), findsNothing);
     expect(find.byType(TopicExpandableExcerpt), findsNothing);
     expect(api.pending, isEmpty);
   });
 
-  testWidgets('内容开关关闭时已有摘要、首图及正文缓存不改变卡片高度和点击', (tester) async {
+  testWidgets('列表行不随卡片样式开关变化：高度一致、点击正常、不请求首楼', (tester) async {
     var taps = 0;
-    Widget item(Topic topic, {Widget? middle}) => Builder(
+    Widget item() => Builder(
       builder: (context) => buildTopicItem(
         context: context,
-        topic: topic,
+        topic: _topic(1, excerpt: '列表已有摘要'),
         isSelected: false,
         onTap: () => taps++,
         enableLongPress: false,
         categoryMap: const {},
-        middleWidget: middle,
       ),
     );
-    await tester.pumpWidget(app(item(_topic(1))));
-    await tester.pumpAndSettle();
-    final originalHeight = tester.getSize(find.byType(PaintedTopicCard)).height;
-    await TopicExcerptService().getOrFetchExcerpt(
-      1,
-      service: _CompletedDiscourse(),
-      allowFetch: true,
-    );
-    await tester.pumpWidget(
-      app(
-        item(
-          _topic(
-            1,
-            excerpt: List.filled(100, '列表已有长摘要').join(' '),
-            imageUrl: '/uploads/cover.jpg',
-          ),
-        ),
+    final heights = <double>[];
+    for (final style in const [
+      TopicCardStyle.defaults,
+      TopicCardStyle(showExcerpt: true, showImages: true),
+      TopicCardStyle(
+        showExcerpt: true,
+        showImages: true,
+        allowExcerptFetch: true,
       ),
-    );
-    await tester.pumpAndSettle();
-    expect(
-      tester.getSize(find.byType(PaintedTopicCard)).height,
-      originalHeight,
-    );
-    expect(find.byType(TopicExpandableExcerpt), findsNothing);
-    expect(find.byType(CachedImage), findsNothing);
-    expect(api.pending, isEmpty);
-    await tester.tap(find.byType(PaintedTopicCard));
-    await tester.pump();
-    expect(taps, 1);
-
-    await tester.pumpWidget(app(item(_topic(1), middle: const Text('原有书签摘要'))));
-    await tester.pumpAndSettle();
-    expect(find.text('原有书签摘要'), findsOneWidget);
-    expect(find.byType(TopicExpandableExcerpt), findsNothing);
+    ]) {
+      TopicCardStyleScope.current = style;
+      await tester.pumpWidget(app(item()));
+      await tester.pumpAndSettle();
+      heights.add(tester.getSize(find.byType(TopicRow)).height);
+      await tester.tap(find.byType(TopicRow));
+    }
+    expect(heights.toSet(), hasLength(1));
+    expect(taps, 3);
     expect(api.pending, isEmpty);
   });
 
@@ -195,17 +181,18 @@ void main() {
     expect(api.pending, isEmpty);
   });
 
-  testWidgets('只开启展示时使用列表摘要，不请求首楼', (tester) async {
+  testWidgets('只开启展示：列表仍是 v2 行，不显示摘要、不请求首楼', (tester) async {
     const style = TopicCardStyle(showExcerpt: true);
     await prefs.setString('pref_topic_card_style', style.toJsonString());
     TopicCardStyleScope.current = style;
     await tester.pumpWidget(app(card()));
     await tester.pumpAndSettle();
-    expect(find.text('列表已有摘要'), findsOneWidget);
+    expect(find.byType(TopicRow), findsOneWidget);
+    expect(find.text('列表已有摘要'), findsNothing);
     expect(api.pending, isEmpty);
   });
 
-  testWidgets('即使三个开关均开启，私信仍保持原布局且不请求首楼', (tester) async {
+  testWidgets('即使三个开关均开启，私信也是不带计数的 v2 行且不请求首楼', (tester) async {
     const style = TopicCardStyle(
       showExcerpt: true,
       showImages: true,
@@ -215,7 +202,8 @@ void main() {
     TopicCardStyleScope.current = style;
     await tester.pumpWidget(app(card(messageStyle: true)));
     await tester.pumpAndSettle();
-    expect(find.byType(PaintedTopicCard), findsOneWidget);
+    expect(find.byType(TopicRow), findsOneWidget);
+    expect(tester.widget<TopicRow>(find.byType(TopicRow)).showCounts, isFalse);
     expect(find.byType(TopicExpandableExcerpt), findsNothing);
     expect(api.pending, isEmpty);
   });
@@ -306,7 +294,7 @@ void main() {
     TopicCardStyleScope.current = style;
     await tester.pumpWidget(app(card()));
     await tester.pumpAndSettle();
-    expect(find.byType(PaintedTopicCard), findsOneWidget);
+    expect(find.byType(TopicRow), findsOneWidget);
     expect(api.pending, isEmpty);
   });
 

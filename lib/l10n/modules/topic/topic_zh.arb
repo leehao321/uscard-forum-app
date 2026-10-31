@@ -1,8 +1,33 @@
 {
+  "topic_editCategoryBar": "编辑分类条",
+  "topic_newRepliesCount": "{count} 条新回复",
+  "@topic_newRepliesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_pinnedLabel": "置顶",
+  "topic_rowBookmark": "书签",
+  "topic_rowMarkRead": "标为已读",
+  "topic_rowOpen": "打开",
   "topics_viewNewOnlyTopics": "查看 {count} 个新话题",
-  "@topics_viewNewOnlyTopics": {"placeholders": {"count": {"type": "int"}}},
+  "@topics_viewNewOnlyTopics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "topics_viewUnreadTopics": "查看 {count} 个未读话题",
-  "@topics_viewUnreadTopics": {"placeholders": {"count": {"type": "int"}}},
+  "@topics_viewUnreadTopics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "@@locale": "zh",
   "topicDetail_addToReadLater": "加入浮窗",
   "topicDetail_addToReadLaterSuccess": "已加入浮窗",

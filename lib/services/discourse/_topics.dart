@@ -390,6 +390,20 @@ mixin _TopicsMixin on _DiscourseServiceBase {
     );
   }
 
+  /// 把指定话题标为已读（忽略其未读 / 新帖提示）。
+  ///
+  /// 沿用 [dismissUnreadTopics] 已在用的 `/topics/bulk.json` `dismiss_posts`
+  /// 操作，改成按话题 id（Discourse 网页批量选择的写法，0.4.0 计划 P8）。
+  Future<void> dismissTopicPosts(List<int> topicIds) async {
+    await _dio.put(
+      '/topics/bulk.json',
+      data: {
+        'topic_ids': topicIds,
+        'operation': {'type': 'dismiss_posts'},
+      },
+    );
+  }
+
   /// 标记话题为未读（对齐官方 deferTopic:DELETE /t/:id/timings?last=1,
   /// 服务端把 last_read_post_number 回退到最高楼层号 - 1)。
   /// [all] = true 时不带 last=1,服务端 destroy_for 删除全部 PostTiming

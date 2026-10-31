@@ -1,6 +1,9 @@
+import 'package:app_icons/app_icons.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 
 import '../../constants.dart';
+import '../../l10n/s.dart';
 import '../../models/category.dart';
 import '../../models/topic.dart';
 import '../../models/topic_card_style.dart';
@@ -16,6 +19,7 @@ import 'topic_card.dart';
 import 'topic_card_layout.dart';
 import 'topic_expandable_excerpt.dart';
 import 'topic_preview_dialog.dart';
+import 'topic_row.dart';
 
 /// 话题卡排版宽:与 [buildTopicItem] 的壳层约束同源(移动 = 视口宽
 /// - 页边距 24;桌面 = 同口径再封顶 [Breakpoints.maxContentWidth])。
@@ -80,6 +84,24 @@ Widget buildTopicItem({
   List<PreviewAction>? previewActions,
   WidgetBuilder? previewCustomActionPanelBuilder,
 }) {
+  // 0.4.0 v2：没有自定义顶部 / 中部内容的列表统一画 [TopicRow]（置顶折成
+  // 单行），长按浮起上下文菜单取代预览弹窗。带 topWidget / middleWidget 的
+  // 调用方（书签、搜索）保留旧卡片，等各自的里程碑再换。
+  if (topWidget == null && middleWidget == null) {
+    return _buildV2Row(
+      context: context,
+      topic: topic,
+      isSelected: isSelected,
+      onTap: onTap,
+      onMiddleClick: onMiddleClick,
+      enableLongPress: enableLongPress,
+      highlightColor: highlightColor,
+      messageStyle: messageStyle,
+      categoryMap: categoryMap,
+      previewActions: previewActions,
+    );
+  }
+
   final isMobile = Responsive.isMobile(context);
 
   // 一镜到底锚点底色:与各分支卡片外壳底色一致(置顶紧凑卡是半透明
@@ -214,4 +236,79 @@ Widget buildTopicItem({
     );
   }
   return child;
+}
+
+/// v2 列表行 + 发丝线；长按浮起「打开 + 调用方给的操作」菜单
+Widget _buildV2Row({
+  required BuildContext context,
+  required Topic topic,
+  required bool isSelected,
+  required VoidCallback onTap,
+  VoidCallback? onMiddleClick,
+  required bool enableLongPress,
+  required bool messageStyle,
+  Color? highlightColor,
+  Map<int, Category>? categoryMap,
+  List<PreviewAction>? previewActions,
+}) {
+  final category = categoryMap?[int.tryParse(topic.categoryId)];
+  Widget row = topic.pinned
+      ? PinnedTopicRow(topic: topic, onTap: onTap, isSelected: isSelected)
+      : TopicRow(
+          topic: topic,
+          category: category,
+          isSelected: isSelected,
+          highlightColor: highlightColor,
+          showCounts: !messageStyle,
+          onTap: onTap,
+          onMiddleClick: onMiddleClick,
+        );
+
+  if (enableLongPress) {
+    final actions = previewActions ?? const <PreviewAction>[];
+    row = LiftedContextMenu<int>(
+      sectionsBuilder: (_) => [
+        [
+          AppMenuItem(
+            label: S.current.topic_rowOpen,
+            icon: AppIcons.article,
+            value: -1,
+          ),
+          for (var i = 0; i < actions.length; i++)
+            AppMenuItem(
+              label: actions[i].label,
+              icon: actions[i].icon,
+              value: i,
+              destructive:
+                  actions[i].color == Theme.of(context).colorScheme.error,
+            ),
+        ],
+      ],
+      liftedBuilder: (_) => topic.pinned
+          ? PinnedTopicRow(topic: topic, onTap: () {})
+          : TopicRow(
+              topic: topic,
+              category: category,
+              showCounts: !messageStyle,
+              onTap: () {},
+            ),
+      onSelected: (v) {
+        if (v == -1) {
+          onTap();
+        } else {
+          actions[v].onTap();
+        }
+      },
+      child: row,
+    );
+  }
+
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      row,
+      const AppHairline(indent: AppSpace.pageMargin),
+    ],
+  );
 }

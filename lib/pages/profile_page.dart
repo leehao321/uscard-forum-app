@@ -26,7 +26,6 @@ import 'my_badges_page.dart';
 import 'user_profile_page.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 import '../widgets/common/loading_dialog.dart';
-import '../widgets/common/notification_icon_button.dart';
 import '../widgets/common/flair_badge.dart';
 import '../widgets/common/smart_avatar.dart';
 import '../providers/app_state_refresher.dart';
@@ -42,7 +41,6 @@ import 'profile_stats_edit_page.dart';
 import '../l10n/s.dart';
 import '../navigation/nav_action_bus.dart';
 import '../utils/dialog_utils.dart';
-import '../utils/responsive.dart';
 import '../services/emoji_handler.dart';
 import '../services/log/log_writer.dart';
 import '../widgets/layout/master_detail_layout.dart';
@@ -393,11 +391,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             onPressed: _openProfileEdit,
           ),
           // 侧栏模式下通知角标已在侧栏头像上显示
-          if (!Responsive.showNavigationRail(context))
-            const Padding(
-              padding: EdgeInsets.only(right: 8.0),
-              child: NotificationIconButton(),
-            ),
         ] : null,
       ),
       // 「我的」页是**导航枢纽**:所有入口(话题/设置/资料…)一律开

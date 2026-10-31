@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart' show CupertinoActivityIndicator;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxdo/l10n/s.dart';
@@ -49,7 +50,8 @@ void main() {
         await tester.tap(find.byType(TopicListUpdateBanner));
         expect(taps, 1);
         await pump(true);
-        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        // 0.4.0：加载态是系统菊花
+        expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
         expect(
           find.descendant(
             of: find.byType(TopicListUpdateBanner),

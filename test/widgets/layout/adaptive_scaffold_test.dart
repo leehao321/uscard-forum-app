@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,17 +9,18 @@ import 'package:fluxdo/widgets/layout/adaptive_scaffold.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('手机端 barVisibility 为 0 时将底部导航栏平移出屏', (tester) async {
+  testWidgets('手机端：浮动 Tab 胶囊常驻；barVisibility 为 0（强制隐藏）才滑出屏', (
+    tester,
+  ) async {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.binding.setSurfaceSize(const Size(390, 844));
 
-    SharedPreferences.setMockInitialValues({'pref_hide_bar_on_scroll': true});
+    SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final container = ProviderContainer(
       overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
     );
     addTearDown(container.dispose);
-    container.read(barVisibilityProvider.notifier).state = 0;
 
     await tester.pumpWidget(
       UncontrolledProviderScope(
@@ -50,29 +52,24 @@ void main() {
       ),
     );
 
-    // 滚动平移层的 child 是投影开合层(AnimatedSlide),再往里才是底栏
-    // 本体;AnimatedSlide 自身也由 FractionalTranslation 实现,不能只按
-    // 类型找。
-    final bottomNavTranslation = find.byWidgetPredicate(
-      (widget) =>
-          widget is FractionalTranslation && widget.child is AnimatedSlide,
+    // 常驻：不再随滚动收放，也不再有 Material 底部导航栏
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.byType(FloatingTabBar), findsOneWidget);
+    // 非首页 Tab 只有 Tab 胶囊，没有搜索胶囊
+    expect(find.byType(SearchCapsule), findsNothing);
+    final slide = find.ancestor(
+      of: find.byType(FloatingTabBar),
+      matching: find.byType(AnimatedSlide),
     );
+    expect(tester.widget<AnimatedSlide>(slide).offset, Offset.zero);
 
-    expect(find.byType(NavigationBar), findsOneWidget);
-    expect(bottomNavTranslation, findsOneWidget);
-    expect(
-      tester.widget<FractionalTranslation>(bottomNavTranslation).translation,
-      const Offset(0, 1),
-    );
+    container.read(barVisibilityProvider.notifier).state = 0;
+    await tester.pumpAndSettle();
+    expect(tester.widget<AnimatedSlide>(slide).offset.dy, greaterThan(1));
 
     container.read(barVisibilityProvider.notifier).state = 1;
     await tester.pumpAndSettle();
-
-    expect(find.byType(NavigationBar), findsOneWidget);
-    expect(
-      tester.widget<FractionalTranslation>(bottomNavTranslation).translation,
-      Offset.zero,
-    );
+    expect(tester.widget<AnimatedSlide>(slide).offset, Offset.zero);
   });
 
   testWidgets('横屏二级平行视界隐藏全局侧栏', (tester) async {

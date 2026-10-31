@@ -15,20 +15,13 @@ import '../l10n/s.dart';
 /// 总线保证底栏和页面解耦。
 
 /// 派发到页面的实际动作
-enum NavAction {
-  scrollToTop,
-  refresh,
-}
+enum NavAction { scrollToTop, refresh }
 
 /// 用户可为单击 / 双击配置的动作（含"无"选项）
 ///
 /// 比 [NavAction] 多出 [none]——用户主动把某个手势关掉时使用。
 /// 未来扩展通知 / 搜索 / 发帖等面板型动作时加到这里。
-enum NavTapAction {
-  none,
-  scrollToTop,
-  refresh,
-}
+enum NavTapAction { none, scrollToTop, refresh }
 
 extension NavTapActionX on NavTapAction {
   /// 转换为实际派发的 [NavAction]；[none] 返回 null 表示不派发。
@@ -132,8 +125,9 @@ class NavDestinationRequest {
   final int nonce;
 }
 
-final navDestinationRequestProvider =
-    StateProvider<NavDestinationRequest?>((ref) => null);
+final navDestinationRequestProvider = StateProvider<NavDestinationRequest?>(
+  (ref) => null,
+);
 
 /// 派发入口
 extension NavActionDispatch on WidgetRef {
@@ -160,8 +154,9 @@ extension NavActionDispatch on WidgetRef {
 /// 每个 tab 的"距顶距离"（单位：像素）。页面按 id 更新，底栏 watch 用来切换图标。
 ///
 /// 原始像素数而非归一化 0-1，便于统一阈值在 [navScrollIconThreshold]。
-final navScrollProgressProvider =
-    StateProvider.family<double, String>((ref, id) => 0.0);
+final navScrollProgressProvider = StateProvider.family<double, String>(
+  (ref, id) => 0.0,
+);
 
 /// 底栏已选中 tab 的图标切换阈值（像素）
 ///
@@ -194,4 +189,38 @@ class NavEntryIds {
   static const String notifications = 'notifications';
   static const String messages = 'messages';
   static const String chat = 'chat';
+}
+
+/// 底栏（浮动 Tab 胶囊）最多 4 项（设计说明 §3.1）
+const int kMaxBottomNavItems = 4;
+
+/// 旧底栏偏好 → 0.4.0 规则（纯函数，偏好读取和解析 entry 时都用）：
+/// - 去掉未注册的 id 和重复项；
+/// - 通知变成页面，缺了就补在首页后面；
+/// - 首页固定在最前、我的固定在最后，中间最多 2 项，超出的截掉。
+List<String> normalizeBottomNavIds(List<String> ids) {
+  const known = {
+    NavEntryIds.home,
+    NavEntryIds.profile,
+    NavEntryIds.bookmarks,
+    NavEntryIds.history,
+    NavEntryIds.drafts,
+    NavEntryIds.notifications,
+    NavEntryIds.messages,
+  };
+  final seen = <String>{};
+  final middle = <String>[];
+  for (final id in ids) {
+    if (!known.contains(id) || !seen.add(id)) continue;
+    if (id == NavEntryIds.home || id == NavEntryIds.profile) continue;
+    middle.add(id);
+  }
+  if (!middle.contains(NavEntryIds.notifications)) {
+    middle.insert(0, NavEntryIds.notifications);
+  }
+  return [
+    NavEntryIds.home,
+    ...middle.take(kMaxBottomNavItems - 2),
+    NavEntryIds.profile,
+  ];
 }

@@ -1,12 +1,13 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:fluxdo/l10n/s.dart' show TranslationProvider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxdo/models/category.dart';
 import 'package:fluxdo/models/topic.dart';
 import 'package:fluxdo/providers/category_provider.dart';
 import 'package:fluxdo/utils/platform_utils.dart';
-import 'package:fluxdo/widgets/topic/painted_topic_card.dart';
+import 'package:fluxdo/widgets/topic/topic_row.dart';
 import 'package:fluxdo/widgets/topic/topic_item_builder.dart';
 
 Topic _topic() {
@@ -36,18 +37,20 @@ void main() {
             (ref) => const AsyncValue.data(<int, Category>{}),
           ),
         ],
-        child: MaterialApp(
-          home: Scaffold(
-            body: Builder(
-              builder: (context) => buildTopicItem(
-                context: context,
-                topic: _topic(),
-                isSelected: false,
-                onTap: () {},
-                onMiddleClick: () {
-                  middleClicked = true;
-                },
-                enableLongPress: false,
+        child: TranslationProvider(
+          child: MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => buildTopicItem(
+                  context: context,
+                  topic: _topic(),
+                  isSelected: false,
+                  onTap: () {},
+                  onMiddleClick: () {
+                    middleClicked = true;
+                  },
+                  enableLongPress: false,
+                ),
               ),
             ),
           ),
@@ -55,7 +58,7 @@ void main() {
       ),
     );
 
-    final topicCard = find.byType(PaintedTopicCard);
+    final topicCard = find.byType(TopicRow);
     final center = tester.getCenter(topicCard);
     final gesture = await tester.startGesture(
       center,

@@ -4,6 +4,7 @@
   "search_afterDate": "After {date}",
   "search_applyFilter": "Apply filter",
   "search_beforeDate": "Before {date}",
+  "search_capsulePlaceholder": "Search topics",
   "search_category": "Category",
   "search_categoryLoadFailed": "Failed to load categories: {error}",
   "search_clearAll": "Clear all",

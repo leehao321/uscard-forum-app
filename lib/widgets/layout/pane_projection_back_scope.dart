@@ -6,8 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/selected_topic_provider.dart';
 import '../common/predictive_back_overlay_handler.dart';
-import '../notification/notification_quick_panel.dart';
-import '../topic/category_drawer.dart';
 import 'master_detail_layout.dart';
 import 'pane_filmstrip.dart';
 
@@ -81,13 +79,9 @@ class _PaneProjectionBackScopeState
     // 预测返回是 Android 专属管线,其他平台不挂 observer。
     if (!kIsWeb && Platform.isAndroid) {
       _predictiveBack = PredictiveBackOverlayHandler(
-        // 互斥:z 序更高的浮层(分类抽屉/通知面板)开着时让位,
         // 被其他路由盖住时让位(路由自己的预测返回接管)。
         isEnabled: () =>
-            _projectionOpen &&
-            (ModalRoute.of(context)?.isCurrent ?? false) &&
-            !CategoryDrawerHost.isOpen &&
-            !NotificationQuickPanel.isVisible,
+            _projectionOpen && (ModalRoute.of(context)?.isCurrent ?? false),
         onStart: () => _settle.stop(),
         onUpdate: (progress) {
           _settle.stop();

@@ -18,6 +18,7 @@
       }
     }
   },
+  "search_capsulePlaceholder": "搜尋話題",
   "search_category": "分類",
   "search_categoryLoadFailed": "載入分類失敗: {error}",
   "@search_categoryLoadFailed": {

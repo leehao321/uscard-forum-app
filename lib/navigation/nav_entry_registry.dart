@@ -7,12 +7,12 @@ import '../models/user.dart';
 import '../pages/bookmarks_page.dart';
 import '../pages/browsing_history_page.dart';
 import '../pages/drafts_page.dart';
+import '../pages/notifications_page.dart';
 import '../pages/private_messages_page.dart';
 import '../pages/profile_page.dart';
 import '../pages/topics_screen.dart';
 import '../providers/discourse_providers.dart';
 import '../widgets/common/smart_avatar.dart';
-import '../widgets/notification/notification_quick_panel.dart';
 import 'nav_action_bus.dart';
 import 'nav_entry.dart';
 
@@ -29,8 +29,8 @@ class NavEntryRegistry {
       NavEntry(
         id: NavEntryIds.home,
         kind: NavEntryKind.page,
-        iconData: Symbols.home_rounded,
-        selectedIconData: Symbols.home_rounded,
+        iconData: AppIcons.home,
+        selectedIconData: AppIcons.home,
         label: (ctx) => ctx.l10n.nav_home,
         pageBuilder: (ctx, isActive) => TopicsScreen(isActive: isActive),
         locked: true,
@@ -39,8 +39,8 @@ class NavEntryRegistry {
       NavEntry(
         id: NavEntryIds.profile,
         kind: NavEntryKind.page,
-        iconData: Symbols.person_rounded,
-        selectedIconData: Symbols.person_rounded,
+        iconData: AppIcons.person,
+        selectedIconData: AppIcons.person,
         label: (ctx) => ctx.l10n.nav_mine,
         pageBuilder: (ctx, isActive) => ProfilePage(isActive: isActive),
         locked: true,
@@ -54,8 +54,8 @@ class NavEntryRegistry {
       NavEntry(
         id: NavEntryIds.bookmarks,
         kind: NavEntryKind.page,
-        iconData: Symbols.bookmark_rounded,
-        selectedIconData: Symbols.bookmark_rounded,
+        iconData: AppIcons.bookmark,
+        selectedIconData: AppIcons.bookmark,
         label: (ctx) => ctx.l10n.nav_bookmarks,
         pageBuilder: (ctx, isActive) => BookmarksPage(isActive: isActive),
         requiresLogin: true,
@@ -63,8 +63,8 @@ class NavEntryRegistry {
       NavEntry(
         id: NavEntryIds.history,
         kind: NavEntryKind.page,
-        iconData: Symbols.history_rounded,
-        selectedIconData: Symbols.history_rounded,
+        iconData: AppIcons.history,
+        selectedIconData: AppIcons.history,
         label: (ctx) => ctx.l10n.nav_history,
         pageBuilder: (ctx, isActive) =>
             BrowsingHistoryPage(isActive: isActive),
@@ -73,8 +73,8 @@ class NavEntryRegistry {
       NavEntry(
         id: NavEntryIds.drafts,
         kind: NavEntryKind.page,
-        iconData: Symbols.drafts_rounded,
-        selectedIconData: Symbols.drafts_rounded,
+        iconData: AppIcons.article,
+        selectedIconData: AppIcons.article,
         label: (ctx) => ctx.l10n.nav_drafts,
         pageBuilder: (ctx, isActive) => DraftsPage(isActive: isActive),
         requiresLogin: true,
@@ -82,21 +82,23 @@ class NavEntryRegistry {
       NavEntry(
         id: NavEntryIds.messages,
         kind: NavEntryKind.page,
-        iconData: Symbols.mail_rounded,
-        selectedIconData: Symbols.mail_rounded,
+        iconData: AppIcons.mail,
+        selectedIconData: AppIcons.mail,
         label: (ctx) => ctx.l10n.nav_messages,
         pageBuilder: (ctx, isActive) =>
             PrivateMessagesPage(isActive: isActive),
         requiresLogin: true,
       ),
       NavEntry(
+        // 0.4.0：通知是一个 Tab 页（原来是快捷面板）
         id: NavEntryIds.notifications,
-        kind: NavEntryKind.panel,
-        iconData: Symbols.notifications_rounded,
-        selectedIconData: Symbols.notifications_rounded,
+        kind: NavEntryKind.page,
+        iconData: AppIcons.notification,
+        selectedIconData: AppIcons.notification,
         label: (ctx) => ctx.l10n.nav_notifications,
-        onPanelTap: (ctx, ref) => NotificationQuickPanel.show(ctx),
+        pageBuilder: (ctx, isActive) => const NotificationsPage(),
         requiresLogin: true,
+        defaultInBottomNav: true,
       ),
     ];
     return entries;
@@ -116,13 +118,12 @@ class NavEntryRegistry {
     return user != null;
   }
 
-  /// 默认底栏 id 列表
-  static List<String> defaultBottomNavIds() {
-    return buildAll()
-        .where((e) => e.defaultInBottomNav)
-        .map((e) => e.id)
-        .toList();
-  }
+  /// 默认底栏 id 列表：首页、通知、我的
+  static List<String> defaultBottomNavIds() => const [
+    NavEntryIds.home,
+    NavEntryIds.notifications,
+    NavEntryIds.profile,
+  ];
 
   /// 必须包含的 locked id 列表
   static List<String> lockedIds() {
@@ -145,5 +146,5 @@ Widget _profileIcon(
       fallbackText: user?.username,
     );
   }
-  return Icon(Symbols.person_rounded, fill: selected ? 1 : 0);
+  return Icon(AppIcons.person, fill: selected ? 1 : 0);
 }

@@ -8,6 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxdo/utils/platform_utils.dart';
 import 'package:fluxdo/services/local_notification_service.dart'
     show navigatorKey;
 import 'package:fluxdo/l10n/s.dart';
@@ -193,11 +194,16 @@ Future<void> pumpUi(
   view.platformDispatcher.textScaleFactorTestValue = variant.textScale;
   addTearDown(view.reset);
   addTearDown(view.platformDispatcher.clearAllTestValues);
+  // 界面测试模拟 iPhone：桌面快捷键、窗口等只在桌面生效的分支一律不走
+  PlatformUtils.debugDesktopOverride = false;
+  addTearDown(() => PlatformUtils.debugDesktopOverride = null);
 
   await tester.pumpWidget(
     RepaintBoundary(
       key: _boundaryKey,
       child: ProviderScope(
+        // 和 App 一样不自动重试失败的 provider（lib/main.dart），错误才能原地显示
+        retry: (_, _) => null,
         overrides: overrides,
         child: TranslationProvider(
           child: MaterialApp(

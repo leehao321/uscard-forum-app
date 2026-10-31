@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/s.dart';
 import '../../navigation/nav_action_bus.dart';
-import '../../pages/appearance_page.dart';
 import '../../providers/preferences_provider.dart';
 import '../../utils/dialog_utils.dart';
 import '../settings_model.dart';
@@ -16,46 +15,6 @@ import '../settings_model.dart';
 List<SettingsGroup> buildBottomNavGroups(BuildContext context) {
   final l10n = context.l10n;
   return [
-    SettingsGroup(
-      title: l10n.bottomNav_appearanceGroup,
-      icon: Symbols.palette_rounded,
-      items: [
-        SwitchModel(
-          id: 'bottomNavLabelless',
-          title: l10n.bottomNav_labelless,
-          subtitle: l10n.bottomNav_labellessDesc,
-          icon: Symbols.label_off_rounded,
-          getValue: (ref) =>
-              ref.watch(preferencesProvider).bottomNavLabelless,
-          onChanged: (ref, value) => ref
-              .read(preferencesProvider.notifier)
-              .setBottomNavLabelless(value),
-        ),
-        SwitchModel(
-          id: 'bottomNavFloating',
-          title: l10n.bottomNav_floating,
-          subtitle: l10n.bottomNav_floatingDesc,
-          icon: Symbols.dock_to_bottom_rounded,
-          getValue: (ref) => ref.watch(preferencesProvider).bottomNavFloating,
-          onChanged: (ref, value) => ref
-              .read(preferencesProvider.notifier)
-              .setBottomNavFloating(value),
-        ),
-        ActionModel(
-          id: 'glassSettings',
-          title: l10n.appearance_glass,
-          subtitle: l10n.appearance_glassSettingsEntry,
-          icon: Symbols.blur_on_rounded,
-          wrapSubtitle: true,
-          onTap: (context, ref) => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const AppearancePage(highlightId: 'glassEnabled'),
-            ),
-          ),
-        ),
-      ],
-    ),
     SettingsGroup(
       title: l10n.bottomNav_gesturesGroup,
       icon: Symbols.touch_app_rounded,

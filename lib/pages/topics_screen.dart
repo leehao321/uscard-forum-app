@@ -11,7 +11,6 @@ import '../providers/shortcut_provider.dart';
 import '../providers/discourse_providers.dart';
 import '../utils/platform_utils.dart';
 import '../widgets/layout/master_detail_layout.dart';
-import '../widgets/topics/topics_fab.dart';
 import '../widgets/layout/pane_projection_back_scope.dart';
 import '../widgets/layout/home_workspace_scope.dart';
 import 'topics_page.dart';
@@ -20,7 +19,6 @@ import 'settings_page.dart';
 import 'topic_detail_page/topic_detail_page.dart';
 import 'user_profile_page.dart';
 import 'create_topic_page.dart';
-import 'drafts_page.dart';
 
 /// 话题屏幕
 /// 在手机上显示单栏列表，平板上显示 Master-Detail 双栏
@@ -116,8 +114,6 @@ class _TopicsScreenState extends ConsumerState<TopicsScreen> {
     final selectedTopic = ref.watch(selectedTopicProvider);
     // 左栏本质是不是"列表"（信息流）——决定给窄栏还是对半分
     _masterIsListLike = !selectedTopic.isStacked;
-    final user = ref.watch(currentUserProvider).value;
-
     // 左侧导航栏的板块快捷入口位于平行视界布局之外。切换板块时除了让
     // TopicsPage 换 Tab，还必须收起“上一层内容”左栏，否则列表虽然已在
     // 后台切换，界面仍被旧话题覆盖，看起来就像点击无响应。
@@ -155,7 +151,7 @@ class _TopicsScreenState extends ConsumerState<TopicsScreen> {
           break;
         case NavAction.refresh:
           ref.read(scrollToTopProvider.notifier).trigger();
-          ref.read(fabRefreshSignalProvider.notifier).trigger();
+          ref.read(homeRefreshSignalProvider.notifier).trigger();
           ref.resetNavScrollProgress(NavEntryIds.home);
           break;
       }
@@ -204,20 +200,6 @@ class _TopicsScreenState extends ConsumerState<TopicsScreen> {
         // FAB 只在 master 真的是列表时才有意义，之前没跟着切换，压栈后
         // 预览一个话题下面还挂着"新建话题"的加号，容易被当成回复按钮。
         // 保留宿主，通过活跃状态播放退场，不能直接移除 FAB 截断动画。
-        masterFloatingActionButton: TopicsFab(
-          canCreate: user != null,
-          isActive: widget.isActive &&
-              !selectedTopic.isStacked &&
-              !_showEmbeddedSearch &&
-              (!selectedTopic.hasSelection ||
-                  MasterDetailLayout.canShowBothPanesFor(context)),
-          onRefresh: () {
-            ref.read(scrollToTopProvider.notifier).trigger();
-            ref.read(fabRefreshSignalProvider.notifier).trigger();
-          },
-          onCreateTopic: () => _createTopic(context, ref),
-          onOpenDrafts: () => _openDrafts(context),
-        ),
         ),
       ),
     );
@@ -322,6 +304,7 @@ class _TopicsScreenState extends ConsumerState<TopicsScreen> {
   /// 左栏,格子恒驻 State 全保),本方法恒返回列表本体。
   Widget _buildMasterPane(SelectedTopicState selectedTopic) {
     final topicsPage = TopicsPage(
+      onCreateTopic: () => _createTopic(context, ref),
       externalCategoryId: _leftCategory?.id,
       externalTag: _leftTag,
       isActive: widget.isActive,
@@ -365,15 +348,6 @@ class _TopicsScreenState extends ConsumerState<TopicsScreen> {
         }
       },
       child: _PaneActiveIndicator(pane: pane, child: child),
-    );
-  }
-
-  void _openDrafts(BuildContext context) {
-    // 草稿页是独立的双栏页（宽屏自带"左列表右话题"），所有入口统一
-    // 全屏打开，不再往平行视界栈里塞草稿层。
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const DraftsPage()),
     );
   }
 

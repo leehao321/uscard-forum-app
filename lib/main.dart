@@ -13,6 +13,7 @@ import 'package:native_animated_image/native_animated_image.dart'
     show NativeAnimatedImageProvider;
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart' as acrylic;
+
 import 'pages/topics_page.dart';
 import 'pages/data_management_page.dart';
 import 'providers/discourse_providers.dart';
@@ -26,13 +27,14 @@ import 'services/auth_issue_notice_service.dart';
 import 'services/crash_context_reporter.dart';
 import 'providers/app_state_refresher.dart';
 import 'services/highlighter_service.dart';
-import 'widgets/common/notification_icon_button.dart';
 import 'widgets/common/app_glass_settings.dart';
 import 'widgets/common/anchor_guard_sliver.dart';
 import 'widgets/common/fullscreen_swipe_back.dart';
+
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+
 import 'services/network/cookie/csrf_token_service.dart';
 import 'services/network/system_proxy_service.dart';
 import 'services/network/cookie/cookie_devtools_extension.dart';
@@ -44,7 +46,9 @@ import 'services/data_management/cache_size_service.dart';
 import 'services/discourse_cache_manager.dart';
 import 'services/render_backend_service.dart';
 import 'services/toast_service.dart';
+
 import 'package:m3e_ui/m3e_ui.dart';
+
 import 'l10n/s.dart';
 
 import 'services/network/doh/network_settings_service.dart';
@@ -52,13 +56,16 @@ import 'services/network/proxy/proxy_settings_service.dart';
 import 'services/network/rhttp/rhttp_settings_service.dart';
 import 'services/network/webview/webview_adapter_settings_service.dart';
 import 'services/eruda_settings_service.dart';
+
 import 'package:rhttp/rhttp.dart' as rhttp;
+
 import 'services/network/vpn_auto_toggle_service.dart';
 import 'services/network/doh_proxy/proxy_certificate.dart';
 import 'services/cf_challenge_logger.dart';
 import 'services/browser_trust_coordinator.dart';
 import 'services/update_service.dart';
 import 'services/update_checker_helper.dart';
+
 import 'package:fluxdo_render/fluxdo_render.dart'
     show FlattenCache, FoldShiftHook, ParagraphLayoutCache;
 
@@ -95,13 +102,16 @@ import 'utils/time_utils.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ai_model_manager/ai_model_manager.dart';
+
 import 'services/app_logger.dart';
 import 'services/network/adapters/platform_adapter.dart';
 import 'providers/preferences_provider.dart';
 import 'providers/appearance_provider.dart';
 import 'providers/theme_provider.dart';
+
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:video_player_media_kit/video_player_media_kit.dart';
+
 import 'services/audio/just_audio_gst.dart';
 import 'widgets/preheat_gate.dart';
 import 'widgets/onboarding_gate.dart';
@@ -110,8 +120,6 @@ import 'widgets/layout/adaptive_navigation.dart';
 import 'widgets/esc_fallback_observer.dart';
 import 'widgets/layout/master_detail_layout.dart';
 import 'widgets/layout/pane_projection_back_scope.dart';
-import 'widgets/notification/notification_quick_panel.dart';
-import 'widgets/topic/category_drawer.dart' show CategoryDrawerHost;
 import 'widgets/read_later/read_later_bubble.dart';
 import 'navigation/nav_action_bus.dart';
 import 'navigation/nav_entry.dart';
@@ -677,161 +685,158 @@ class MainApp extends ConsumerWidget {
     final tiers = ref.watch(appearanceProvider);
 
     return TranslationProvider(
-          child: Builder(
-            builder: (context) => MaterialApp(
-              scrollBehavior: const DesktopScrollInteractionBehavior(),
-              navigatorKey: navigatorKey,
-              // JankNavObserver 给 [JANK] 日志加导航归因(debug/profile 观测用)
-              // KeyboardFocusGuard 压掉浮层关闭后键盘自弹(移动端)
-              // EscFallbackObserver 登记全屏页,桌面 ESC 路由级自动兜底
-              navigatorObservers: [
-                appRouteObserver,
-                keyboardFocusGuard,
-                JankNavObserver(),
-                EscFallbackObserver(),
-                // 崩溃/ANR 现场带上当前页面与最近导航轨迹(Crashlytics
-                // custom keys);未开启崩溃采集时内部 no-op。
-                CrashContextNavObserver(),
-              ],
-              title: 'USCard Forum',
-              locale: TranslationProvider.of(context).flutterLocale,
-              localizationsDelegates: const [
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              supportedLocales: AppLocaleUtils.supportedLocales,
-              themeMode: themeState.mode,
-              theme: _buildAppTheme(
-                Brightness.light,
-                themeState,
-                tiers,
-                fullscreenSwipeBack: fullscreenSwipeBack,
+      child: Builder(
+        builder: (context) => MaterialApp(
+          scrollBehavior: const DesktopScrollInteractionBehavior(),
+          navigatorKey: navigatorKey,
+          // JankNavObserver 给 [JANK] 日志加导航归因(debug/profile 观测用)
+          // KeyboardFocusGuard 压掉浮层关闭后键盘自弹(移动端)
+          // EscFallbackObserver 登记全屏页,桌面 ESC 路由级自动兜底
+          navigatorObservers: [
+            appRouteObserver,
+            keyboardFocusGuard,
+            JankNavObserver(),
+            EscFallbackObserver(),
+            // 崩溃/ANR 现场带上当前页面与最近导航轨迹(Crashlytics
+            // custom keys);未开启崩溃采集时内部 no-op。
+            CrashContextNavObserver(),
+          ],
+          title: 'USCard Forum',
+          locale: TranslationProvider.of(context).flutterLocale,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocaleUtils.supportedLocales,
+          themeMode: themeState.mode,
+          theme: _buildAppTheme(
+            Brightness.light,
+            themeState,
+            tiers,
+            fullscreenSwipeBack: fullscreenSwipeBack,
+          ),
+          darkTheme: _buildAppTheme(
+            Brightness.dark,
+            themeState,
+            tiers,
+            fullscreenSwipeBack: fullscreenSwipeBack,
+          ),
+          builder: (context, child) {
+            final brightness = Theme.of(context).brightness;
+            final iconBrightness = brightness == Brightness.light
+                ? Brightness.dark
+                : Brightness.light;
+            // 桌面平台：跟随应用主题明暗切换窗口效果
+            if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+              final isDark = brightness == Brightness.dark;
+              acrylic.Window.setEffect(
+                effect: Platform.isMacOS
+                    ? acrylic.WindowEffect.sidebar
+                    : Platform.isWindows
+                    ? acrylic.WindowEffect.mica
+                    : acrylic.WindowEffect.disabled,
+                dark: isDark,
+              );
+              if (Platform.isMacOS) {
+                acrylic.Window.overrideMacOSBrightness(dark: isDark);
+              }
+            }
+            Widget result = AnnotatedRegion<SystemUiOverlayStyle>(
+              value: SystemUiOverlayStyle(
+                statusBarColor: Colors.transparent,
+                statusBarIconBrightness: iconBrightness,
+                systemNavigationBarIconBrightness: iconBrightness,
+                systemNavigationBarColor: Colors.transparent,
+                // Android 28 上 dividerColor 不能完全透明，用 withAlpha(1) 兼容
+                systemNavigationBarDividerColor: Colors.transparent.withAlpha(
+                  1,
+                ),
+                // 关闭系统自动 scrim，实现完全沉浸
+                systemNavigationBarContrastEnforced: false,
               ),
-              darkTheme: _buildAppTheme(
-                Brightness.dark,
-                themeState,
-                tiers,
-                fullscreenSwipeBack: fullscreenSwipeBack,
+              // 动态字体：系统字号 × 外观字号档（计划 §8）。放在最内层，
+              // 读到的是外面各层（含 Android 安全区修正）处理后的值
+              child: TieredTextScaling(
+                factor: tiers.font.factor,
+                child: Stack(
+                  fit: StackFit.passthrough,
+                  children: [
+                    child!,
+                    const ReadLaterBubble(),
+                    const AppLockGate(),
+                  ],
+                ),
               ),
-              builder: (context, child) {
-                final brightness = Theme.of(context).brightness;
-                final iconBrightness = brightness == Brightness.light
-                    ? Brightness.dark
-                    : Brightness.light;
-                // 桌面平台：跟随应用主题明暗切换窗口效果
-                if (Platform.isMacOS ||
-                    Platform.isWindows ||
-                    Platform.isLinux) {
-                  final isDark = brightness == Brightness.dark;
-                  acrylic.Window.setEffect(
-                    effect: Platform.isMacOS
-                        ? acrylic.WindowEffect.sidebar
-                        : Platform.isWindows
-                        ? acrylic.WindowEffect.mica
-                        : acrylic.WindowEffect.disabled,
-                    dark: isDark,
-                  );
-                  if (Platform.isMacOS) {
-                    acrylic.Window.overrideMacOSBrightness(dark: isDark);
-                  }
+            );
+
+            result = Listener(
+              behavior: HitTestBehavior.translucent,
+              onPointerDown: (event) {
+                UserPresenceService().markUserActivity();
+                // 鼠标侧键返回（第 4 按钮，bit flag 0x08）
+                if (PlatformUtils.isDesktop && event.buttons & 0x08 != 0) {
+                  navigatorKey.currentState?.maybePop();
                 }
-                Widget result = AnnotatedRegion<SystemUiOverlayStyle>(
-                  value: SystemUiOverlayStyle(
-                    statusBarColor: Colors.transparent,
-                    statusBarIconBrightness: iconBrightness,
-                    systemNavigationBarIconBrightness: iconBrightness,
-                    systemNavigationBarColor: Colors.transparent,
-                    // Android 28 上 dividerColor 不能完全透明，用 withAlpha(1) 兼容
-                    systemNavigationBarDividerColor: Colors.transparent
-                        .withAlpha(1),
-                    // 关闭系统自动 scrim，实现完全沉浸
-                    systemNavigationBarContrastEnforced: false,
-                  ),
-                  // 动态字体：系统字号 × 外观字号档（计划 §8）。放在最内层，
-                  // 读到的是外面各层（含 Android 安全区修正）处理后的值
-                  child: TieredTextScaling(
-                    factor: tiers.font.factor,
-                    child: Stack(
-                      fit: StackFit.passthrough,
-                      children: [
-                        child!,
-                        const ReadLaterBubble(),
-                        const AppLockGate(),
-                      ],
+              },
+              onPointerMove: (_) => UserPresenceService().markUserActivity(),
+              onPointerSignal: (_) => UserPresenceService().markUserActivity(),
+              child: result,
+            );
+
+            // 全局滚动繁忙信号:后台维护任务(WebView cookie 轮询等
+            // 平台主线程 IPC)据此在滚动中让路,见 ScrollBusySignal
+            result = NotificationListener<ScrollNotification>(
+              onNotification: (notification) {
+                if (notification is ScrollUpdateNotification ||
+                    notification is ScrollStartNotification) {
+                  ScrollBusySignal.touch();
+                }
+                return false;
+              },
+              child: result,
+            );
+
+            // 桌面端：全局键盘快捷键（HardwareKeyboard）
+            if (PlatformUtils.isDesktop) {
+              result = KeyboardShortcutHandler(
+                navigatorKey: navigatorKey,
+                child: result,
+              );
+            }
+
+            // 修复小米 HyperOS 小窗(freeform)页面空白只剩底栏:
+            // 引擎(API 35+)把 viewPaddingTop 抬到 WindowInsets captionBar
+            // boundingRect.bottom(flutter/engine#54294),HyperOS 小窗上报的
+            // rect 坐标系错误,padding.top 可达 600+(flutter/flutter#161086),
+            // SafeArea/AppBar 内容被整体推出可视区。top padding 超过窗口
+            // 高度 30% 必为异常值(真实状态栏 <100dp),钳回合理值。
+            if (Platform.isAndroid) {
+              final mq = MediaQuery.of(context);
+              final threshold = mq.size.height * 0.3;
+              final padTop = mq.padding.top;
+              final viewTop = mq.viewPadding.top;
+              if (padTop > threshold || viewTop > threshold) {
+                result = MediaQuery(
+                  data: mq.copyWith(
+                    padding: mq.padding.copyWith(
+                      top: padTop > threshold ? 20.0 : padTop,
+                    ),
+                    viewPadding: mq.viewPadding.copyWith(
+                      top: viewTop > threshold ? 20.0 : viewTop,
                     ),
                   ),
-                );
-
-                result = Listener(
-                  behavior: HitTestBehavior.translucent,
-                  onPointerDown: (event) {
-                    UserPresenceService().markUserActivity();
-                    // 鼠标侧键返回（第 4 按钮，bit flag 0x08）
-                    if (PlatformUtils.isDesktop && event.buttons & 0x08 != 0) {
-                      navigatorKey.currentState?.maybePop();
-                    }
-                  },
-                  onPointerMove: (_) =>
-                      UserPresenceService().markUserActivity(),
-                  onPointerSignal: (_) =>
-                      UserPresenceService().markUserActivity(),
                   child: result,
                 );
+              }
+            }
 
-                // 全局滚动繁忙信号:后台维护任务(WebView cookie 轮询等
-                // 平台主线程 IPC)据此在滚动中让路,见 ScrollBusySignal
-                result = NotificationListener<ScrollNotification>(
-                  onNotification: (notification) {
-                    if (notification is ScrollUpdateNotification ||
-                        notification is ScrollStartNotification) {
-                      ScrollBusySignal.touch();
-                    }
-                    return false;
-                  },
-                  child: result,
-                );
-
-                // 桌面端：全局键盘快捷键（HardwareKeyboard）
-                if (PlatformUtils.isDesktop) {
-                  result = KeyboardShortcutHandler(
-                    navigatorKey: navigatorKey,
-                    child: result,
-                  );
-                }
-
-                // 修复小米 HyperOS 小窗(freeform)页面空白只剩底栏:
-                // 引擎(API 35+)把 viewPaddingTop 抬到 WindowInsets captionBar
-                // boundingRect.bottom(flutter/engine#54294),HyperOS 小窗上报的
-                // rect 坐标系错误,padding.top 可达 600+(flutter/flutter#161086),
-                // SafeArea/AppBar 内容被整体推出可视区。top padding 超过窗口
-                // 高度 30% 必为异常值(真实状态栏 <100dp),钳回合理值。
-                if (Platform.isAndroid) {
-                  final mq = MediaQuery.of(context);
-                  final threshold = mq.size.height * 0.3;
-                  final padTop = mq.padding.top;
-                  final viewTop = mq.viewPadding.top;
-                  if (padTop > threshold || viewTop > threshold) {
-                    result = MediaQuery(
-                      data: mq.copyWith(
-                        padding: mq.padding.copyWith(
-                          top: padTop > threshold ? 20.0 : padTop,
-                        ),
-                        viewPadding: mq.viewPadding.copyWith(
-                          top: viewTop > threshold ? 20.0 : viewTop,
-                        ),
-                      ),
-                      child: result,
-                    );
-                  }
-                }
-
-                return AppGlassSettings(child: result);
-              },
-              home: const OnboardingGate(child: PreheatGate(child: MainPage())),
-            ),
-          ),
-        );
+            return AppGlassSettings(child: result);
+          },
+          home: const OnboardingGate(child: PreheatGate(child: MainPage())),
+        ),
+      ),
+    );
   }
 }
 
@@ -1078,8 +1083,7 @@ class _MainPageState extends ConsumerState<MainPage>
     // 已经开着了就不用建议了（原生侧也会做这个判断，这里是快速短路）
     if (ref.read(preferencesProvider).renderGlesBackend) return;
 
-    final shouldSuggest =
-        await RenderBackendService.shouldSuggestCompatMode();
+    final shouldSuggest = await RenderBackendService.shouldSuggestCompatMode();
     if (!shouldSuggest || !mounted) return;
 
     final enable = await showAppDialog<bool>(
@@ -1101,9 +1105,7 @@ class _MainPageState extends ConsumerState<MainPage>
     );
 
     if (enable == true) {
-      await ref
-          .read(preferencesProvider.notifier)
-          .setRenderGlesBackend(true);
+      await ref.read(preferencesProvider.notifier).setRenderGlesBackend(true);
       if (!mounted) return;
       await showAppDialog<void>(
         context: context,
@@ -1480,9 +1482,8 @@ class _MainPageState extends ConsumerState<MainPage>
       navigatorKey.currentState?.popUntil((route) => route.isFirst);
     }
     if (mounted && action == _AuthErrorDialogAction.clearData) {
-      await Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => const DataManagementPage()));
+      await Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => const DataManagementPage()));
     }
   }
 
@@ -1556,24 +1557,18 @@ class _MainPageState extends ConsumerState<MainPage>
       for (final e in entries)
         AdaptiveDestination(
           id: e.id,
+          iconData: e.iconData,
           icon: e.customIconBuilder != null
               ? e.customIconBuilder!(context, ref)
               : Icon(e.iconData),
           selectedIcon: e.customSelectedIconBuilder != null
               ? e.customSelectedIconBuilder!(context, ref)
               // 同一 IconData 用 fill:1 表达选中态，避免不同字形错位
-              : Icon(e.selectedIconData, fill: 1),
+              : Icon(e.selectedIconData),
           label: e.label(context),
         ),
     ];
 
-    // 通知入口在桌面侧栏可能出现两处：
-    // 1) 用户把 notifications 加入底栏布局，作为 NavEntry 渲染
-    // 2) railBottomLeading 默认提供的 NotificationIconButton
-    // 已在底栏配置时不再额外渲染，避免重复。
-    final hasNotificationEntry = entries.any(
-      (e) => e.id == NavEntryIds.notifications,
-    );
     // 深层平行视界隐藏 Rail 的旧联动已砍:抽掉 72px 侧栏 = 内容区
     // 瞬间变宽,这发生在布局动画体系之外,快照底板盖不住,是压/退栈
     // "必闪"的外部几何跳变源(还会触发编排撞帧取消)。Rail 恒定,
@@ -1589,74 +1584,55 @@ class _MainPageState extends ConsumerState<MainPage>
     // 单次退出模式允许系统处理 bubble 以支持预测式退出；双击退出模式
     // 则拦截根路由的第一次返回。面板在两种模式下都拥有更高优先级。
     Widget page = ValueListenableBuilder<bool>(
-      valueListenable: NotificationQuickPanel.visible,
-      builder: (context, notificationPanelVisible, _) =>
-          ValueListenableBuilder<bool>(
-        // 平行视界投影态(窄屏详情全宽盖在 tab 体内)开着时返回由
-        // PaneProjectionBackScope 消费,根层完全让位:不弹退出 toast。
-        valueListenable: PaneProjectionBackScope.hasActiveProjection,
-        builder: (context, paneProjectionOpen, _) => PopScope(
-          canPop:
-              routeCanPopInternally ||
-              (!notificationPanelVisible &&
-                  !paneProjectionOpen &&
-                  !requireDoubleBackToExit),
-          onPopInvokedWithResult: (bool didPop, dynamic result) {
-            if (didPop) return;
-            // 分类侧栏通过 LocalHistoryEntry 消费返回；这里保留兜底，覆盖
-            // 抽屉正在收尾动画等 LocalHistory 尚未同步的短暂状态。
-            if (CategoryDrawerHost.isOpen) {
-              CategoryDrawerHost.close();
-              return;
+      // 平行视界投影态(窄屏详情全宽盖在 tab 体内)开着时返回由
+      // PaneProjectionBackScope 消费,根层完全让位:不弹退出 toast。
+      valueListenable: PaneProjectionBackScope.hasActiveProjection,
+      builder: (context, paneProjectionOpen, _) => PopScope(
+        canPop:
+            routeCanPopInternally ||
+            (!paneProjectionOpen && !requireDoubleBackToExit),
+        onPopInvokedWithResult: (bool didPop, dynamic result) {
+          if (didPop) return;
+          // 投影态:PaneProjectionBackScope 的 PopEntry 自己消费本次
+          // 返回(关投影层),根层不做双击退出。
+          if (PaneProjectionBackScope.hasActiveProjection.value) {
+            return;
+          }
+          if (requireDoubleBackToExit) {
+            if (_backExitGuard.shouldExit()) {
+              SystemNavigator.pop();
+            } else {
+              ToastService.showInfo(S.current.toast_pressAgainToExit);
             }
-            if (NotificationQuickPanel.isVisible) {
-              NotificationQuickPanel.dismiss();
-              return;
-            }
-            // 投影态:PaneProjectionBackScope 的 PopEntry 自己消费本次
-            // 返回(关投影层),根层不做双击退出。
-            if (PaneProjectionBackScope.hasActiveProjection.value) {
-              return;
-            }
-            if (requireDoubleBackToExit) {
-              if (_backExitGuard.shouldExit()) {
-                SystemNavigator.pop();
-              } else {
-                ToastService.showInfo(S.current.toast_pressAgainToExit);
-              }
-            }
-          },
-          child: AdaptiveScaffold(
-            selectedIndex: selectedBottomIndex,
-            onDestinationSelected: _onDestinationSelected,
-            destinations: destinations,
-            railBottomLeading: (user != null && !hasNotificationEntry)
-                ? const NotificationIconButton()
-                : null,
-            hideNavigationRail: hideNavigationRail,
-            // 投影态底栏隐藏:详情全宽盖在 tab 体内,底栏还留着会像
-            // "详情页悬在 tab 骨架上";合成路由时代盖住一切,投影态
-            // 用显式谓词达成同样观感。
-            hideBottomNavigation: paneProjectionOpen,
-            body: IndexedStack(
-              index: safePageIndex,
-              children: [
-                for (int i = 0; i < pageEntries.length; i++)
-                  KeyedSubtree(
-                    key: ValueKey('nav-entry-${pageEntries[i].id}'),
-                    child: TickerMode(
-                      enabled: safePageIndex == i,
-                      child: ExcludeFocus(
-                        excluding: safePageIndex != i,
-                        child: pageEntries[i].pageBuilder!(
-                          context,
-                          safePageIndex == i,
-                        ),
+          }
+        },
+        child: AdaptiveScaffold(
+          selectedIndex: selectedBottomIndex,
+          onDestinationSelected: _onDestinationSelected,
+          destinations: destinations,
+          hideNavigationRail: hideNavigationRail,
+          // 投影态底栏隐藏:详情全宽盖在 tab 体内,底栏还留着会像
+          // "详情页悬在 tab 骨架上";合成路由时代盖住一切,投影态
+          // 用显式谓词达成同样观感。
+          hideBottomNavigation: paneProjectionOpen,
+          body: IndexedStack(
+            index: safePageIndex,
+            children: [
+              for (int i = 0; i < pageEntries.length; i++)
+                KeyedSubtree(
+                  key: ValueKey('nav-entry-${pageEntries[i].id}'),
+                  child: TickerMode(
+                    enabled: safePageIndex == i,
+                    child: ExcludeFocus(
+                      excluding: safePageIndex != i,
+                      child: pageEntries[i].pageBuilder!(
+                        context,
+                        safePageIndex == i,
                       ),
                     ),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
         ),
       ),

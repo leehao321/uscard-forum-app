@@ -1,4 +1,10 @@
 {
+  "topic_editCategoryBar": "Edit category bar",
+  "topic_newRepliesCount": "{count} new replies",
+  "topic_pinnedLabel": "Pinned",
+  "topic_rowBookmark": "Bookmark",
+  "topic_rowMarkRead": "Mark as read",
+  "topic_rowOpen": "Open",
   "topics_viewNewOnlyTopics": "See {count} new topics",
   "topics_viewUnreadTopics": "See {count} unread topics",
   "@@locale": "en",

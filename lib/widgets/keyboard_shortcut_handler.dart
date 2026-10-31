@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../navigation/nav_action_bus.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxdo_render/editor.dart' show FluxdoEditor;
@@ -12,7 +13,6 @@ import '../providers/shortcut_provider.dart';
 import '../utils/dialog_utils.dart';
 import '../utils/platform_utils.dart';
 import 'esc_fallback_observer.dart';
-import 'notification/notification_quick_panel.dart';
 import 'shortcut_help_overlay.dart';
 
 enum _ShortcutSurfaceDispatch { pass, handled, blocked }
@@ -342,9 +342,8 @@ class _KeyboardShortcutHandlerState
         ref.read(paneSwitchSignalProvider.notifier).update((v) => v + 1);
         return true;
       case ShortcutAction.toggleNotifications:
-        if (navContext.mounted) {
-          NotificationQuickPanel.show(navContext);
-        }
+        // 0.4.0：通知是底栏的一个页面，快捷键直接切过去
+        ref.requestNavDestination(NavEntryIds.notifications);
         return true;
       case ShortcutAction.switchToTopics:
         ref.read(switchTabProvider.notifier).state = 0;

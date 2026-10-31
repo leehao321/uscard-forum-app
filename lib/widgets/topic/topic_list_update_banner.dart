@@ -1,5 +1,8 @@
 import 'package:app_icons/app_icons.dart';
+import 'package:common_ui/common_ui.dart';
+import 'package:flutter/cupertino.dart' show CupertinoActivityIndicator;
 import 'package:flutter/material.dart';
+
 import '../../l10n/s.dart';
 import '../../providers/topic_list/filter_provider.dart';
 
@@ -21,55 +24,42 @@ class TopicListUpdateBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     final label = switch (filter) {
       TopicListFilter.unread => context.l10n.topics_viewUnreadTopics(count),
       TopicListFilter.newTopics when !newNewView =>
         context.l10n.topics_viewNewOnlyTopics(count),
       _ => context.l10n.topics_viewNewTopics(count),
     };
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: colors.primaryContainer.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(8),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: loading ? null : onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Center(
-              child: loading
-                  ? SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: colors.primary,
+    // 列表顶部 44 高的行内提示：brand 文字 + 上箭头，整行可点，发丝线收底
+    return Semantics(
+      liveRegion: true,
+      child: AppPressable(
+        highlight: true,
+        onTap: loading ? null : onTap,
+        child: SizedBox(
+          height: AppSize.hit,
+          child: Center(
+            child: loading
+                ? const CupertinoActivityIndicator(radius: AppSize.iconS / 2)
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        AppIcons.up,
+                        size: AppSize.iconS,
+                        color: colors.brandPrimary,
                       ),
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Symbols.arrow_upward_rounded,
-                          size: 14,
-                          color: colors.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          label,
-                          style: TextStyle(
-                            color: colors.primary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-            ),
+                      const SizedBox(width: AppSpace.s),
+                      Text(
+                        label,
+                        style: Theme.of(context).textTheme.bodySmall!
+                            .merge(tokens.text.meta)
+                            .copyWith(color: colors.brandPrimary),
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),

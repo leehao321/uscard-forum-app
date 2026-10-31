@@ -44,13 +44,21 @@ void main() {
                       item.id,
                   ];
                   // 底栏设置里的玻璃入口在 M3 主框架重做时一起处理
+                  // 0.4.0 M3：底栏设置里的无字 / 悬浮 / 玻璃入口都去掉了
                   final bottomItems = buildBottomNavGroups(
                     context,
                   ).expand((g) => g.items).toList();
-                  expect(
-                    bottomItems.any((i) => i.id == 'glassSettings'),
-                    isTrue,
-                  );
+                  for (final removed in [
+                    'bottomNavLabelless',
+                    'bottomNavFloating',
+                    'glassSettings',
+                  ]) {
+                    expect(
+                      bottomItems.any((i) => i.id == removed),
+                      isFalse,
+                      reason: removed,
+                    );
+                  }
                   final accent = groups.firstWhere(
                     (g) => g.items.any((i) => i.id == 'accent'),
                   );

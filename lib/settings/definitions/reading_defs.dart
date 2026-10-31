@@ -55,15 +55,6 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
               ref.read(preferencesProvider.notifier).setLongPressPreview(v),
         ),
         SwitchModel(
-          id: 'hideBarOnScroll',
-          title: l10n.preferences_hideBarOnScroll,
-          subtitle: l10n.preferences_hideBarOnScrollDesc,
-          icon: Symbols.swap_vert_rounded,
-          getValue: (ref) => ref.watch(preferencesProvider).hideBarOnScroll,
-          onChanged: (ref, v) =>
-              ref.read(preferencesProvider.notifier).setHideBarOnScroll(v),
-        ),
-        SwitchModel(
           id: 'openExternalLinksInAppBrowser',
           title: l10n.preferences_openLinksInApp,
           subtitle: l10n.preferences_openLinksInAppDesc,
