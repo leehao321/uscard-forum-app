@@ -251,7 +251,7 @@ class _ShareImagePreviewState extends ConsumerState<ShareImagePreview> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Symbols.error_rounded,
+              AppIcons.error,
               size: 48,
               color: theme.colorScheme.error,
             ),
@@ -260,7 +260,7 @@ class _ShareImagePreviewState extends ConsumerState<ShareImagePreview> {
             const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: _fetchMainPost,
-              icon: const Icon(Symbols.refresh_rounded),
+              icon: const Icon(AppIcons.refresh),
               label: Text(S.current.common_retry),
             ),
           ],
@@ -383,7 +383,7 @@ class _ShareImagePreviewState extends ConsumerState<ShareImagePreview> {
               children: [
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Symbols.close_rounded),
+                  icon: const Icon(AppIcons.close),
                 ),
                 Expanded(
                   child: Text(
@@ -449,7 +449,7 @@ class _ShareImagePreviewState extends ConsumerState<ShareImagePreview> {
                         ),
                         child: isSelected
                             ? Icon(
-                                Symbols.check_rounded,
+                                AppIcons.check,
                                 size: 18,
                                 color: t.isDark ? Colors.white : Colors.black87,
                               )
@@ -499,7 +499,7 @@ class _ShareImagePreviewState extends ConsumerState<ShareImagePreview> {
                     onPressed: (_isSaving || _targetPost == null) ? null : _saveImage,
                     icon: _isSaving
                         ? const LoadingSpinner(size: 18)
-                        : const Icon(Symbols.save_alt_rounded),
+                        : const Icon(AppIcons.saveAlt),
                     label: Text(ImageSaveUtils.actionLabel),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -513,7 +513,7 @@ class _ShareImagePreviewState extends ConsumerState<ShareImagePreview> {
                     onPressed: (_isSharing || _targetPost == null) ? null : _shareImage,
                     icon: _isSharing
                         ? const LoadingSpinner(size: 18, color: Colors.white)
-                        : const Icon(Symbols.share_rounded),
+                        : const Icon(AppIcons.share),
                     label: Text(context.l10n.common_share),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),

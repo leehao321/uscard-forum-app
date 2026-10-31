@@ -145,7 +145,7 @@ class AiShareImageWidget extends StatelessWidget {
         ),
         const Spacer(),
         Icon(
-          Symbols.auto_awesome_rounded,
+          AppIcons.autoAwesome,
           size: 16,
           color: textColor.withValues(alpha: 0.5),
         ),
@@ -187,7 +187,7 @@ class AiShareImageWidget extends StatelessWidget {
     return Row(
       children: [
         Icon(
-          isUser ? Symbols.person_rounded : Symbols.auto_awesome_rounded,
+          isUser ? AppIcons.person : AppIcons.autoAwesome,
           size: 14,
           color: secondaryTextColor,
         ),
@@ -295,7 +295,7 @@ class AiShareImageWidget extends StatelessWidget {
         Row(
           children: [
             Icon(
-              Symbols.auto_awesome_rounded,
+              AppIcons.autoAwesome,
               size: 12,
               color: secondaryTextColor,
             ),
@@ -317,7 +317,7 @@ class AiShareImageWidget extends StatelessWidget {
         // 链接
         Row(
           children: [
-            Icon(Symbols.link_rounded, size: 12, color: secondaryTextColor),
+            Icon(AppIcons.link, size: 12, color: secondaryTextColor),
             const SizedBox(width: 4),
             Expanded(
               child: Text(

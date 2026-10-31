@@ -1,3 +1,4 @@
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 
 import '../../../l10n/s.dart';
@@ -127,7 +128,7 @@ class PrivateMessageParticipants extends StatelessWidget {
           Row(
             children: [
               Icon(
-                Icons.lock_outline_rounded,
+                AppIcons.lock,
                 size: 18,
                 color: theme.colorScheme.primary,
               ),
@@ -165,7 +166,7 @@ class PrivateMessageParticipants extends StatelessWidget {
                   ),
                   tooltip: context.l10n.pm_inviteParticipants,
                   onPressed: _controlsLocked ? null : onInvite,
-                  icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
+                  icon: const Icon(AppIcons.follow, size: 18),
                 ),
               ],
             ],
@@ -201,7 +202,7 @@ class PrivateMessageParticipants extends StatelessWidget {
         radius: _avatarRadius,
         backgroundColor: theme.colorScheme.secondaryContainer,
         child: Icon(
-          Icons.group_rounded,
+          AppIcons.people,
           size: 16,
           color: theme.colorScheme.onSecondaryContainer,
         ),
@@ -407,7 +408,7 @@ class _PmEntryChipState extends State<_PmEntryChip> {
                                 onPressed: widget.controlsLocked
                                     ? null
                                     : widget.onRemove,
-                                icon: const Icon(Icons.close_rounded, size: 16),
+                                icon: const Icon(AppIcons.close, size: 16),
                               ),
                       ),
                     ],

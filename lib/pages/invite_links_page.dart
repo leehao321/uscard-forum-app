@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -505,7 +506,7 @@ class _InviteLinksPageState extends ConsumerState<InviteLinksPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.invite_title)),
+      appBar: AppNavBar(title: context.l10n.invite_title, showDivider: true),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -563,7 +564,7 @@ class _InviteLinksPageState extends ConsumerState<InviteLinksPage> {
                   onPressed: _isSubmitting ? null : () => _createInviteLink(),
                   icon: _isSubmitting
                       ? const LoadingSpinner(size: 18)
-                      : const Icon(Symbols.link_rounded),
+                      : const Icon(AppIcons.link),
                   label: Text(_isSubmitting ? context.l10n.invite_creating : context.l10n.invite_createLink),
                 ),
               ),
@@ -645,7 +646,7 @@ class _InviteLinksPageState extends ConsumerState<InviteLinksPage> {
                     : () => _createInviteLink(useAdvancedOptions: true),
                 icon: _isSubmitting
                     ? const LoadingSpinner(size: 18)
-                    : const Icon(Symbols.link_rounded),
+                    : const Icon(AppIcons.link),
                 label: Text(_isSubmitting ? context.l10n.invite_creating : context.l10n.invite_createLink),
               ),
             ),
@@ -713,19 +714,19 @@ class _InviteLinksPageState extends ConsumerState<InviteLinksPage> {
               runSpacing: 8,
               children: [
                 _MetaChip(
-                  icon: Symbols.repeat_rounded,
+                  icon: AppIcons.repeat,
                   label:
                       context.l10n.invite_usableCount(invite.invite?.maxRedemptionsAllowed ?? _maxRedemptionsAllowed),
                 ),
                 if (invite.invite?.expiresAt != null)
                   _MetaChip(
-                    icon: Symbols.schedule_rounded,
+                    icon: AppIcons.clock,
                     label:
                         context.l10n.invite_expiryDate(TimeUtils.formatDetailTime(invite.invite!.expiresAt)),
                   )
                 else
                   _MetaChip(
-                    icon: Symbols.all_inclusive_rounded,
+                    icon: AppIcons.infinite,
                     label: context.l10n.invite_noExpiry,
                   ),
               ],
@@ -736,7 +737,7 @@ class _InviteLinksPageState extends ConsumerState<InviteLinksPage> {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: _copyInviteLink,
-                    icon: const Icon(Symbols.content_copy_rounded),
+                    icon: const Icon(AppIcons.copy),
                     label: Text(context.l10n.common_copyLink),
                   ),
                 ),
@@ -744,7 +745,7 @@ class _InviteLinksPageState extends ConsumerState<InviteLinksPage> {
                 Expanded(
                   child: FilledButton.icon(
                     onPressed: _shareInviteLink,
-                    icon: const Icon(Symbols.share_rounded),
+                    icon: const Icon(AppIcons.share),
                     label: Text(context.l10n.common_share),
                   ),
                 ),

@@ -88,15 +88,13 @@ class _SavedTopicsPageState extends State<SavedTopicsPage> {
     final theme = Theme.of(context);
     final items = _filtered;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('已存帖子'),
-        actions: [
+      appBar: AppNavBar(
+        showDivider: true,
+        slotWidth: 100,
+        title: '已存帖子',
+        trailing: [
           if (_all.isNotEmpty)
-            IconButton(
-              icon: const Icon(Symbols.delete_sweep_rounded),
-              tooltip: '清空',
-              onPressed: _confirmClear,
-            ),
+            AppIconButton(icon: AppIcons.delete, semanticLabel: '清空', onPressed: _confirmClear),
         ],
       ),
       body: Column(
@@ -112,7 +110,7 @@ class _SavedTopicsPageState extends State<SavedTopicsPage> {
             child: TextField(
               controller: _searchController,
               decoration: const InputDecoration(
-                prefixIcon: Icon(Symbols.search_rounded),
+                prefixIcon: Icon(AppIcons.search),
                 hintText: '搜索标题和正文',
                 border: OutlineInputBorder(),
                 isDense: true,
@@ -145,7 +143,7 @@ class _SavedTopicsPageState extends State<SavedTopicsPage> {
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.only(right: 20),
                           child: Icon(
-                            Symbols.delete_rounded,
+                            AppIcons.delete,
                             color: theme.colorScheme.onErrorContainer,
                           ),
                         ),

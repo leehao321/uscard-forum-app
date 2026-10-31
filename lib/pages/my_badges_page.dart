@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../models/badge.dart';
 import '../providers/discourse_providers.dart';
 import '../services/discourse_cache_manager.dart';
@@ -83,319 +85,180 @@ class _MyBadgesPageState extends ConsumerState<MyBadgesPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate total badges
-    int totalCount = 0;
-    if (_groupedBadges != null) {
-      for (var list in _groupedBadges!.values) {
-        totalCount += list.length;
-      }
-    }
+    final colors = context.tokens.colors;
+    // 卡片高度随字号放大：头像 48 + 两行名称 + 一行类型 + 内边距
+    final ts = MediaQuery.textScalerOf(context).scale(13) / 13;
+    final cardExtent = 82 + 52 * ts;
+    // 金银铜顺序展开成一个三列网格（设计说明 §5.2：金银铜只写字，不加颜色）
+    final all = <UserBadge>[
+      for (final type in [BadgeType.gold, BadgeType.silver, BadgeType.bronze])
+        ...?_groupedBadges?[type],
+    ];
 
     return Scaffold(
+      backgroundColor: colors.surfacePage,
+      appBar: AppNavBar(title: context.l10n.myBadges_title),
       body: _isLoading
           ? const MyBadgesSkeleton()
           : _error != null
-              ? ErrorView(
-                  error: _error!,
-                  stackTrace: _errorStack,
-                  onRetry: _loadBadges,
-                )
-              : M3eRefreshIndicator(
-                  onRefresh: _loadBadges,
-                  child: CustomScrollView(
-                    slivers: [
-                      _buildAppBar(context, totalCount),
-                      if (_groupedBadges == null || _groupedBadges!.isEmpty)
-                        SliverFillRemaining(
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Symbols.military_tech_rounded,
-                                    size: 64, color: Colors.grey[400]),
-                                const SizedBox(height: 16),
-                                Text(context.l10n.myBadges_empty,
-                                    style: TextStyle(color: Colors.grey[600])),
-                              ],
+          ? ErrorView(
+              error: _error!,
+              stackTrace: _errorStack,
+              onRetry: _loadBadges,
+            )
+          : M3eRefreshIndicator(
+              onRefresh: _loadBadges,
+              child: CustomScrollView(
+                slivers: [
+                  if (all.isEmpty)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: AppStateView(
+                        icon: AppIcons.medal,
+                        title: context.l10n.myBadges_empty,
+                      ),
+                    )
+                  else ...[
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpace.pageMargin,
+                          AppSpace.l,
+                          AppSpace.pageMargin,
+                          AppSpace.s,
+                        ),
+                        child: Text(
+                          '${context.l10n.myBadges_totalEarned} · ${all.length}',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.merge(context.tokens.text.meta)
+                              .copyWith(color: colors.textMeta),
+                        ),
+                      ),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpace.pageMargin,
+                        0,
+                        AppSpace.pageMargin,
+                        AppSpace.xxl,
+                      ),
+                      sliver: SliverGrid(
+                        gridDelegate:
+                            SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              mainAxisSpacing: AppSpace.s,
+                              crossAxisSpacing: AppSpace.s,
+                              mainAxisExtent: cardExtent,
                             ),
-                          ),
-                        )
-                      else ...[
-                        const SliverPadding(padding: EdgeInsets.only(top: 16)),
-                        _buildBadgeSection(BadgeType.gold),
-                        _buildBadgeSection(BadgeType.silver),
-                        _buildBadgeSection(BadgeType.bronze),
-                        const SliverPadding(
-                            padding: EdgeInsets.only(bottom: 48)),
-                      ],
-                    ],
-                  ),
-                ),
-    );
-  }
-
-  Widget _buildAppBar(BuildContext context, int totalCount) {
-    return SliverAppBar.large(
-      title: Text(context.l10n.myBadges_title),
-      centerTitle: false,
-      expandedHeight: 200, // Taller header
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Theme.of(context).colorScheme.surface,
-                Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-              ],
-            ),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                right: -20,
-                top: -20,
-                child: FaIcon(
-                  FontAwesomeIcons.medal,
-                  size: 200,
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
-                ),
-              ),
-              Positioned(
-                left: 20 + MediaQuery.of(context).padding.left,
-                bottom: 20,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      context.l10n.myBadges_totalEarned,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).colorScheme.secondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '$totalCount',
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.onSurface,
-                        height: 1.0,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      context.l10n.myBadges_badgeUnit,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).colorScheme.outline,
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) => _buildBadgeItem(all[index]),
+                          childCount: all.length,
+                        ),
                       ),
                     ),
                   ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBadgeSection(BadgeType type) {
-    final badges = _groupedBadges?[type];
-    if (badges == null || badges.isEmpty) return const SliverToBoxAdapter();
-
-    final sectionColor = BadgeUIUtils.getSectionColor(context, type);
-    final sectionTitle = BadgeUIUtils.getBadgeTypeName(type);
-    final sectionIcon = BadgeUIUtils.getBadgeIcon(type);
-
-    return SliverMainAxisGroup(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-          sliver: SliverToBoxAdapter(
-            child: Row(
-              children: [
-                FaIcon(sectionIcon, size: 20, color: sectionColor),
-                const SizedBox(width: 12),
-                Text(
-                  sectionTitle,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: sectionColor,
-                        fontSize: 18,
-                      ),
-                ),
-                const Spacer(),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: sectionColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '${badges.length}',
-                    style: TextStyle(
-                      color: sectionColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 220,
-              childAspectRatio: 1.35, // Safe middle ground
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-            ),
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                return _buildBadgeItem(badges[index], type);
-              },
-              childCount: badges.length,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBadgeItem(UserBadge userBadge, BadgeType type) {
-    final badge = userBadge.badge!;
-    final theme = Theme.of(context);
-    final iconColor = BadgeUIUtils.getBadgeColor(context, type);
-
-    return InkWell(
-      onTap: () {
-        final user = ref.read(currentUserProvider).value;
-        if (user != null) {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => BadgePage(
-                badgeId: badge.id,
-                badgeSlug: badge.slug,
-                username: user.username,
-              ),
-            ),
-          );
-        }
-      },
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        decoration: BadgeUIUtils.getCardDecoration(context, type),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Count Badge (Corner) - Modern capsule style
-            if (userBadge.count > 1)
-              Positioned(
-                top: 10,
-                right: 10,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: iconColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: iconColor.withValues(alpha: 0.3), width: 1),
-                  ),
-                  child: Text(
-                    '×${userBadge.count}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: iconColor,
-                    ),
-                  ),
-                ),
-              ),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center, // Center the rigid block
-                children: [
-                   // Large Central Icon
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: theme.colorScheme.surface,
-                      boxShadow: [
-                        BoxShadow(
-                          color: iconColor.withValues(alpha: 0.2),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        )
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(8), // Padding to prevent image touching edges
-                    child: Center(
-                      child: badge.imageUrl != null &&
-                              badge.imageUrl!.isNotEmpty
-                          ? Image(
-                              image: discourseImageProvider(
-                                UrlHelper.resolveUrlWithCdn(badge.imageUrl!),
-                              ),
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  FaIcon(
-                                    badge.icon != null &&
-                                            badge.icon!.isNotEmpty
-                                        ? (FontAwesomeHelper.getIcon(
-                                              badge.icon!,
-                                            ) ??
-                                            BadgeUIUtils.getBadgeIcon(type))
-                                        : BadgeUIUtils.getBadgeIcon(type),
-                                    size: 24,
-                                    color: iconColor,
-                                  ),
-                            )
-                          : FaIcon(
-                              badge.icon != null && badge.icon!.isNotEmpty
-                                  ? (FontAwesomeHelper.getIcon(badge.icon!) ?? BadgeUIUtils.getBadgeIcon(type))
-                                  : BadgeUIUtils.getBadgeIcon(type),
-                              size: 24,
-                              color: iconColor,
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 4), // Minimal gap
-                  // Name (Centered)
-                  SizedBox(
-                    height: 36, // Compact fixed height
-                    child: Center(
-                      child: Text(
-                        badge.name,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                          height: 1.2,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
-          ],
+    );
+  }
+
+  /// 三列卡片：surface/grouped r12 pad 12；48 圆（award 24 brand 或徽章图）
+  /// + 名称 13 Semibold + 「金 · ×2」11 meta
+  Widget _buildBadgeItem(UserBadge userBadge) {
+    final badge = userBadge.badge!;
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final type = badge.badgeType;
+    final base = Theme.of(context).textTheme.bodySmall!;
+
+    Widget icon;
+    final fallback = FaIcon(
+      badge.icon != null && badge.icon!.isNotEmpty
+          ? (FontAwesomeHelper.getIcon(badge.icon!) ??
+                BadgeUIUtils.getBadgeIcon(type))
+          : BadgeUIUtils.getBadgeIcon(type),
+      size: 24,
+      color: colors.brandPrimary,
+    );
+    if (badge.imageUrl != null && badge.imageUrl!.isNotEmpty) {
+      icon = Image(
+        image: discourseImageProvider(
+          UrlHelper.resolveUrlWithCdn(badge.imageUrl!),
+        ),
+        width: 28,
+        height: 28,
+        fit: BoxFit.contain,
+        errorBuilder: (_, _, _) => fallback,
+      );
+    } else {
+      icon = fallback;
+    }
+
+    final typeName = BadgeUIUtils.getBadgeTypeName(type);
+    final sub = userBadge.count > 1
+        ? '$typeName · ×${userBadge.count}'
+        : typeName;
+
+    return Semantics(
+      button: true,
+      label: '${badge.name}，$sub',
+      excludeSemantics: true,
+      child: AppPressable(
+        onTap: () {
+          final user = ref.read(currentUserProvider).value;
+          if (user != null) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => BadgePage(
+                  badgeId: badge.id,
+                  badgeSlug: badge.slug,
+                  username: user.username,
+                ),
+              ),
+            );
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.all(AppSpace.m),
+          decoration: BoxDecoration(
+            color: colors.surfaceGrouped,
+            borderRadius: BorderRadius.circular(tokens.radius.card),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colors.surfacePage,
+                ),
+                child: icon,
+              ),
+              const SizedBox(height: AppSpace.s),
+              Text(
+                badge.name,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: base
+                    .merge(tokens.text.metaStrong)
+                    .copyWith(color: colors.textPrimary),
+              ),
+              const SizedBox(height: AppSpace.xxs),
+              Text(
+                sub,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: base
+                    .merge(tokens.text.caption)
+                    .copyWith(color: colors.textMeta),
+              ),
+            ],
+          ),
         ),
       ),
     );

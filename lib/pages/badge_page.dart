@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart' hide Badge;
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import '../models/badge.dart';
 import '../services/discourse/discourse_service.dart';
 import '../widgets/common/relative_time_text.dart';
@@ -8,7 +10,9 @@ import '../utils/font_awesome_helper.dart';
 import '../services/discourse_cache_manager.dart';
 import '../utils/url_helper.dart';
 import '../widgets/common/error_view.dart';
+
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../widgets/common/smart_avatar.dart';
 import '../widgets/badge/badge_ui_utils.dart';
 import '../utils/fluxdo_render_callbacks.dart';
@@ -19,6 +23,7 @@ import '../widgets/layout/master_detail_pane_host.dart';
 import 'topic_detail_page/topic_detail_page.dart';
 import 'user_profile_page.dart';
 import '../l10n/s.dart';
+
 import 'package:app_icons/app_icons.dart';
 
 /// 徽章详情页面
@@ -112,7 +117,7 @@ class _BadgePageState extends ConsumerState<BadgePage> {
 
                   // Badge Info Card (Floating effect)
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
                     sliver: SliverToBoxAdapter(
                       child: _BadgeInfoCard(badge: _badgeDetail!.badge),
                     ),
@@ -125,7 +130,7 @@ class _BadgePageState extends ConsumerState<BadgePage> {
                       child: Row(
                         children: [
                           Icon(
-                            Symbols.group_rounded,
+                            AppIcons.people,
                             color: Theme.of(context).colorScheme.primary,
                             size: 22,
                           ),
@@ -145,9 +150,9 @@ class _BadgePageState extends ConsumerState<BadgePage> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
@@ -172,19 +177,18 @@ class _BadgePageState extends ConsumerState<BadgePage> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Symbols.person_off_rounded,
+                                  AppIcons.userOff,
                                   size: 48,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.outline.withValues(alpha: 0.5),
+                                  color: Theme.of(context).colorScheme.outline
+                                      .withValues(alpha: 0.5),
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
                                   context.l10n.badge_noGrantees,
                                   style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.outline,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .outline,
                                   ),
                                 ),
                               ],
@@ -227,50 +231,20 @@ class _BadgePageState extends ConsumerState<BadgePage> {
   }
 
   Widget _buildSliverAppBar(BuildContext context) {
-    final badge = _badgeDetail!.badge;
-    final badgeType = badge.badgeType;
-    final gradient = BadgeUIUtils.getHeaderGradient(context, badgeType);
-    final iconColor = BadgeUIUtils.getBadgeColor(context, badgeType);
-
+    // v2：没有渐变头图，只留一条页面底色的导航
+    final colors = context.tokens.colors;
     return SliverAppBar(
-      expandedHeight: 220,
       pinned: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: colors.surfacePage,
+      surfaceTintColor: Colors.transparent,
       elevation: 0,
-      iconTheme: IconThemeData(color: Theme.of(context).colorScheme.onSurface),
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(gradient: gradient),
-          child: Center(child: _buildLargeBadgeIcon(badge, iconColor)),
-        ),
-      ),
+      scrolledUnderElevation: 0,
+      iconTheme: IconThemeData(color: colors.textPrimary),
     );
-  }
-
-  Widget _buildLargeBadgeIcon(Badge badge, Color color) {
-    if (badge.imageUrl != null && badge.imageUrl!.isNotEmpty) {
-      return Image(
-        image: discourseImageProvider(
-          UrlHelper.resolveUrlWithCdn(badge.imageUrl!),
-        ),
-        width: 100,
-        height: 100,
-        fit: BoxFit.contain,
-        errorBuilder: (_, _, _) => _buildIconFallback(badge, color, 100),
-      );
-    }
-    return _buildIconFallback(badge, color, 100);
-  }
-
-  Widget _buildIconFallback(Badge badge, Color color, double size) {
-    final iconData = badge.icon != null && badge.icon!.isNotEmpty
-        ? (FontAwesomeHelper.getIcon(badge.icon!) ?? FontAwesomeIcons.medal)
-        : FontAwesomeIcons.medal;
-    return FaIcon(iconData, size: size, color: color);
   }
 }
 
-/// 徽章详细信息卡片
+/// 徽章详情头：居中 48 圆 + 名称 17 Semibold + 说明 13 meta + 「金 · 1,204 人获得」11
 class _BadgeInfoCard extends StatelessWidget {
   final Badge badge;
 
@@ -279,122 +253,102 @@ class _BadgeInfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     final badgeType = badge.badgeType;
-    final badgeColor = BadgeUIUtils.getBadgeColor(context, badgeType);
     final typeName = BadgeUIUtils.getBadgeTypeName(badgeType);
+    final base = theme.textTheme.bodySmall!;
 
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.2),
+    Widget icon;
+    final fallback = FaIcon(
+      badge.icon != null && badge.icon!.isNotEmpty
+          ? (FontAwesomeHelper.getIcon(badge.icon!) ?? FontAwesomeIcons.medal)
+          : FontAwesomeIcons.medal,
+      size: 24,
+      color: colors.brandPrimary,
+    );
+    if (badge.imageUrl != null && badge.imageUrl!.isNotEmpty) {
+      icon = Image(
+        image: discourseImageProvider(
+          UrlHelper.resolveUrlWithCdn(badge.imageUrl!),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+        width: 28,
+        height: 28,
+        fit: BoxFit.contain,
+        errorBuilder: (_, _, _) => fallback,
+      );
+    } else {
+      icon = fallback;
+    }
+
+    return Column(
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: colors.surfaceGrouped,
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Name and Type
-          Text(
+          child: icon,
+        ),
+        SizedBox(height: AppSpace.m),
+        Semantics(
+          header: true,
+          child: Text(
             badge.name,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              height: 1.2,
-            ),
             textAlign: TextAlign.center,
+            style: theme.textTheme.titleMedium
+                ?.merge(tokens.text.title)
+                .copyWith(color: colors.textPrimary, fontSize: 17),
           ),
-          const SizedBox(height: 12),
+        ),
+        SizedBox(height: AppSpace.s),
+        // 徽章描述属只读展示：走新引擎 FluxdoRender，关闭划词选区；
+        // 仍保留 EmojiHandler().replaceEmojis 预处理表情。
+        FluxdoRenderCallbacks.generic(
+          heroTagNamespace: 'badge_${badge.id}_desc',
+        ).render(
+          cookedHtml: EmojiHandler().replaceEmojis(badge.description),
+          baseTextStyle: base
+              .merge(tokens.text.meta)
+              .copyWith(color: colors.textMeta),
+          selectionEnabled: false,
+        ),
+        if (badge.longDescription != null &&
+            badge.longDescription!.isNotEmpty) ...[
+          SizedBox(height: AppSpace.m),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            width: double.infinity,
+            padding: EdgeInsets.all(AppSpace.m),
             decoration: BoxDecoration(
-              color: badgeColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: badgeColor.withValues(alpha: 0.2)),
+              color: colors.surfaceGrouped,
+              borderRadius: BorderRadius.circular(tokens.radius.card),
             ),
-            child: Text(
-              typeName,
-              style: TextStyle(
-                color: badgeColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Descriptions
-          // 徽章描述属只读展示：走新引擎 FluxdoRender，关闭划词选区；
-          // 仍保留 EmojiHandler().replaceEmojis 预处理表情。
-          FluxdoRenderCallbacks.generic(
-            heroTagNamespace: 'badge_${badge.id}_desc',
-          ).render(
-            cookedHtml: EmojiHandler().replaceEmojis(badge.description),
-            baseTextStyle: theme.textTheme.bodyMedium?.copyWith(
-              height: 1.6,
-              fontSize: 16,
-            ),
-            selectionEnabled: false,
-          ),
-
-          if (badge.longDescription != null &&
-              badge.longDescription!.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withValues(
-                  alpha: 0.3,
+            child:
+                FluxdoRenderCallbacks.generic(
+                  heroTagNamespace: 'badge_${badge.id}_longdesc',
+                ).render(
+                  cookedHtml: EmojiHandler().replaceEmojis(
+                    badge.longDescription!,
+                  ),
+                  baseTextStyle: base
+                      .merge(tokens.text.meta)
+                      .copyWith(color: colors.textMeta),
+                  selectionEnabled: false,
                 ),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: FluxdoRenderCallbacks.generic(
-                heroTagNamespace: 'badge_${badge.id}_longdesc',
-              ).render(
-                cookedHtml: EmojiHandler().replaceEmojis(badge.longDescription!),
-                baseTextStyle: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  height: 1.5,
-                ),
-                selectionEnabled: false,
-              ),
-            ),
-          ],
-
-          const SizedBox(height: 24),
-          Divider(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.2),
-          ),
-          const SizedBox(height: 16),
-
-          // Grant Count
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Symbols.emoji_events_rounded,
-                size: 20,
-                color: theme.colorScheme.secondary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                context.l10n.badge_grantedCount(badge.grantCount),
-                style: TextStyle(
-                  color: theme.colorScheme.secondary,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 15,
-                ),
-              ),
-            ],
           ),
         ],
-      ),
+        SizedBox(height: AppSpace.m),
+        // 金银铜只写字，不加颜色
+        Text(
+          '$typeName · ${context.l10n.badge_grantedCount(badge.grantCount)}',
+          style: base
+              .merge(tokens.text.caption)
+              .copyWith(color: colors.textMeta),
+        ),
+      ],
     );
   }
 }
@@ -465,14 +419,14 @@ class _UserBadgeItem extends StatelessWidget {
                         Icon(
                           Symbols.shield_rounded,
                           size: 14,
-                          color: Colors.red.shade700,
+                          color: context.tokens.colors.textDestructive,
                         ),
                       ] else if (user.moderator == true) ...[
                         const SizedBox(width: 4),
                         Icon(
                           Symbols.shield_rounded,
                           size: 14,
-                          color: Colors.blue.shade700,
+                          color: context.tokens.colors.brandPrimary,
                         ),
                       ],
                     ],
@@ -537,9 +491,10 @@ class _UserBadgeItem extends StatelessWidget {
   void _navigateToUser(BuildContext context) {
     // 宽屏进本页右栏,窄屏全屏 push(平行视界宿主标准分流)。
     if (MasterDetailLayout.canShowBothPanesFor(context)) {
-      ProviderScope.containerOf(context, listen: false)
-          .read(selectedBadgePaneProvider.notifier)
-          .selectProfile(user.username);
+      ProviderScope.containerOf(
+        context,
+        listen: false,
+      ).read(selectedBadgePaneProvider.notifier).selectProfile(user.username);
       return;
     }
     Navigator.push(

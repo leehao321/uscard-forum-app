@@ -446,7 +446,7 @@ class BookmarksListContent extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Symbols.sync_problem_rounded,
+              AppIcons.warning,
               size: 64,
               color: theme.colorScheme.outline,
             ),
@@ -471,11 +471,11 @@ class BookmarksListContent extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Symbols.bookmark_rounded, size: 64, color: Colors.grey),
+          Icon(AppIcons.bookmark, size: 64, color: context.tokens.colors.textMeta),
           const SizedBox(height: 16),
           Text(
             context.l10n.bookmarks_empty,
-            style: const TextStyle(color: Colors.grey),
+            style: TextStyle(color: context.tokens.colors.textMeta),
           ),
         ],
       ),
@@ -500,18 +500,18 @@ class BookmarksListContent extends ConsumerWidget {
 
     return [
       PreviewAction(
-        icon: Symbols.edit_rounded,
+        icon: AppIcons.edit,
         label: context.l10n.bookmark_editBookmark,
         onTap: () => onEditBookmark(topic),
       ),
       if (topic.bookmarkReminderAt != null)
         PreviewAction(
-          icon: Symbols.alarm_off_rounded,
+          icon: AppIcons.alarmOff,
           label: context.l10n.bookmarks_cancelReminder,
           onTap: () => onClearReminder(topic),
         ),
       PreviewAction(
-        icon: Symbols.delete_rounded,
+        icon: AppIcons.delete,
         label: context.l10n.common_deleteBookmark,
         color: theme.colorScheme.error,
         onTap: () => onDeleteBookmark(topic),
@@ -548,7 +548,7 @@ class BookmarksListContent extends ConsumerWidget {
               // 字形 span 替代 WidgetSpan(Icon):见 iconGlyphSpan 注释
               iconGlyphSpan(
                 context,
-                Symbols.bookmark_rounded,
+                AppIcons.bookmark,
                 size: 13,
                 color: foregroundColor,
               ),
@@ -564,7 +564,7 @@ class BookmarksListContent extends ConsumerWidget {
                 ),
               iconGlyphSpan(
                 context,
-                Symbols.alarm_rounded,
+                AppIcons.alarm,
                 size: 13,
                 color: foregroundColor,
               ),

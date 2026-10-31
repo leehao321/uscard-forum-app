@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/search_filter.dart';
@@ -240,11 +241,11 @@ class _BrowsingHistoryPageState extends ConsumerState<BrowsingHistoryPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Symbols.history_rounded, size: 64, color: Colors.grey),
+                  Icon(AppIcons.history, size: 64, color: context.tokens.colors.textMeta),
                   const SizedBox(height: 16),
                   Text(
                     context.l10n.browsingHistory_empty,
-                    style: const TextStyle(color: Colors.grey),
+                    style: TextStyle(color: context.tokens.colors.textMeta),
                   ),
                 ],
               ),

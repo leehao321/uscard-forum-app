@@ -266,7 +266,7 @@ void main() {
     expect(_findWorkspaceTab('Alpha'), findsOneWidget);
     expect(_findBookmarkInList(_alphaBookmark), findsNothing);
 
-    await tester.tap(find.byIcon(Symbols.close_rounded));
+    await tester.tap(find.byIcon(AppIcons.close));
     await _pumpPage(tester);
 
     expect(find.text('detail:1 active:true'), findsNothing);

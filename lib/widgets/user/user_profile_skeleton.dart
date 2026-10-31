@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
+
 import '../../utils/responsive.dart';
-import '../common/grain_gradient_background.dart';
 import '../common/skeleton.dart';
 
 /// 用户资料页骨架屏
@@ -45,15 +46,7 @@ class UserProfileSkeleton extends StatelessWidget {
                       SizedBox(
                         height: bannerHeight,
                         width: double.infinity,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            const GrainGradientBackground(animated: false),
-                            Container(
-                              color: Colors.black.withValues(alpha: 0.2),
-                            ),
-                          ],
-                        ),
+                        child: Stack(fit: StackFit.expand, children: []),
                       ),
                       Positioned(
                         left: 20,
@@ -171,9 +164,11 @@ class UserProfileSkeleton extends StatelessWidget {
               stretch: true,
               elevation: 0,
               scrolledUnderElevation: 0,
-              backgroundColor: Colors.transparent,
+              backgroundColor: context.tokens.colors.surfacePage,
               surfaceTintColor: Colors.transparent,
-              iconTheme: const IconThemeData(color: Colors.white),
+              iconTheme: IconThemeData(
+                color: context.tokens.colors.textPrimary,
+              ),
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(36),
                 child: Container(
@@ -238,9 +233,6 @@ class UserProfileSkeleton extends StatelessWidget {
       children: [
         // 背景 - 使用 GrainGradient，与正式页面同款
         // 骨架屏只需保持视觉一致，无需在加载期间持续提交 shader 帧。
-        const GrainGradientBackground(animated: false),
-        // 压暗遮罩（与正式页面展开时一致）
-        Container(color: Colors.black.withValues(alpha: 0.6)),
         // 内容
         Positioned(
           left: 20 + MediaQuery.of(context).padding.left,
@@ -258,7 +250,10 @@ class UserProfileSkeleton extends StatelessWidget {
                   Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+                      border: Border.all(
+                        color: context.tokens.colors.surfacePage,
+                        width: 2,
+                      ),
                     ),
                     child: const _SkeletonCircleWhite(size: 72),
                   ),
@@ -302,7 +297,7 @@ class UserProfileSkeleton extends StatelessWidget {
                 Container(
                   height: 54,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: context.tokens.colors.avatarFill,
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
@@ -420,7 +415,7 @@ class _SkeletonBoxWhite extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.18),
+        color: context.tokens.colors.avatarFill,
         borderRadius: BorderRadius.circular(borderRadius),
       ),
     );
@@ -439,7 +434,7 @@ class _SkeletonCircleWhite extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.18),
+        color: context.tokens.colors.avatarFill,
         shape: BoxShape.circle,
       ),
     );

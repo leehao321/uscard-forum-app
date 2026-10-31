@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/s.dart';
+
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -66,9 +70,6 @@ class _ReadLaterBubbleState extends ConsumerState<ReadLaterBubble>
     if (!appReady || items.isEmpty) return const SizedBox.shrink();
 
     final pos = floatingPosition();
-    final colorScheme = Theme.of(context).colorScheme;
-    final backgroundColor = colorScheme.inverseSurface;
-    final contentColor = colorScheme.onInverseSurface;
     final visible = floatingIsInitialized && !_isOverlayOpen;
 
     return Positioned(
@@ -98,63 +99,37 @@ class _ReadLaterBubbleState extends ConsumerState<ReadLaterBubble>
                 onTapUp: (_) => setState(() => _isPressed = false),
                 onTapCancel: () => setState(() => _isPressed = false),
                 onTap: _handleTap,
-                child: Container(
-                  width: _bubbleSize,
-                  height: _bubbleSize,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: backgroundColor.withValues(alpha: 0.9),
-                    border: Border.all(
-                      color: colorScheme.outline.withValues(alpha: 0.1),
-                      width: 1.0,
+                // v2：浮动胶囊材质的圆球，layers 20 + 条数 11，不用红色角标
+                child: Semantics(
+                  button: true,
+                  label:
+                      '${context.l10n.topicDetail_addToReadLater} ${items.length}',
+                  excludeSemantics: true,
+                  child: SizedBox(
+                    width: _bubbleSize,
+                    height: _bubbleSize,
+                    child: CapsuleSurface(
+                      shape: const CircleBorder(),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            AppIcons.readLater,
+                            size: AppSize.iconM,
+                            color: context.tokens.colors.textPrimary,
+                          ),
+                          Text(
+                            '${items.length}',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.merge(context.tokens.text.caption)
+                                .copyWith(
+                                  color: context.tokens.colors.textMeta,
+                                  decoration: TextDecoration.none,
+                                ),
+                          ),
+                        ],
+                      ),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        blurRadius: 6,
-                        spreadRadius: 1,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Center(
-                        child: Icon(
-                          Symbols.layers_rounded,
-                          size: 22,
-                          color: contentColor,
-                        ),
-                      ),
-                      Positioned(
-                        left: floatingIsRight ? -2 : null,
-                        right: floatingIsRight ? null : -2,
-                        top: -2,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: colorScheme.error,
-                            shape: BoxShape.circle,
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 18,
-                            minHeight: 18,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '${items.length}',
-                              style: TextStyle(
-                                color: colorScheme.onError,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                decoration: TextDecoration.none,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ),
               ),

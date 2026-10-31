@@ -434,8 +434,8 @@ class _BookmarksPageState extends ConsumerState<BookmarksPage> {
                           ),
                           leading: Icon(
                             selected
-                                ? Symbols.radio_button_checked_rounded
-                                : Symbols.radio_button_unchecked_rounded,
+                                ? AppIcons.radioButton
+                                : AppIcons.radioButtonOff,
                             color: selected
                                 ? theme.colorScheme.primary
                                 : theme.colorScheme.outline,
@@ -465,7 +465,7 @@ class _BookmarksPageState extends ConsumerState<BookmarksPage> {
                               });
                               Navigator.pop(sheetContext);
                             },
-                            icon: const Icon(Symbols.close_rounded),
+                            icon: const Icon(AppIcons.close),
                           ),
                         );
                       },
@@ -545,13 +545,13 @@ class _BookmarksPageState extends ConsumerState<BookmarksPage> {
               key: const ValueKey('bookmark-workspace-mobile-back'),
               tooltip: MaterialLocalizations.of(context).backButtonTooltip,
               onPressed: _activateBookmarksTab,
-              icon: const Icon(Symbols.arrow_back_rounded),
+              icon: const Icon(AppIcons.back),
             ),
             IconButton(
               key: const ValueKey('bookmark-workspace-mobile-close'),
               tooltip: context.l10n.common_close,
               onPressed: _closeActiveWorkspaceTab,
-              icon: const Icon(Symbols.close_rounded),
+              icon: const Icon(AppIcons.close),
             ),
             Expanded(
               child: Text(
@@ -583,7 +583,7 @@ class _BookmarksPageState extends ConsumerState<BookmarksPage> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Symbols.search_rounded),
+          icon: const Icon(AppIcons.search),
           onPressed: () => _onSearchPressed(true),
           tooltip: context.l10n.common_search,
         ),
@@ -610,7 +610,7 @@ class _BookmarksPageState extends ConsumerState<BookmarksPage> {
       onPressed: isSyncing ? null : _onManualSync,
       icon: isSyncing
           ? const LoadingSpinner(size: 18)
-          : const Icon(Symbols.sync_rounded),
+          : const Icon(AppIcons.sync),
     );
   }
 

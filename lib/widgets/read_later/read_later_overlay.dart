@@ -194,7 +194,7 @@ class _ReadLaterOverlayState extends ConsumerState<ReadLaterOverlay> {
               ),
               IconButton(
                 onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Symbols.close_rounded, size: 22),
+                icon: const Icon(AppIcons.close, size: 22),
                 style: IconButton.styleFrom(
                   backgroundColor: colorScheme.surfaceContainerHigh,
                   foregroundColor: colorScheme.onSurfaceVariant,
@@ -270,7 +270,7 @@ class _ReadLaterCard extends StatelessWidget {
               right: -14,
               bottom: 26,
               child: Icon(
-                Symbols.auto_stories_rounded,
+                AppIcons.autoStories,
                 size: 96,
                 color: colorScheme.primary.withValues(alpha: 0.05),
               ),
@@ -291,7 +291,7 @@ class _ReadLaterCard extends StatelessWidget {
                         tooltip: context.l10n.common_remove,
                         visualDensity: VisualDensity.compact,
                         icon: Icon(
-                          Symbols.delete_rounded,
+                          AppIcons.delete,
                           size: 18,
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -328,7 +328,7 @@ class _ReadLaterCard extends StatelessWidget {
                     child: Row(
                       children: [
                         Icon(
-                          Symbols.schedule_rounded,
+                          AppIcons.clock,
                           size: 13,
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -357,7 +357,7 @@ class _ReadLaterCard extends StatelessWidget {
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
-                              Symbols.arrow_forward_rounded,
+                              AppIcons.forward,
                               size: 16,
                               color: colorScheme.onPrimary,
                             ),
@@ -397,7 +397,7 @@ class _ProgressPill extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Symbols.auto_stories_rounded,
+              AppIcons.autoStories,
               size: 12,
               color: colorScheme.onPrimaryContainer,
             ),

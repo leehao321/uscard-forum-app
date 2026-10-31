@@ -286,7 +286,7 @@ class ShareImageWidget extends ConsumerWidget {
 
     return Row(
       children: [
-        Icon(Symbols.link_rounded, size: 14, color: secondaryTextColor),
+        Icon(AppIcons.link, size: 14, color: secondaryTextColor),
         const SizedBox(width: 6),
         Expanded(
           child: Text(

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // ignore: depend_on_referenced_packages
@@ -164,31 +165,42 @@ class _PrivateMessagesPageState extends ConsumerState<PrivateMessagesPage>
     final listScaffold = NotificationListener<ScrollNotification>(
       onNotification: _onScrollNotification,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(context.l10n.privateMessages_title),
-          bottom: TabBar(
-            controller: _tabController,
-            tabs: [
-              Tab(text: context.l10n.privateMessages_inbox),
-              Tab(text: context.l10n.privateMessages_sent),
-              Tab(text: context.l10n.privateMessages_archive),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            for (final filter in _filters)
-              _PrivateMessageTabView(filter: filter),
+        appBar: AppNavBar(
+          title: context.l10n.privateMessages_title,
+          // v2：新建私信放在导航右侧 square-pen
+          trailing: [
+            AppIconButton(
+              icon: AppIcons.compose,
+              semanticLabel: context.l10n.pm_newTitle,
+              onPressed: _composeNewMessage,
+            ),
           ],
         ),
-        // 新建私信：此前只能从某个用户的头像菜单发起，对方没在可见处
-        // 发过言就完全没有路径。对齐 Discourse 网页版私信列表的入口。
-        floatingActionButton: FloatingActionButton(
-          heroTag: 'composePm',
-          onPressed: _composeNewMessage,
-          tooltip: context.l10n.pm_newTitle,
-          child: const Icon(Icons.edit_rounded),
+        body: Column(
+          children: [
+            // 页内筛选：收件箱 · 已发送 · 归档
+            AnimatedBuilder(
+              animation: _tabController.animation!,
+              builder: (context, _) => FilterTabs(
+                labels: [
+                  context.l10n.privateMessages_inbox,
+                  context.l10n.privateMessages_sent,
+                  context.l10n.privateMessages_archive,
+                ],
+                selectedIndex: _tabController.animation!.value.round(),
+                onSelected: _tabController.animateTo,
+              ),
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  for (final filter in _filters)
+                    _PrivateMessageTabView(filter: filter),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -392,7 +404,7 @@ class _PrivateMessageTabViewState extends ConsumerState<_PrivateMessageTabView>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Symbols.mail_rounded, size: 64, color: Colors.grey),
+                  const Icon(AppIcons.mail, size: 64, color: Colors.grey),
                   const SizedBox(height: 16),
                   Text(
                     context.l10n.privateMessages_empty,

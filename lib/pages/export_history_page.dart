@@ -14,7 +14,9 @@ import '../l10n/s.dart';
 import '../providers/export_history_provider.dart';
 import '../services/public_file_channel.dart';
 import '../services/toast_service.dart';
+
 import 'package:common_ui/common_ui.dart';
+
 import '../storage/export_history_dao.dart';
 import '../utils/dialog_utils.dart';
 import '../utils/platform_utils.dart';
@@ -41,19 +43,17 @@ class _ExportHistoryPageState extends ConsumerState<ExportHistoryPage> {
         : all.where((e) => e.format == _filter).toList(growable: false);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.exportHistory_title),
-        actions: [
+      appBar: AppNavBar(
+        showDivider: true,
+        slotWidth: 100,
+        title: context.l10n.exportHistory_title,
+        trailing: [
           if (all.isNotEmpty) ...[
             _FilterMenu(
               current: _filter,
               onChange: (v) => setState(() => _filter = v),
             ),
-            IconButton(
-              icon: const Icon(Symbols.delete_sweep_rounded),
-              tooltip: context.l10n.exportHistory_clearAll,
-              onPressed: _confirmClear,
-            ),
+            AppIconButton(icon: AppIcons.delete, semanticLabel: context.l10n.exportHistory_clearAll, onPressed: _confirmClear),
           ],
         ],
       ),
@@ -70,8 +70,8 @@ class _ExportHistoryPageState extends ConsumerState<ExportHistoryPage> {
                     key: ValueKey(entry.id),
                     trailingActions: [
                       SwipeAction(
-                        icon: Symbols.delete_rounded,
-                        color: Colors.red,
+                        icon: AppIcons.delete,
+                        color: context.tokens.colors.textDestructive,
                         label: context.l10n.exportHistory_deleteRecord,
                         onPressed: () => ref
                             .read(exportHistoryProvider.notifier)
@@ -107,23 +107,15 @@ class _ExportHistoryPageState extends ConsumerState<ExportHistoryPage> {
 
     final actions = <(String, IconData, String)>[
       if (isNotion && ref0.isNotEmpty)
-        ('open', Symbols.public_rounded, S.current.exportHistory_openInBrowser),
+        ('open', AppIcons.globe, S.current.exportHistory_openInBrowser),
       if (fileExists)
-        ('open', Symbols.file_open_rounded, S.current.exportHistory_openFile),
+        ('open', AppIcons.fileOpen, S.current.exportHistory_openFile),
       if (fileExists && !isUri && PlatformUtils.isDesktop)
-        (
-          'reveal',
-          Symbols.folder_open_rounded,
-          S.current.exportHistory_revealInFolder,
-        ),
+        ('reveal', AppIcons.folderOpen, S.current.exportHistory_revealInFolder),
       // content uri 走原生 ACTION_SEND，本地路径走 share_plus
       if (fileExists && (isUri || ShareUtils.canShareFiles))
-        ('share', Symbols.share_rounded, S.current.exportHistory_shareAgain),
-      (
-        'delete',
-        Symbols.delete_rounded,
-        S.current.exportHistory_deleteRecord,
-      ),
+        ('share', AppIcons.share, S.current.exportHistory_shareAgain),
+      ('delete', AppIcons.delete, S.current.exportHistory_deleteRecord),
     ];
 
     await AppBottomSheet.show<void>(
@@ -139,9 +131,7 @@ class _ExportHistoryPageState extends ConsumerState<ExportHistoryPage> {
             ListTile(
               leading: Icon(
                 icon,
-                color: id == 'delete'
-                    ? Theme.of(ctx).colorScheme.error
-                    : null,
+                color: id == 'delete' ? Theme.of(ctx).colorScheme.error : null,
               ),
               title: Text(
                 label,
@@ -301,7 +291,7 @@ class _FilterMenu extends StatelessWidget {
       icon: Stack(
         clipBehavior: Clip.none,
         children: [
-          const Icon(Symbols.filter_list_rounded),
+          const Icon(AppIcons.filter),
           if (active)
             Positioned(
               right: -1,
@@ -329,9 +319,7 @@ class _FilterMenu extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  current == value
-                      ? Symbols.check_rounded
-                      : Symbols.circle_rounded,
+                  current == value ? AppIcons.check : AppIcons.radioButtonOff,
                   size: 16,
                   color: current == value
                       ? theme.colorScheme.primary
@@ -358,7 +346,7 @@ class _EmptyState extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Symbols.history_edu_rounded,
+            AppIcons.pencilLine,
             size: 64,
             color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
           ),
@@ -386,14 +374,10 @@ class _ExportEntryCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onLongPress;
 
-  static const _kFormatBlue = Color(0xFF3B82F6);
-  static const _kFormatOrange = Color(0xFFF97316);
-  static const _kFormatPurple = Color(0xFF8B5CF6);
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accent = _accentColor;
+    final accent = _accentColorOf(context);
     final failed = entry.status == ExportHistoryStatus.failed;
 
     return Material(
@@ -458,8 +442,9 @@ class _ExportEntryCard extends StatelessWidget {
                           Text(TimeUtils.formatRelativeTime(entry.createdAt)),
                           if (entry.postCount != null)
                             Text(
-                              context.l10n
-                                  .exportHistory_postCount(entry.postCount!),
+                              context.l10n.exportHistory_postCount(
+                                entry.postCount!,
+                              ),
                             ),
                           if (entry.size != null && entry.size! > 0)
                             Text(_formatSize(entry.size!)),
@@ -491,16 +476,14 @@ class _ExportEntryCard extends StatelessWidget {
   }
 
   IconData get _icon => switch (entry.format) {
-    ExportHistoryFormat.markdown => Symbols.description_rounded,
-    ExportHistoryFormat.html => Symbols.public_rounded,
-    ExportHistoryFormat.notion => Symbols.cloud_sync_rounded,
+    ExportHistoryFormat.markdown => AppIcons.description,
+    ExportHistoryFormat.html => AppIcons.globe,
+    ExportHistoryFormat.notion => AppIcons.cloud,
   };
 
-  Color get _accentColor => switch (entry.format) {
-    ExportHistoryFormat.markdown => _kFormatBlue,
-    ExportHistoryFormat.html => _kFormatOrange,
-    ExportHistoryFormat.notion => _kFormatPurple,
-  };
+  // v2：不按格式上色，统一 brand
+  Color _accentColorOf(BuildContext context) =>
+      context.tokens.colors.brandPrimary;
 
   String get _formatLabel => switch (entry.format) {
     ExportHistoryFormat.markdown => 'MD',
@@ -509,11 +492,10 @@ class _ExportEntryCard extends StatelessWidget {
   };
 
   IconData get _trailingIcon => switch (entry.targetType) {
-    ExportHistoryTarget.notion => Symbols.north_east_rounded,
-    ExportHistoryTarget.shared => Symbols.share_rounded,
-    ExportHistoryTarget.localFile => PlatformUtils.isDesktop
-        ? Symbols.folder_open_rounded
-        : Symbols.file_open_rounded,
+    ExportHistoryTarget.notion => AppIcons.arrowUpRight,
+    ExportHistoryTarget.shared => AppIcons.share,
+    ExportHistoryTarget.localFile =>
+      PlatformUtils.isDesktop ? AppIcons.folderOpen : AppIcons.fileOpen,
   };
 
   String _formatSize(int bytes) {

@@ -321,12 +321,12 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
               M3eButtonGroupItem(
                 value: ExportScope.firstPostOnly,
                 label: Text(context.l10n.export_firstPostOnly),
-                icon: const Icon(Symbols.article_rounded),
+                icon: const Icon(AppIcons.article),
               ),
               M3eButtonGroupItem(
                 value: ExportScope.allPosts,
                 label: Text(context.l10n.common_all),
-                icon: const Icon(Symbols.forum_rounded),
+                icon: const Icon(AppIcons.forum),
               ),
             ],
             selected: _scope,
@@ -340,12 +340,12 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
               M3eButtonGroupItem(
                 value: ExportFormat.markdown,
                 label: Text('Markdown'),
-                icon: Icon(Symbols.code_rounded),
+                icon: Icon(AppIcons.code),
               ),
               M3eButtonGroupItem(
                 value: ExportFormat.html,
                 label: Text('HTML'),
-                icon: Icon(Symbols.html_rounded),
+                icon: Icon(AppIcons.code),
               ),
             ],
             selected: _format,
@@ -357,7 +357,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
             Row(
               children: [
                 Icon(
-                  Symbols.info_rounded,
+                  AppIcons.info,
                   size: 14,
                   color: theme.colorScheme.primary,
                 ),
@@ -387,7 +387,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
                 _deliveryTile(
                   theme,
                   action: _ExportAction.save,
-                  icon: Symbols.save_rounded,
+                  icon: AppIcons.save,
                   title: context.l10n.export_deliverSave,
                   subtitle: PlatformUtils.isDesktop
                       ? context.l10n.export_deliverSaveDescDesktop
@@ -398,7 +398,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
                 _deliveryTile(
                   theme,
                   action: _ExportAction.saveAs,
-                  icon: Symbols.drive_folder_upload_rounded,
+                  icon: AppIcons.folderUp,
                   title: context.l10n.export_deliverSaveAs,
                   subtitle: context.l10n.export_deliverSaveAsDesc,
                 ),
@@ -407,14 +407,14 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
                 _deliveryTile(
                   theme,
                   action: _ExportAction.share,
-                  icon: Symbols.share_rounded,
+                  icon: AppIcons.share,
                   title: context.l10n.export_deliverShare,
                   subtitle: context.l10n.export_deliverShareDesc,
                 ),
               _deliveryTile(
                 theme,
                 action: _ExportAction.notion,
-                icon: Symbols.cloud_sync_rounded,
+                icon: AppIcons.cloud,
                 title: context.l10n.export_deliverNotion,
                 subtitle: notionCfg.isComplete
                     ? context.l10n.export_deliverNotionDesc
@@ -473,7 +473,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
         ),
         trailing: isRunning
             ? LoadingSpinner(size: 18, color: cs.primary)
-            : Icon(Symbols.chevron_right_rounded, color: cs.onSurfaceVariant),
+            : Icon(AppIcons.chevronRight, color: cs.onSurfaceVariant),
       ),
     );
   }

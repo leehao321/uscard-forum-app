@@ -117,7 +117,8 @@ void main() {
 
     expect(
       checked.length,
-      greaterThanOrEqualTo(2),
+      // v2（M7）去掉了用户主页的头图，cover 源端只剩图片网格一个
+      greaterThanOrEqualTo(1),
       reason: '只扫到 ${checked.length} 个 cover 源端,判据可能失效;扫到=$checked',
     );
     expect(

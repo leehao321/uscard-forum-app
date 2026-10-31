@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/profile_stats_config.dart';
@@ -32,9 +33,11 @@ class _ProfileStatsEditPageState extends ConsumerState<ProfileStatsEditPage> {
     final notifier = ref.read(profileStatsConfigProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(S.current.profileStats_editTitle),
-        actions: [
+      appBar: AppNavBar(
+        showDivider: true,
+        slotWidth: 100,
+        title: S.current.profileStats_editTitle,
+        trailing: [
           TextButton(
             onPressed: () => notifier.update(const ProfileStatsConfig()),
             child: Text(S.current.common_reset),
@@ -129,7 +132,7 @@ class _PreviewSection extends ConsumerWidget {
             right: 8, bottom: 6,
             child: Tooltip(
               message: S.current.profileStats_loadError,
-              child: Icon(Symbols.error_rounded, size: 16,
+              child: Icon(AppIcons.error, size: 16,
                 color: Theme.of(context).colorScheme.error.withValues(alpha: 0.6)),
             ),
           ),
@@ -216,12 +219,12 @@ class _LayoutSettings extends ConsumerWidget {
                 items: [
                   M3eButtonGroupItem(
                     value: StatsLayoutMode.grid,
-                    icon: const Icon(Symbols.grid_view_rounded),
+                    icon: const Icon(AppIcons.gridView),
                     label: Text(S.current.profileStats_layoutGrid),
                   ),
                   M3eButtonGroupItem(
                     value: StatsLayoutMode.scroll,
-                    icon: const Icon(Symbols.view_column_rounded),
+                    icon: const Icon(AppIcons.columns),
                     label: Text(S.current.profileStats_layoutScroll),
                   ),
                 ],

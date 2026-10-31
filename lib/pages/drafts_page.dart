@@ -181,7 +181,7 @@ class _DraftsPageState extends ConsumerState<DraftsPage> {
     });
 
     final list = Scaffold(
-      appBar: AppBar(title: Text(context.l10n.drafts_title)),
+      appBar: AppNavBar(title: context.l10n.drafts_title, showDivider: true),
       body: DesktopRefreshIndicator(
         onRefresh: _onRefresh,
         child: draftsAsync.when(
@@ -191,15 +191,15 @@ class _DraftsPageState extends ConsumerState<DraftsPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Symbols.drafts_rounded,
+                    Icon(
+                      AppIcons.article,
                       size: 64,
-                      color: Colors.grey,
+                      color: context.tokens.colors.textMeta,
                     ),
                     const SizedBox(height: 16),
                     Text(
                       context.l10n.drafts_empty,
-                      style: const TextStyle(color: Colors.grey),
+                      style: TextStyle(color: context.tokens.colors.textMeta),
                     ),
                   ],
                 ),
@@ -242,7 +242,7 @@ class _DraftsPageState extends ConsumerState<DraftsPage> {
       isActive: widget.isActive,
       master: list,
       emptyDetail: MasterDetailEmptyState(
-        icon: Symbols.drafts_rounded,
+        icon: AppIcons.article,
         message: context.l10n.drafts_selectHint,
       ),
     );
@@ -421,10 +421,10 @@ class _DraftCard extends StatelessWidget {
 
     if (draft.isNewTopicDraft) {
       typeLabel = context.l10n.drafts_newTopic;
-      typeIcon = Symbols.add_circle_rounded;
+      typeIcon = AppIcons.addCircle;
     } else if (Draft.isNewPrivateMessageKey(draft.draftKey)) {
       typeLabel = context.l10n.drafts_privateMessage;
-      typeIcon = Symbols.mail_rounded;
+      typeIcon = AppIcons.mail;
     } else if (draft.draftKey.startsWith('topic_')) {
       // 区分回复话题和回复帖子
       if (data.replyToPostNumber != null && data.replyToPostNumber! > 0) {
@@ -432,10 +432,10 @@ class _DraftCard extends StatelessWidget {
       } else {
         typeLabel = context.l10n.common_reply;
       }
-      typeIcon = Symbols.reply_rounded;
+      typeIcon = AppIcons.reply;
     } else {
       typeLabel = context.l10n.drafts_draft;
-      typeIcon = Symbols.drafts_rounded;
+      typeIcon = AppIcons.article;
     }
 
     // 使用 displayTitle 获取标题
@@ -497,7 +497,7 @@ class _DraftCard extends StatelessWidget {
                   const Spacer(),
                   IconButton(
                     icon: Icon(
-                      Symbols.delete_rounded,
+                      AppIcons.delete,
                       size: 20,
                       color: theme.colorScheme.error,
                     ),

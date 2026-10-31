@@ -46,7 +46,7 @@ class _PendingPostsPageState extends ConsumerState<PendingPostsPage> {
     final pendingAsync = ref.watch(pendingPostsProvider);
 
     final list = Scaffold(
-      appBar: AppBar(title: Text(context.l10n.review_myPending)),
+      appBar: AppNavBar(title: context.l10n.review_myPending, showDivider: true),
       body: DesktopRefreshIndicator(
         onRefresh: _onRefresh,
         child: pendingAsync.when(
@@ -56,15 +56,15 @@ class _PendingPostsPageState extends ConsumerState<PendingPostsPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Symbols.pending_actions_rounded,
+                    Icon(
+                      AppIcons.clock,
                       size: 64,
-                      color: Colors.grey,
+                      color: context.tokens.colors.textMeta,
                     ),
                     const SizedBox(height: 16),
                     Text(
                       context.l10n.review_empty,
-                      style: const TextStyle(color: Colors.grey),
+                      style: TextStyle(color: context.tokens.colors.textMeta),
                     ),
                   ],
                 ),
@@ -106,7 +106,7 @@ class _PendingPostsPageState extends ConsumerState<PendingPostsPage> {
       stackProvider: selectedPendingPaneProvider,
       master: list,
       emptyDetail: MasterDetailEmptyState(
-        icon: Symbols.pending_actions_rounded,
+        icon: AppIcons.clock,
         message: context.l10n.layout_selectTopicHint,
       ),
     );
@@ -291,8 +291,8 @@ class _PendingPostCard extends StatelessWidget {
         ? context.l10n.review_typeNewTopic
         : context.l10n.review_typeReply;
     final typeIcon = pending.isNewTopic
-        ? Symbols.add_circle_rounded
-        : Symbols.reply_rounded;
+        ? AppIcons.addCircle
+        : AppIcons.reply;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -337,7 +337,7 @@ class _PendingPostCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Icon(
-                    Symbols.hourglass_top_rounded,
+                    AppIcons.loading,
                     size: 14,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

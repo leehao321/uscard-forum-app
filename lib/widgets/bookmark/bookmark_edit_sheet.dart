@@ -403,7 +403,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
               height: 16,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : Icon(Symbols.delete_rounded, color: theme.colorScheme.error),
+          : Icon(AppIcons.delete, color: theme.colorScheme.error),
       label: Text(
         S.current.common_delete,
         style: TextStyle(color: theme.colorScheme.error),
@@ -431,7 +431,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
       style: AppSheetStyle.card,
       titleWidget: Row(
         children: [
-          Icon(Symbols.bookmark_rounded, color: theme.colorScheme.primary),
+          Icon(AppIcons.bookmark, color: theme.colorScheme.primary),
           const SizedBox(width: 8),
           Text(
             S.current.bookmark_editBookmark,
@@ -507,7 +507,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
-                      Symbols.alarm_rounded,
+                      AppIcons.alarm,
                       size: 16,
                       color: _currentReminderAt!.isAfter(DateTime.now())
                           ? theme.colorScheme.onPrimaryContainer
@@ -537,7 +537,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                         });
                       },
                       child: Icon(
-                        Symbols.close_rounded,
+                        AppIcons.close,
                         size: 16,
                         color: _currentReminderAt!.isAfter(DateTime.now())
                             ? theme.colorScheme.onPrimaryContainer
@@ -580,7 +580,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
-                        Symbols.alarm_rounded,
+                        AppIcons.alarm,
                         size: 16,
                         color: theme.colorScheme.onPrimaryContainer,
                       ),
@@ -598,7 +598,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                       GestureDetector(
                         onTap: _pickAndApplyCustomDateTime,
                         child: Icon(
-                          Symbols.edit_rounded,
+                          AppIcons.edit,
                           size: 16,
                           color: theme.colorScheme.onPrimaryContainer,
                         ),

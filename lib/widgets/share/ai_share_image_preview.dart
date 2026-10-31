@@ -267,7 +267,7 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
               children: [
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Symbols.close_rounded),
+                  icon: const Icon(AppIcons.close),
                 ),
                 Expanded(
                   child: Text(
@@ -360,7 +360,7 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                         ),
                         child: isSelected
                             ? Icon(
-                                Symbols.check_rounded,
+                                AppIcons.check,
                                 size: 18,
                                 color:
                                     t.isDark ? Colors.white : Colors.black87,
@@ -415,7 +415,7 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                         onPressed: _anyLoading ? null : _copyImage,
                         icon: _isCopying
                             ? const LoadingSpinner(size: 18)
-                            : const Icon(Symbols.content_copy_rounded, size: 18),
+                            : const Icon(AppIcons.copy, size: 18),
                         label: Text(context.l10n.common_copy),
                         style: OutlinedButton.styleFrom(
                           padding:
@@ -430,7 +430,7 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                         onPressed: _anyLoading ? null : _saveImage,
                         icon: _isSaving
                             ? const LoadingSpinner(size: 18)
-                            : const Icon(Symbols.save_alt_rounded, size: 18),
+                            : const Icon(AppIcons.saveAlt, size: 18),
                         label: Text(ImageSaveUtils.actionLabel),
                         style: OutlinedButton.styleFrom(
                           padding:
@@ -445,7 +445,7 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                         onPressed: _anyLoading ? null : _shareImage,
                         icon: _isSharing
                             ? const LoadingSpinner(size: 18, color: Colors.white)
-                            : const Icon(Symbols.share_rounded, size: 18),
+                            : const Icon(AppIcons.share, size: 18),
                         label: Text(context.l10n.common_share),
                         style: FilledButton.styleFrom(
                           padding:
@@ -464,7 +464,7 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                       onPressed: _anyLoading ? null : _replyToTopic,
                       icon: _isReplying
                           ? const LoadingSpinner(size: 18)
-                          : const Icon(Symbols.reply_rounded, size: 18),
+                          : const Icon(AppIcons.reply, size: 18),
                       label: Text(_isReplying ? context.l10n.share_uploading : context.l10n.share_replyToTopic),
                       style: FilledButton.styleFrom(
                         padding:

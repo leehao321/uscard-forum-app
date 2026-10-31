@@ -192,7 +192,7 @@ class _BookmarkNameAutocompleteFieldState
                 borderRadius: BorderRadius.circular(12),
               ),
               counterText: '',
-              prefixIcon: const Icon(Symbols.label_rounded, size: 20),
+              prefixIcon: const Icon(AppIcons.tag, size: 20),
             ),
           ),
         );
