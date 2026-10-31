@@ -572,6 +572,85 @@ void main() {
     });
   });
 
+  group('请求发到用户配置的地址（和现有对话共用 ApiHostFormatter 的规则）', () {
+    Future<Uri> urlFor(AiProviderType type, String base, {String model = 'm-1'}) async {
+      final r = _Replay(_sse([]));
+      await _run(r, _provider(type, base), model: model);
+      return r.requests.single.url;
+    }
+
+    test('OpenRouter：地址里已有版本段，不重复补', () async {
+      final u = await urlFor(AiProviderType.openai, 'https://openrouter.ai/api/v1');
+      expect(u.toString(), 'https://openrouter.ai/api/v1/chat/completions');
+    });
+
+    test('Ollama：局域网地址没写版本时补 /v1，保留端口和 http', () async {
+      final u = await urlFor(AiProviderType.openai, 'http://192.168.1.5:11434');
+      expect(u.toString(), 'http://192.168.1.5:11434/v1/chat/completions');
+    });
+
+    test('DeepSeek：官方地址补 /v1', () async {
+      final u = await urlFor(AiProviderType.openai, 'https://api.deepseek.com/');
+      expect(u.toString(), 'https://api.deepseek.com/v1/chat/completions');
+    });
+
+    test('Azure：以 # 结尾的严格地址原样使用，api-version 查询串留在末尾', () async {
+      final u = await urlFor(
+        AiProviderType.openai,
+        'https://res.openai.azure.com/openai/deployments/gpt4o?api-version=2024-10-21#',
+      );
+      expect(u.path, '/openai/deployments/gpt4o/chat/completions');
+      expect(u.queryParameters, {'api-version': '2024-10-21'});
+    });
+
+    test('自定义网关路径：带 # 不补版本；Responses 和 Anthropic 同样接在配置地址后面', () async {
+      var u = await urlFor(AiProviderType.openai, 'https://gw.example.com/custom#');
+      expect(u.toString(), 'https://gw.example.com/custom/chat/completions');
+      u = await urlFor(AiProviderType.openaiResponse, 'https://gw.example.com/openai/v1');
+      expect(u.toString(), 'https://gw.example.com/openai/v1/responses');
+      u = await urlFor(AiProviderType.anthropic, 'https://proxy.example.com');
+      expect(u.toString(), 'https://proxy.example.com/v1/messages');
+    });
+
+    test('Gemini：自定义地址，用户写的 /v1beta 不重复；alt=sse 与已有查询串合并', () async {
+      var u = await urlFor(AiProviderType.gemini, 'https://gemini-proxy.example.com/v1beta', model: 'gemini-2.5-pro');
+      expect(u.toString(), 'https://gemini-proxy.example.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?alt=sse');
+      u = await urlFor(AiProviderType.gemini, 'https://gemini-proxy.example.com/x?key=1#', model: 'g');
+      expect(u.queryParameters, {'key': '1', 'alt': 'sse'});
+    });
+
+    test('鉴权头和密钥：每家用自己的头，不混用', () async {
+      for (final (type, header, value) in [
+        (AiProviderType.openai, 'Authorization', 'Bearer sk-test'),
+        (AiProviderType.openaiResponse, 'Authorization', 'Bearer sk-test'),
+        (AiProviderType.anthropic, 'x-api-key', 'sk-test'),
+        (AiProviderType.gemini, 'x-goog-api-key', 'sk-test'),
+      ]) {
+        final r = _Replay(_sse([]));
+        await _run(r, _provider(type, 'https://api.example.com'));
+        expect(r.requests.single.headers[header], value, reason: '$type');
+      }
+    });
+
+    test('走调用方给的 http client（应用网络栈、代理、取消都由它负责），自己不另建连接', () async {
+      var used = 0;
+      final client = MockClient.streaming((req, _) async {
+        used++;
+        return http.StreamedResponse(Stream.value(utf8.encode(_sse([]))), 200);
+      });
+      await AiToolChatService(bridgedClient: client)
+          .stream(
+            provider: _provider(AiProviderType.openai, 'https://api.example.com'),
+            model: 'm',
+            apiKey: 'k',
+            turns: const [AiUserTurn('q')],
+            tools: const [],
+          )
+          .toList();
+      expect(used, 1);
+    });
+  });
+
   test('AiToolCall.arguments：不合法的 JSON 返回 null，空串返回空对象', () {
     expect(const AiToolCall(id: 'a', name: 'n', argumentsJson: '{bad').arguments, isNull);
     expect(const AiToolCall(id: 'a', name: 'n', argumentsJson: '').arguments, isEmpty);

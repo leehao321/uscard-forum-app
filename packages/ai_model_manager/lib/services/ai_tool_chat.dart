@@ -350,7 +350,7 @@ class AiToolChatService {
         'tool_choice': _choiceName(choice, 'auto', 'required', 'none'),
       },
     };
-    return _post('$base/chat/completions', body, {
+    return _post(_join(base, '/chat/completions'), body, {
       'Authorization': 'Bearer $apiKey',
     });
   }
@@ -506,7 +506,7 @@ class AiToolChatService {
         'tool_choice': _choiceName(choice, 'auto', 'required', 'none'),
       },
     };
-    return _post('$base/responses', body, {'Authorization': 'Bearer $apiKey'});
+    return _post(_join(base, '/responses'), body, {'Authorization': 'Bearer $apiKey'});
   }
 
   static Stream<AiToolEvent> _parseResponses(Stream<_Sse> events) async* {
@@ -660,7 +660,7 @@ class AiToolChatService {
         'tool_choice': {'type': _choiceName(choice, 'auto', 'any', 'none')},
       },
     };
-    return _post('$base/messages', body, {
+    return _post(_join(base, '/messages'), body, {
       'x-api-key': apiKey,
       'anthropic-version': '2023-06-01',
     });
@@ -894,7 +894,7 @@ class AiToolChatService {
       },
     };
     return _post(
-      '$base/v1beta/models/$model:streamGenerateContent?alt=sse',
+      _join(base, '/v1beta/models/$model:streamGenerateContent', query: 'alt=sse'),
       body,
       {'x-goog-api-key': apiKey},
     );
@@ -960,6 +960,16 @@ class AiToolChatService {
   }
 
   // ───────────────────────── 公共 ─────────────────────────
+
+  /// 把路径接在用户配置的地址后面：地址里自带的查询串（Azure 的
+  /// `?api-version=…`）留在最后，不会被路径冲掉。
+  static String _join(String base, String path, {String? query}) {
+    final q = base.indexOf('?');
+    final head = q < 0 ? base : base.substring(0, q);
+    final own = q < 0 ? '' : base.substring(q + 1);
+    final all = [own, if (query != null) query].where((e) => e.isNotEmpty).join('&');
+    return '$head$path${all.isEmpty ? '' : '?$all'}';
+  }
 
   static http.Request _post(
     String url,
