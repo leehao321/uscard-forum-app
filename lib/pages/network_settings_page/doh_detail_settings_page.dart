@@ -294,14 +294,9 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
                 visualDensity: VisualDensity.compact,
               ),
             ),
-          SwipeDismissiblePopupMenuButton<String>(
-            icon: Icon(
-              AppIcons.moreVert,
-              size: 20,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            tooltip: S.current.common_more,
-            padding: EdgeInsets.zero,
+          AppMenuButton<String>(
+            icon: AppIcons.moreVert,
+            semanticLabel: S.current.common_more,
             onSelected: (value) {
               switch (value) {
                 case 'copy':
@@ -313,42 +308,26 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
                   _confirmDeleteServer(server);
               }
             },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'copy',
-                child: ListTile(
-                  leading: const Icon(AppIcons.copy, size: 20),
-                  title: Text(S.current.dohDetail_copyAddress),
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
+            sectionsBuilder: (context) => [
+              [
+                AppMenuItem<String>(
+                  label: S.current.dohDetail_copyAddress,
+                  value: 'copy',
+                  icon: AppIcons.copy,
                 ),
-              ),
-              if (server.isCustom) ...[
-                PopupMenuItem(
-                  value: 'edit',
-                  child: ListTile(
-                    leading: const Icon(AppIcons.edit, size: 20),
-                    title: Text(S.current.common_edit),
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
+                if (server.isCustom) ...[
+                  AppMenuItem<String>(
+                    label: S.current.common_edit,
+                    value: 'edit',
+                    icon: AppIcons.edit,
                   ),
-                ),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: ListTile(
-                    leading: Icon(
-                      AppIcons.delete,
-                      size: 20,
-                      color: theme.colorScheme.error,
-                    ),
-                    title: Text(
-                      S.current.common_delete,
-                      style: TextStyle(color: theme.colorScheme.error),
-                    ),
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
+                  AppMenuItem<String>(
+                    label: S.current.common_delete,
+                    value: 'delete',
+                    icon: AppIcons.delete,
+                    destructive: true,
                   ),
-                ),
+                ],
               ],
             ],
           ),

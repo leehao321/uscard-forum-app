@@ -140,7 +140,7 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
               child: Text(
                 AiL10n.current.selectModelToTest,
                 style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    const TextStyle(fontSize: AppFontSize.body, fontWeight: FontWeight.w500),
               ),
             ),
             Flexible(
@@ -157,7 +157,7 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
                     ),
                     title: Text(m.name ?? m.id),
                     subtitle: m.name != null
-                        ? Text(m.id, style: const TextStyle(fontSize: 12))
+                        ? Text(m.id, style: const TextStyle(fontSize: AppFontSize.meta))
                         : null,
                     onTap: () {
                       Navigator.pop(ctx);
@@ -831,7 +831,7 @@ class _FloatingPill extends StatelessWidget {
                 label,
                 style: TextStyle(
                   color: cs.primary,
-                  fontSize: 14,
+                  fontSize: AppFontSize.meta,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -1004,7 +1004,7 @@ class _FetchedModelsSelectorState extends State<_FetchedModelsSelector> {
                     isDense: true,
                     filled: true,
                     fillColor:
-                        isDark ? Colors.white10 : const Color(0xFFF2F3F5),
+                        cs.surfaceContainerHigh,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -1115,7 +1115,7 @@ class _FetchedModelsSelectorState extends State<_FetchedModelsSelector> {
                     Text(
                       group,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: AppFontSize.meta,
                         fontWeight: FontWeight.w600,
                         color: cs.onSurface.withValues(alpha: 0.7),
                       ),
@@ -1124,7 +1124,7 @@ class _FetchedModelsSelectorState extends State<_FetchedModelsSelector> {
                     Text(
                       '$groupActiveCount/${models.length}',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: AppFontSize.meta,
                         color: cs.onSurfaceVariant.withValues(alpha: 0.6),
                       ),
                     ),
@@ -1187,7 +1187,7 @@ class _FetchedModelsSelectorState extends State<_FetchedModelsSelector> {
                                   Text(
                                     m.name ?? m.id,
                                     style: const TextStyle(
-                                      fontSize: 14,
+                                      fontSize: AppFontSize.meta,
                                       fontWeight: FontWeight.w500,
                                     ),
                                     maxLines: 1,
@@ -1198,7 +1198,7 @@ class _FetchedModelsSelectorState extends State<_FetchedModelsSelector> {
                                     Text(
                                       m.id,
                                       style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: AppFontSize.caption,
                                         color: cs.onSurfaceVariant
                                             .withValues(alpha: 0.6),
                                       ),

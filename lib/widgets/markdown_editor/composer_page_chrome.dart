@@ -60,59 +60,27 @@ class ComposerTopicKindPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
     final label = question
         ? S.current.composer_kindQuestion
         : S.current.composer_kindTopic;
-    return SwipeDismissiblePopupMenuButton<bool>(
+    return AppMenuAnchor<bool>(
       enabled: enabled && !locked,
-      position: PopupMenuPosition.under,
-      offset: const Offset(0, 6),
-      padding: EdgeInsets.zero,
-      borderRadius: BorderRadius.circular(context.tokens.radius.card),
-      tooltip: '',
-      constraints: const BoxConstraints(minWidth: 180, maxWidth: 220),
-      color: context.tokens.colors.surfaceElevated,
-      elevation: 3,
-      shadowColor: colors.shadow.withValues(alpha: .24),
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(context.tokens.radius.card),
-        side: BorderSide(
-          color: context.tokens.colors.separator,
-          width: AppSpace.hairline,
-        ),
-      ),
-      // 不传 initialValue：Flutter 会用它将选中行居中到触发点，从而覆盖入口。
-      // 当前项的勾选标识由菜单内容自行绘制。
+      semanticLabel: label,
       onSelected: (value) {
         if (value != question) onChanged(value);
       },
-      itemBuilder: (_) => [
-        for (final value in [false, true])
-          PopupMenuItem<bool>(
-            key: ValueKey('composer-kind-option-$value'),
-            value: value,
-            height: 48,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    value
-                        ? S.current.composer_kindQuestion
-                        : S.current.composer_kindTopic,
-                  ),
-                ),
-                if (value == question)
-                  Icon(
-                    AppIcons.check,
-                    size: AppSize.iconM,
-                    color: context.tokens.colors.brandPrimary,
-                  ),
-              ],
+      sectionsBuilder: (_) => [
+        [
+          for (final value in [false, true])
+            AppMenuItem<bool>(
+              rowKey: ValueKey('composer-kind-option-$value'),
+              label: value
+                  ? S.current.composer_kindQuestion
+                  : S.current.composer_kindTopic,
+              value: value,
+              checked: value == question,
             ),
-          ),
+        ],
       ],
       child: SizedBox(
         key: const ValueKey('composer-kind-trigger'),

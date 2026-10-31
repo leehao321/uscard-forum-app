@@ -34,6 +34,9 @@ abstract final class AppFixedColors {
   /// 头像光晕默认金色
   static const glowGold = Color(0xFFF5BF03);
 
+  /// 站点自定义头像光晕的蓝色（linux.do 站点配置里的 neo）
+  static const glowBlue = Color(0xFF00AEFF);
+
   /// 全息文字的两组渐变（深色底高饱和，浅色底降明度）
   static const holographicDark = [
     Color(0xFFFF00FF),

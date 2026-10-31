@@ -238,7 +238,7 @@ class SmileyPainter extends CustomPainter {
     // 凿空眼睛
     final cutFill = Paint()
       ..blendMode = BlendMode.dstOut
-      ..color = Colors.black
+      ..color = const Color.fromARGB(255, 0, 0, 0)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(cx - r * 0.36, eyeY), eyeR, cutFill);
     canvas.drawCircle(Offset(cx + r * 0.36, eyeY), eyeR, cutFill);
@@ -246,7 +246,7 @@ class SmileyPainter extends CustomPainter {
     // 凿空嘴
     final cutStroke = Paint()
       ..blendMode = BlendMode.dstOut
-      ..color = Colors.black
+      ..color = const Color.fromARGB(255, 0, 0, 0)
       ..style = PaintingStyle.stroke
       ..strokeWidth = s * 1.05
       ..strokeCap = StrokeCap.round;
@@ -428,7 +428,7 @@ class StickerPainter extends CustomPainter {
     // 折角折痕（凿空两条短线，制造立体感）
     final crease = Paint()
       ..blendMode = BlendMode.dstOut
-      ..color = Colors.black
+      ..color = const Color.fromARGB(255, 0, 0, 0)
       ..style = PaintingStyle.stroke
       ..strokeWidth = s * 0.75
       ..strokeCap = StrokeCap.round;
@@ -491,7 +491,7 @@ class StickerPainter extends CustomPainter {
   }) {
     final cut = Paint()
       ..blendMode = BlendMode.dstOut
-      ..color = Colors.black;
+      ..color = const Color.fromARGB(255, 0, 0, 0);
     cut
       ..style = PaintingStyle.stroke
       ..strokeWidth = s * 0.9

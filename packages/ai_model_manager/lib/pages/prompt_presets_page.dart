@@ -387,7 +387,7 @@ class _ReorderableGroupState extends ConsumerState<_ReorderableGroup> {
               if (!preset.builtIn)
                 SwipeAction(
                   icon: AppIcons.edit,
-                  color: Colors.blue,
+                  color: context.tokens.colors.brandButton,
                   label: AiL10n.current.edit,
                   onPressed: () => widget.onEdit(preset),
                 ),
@@ -396,7 +396,7 @@ class _ReorderableGroupState extends ConsumerState<_ReorderableGroup> {
                   icon: preset.hidden
                       ? AppIcons.visibility
                       : AppIcons.visibilityOff,
-                  color: Colors.orange,
+                  color: context.tokens.colors.brandButton,
                   label: preset.hidden
                       ? AiL10n.current.quickPromptsUnhide
                       : AiL10n.current.quickPromptsHide,
@@ -413,14 +413,14 @@ class _ReorderableGroupState extends ConsumerState<_ReorderableGroup> {
               if (!preset.builtIn)
                 SwipeAction(
                   icon: AppIcons.copy,
-                  color: Colors.teal,
+                  color: context.tokens.colors.brandButton,
                   label: AiL10n.current.presetExport,
                   onPressed: () => _PromptPresetsPageState.exportPreset(preset),
                 ),
               if (!preset.builtIn)
                 SwipeAction(
                   icon: AppIcons.delete,
-                  color: Colors.red,
+                  color: context.tokens.colors.textDestructive,
                   label: AiL10n.current.delete,
                   onPressed: () async {
                     final ok = await _confirmDelete(context, preset.name);
@@ -555,7 +555,7 @@ class _ReorderableGroupState extends ConsumerState<_ReorderableGroup> {
       child: Text(
         text,
         style: theme.textTheme.labelSmall?.copyWith(
-          fontSize: 10,
+          fontSize: AppFontSize.caption,
           color: dim
               ? theme.colorScheme.onSurfaceVariant
               : theme.colorScheme.onPrimaryContainer,

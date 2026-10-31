@@ -46,32 +46,18 @@ class VpnAutoToggleCard extends StatelessWidget {
                 leading: const Icon(AppIcons.checkBox),
                 title: Text(context.l10n.vpnToggle_detectionMode),
                 subtitle: Text(_detectionDescription(context, service)),
-                trailing: SwipeDismissiblePopupMenuButton<VpnDetectionMode>(
-                  tooltip: context.l10n.vpnToggle_detectionMode,
-                  offset: const Offset(0, 36),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                trailing: AppMenuAnchor<VpnDetectionMode>(
+                  semanticLabel: context.l10n.vpnToggle_detectionMode,
                   onSelected: service.setDetectionMode,
-                  itemBuilder: (context) => [
-                    for (final mode in VpnDetectionMode.values)
-                      PopupMenuItem(
-                        value: mode,
-                        child: Row(
-                          children: [
-                            if (mode == service.detectionMode)
-                              Icon(
-                                AppIcons.check,
-                                size: 18,
-                                color: theme.colorScheme.primary,
-                              )
-                            else
-                              const SizedBox(width: 18),
-                            const SizedBox(width: 8),
-                            Text(_detectionLabel(context, mode)),
-                          ],
+                  sectionsBuilder: (context) => [
+                    [
+                      for (final mode in VpnDetectionMode.values)
+                        AppMenuItem<VpnDetectionMode>(
+                          label: _detectionLabel(context, mode),
+                          value: mode,
+                          checked: mode == service.detectionMode,
                         ),
-                      ),
+                    ],
                   ],
                   child: Padding(
                     padding: const EdgeInsets.symmetric(

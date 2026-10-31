@@ -385,63 +385,45 @@ class _RevisionToolbar extends StatelessWidget {
               visualDensity: VisualDensity.compact,
             ),
           if (onModeChanged != null)
-            SwipeDismissiblePopupMenuButton<_DiffMode>(
-              tooltip: _modeLabel(l10n, diffMode),
-              icon: Icon(_modeIcon(diffMode)),
+            AppMenuButton<_DiffMode>(
+              icon: _modeIcon(diffMode),
+              semanticLabel: _modeLabel(l10n, diffMode),
               onSelected: onModeChanged,
-              itemBuilder: (_) => [
-                for (final mode in _DiffMode.values)
-                  PopupMenuItem(
-                    value: mode,
-                    child: Row(
-                      children: [
-                        Icon(_modeIcon(mode), size: 18),
-                        const SizedBox(width: 8),
-                        Text(_modeLabel(l10n, mode)),
-                        if (mode == diffMode) ...[
-                          const SizedBox(width: 8),
-                          Icon(
-                            AppIcons.check,
-                            size: 16,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ],
-                      ],
+              sectionsBuilder: (_) => [
+                [
+                  for (final mode in _DiffMode.values)
+                    AppMenuItem<_DiffMode>(
+                      label: _modeLabel(l10n, mode),
+                      value: mode,
+                      icon: _modeIcon(mode),
+                      checked: mode == diffMode,
                     ),
-                  ),
+                ],
               ],
             ),
           if (isMobile && (onFirst != null || onLast != null))
-            SwipeDismissiblePopupMenuButton<String>(
-              tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
-              icon: const Icon(AppIcons.moreVert),
+            AppMenuButton<String>(
+              icon: AppIcons.moreVert,
+              semanticLabel: MaterialLocalizations.of(context).moreButtonTooltip,
               onSelected: (value) {
                 if (value == 'first') onFirst?.call();
                 if (value == 'last') onLast?.call();
               },
-              itemBuilder: (_) => [
-                if (onFirst != null)
-                  PopupMenuItem(
-                    value: 'first',
-                    child: Row(
-                      children: [
-                        const Icon(AppIcons.chevronFirst, size: 18),
-                        const SizedBox(width: 8),
-                        Text(l10n.postRevision_first),
-                      ],
+              sectionsBuilder: (_) => [
+                [
+                  if (onFirst != null)
+                    AppMenuItem<String>(
+                      label: l10n.postRevision_first,
+                      value: 'first',
+                      icon: AppIcons.chevronFirst,
                     ),
-                  ),
-                if (onLast != null)
-                  PopupMenuItem(
-                    value: 'last',
-                    child: Row(
-                      children: [
-                        const Icon(AppIcons.chevronLast, size: 18),
-                        const SizedBox(width: 8),
-                        Text(l10n.postRevision_last),
-                      ],
+                  if (onLast != null)
+                    AppMenuItem<String>(
+                      label: l10n.postRevision_last,
+                      value: 'last',
+                      icon: AppIcons.chevronLast,
                     ),
-                  ),
+                ],
               ],
             ),
         ],

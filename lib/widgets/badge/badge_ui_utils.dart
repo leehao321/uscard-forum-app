@@ -1,3 +1,4 @@
+import '../../utils/font_awesome_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -106,11 +107,11 @@ class BadgeUIUtils {
     // Can differentiate icons if needed, currently uniform
     switch (type) {
       case BadgeType.gold:
-        return FontAwesomeIcons.medal;
+        return FontAwesomeHelper.medal;
       case BadgeType.silver:
-        return FontAwesomeIcons.medal;
+        return FontAwesomeHelper.medal;
       case BadgeType.bronze:
-        return FontAwesomeIcons.medal;
+        return FontAwesomeHelper.medal;
     }
   }
 

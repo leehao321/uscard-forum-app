@@ -386,7 +386,7 @@ class _DisabledIconPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     // 简化版 PresetIcon（只为预览，避免循环导入复杂度）
     if (iconRaw.isNotEmpty && iconRaw.runes.first >= 0x80) {
-      return Text(iconRaw, style: const TextStyle(fontSize: 22));
+      return Text(iconRaw, style: const TextStyle(fontSize: AppFontSize.title));
     }
     return const Icon(AppIcons.autoAwesome, size: 22);
   }

@@ -695,10 +695,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           iconSize: 20,
           onPressed: _enterSelectionMode,
         ),
-      SwipeDismissiblePopupMenuButton<String>(
-        icon: const Icon(AppIcons.moreVert),
-        tooltip: context.l10n.ai_moreTooltip,
-        iconSize: 20,
+      AppMenuButton<String>(
+        icon: AppIcons.moreVert,
+        semanticLabel: context.l10n.ai_moreTooltip,
         onSelected: (value) {
           switch (value) {
             case 'new_session':
@@ -709,36 +708,27 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
               _confirmClear(context, chatNotifier);
           }
         },
-        itemBuilder: (context) => [
-          PopupMenuItem(
-            value: 'new_session',
-            child: ListTile(
-              leading: const Icon(AppIcons.addComment),
-              title: Text(context.l10n.ai_newSession),
-              dense: true,
-              contentPadding: EdgeInsets.zero,
+        sectionsBuilder: (context) => [
+          [
+            AppMenuItem<String>(
+              label: context.l10n.ai_newSession,
+              value: 'new_session',
+              icon: AppIcons.addComment,
             ),
-          ),
-          if (chatState.sessions.isNotEmpty)
-            PopupMenuItem(
-              value: 'history',
-              child: ListTile(
-                leading: const Icon(AppIcons.history),
-                title: Text(context.l10n.ai_sessionHistory),
-                dense: true,
-                contentPadding: EdgeInsets.zero,
+            if (chatState.sessions.isNotEmpty)
+              AppMenuItem<String>(
+                label: context.l10n.ai_sessionHistory,
+                value: 'history',
+                icon: AppIcons.history,
               ),
-            ),
-          if (chatState.messages.isNotEmpty)
-            PopupMenuItem(
-              value: 'clear',
-              child: ListTile(
-                leading: const Icon(AppIcons.delete),
-                title: Text(context.l10n.ai_clearChat),
-                dense: true,
-                contentPadding: EdgeInsets.zero,
+            if (chatState.messages.isNotEmpty)
+              AppMenuItem<String>(
+                label: context.l10n.ai_clearChat,
+                value: 'clear',
+                icon: AppIcons.delete,
+                destructive: true,
               ),
-            ),
+          ],
         ],
       ),
     ];

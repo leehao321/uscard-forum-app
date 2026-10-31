@@ -176,10 +176,9 @@ class _ModelDetailSheetState extends State<_ModelDetailSheet> {
   InputDecoration _inputDeco(BuildContext context, String? hint,
       {Widget? suffix}) {
     final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InputDecoration(
       filled: true,
-      fillColor: isDark ? Colors.white10 : cs.surfaceContainerLow,
+      fillColor: cs.surfaceContainerHigh,
       hintText: hint,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
@@ -235,7 +234,7 @@ class _ModelDetailSheetState extends State<_ModelDetailSheet> {
                             ? AiL10n.current.modelDetailAddTitle
                             : AiL10n.current.modelDetailTitle,
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: AppFontSize.body,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -429,7 +428,7 @@ class _ModelDetailSheetState extends State<_ModelDetailSheet> {
   Widget _label(BuildContext context, String text) => Text(
         text,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: AppFontSize.meta,
           color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
         ),
       );
@@ -488,7 +487,7 @@ class _CapabilityPreview extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: isDark ? Colors.white10 : const Color(0xFFF2F3F5),
+          color: cs.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -498,7 +497,7 @@ class _CapabilityPreview extends StatelessWidget {
                   ? Text(
                       AiL10n.current.modelDetailAbilitiesLabel,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: AppFontSize.meta,
                         color: cs.onSurface.withValues(alpha: 0.5),
                       ),
                     )
@@ -523,7 +522,7 @@ class _CapabilityPreview extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: AppFontSize.caption,
           color: isDark ? color : color.withValues(alpha: 0.9),
           fontWeight: FontWeight.w500,
         ),
@@ -554,7 +553,7 @@ class _SegmentedMulti extends StatelessWidget {
     final bool allSelected =
         isSelected.isNotEmpty && isSelected.every((e) => e);
 
-    final base = isDark ? Colors.white10 : const Color(0xFFF2F3F5);
+    final base = cs.surfaceContainerHigh;
     final sel = isDark
         ? cs.primary.withValues(alpha: 0.20)
         : cs.primary.withValues(alpha: 0.14);

@@ -132,9 +132,6 @@ class BookmarksListContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 话题卡自定义样式:改设置触发 rebuild(自绘排版直读全局快照,
-    // stamp 变化换新实例);widget 路径进 sig 防命中旧卡
-    ref.watch(preferencesProvider.select((p) => p.topicCardStyle));
     return DesktopRefreshIndicator(
       onRefresh: onRefresh,
       child: bookmarksAsync.when(

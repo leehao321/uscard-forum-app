@@ -16,7 +16,7 @@ class SwipeAction {
     required this.color,
     required this.onPressed,
     this.label,
-    this.foregroundColor = Colors.white,
+    this.foregroundColor = AppFixedColors.white,
   });
 }
 
@@ -426,7 +426,7 @@ class _SwipeActionCellState extends State<SwipeActionCell>
                               action.label!,
                               style: TextStyle(
                                 color: action.foregroundColor,
-                                fontSize: 12,
+                                fontSize: AppFontSize.meta,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.clip,

@@ -1,5 +1,6 @@
+import 'package:app_icons/app_icons.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../../l10n/s.dart';
 import 'markdown_toolbar.dart';
@@ -23,7 +24,7 @@ class EditorTool {
   final void Function(MarkdownToolbarState toolbar)? action;
 
   /// 二级弹出菜单项（与 [onMenuSelected] 成对出现）
-  final List<PopupMenuEntry<String>> Function(AppLocalizations s)? menuItems;
+  final List<AppMenuItem<String>> Function(AppLocalizations s)? menuItems;
 
   /// 二级弹出菜单选中回调
   final void Function(MarkdownToolbarState toolbar, String value)?
@@ -51,13 +52,13 @@ const String kEditorToolImage = 'image';
 final List<EditorTool> editorTools = [
   EditorTool(
     id: kEditorToolImage,
-    icon: const FaIcon(FontAwesomeIcons.image),
+    icon: const Icon(AppIcons.image),
     label: (s) => s.toolPanel_image,
     action: (t) => t.pickAndUploadImages(),
   ),
   EditorTool(
     id: 'attachment',
-    icon: const FaIcon(FontAwesomeIcons.paperclip),
+    icon: const Icon(AppIcons.paperclip),
     label: (s) => s.toolPanel_attachment,
     action: (t) => t.pickAndUploadFile(),
   ),
@@ -65,12 +66,12 @@ final List<EditorTool> editorTools = [
   // 标签,网页端原生播放)
   EditorTool(
     id: 'media',
-    icon: const FaIcon(FontAwesomeIcons.film),
+    icon: const Icon(AppIcons.video),
     label: (s) => '音视频',
     menuItems: (s) => const [
-      PopupMenuItem(value: 'audio', child: Text('上传音频')),
-      PopupMenuItem(value: 'video', child: Text('上传视频')),
-      PopupMenuItem(value: 'voice', child: Text('语音消息')),
+      AppMenuItem<String>(value: 'audio', label: '上传音频'),
+      AppMenuItem<String>(value: 'video', label: '上传视频'),
+      AppMenuItem<String>(value: 'voice', label: '语音消息'),
     ],
     onMenuSelected: (t, value) => value == 'voice'
         ? t.recordAndInsertVoice()
@@ -78,112 +79,112 @@ final List<EditorTool> editorTools = [
   ),
   EditorTool(
     id: 'heading',
-    icon: const FaIcon(FontAwesomeIcons.heading),
+    icon: const Icon(AppIcons.heading),
     label: (s) => s.toolPanel_heading,
     menuItems: (s) => [
-      PopupMenuItem(value: '1', child: Text(s.toolbar_h1)),
-      PopupMenuItem(value: '2', child: Text(s.toolbar_h2)),
-      PopupMenuItem(value: '3', child: Text(s.toolbar_h3)),
-      PopupMenuItem(value: '4', child: Text(s.toolbar_h4)),
-      PopupMenuItem(value: '5', child: Text(s.toolbar_h5)),
+      AppMenuItem<String>(value: '1', label: s.toolbar_h1),
+      AppMenuItem<String>(value: '2', label: s.toolbar_h2),
+      AppMenuItem<String>(value: '3', label: s.toolbar_h3),
+      AppMenuItem<String>(value: '4', label: s.toolbar_h4),
+      AppMenuItem<String>(value: '5', label: s.toolbar_h5),
     ],
     onMenuSelected: (t, value) =>
         t.applyLinePrefix('${'#' * int.parse(value)} '),
   ),
   EditorTool(
     id: 'bold',
-    icon: const FaIcon(FontAwesomeIcons.bold),
+    icon: const Icon(AppIcons.textBold),
     label: (s) => s.toolPanel_bold,
     action: (t) => t.wrapSelection('**', '**',
         placeholder: S.current.toolbar_boldPlaceholder),
   ),
   EditorTool(
     id: 'italic',
-    icon: const FaIcon(FontAwesomeIcons.italic),
+    icon: const Icon(AppIcons.textItalic),
     label: (s) => s.toolPanel_italic,
     action: (t) =>
         t.wrapSelection('*', '*', placeholder: S.current.toolbar_italicPlaceholder),
   ),
   EditorTool(
     id: 'strikethrough',
-    icon: const FaIcon(FontAwesomeIcons.strikethrough),
+    icon: const Icon(AppIcons.textStrike),
     label: (s) => s.toolPanel_strikethrough,
     action: (t) => t.insertStrikethrough(),
   ),
   EditorTool(
     id: 'bulletList',
-    icon: const FaIcon(FontAwesomeIcons.listUl),
+    icon: const Icon(AppIcons.listBulleted),
     label: (s) => s.toolPanel_bulletList,
     action: (t) => t.applyLinePrefix('- '),
   ),
   EditorTool(
     id: 'numberedList',
-    icon: const FaIcon(FontAwesomeIcons.listOl),
+    icon: const Icon(AppIcons.listNumbered),
     label: (s) => s.toolPanel_numberedList,
     action: (t) => t.applyLinePrefix('1. '),
   ),
   EditorTool(
     id: 'link',
-    icon: const FaIcon(FontAwesomeIcons.link),
+    icon: const Icon(AppIcons.link),
     label: (s) => s.toolPanel_link,
     // 使用工具栏自身的 context：面板收起后该 context 仍然有效
     action: (t) => t.insertLink(t.context),
   ),
   EditorTool(
     id: 'quote',
-    icon: const FaIcon(FontAwesomeIcons.quoteRight),
+    icon: const Icon(AppIcons.formatQuote),
     label: (s) => s.toolPanel_quote,
     action: (t) => t.insertQuote(),
   ),
   EditorTool(
     id: 'callout',
-    icon: const FaIcon(FontAwesomeIcons.noteSticky),
+    icon: const Icon(AppIcons.callout),
     label: (s) => s.toolPanel_callout,
     menuItems: (s) => const [
-      PopupMenuItem(value: 'note', child: Text('Note')),
-      PopupMenuItem(value: 'tip', child: Text('Tip')),
-      PopupMenuItem(value: 'info', child: Text('Info')),
-      PopupMenuItem(value: 'warning', child: Text('Warning')),
-      PopupMenuItem(value: 'danger', child: Text('Danger')),
-      PopupMenuItem(value: 'bug', child: Text('Bug')),
-      PopupMenuItem(value: 'example', child: Text('Example')),
-      PopupMenuItem(value: 'quote', child: Text('Quote')),
-      PopupMenuItem(value: 'abstract', child: Text('Abstract')),
-      PopupMenuItem(value: 'todo', child: Text('Todo')),
-      PopupMenuItem(value: 'success', child: Text('Success')),
-      PopupMenuItem(value: 'question', child: Text('Question')),
-      PopupMenuItem(value: 'failure', child: Text('Failure')),
+      AppMenuItem<String>(value: 'note', label: 'Note'),
+      AppMenuItem<String>(value: 'tip', label: 'Tip'),
+      AppMenuItem<String>(value: 'info', label: 'Info'),
+      AppMenuItem<String>(value: 'warning', label: 'Warning'),
+      AppMenuItem<String>(value: 'danger', label: 'Danger'),
+      AppMenuItem<String>(value: 'bug', label: 'Bug'),
+      AppMenuItem<String>(value: 'example', label: 'Example'),
+      AppMenuItem<String>(value: 'quote', label: 'Quote'),
+      AppMenuItem<String>(value: 'abstract', label: 'Abstract'),
+      AppMenuItem<String>(value: 'todo', label: 'Todo'),
+      AppMenuItem<String>(value: 'success', label: 'Success'),
+      AppMenuItem<String>(value: 'question', label: 'Question'),
+      AppMenuItem<String>(value: 'failure', label: 'Failure'),
     ],
     onMenuSelected: (t, value) => t.insertCallout(value),
   ),
   EditorTool(
     id: 'template',
-    icon: const FaIcon(FontAwesomeIcons.clipboard),
+    icon: const Icon(AppIcons.layoutTemplate),
     label: (s) => s.toolPanel_template,
     action: (t) => t.insertTemplate(t.context),
   ),
   EditorTool(
     id: 'inlineCode',
-    icon: const FaIcon(FontAwesomeIcons.code),
+    icon: const Icon(AppIcons.code),
     label: (s) => s.toolPanel_inlineCode,
     action: (t) => t.insertInlineCode(),
   ),
   EditorTool(
     id: 'codeBlock',
-    icon: const FaIcon(FontAwesomeIcons.fileCode),
+    icon: const Icon(AppIcons.squareCode),
     label: (s) => s.toolPanel_codeBlock,
     action: (t) => t.insertCodeBlock(),
   ),
   // 块级模板插入(与富 composer「+」插入菜单同款模板文本)
   EditorTool(
     id: 'insertBlock',
-    icon: const FaIcon(FontAwesomeIcons.squarePlus),
+    icon: const Icon(AppIcons.squarePlus),
     label: (s) => '插入块',
     menuItems: (s) => const [
-      PopupMenuItem(value: 'table', child: Text('表格')),
-      PopupMenuItem(value: 'math', child: Text('公式块')),
-      PopupMenuItem(value: 'hr', child: Text('分隔线')),
-      PopupMenuItem(value: 'details', child: Text('折叠详情')),
+      AppMenuItem<String>(value: 'table', label: '表格'),
+      AppMenuItem<String>(value: 'math', label: '公式块'),
+      AppMenuItem<String>(value: 'hr', label: '分隔线'),
+      AppMenuItem<String>(value: 'details', label: '折叠详情'),
     ],
     onMenuSelected: (t, value) => t.insertBlockSnippet(switch (value) {
       'table' => '| 列 1 | 列 2 |\n|---|---|\n| 内容 | 内容 |',
@@ -194,19 +195,19 @@ final List<EditorTool> editorTools = [
   ),
   EditorTool(
     id: 'spoiler',
-    icon: const FaIcon(FontAwesomeIcons.eyeSlash),
+    icon: const Icon(AppIcons.visibilityOff),
     label: (s) => s.toolPanel_spoiler,
     action: (t) => t.insertSpoiler(),
   ),
   EditorTool(
     id: 'encrypt',
-    icon: const FaIcon(FontAwesomeIcons.key),
+    icon: const Icon(AppIcons.lock),
     label: (s) => s.crypto_encrypt,
     action: (t) => t.insertEncryptedBlock(),
   ),
   EditorTool(
     id: 'poll',
-    icon: const FaIcon(FontAwesomeIcons.squarePollVertical),
+    icon: const Icon(AppIcons.poll),
     label: (s) => '投票',
     action: (t) => t.insertPoll(t.context),
   ),
@@ -216,7 +217,7 @@ final List<EditorTool> editorTools = [
   // composer 往返会丢弃该包裹 div(通用容器拆壳),用 Markdown 模式编辑。
   EditorTool(
     id: 'toc',
-    icon: const FaIcon(FontAwesomeIcons.alignLeft),
+    icon: const Icon(AppIcons.tableOfContents),
     label: (s) => s.toolPanel_toc,
     action: (t) => t.wrapSelection(
       '\n<div data-theme-toc="true">\n\n',
@@ -226,7 +227,7 @@ final List<EditorTool> editorTools = [
   ),
   EditorTool(
     id: 'imageGrid',
-    icon: const FaIcon(FontAwesomeIcons.tableColumns),
+    icon: const Icon(AppIcons.layoutGrid),
     label: (s) => s.toolPanel_imageGrid,
     action: (t) => t.wrapImagesInGrid(),
   ),

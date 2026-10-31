@@ -265,9 +265,8 @@ class _ExportHistoryPageState extends ConsumerState<ExportHistoryPage> {
 
 /// 顶部右上的过滤菜单。激活态在图标上叠加一个小圆点。
 ///
-/// Flutter 的 [PopupMenuButton] 在 `PopupMenuItem.value` 为 null 时会被
-/// 当作"取消选择"，导致"全部"这一项点了不触发回调。这里用 String sentinel
-/// 当作 value，回调时再翻译成 `ExportHistoryFormat?`。
+/// 菜单项的 value 为 null 时选中会被当作"取消"，导致"全部"这一项点了不触发
+/// 回调。这里用 String sentinel 当作 value，回调时再翻译成 `ExportHistoryFormat?`。
 class _FilterMenu extends StatelessWidget {
   const _FilterMenu({required this.current, required this.onChange});
 
@@ -290,51 +289,47 @@ class _FilterMenu extends StatelessWidget {
       (ExportHistoryFormat.html, 'HTML'),
       (ExportHistoryFormat.notion, 'Notion'),
     ];
-    return SwipeDismissiblePopupMenuButton<String>(
-      tooltip: context.l10n.exportHistory_filterAll,
-      icon: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          const Icon(AppIcons.filter),
-          if (active)
-            Positioned(
-              right: -1,
-              top: -1,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: theme.colorScheme.surface,
-                    width: 1.2,
-                  ),
-                ),
-              ),
+    return AppMenuAnchor<String>(
+      semanticLabel: context.l10n.exportHistory_filterAll,
+      onSelected: (key) => onChange(_formatFor(key)),
+      sectionsBuilder: (context) => [
+        [
+          for (final (value, label) in items)
+            AppMenuItem<String>(
+              label: label,
+              value: _keyFor(value),
+              checked: current == value,
             ),
         ],
-      ),
-      onSelected: (key) => onChange(_formatFor(key)),
-      itemBuilder: (context) => [
-        for (final (value, label) in items)
-          PopupMenuItem(
-            value: _keyFor(value),
-            child: Row(
-              children: [
-                Icon(
-                  current == value ? AppIcons.check : AppIcons.radioButtonOff,
-                  size: 16,
-                  color: current == value
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.outline.withValues(alpha: 0.3),
-                ),
-                const SizedBox(width: 12),
-                Text(label),
-              ],
-            ),
-          ),
       ],
+      child: SizedBox.square(
+        dimension: AppSize.hit,
+        child: Center(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(AppIcons.filter, size: AppSize.iconL),
+              if (active)
+                Positioned(
+                  right: -1,
+                  top: -1,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: theme.colorScheme.surface,
+                        width: 1.2,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

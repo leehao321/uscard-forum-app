@@ -25,7 +25,6 @@ workspace:
   - packages/fluxdo_render
   - packages/m3e_ui
   - packages/pangutext
-  - packages/paper_shaders
 
 dependencies:
   flutter:
@@ -94,8 +93,6 @@ dependencies:
     path: packages/common_ui
   m3e_ui:
     path: packages/m3e_ui
-  paper_shaders:
-    path: packages/paper_shaders
   fluxdo_render:
     path: packages/fluxdo_render
   flutter_local_notifications: ^21.0.0
@@ -242,7 +239,6 @@ flutter:
     - assets/logo_modern_light.svg
     - assets/images/
     - assets/certs/
-    - assets/ai_brands/
     - assets/icons/thinking/
     - assets/polyfill/
     - assets/cook/

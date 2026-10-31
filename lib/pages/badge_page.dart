@@ -262,8 +262,8 @@ class _BadgeInfoCard extends StatelessWidget {
     Widget icon;
     final fallback = FaIcon(
       badge.icon != null && badge.icon!.isNotEmpty
-          ? (FontAwesomeHelper.getIcon(badge.icon!) ?? FontAwesomeIcons.medal)
-          : FontAwesomeIcons.medal,
+          ? (FontAwesomeHelper.getIcon(badge.icon!) ?? FontAwesomeHelper.medal)
+          : FontAwesomeHelper.medal,
       size: 24,
       color: colors.brandPrimary,
     );

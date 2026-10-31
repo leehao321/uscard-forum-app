@@ -54,7 +54,6 @@ import 'package:fluxdo_render/fluxdo_render.dart'
         LinkRun,
         MentionRun,
         NodeFactory;
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
@@ -1007,7 +1006,7 @@ class RichComposerEditorState extends State<RichComposerEditor> {
           ComposerToolAction(
             id: tool.id,
             label: tool.label,
-            icon: FaIcon(tool.icon, size: 20),
+            icon: Icon(tool.icon, size: 20),
             searchText: tool.id,
             group: tool.id == 'image' || tool.id == 'link'
                 ? ComposerToolGroup.insert
@@ -4611,7 +4610,7 @@ class _RichToolbarState extends State<_RichToolbar> {
     return [
       if (!tools.any((tool) => tool.id == 'image'))
         _btn(
-          FontAwesomeIcons.image,
+          AppIcons.image,
           richEditorTools.firstWhere((tool) => tool.id == 'image').label,
           anchored: anchored,
           onTap: widget.onPickImage,
@@ -4657,7 +4656,7 @@ class _RichToolbarState extends State<_RichToolbar> {
   /// 标准工具按钮(MarkdownToolbar._ToolbarButton 同参:FaIcon 16 +
   /// compact + onSurfaceVariant;激活态 primary)。
   Widget _btn(
-    FaIconData icon,
+    IconData icon,
     String tooltip, {
     bool active = false,
     bool anchored = true,
@@ -4666,7 +4665,7 @@ class _RichToolbarState extends State<_RichToolbar> {
     final button = IconButton(
       visualDensity: VisualDensity.standard,
       isSelected: active,
-      icon: FaIcon(icon, size: 16),
+      icon: Icon(icon, size: 16),
       onPressed: anchored ? onTap : () => _desktopAction(onTap),
       tooltip: tooltip,
       style: composerToolButtonStyle(context, active: active),

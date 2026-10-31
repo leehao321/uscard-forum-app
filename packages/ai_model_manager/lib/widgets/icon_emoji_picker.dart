@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/ai_l10n.dart';
@@ -128,7 +129,7 @@ class _IconEmojiPickerState extends State<IconEmojiPicker>
                     TextField(
                       controller: _emojiController,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 22),
+                      style: const TextStyle(fontSize: AppFontSize.title),
                       decoration: InputDecoration(
                         hintText:
                             AiL10n.current.quickPromptsEmojiInputHint,
@@ -235,7 +236,7 @@ class _EmojiCell extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
         ),
         alignment: Alignment.center,
-        child: Text(emoji, style: const TextStyle(fontSize: 20)),
+        child: Text(emoji, style: const TextStyle(fontSize: AppFontSize.title)),
       ),
     );
   }

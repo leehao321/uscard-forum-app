@@ -297,6 +297,7 @@ Figma：补充 · 组件与状态 [40:29](https://www.figma.com/design/WMaCKTCa1
 - 上传：任务卡在工具条上方，surface/elevated r12 pad 12，gap 12：头行「cloud 16 上传任务 1 / 3」+ chevron-down；任务行 = 34 缩略图（r8 avatar/fill）+ 文件名 13 + 状态 11 meta（完成 check 20 brand / 进度条 4 高 + 百分比 + x / 失败 11 text/destructive + refresh 20 brand + trash 20）。有未完成上传时「发送」置灰（40% 不透明），点按出 Toast「还有附件没传完，完成或移除后才能发送」。
 - 表情面板：顶替键盘，同键盘高 336，surface/grouped 底；顶部页内筛选「表情 · 表情包」+ 搜索 20；分组行（clock 20 brand + 13 meta 分组名）；8 列网格，表情 28 显示（论坛表情按图片渲染）；右下 44 圆钮退格。格式行里 smile 变 brand 表示面板打开。
 - @ 候选：浮在工具条上方，左右 20，r12 卡片 + 胶囊阴影；行 = 34 头像 + 「@chan1108」17 + 显示名 11 meta，分隔线缩进 58。
+- 横屏（手机，短边 < 600）：工具条改成通栏——底色横跨整个屏宽（顶部 0.5 分隔线，无圆角、无左右留白），按钮按 §5.6 的 `readableInsets` 与 640 正文栏左右对齐，做法与阅读页横屏底部工具栏一致；竖屏和宽屏（平板、桌面）保持浮岛。实现在 `ComposerIsland`，由评估会话替用户定（与 Figma 一致），测试 `test/ui/editor_icons_test.dart`。
 
 **楼层长按 / 话题菜单 / 订阅**（画板「楼层长按菜单 · 添加笔记 · 话题菜单 · 本帖通知」[48:1627](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=48-1627)）
 - 长按楼层：背景遮罩 32% + 模糊 10；楼层浮起（surface/page 卡片 r12 + 胶囊阴影，左右 20），菜单在下方左对齐，宽 260：回复这层、引用回复、**添加笔记**（图标 brand）、给这层加书签、复制文字、复制楼层链接、只看 TA、翻译、生成分享图片 ｜ 举报（destructive）。自己的楼层另有编辑、删除（destructive）。这个菜单取代现在的「⋯ 更多」弹层和头像径向菜单；点赞仍只在楼层下方。

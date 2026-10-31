@@ -153,31 +153,6 @@ class _PanelHeader extends StatelessWidget {
 }
 
 /// 窄屏浮动按钮:点击弹出目录 bottom sheet。
-class TopicTocFab extends StatelessWidget {
-  const TopicTocFab({
-    super.key,
-    required this.controller,
-    required this.onEntryTap,
-  });
-
-  final TopicTocController controller;
-  final ValueChanged<TocEntry> onEntryTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return FloatingActionButton.small(
-      heroTag: 'topic_toc_fab',
-      tooltip: context.l10n.topicDetail_toc,
-      onPressed: () => showTocBottomSheet(
-        context: context,
-        controller: controller,
-        onEntryTap: onEntryTap,
-      ),
-      child: const Icon(AppIcons.listBulleted, size: 20),
-    );
-  }
-}
-
 /// 目录 bottom sheet(窄屏点击 FAB 后弹出),打开即滚动到当前阅读节点。
 Future<void> showTocBottomSheet({
   required BuildContext context,

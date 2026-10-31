@@ -8,6 +8,7 @@ import 'package:chat_bottom_container/listener_manager.dart';
 
 import 'package:app_icons/app_icons.dart';
 import 'package:dio/dio.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -384,9 +385,7 @@ void main() {
           findsNothing,
         );
         final trigger = find.byKey(const ValueKey('composer-kind-trigger'));
-        final triggerButton = find
-            .ancestor(of: trigger, matching: find.byType(InkWell))
-            .first;
+        final triggerButton = trigger;
         final titleLabel = find.byKey(const ValueKey('composer-title-label'));
         expect(
           tester.widget<Text>(titleLabel).semanticsLabel,
@@ -424,7 +423,7 @@ void main() {
             tester
                 .getRect(find.byKey(ValueKey('composer-kind-option-$value')))
                 .top,
-            greaterThanOrEqualTo(triggerRect.bottom + 6),
+            greaterThanOrEqualTo(triggerRect.bottom + AppSpace.xs - 0.5),
           );
         }
         await tester.tap(
@@ -448,7 +447,7 @@ void main() {
           tester
               .getRect(find.byKey(const ValueKey('composer-kind-option-false')))
               .top,
-          greaterThanOrEqualTo(tester.getRect(trigger).bottom + 6),
+          greaterThanOrEqualTo(tester.getRect(trigger).bottom + AppSpace.xs - 0.5),
         );
 
         await tester.tapAt(Offset(width - 4, 260));

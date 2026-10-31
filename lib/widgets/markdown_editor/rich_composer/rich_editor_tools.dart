@@ -14,9 +14,9 @@ library;
 export '../../../constants/composer_tool_defaults.dart'
     show kDefaultRichVisibleTools;
 
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:fluxdo_render/editor.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// 富文本工具的执行上下文：命令目标 + 需要宿主配合的动作。
 class RichToolContext {
@@ -56,7 +56,7 @@ class RichEditorTool {
   /// 稳定 id，用于 pin 偏好存储与快捷键查表。
   final String id;
 
-  final FaIconData icon;
+  final IconData icon;
   final String label;
 
   /// 执行动作。
@@ -112,90 +112,90 @@ Set<MarkKind> richToolbarMarks(EditorState state) {
 final List<RichEditorTool> richEditorTools = [
   RichEditorTool(
     id: 'bold',
-    icon: FontAwesomeIcons.bold,
+    icon: AppIcons.textBold,
     label: '粗体',
     run: (c) => c.state.toggleMark(MarkKind.strong),
     isActive: (s) => s.has(MarkKind.strong),
   ),
   RichEditorTool(
     id: 'italic',
-    icon: FontAwesomeIcons.italic,
+    icon: AppIcons.textItalic,
     label: '斜体',
     run: (c) => c.state.toggleMark(MarkKind.em),
     isActive: (s) => s.has(MarkKind.em),
   ),
   RichEditorTool(
     id: 'strikethrough',
-    icon: FontAwesomeIcons.strikethrough,
+    icon: AppIcons.textStrike,
     label: '删除线',
     run: (c) => c.state.toggleMark(MarkKind.lineThrough),
     isActive: (s) => s.has(MarkKind.lineThrough),
   ),
   RichEditorTool(
     id: 'inlineCode',
-    icon: FontAwesomeIcons.code,
+    icon: AppIcons.code,
     label: '行内代码',
     run: (c) => c.state.toggleMark(MarkKind.inlineCode),
     isActive: (s) => s.has(MarkKind.inlineCode),
   ),
   RichEditorTool(
     id: 'spoilerInline',
-    icon: FontAwesomeIcons.eyeSlash,
+    icon: AppIcons.visibilityOff,
     label: '行内剧透',
     run: (c) => c.onToggleInlineSpoiler(),
     isActive: (s) => s.has(MarkKind.spoilerInline),
   ),
   RichEditorTool(
     id: 'heading1',
-    icon: FontAwesomeIcons.heading,
+    icon: AppIcons.heading1,
     label: '标题 1',
     run: (c) => c.onSetHeading(1),
     isActive: (s) => s.headingLevel == 1,
   ),
   RichEditorTool(
     id: 'heading2',
-    icon: FontAwesomeIcons.heading,
+    icon: AppIcons.heading2,
     label: '标题 2',
     run: (c) => c.onSetHeading(2),
     isActive: (s) => s.headingLevel == 2,
   ),
   RichEditorTool(
     id: 'heading3',
-    icon: FontAwesomeIcons.heading,
+    icon: AppIcons.heading3,
     label: '标题 3',
     run: (c) => c.onSetHeading(3),
     isActive: (s) => s.headingLevel == 3,
   ),
   RichEditorTool(
     id: 'bulletList',
-    icon: FontAwesomeIcons.listUl,
+    icon: AppIcons.listBulleted,
     label: '无序列表',
     run: (c) => c.state.toggleList(ordered: false),
     isActive: (s) => s.isListItem && !s.ordered,
   ),
   RichEditorTool(
     id: 'numberedList',
-    icon: FontAwesomeIcons.listOl,
+    icon: AppIcons.listNumbered,
     label: '有序列表',
     run: (c) => c.state.toggleList(ordered: true),
     isActive: (s) => s.isListItem && s.ordered,
   ),
   RichEditorTool(
     id: 'quote',
-    icon: FontAwesomeIcons.quoteRight,
+    icon: AppIcons.formatQuote,
     label: '引用',
     run: (c) => c.state.toggleQuote(),
     isActive: (s) => s.inQuote,
   ),
   RichEditorTool(
     id: 'link',
-    icon: FontAwesomeIcons.link,
+    icon: AppIcons.link,
     label: '插入链接',
     run: (c) => c.onInsertLink(),
   ),
   RichEditorTool(
     id: 'image',
-    icon: FontAwesomeIcons.image,
+    icon: AppIcons.image,
     label: '上传图片',
     run: (c) => c.onPickImage(),
   ),

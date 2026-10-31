@@ -1963,7 +1963,7 @@ void main() {
         expect(rich ? editor!.selection : controller.selection, selection);
         final items = tester.widget(control) is ContentActionsButton
             ? find.byType(AppMenuPanel<VoidCallback>)
-            : find.byType(PopupMenuItem<int>);
+            : find.byType(AppMenuPanel<int>);
         expect(items, findsWidgets);
         expect(tester.getRect(items.first).top, greaterThanOrEqualTo(0));
         expect(

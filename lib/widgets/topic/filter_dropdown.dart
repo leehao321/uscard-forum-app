@@ -67,37 +67,25 @@ class FilterDropdown extends ConsumerWidget {
       return base;
     }
 
-    return SwipeDismissiblePopupMenuButton<TopicListFilter>(
+    return AppMenuAnchor<TopicListFilter>(
       onSelected: onFilterChanged,
-      offset: const Offset(0, 36),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      tooltip: S.current.topic_filterTooltip(filterLabel(currentFilter)),
-      itemBuilder: (context) {
-        return filterOptions
-            .where(
-              (option) =>
-                  isLoggedIn ||
-                  (option.$1 != TopicListFilter.newTopics &&
-                      option.$1 != TopicListFilter.unread &&
-                      option.$1 != TopicListFilter.unseen),
-            )
-            .map(
-              (option) => PopupMenuItem<TopicListFilter>(
-                value: option.$1,
-                child: Row(
-                  children: [
-                    if (option.$1 == currentFilter)
-                      Icon(AppIcons.check, size: 16, color: colorScheme.primary)
-                    else
-                      const SizedBox(width: 16),
-                    const SizedBox(width: 8),
-                    Text(optionLabel(option.$1, option.$2)),
-                  ],
-                ),
-              ),
-            )
-            .toList();
-      },
+      semanticLabel: S.current.topic_filterTooltip(filterLabel(currentFilter)),
+      sectionsBuilder: (context) => [
+        [
+          for (final option in filterOptions.where(
+            (option) =>
+                isLoggedIn ||
+                (option.$1 != TopicListFilter.newTopics &&
+                    option.$1 != TopicListFilter.unread &&
+                    option.$1 != TopicListFilter.unseen),
+          ))
+            AppMenuItem<TopicListFilter>(
+              label: optionLabel(option.$1, option.$2),
+              value: option.$1,
+              checked: option.$1 == currentFilter,
+            ),
+        ],
+      ],
       child: style == DropdownStyle.compact
           ? _buildCompactChild(colorScheme, buttonLabel())
           : _buildNormalChild(colorScheme, buttonLabel()),
@@ -192,7 +180,7 @@ class OrderDropdown extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isActive = currentOrder != TopicSortOrder.defaultOrder;
 
-    return SwipeDismissiblePopupMenuButton<TopicSortOrder>(
+    return AppMenuAnchor<TopicSortOrder>(
       onSelected: (order) {
         if (order == currentOrder && order != TopicSortOrder.defaultOrder) {
           // 再次点击已选中的排序项时，切换升降序
@@ -201,34 +189,21 @@ class OrderDropdown extends StatelessWidget {
           onOrderChanged(order);
         }
       },
-      offset: const Offset(0, 36),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      tooltip: S.current.topic_sortTooltip(currentOrder.label),
-      itemBuilder: (context) {
-        return TopicSortOrder.values.map((order) {
-          final isSelected = order == currentOrder;
-          return PopupMenuItem<TopicSortOrder>(
-            value: order,
-            child: Row(
-              children: [
-                if (isSelected)
-                  Icon(AppIcons.check, size: 16, color: colorScheme.primary)
-                else
-                  const SizedBox(width: 16),
-                const SizedBox(width: 8),
-                Expanded(child: Text(order.label)),
-                // 当前选中的非默认项显示方向箭头
-                if (isSelected && order != TopicSortOrder.defaultOrder)
-                  Icon(
-                    ascending ? AppIcons.arrowUp : AppIcons.arrowDown,
-                    size: 14,
-                    color: colorScheme.primary,
-                  ),
-              ],
+      semanticLabel: S.current.topic_sortTooltip(currentOrder.label),
+      sectionsBuilder: (context) => [
+        [
+          for (final order in TopicSortOrder.values)
+            AppMenuItem<TopicSortOrder>(
+              label: order.label,
+              value: order,
+              checked: order == currentOrder,
+              // 当前选中的非默认项显示方向
+              detail: order == currentOrder && order != TopicSortOrder.defaultOrder
+                  ? (ascending ? '↑' : '↓')
+                  : null,
             ),
-          );
-        }).toList();
-      },
+        ],
+      ],
       child: style == DropdownStyle.compact
           ? _buildCompactChild(colorScheme, isActive)
           : _buildNormalChild(colorScheme, isActive),
@@ -336,29 +311,19 @@ class NewSubsetDropdown extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isActive = currentSubset != NewSubset.all;
 
-    return SwipeDismissiblePopupMenuButton<NewSubset>(
+    return AppMenuAnchor<NewSubset>(
       onSelected: onSubsetChanged,
-      offset: const Offset(0, 36),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      tooltip: _shortLabel(currentSubset),
-      itemBuilder: (context) {
-        return NewSubset.values.map((subset) {
-          final isSelected = subset == currentSubset;
-          return PopupMenuItem<NewSubset>(
-            value: subset,
-            child: Row(
-              children: [
-                if (isSelected)
-                  Icon(AppIcons.check, size: 16, color: colorScheme.primary)
-                else
-                  const SizedBox(width: 16),
-                const SizedBox(width: 8),
-                Text(_shortLabel(subset)),
-              ],
+      semanticLabel: _shortLabel(currentSubset),
+      sectionsBuilder: (context) => [
+        [
+          for (final subset in NewSubset.values)
+            AppMenuItem<NewSubset>(
+              label: _shortLabel(subset),
+              value: subset,
+              checked: subset == currentSubset,
             ),
-          );
-        }).toList();
-      },
+        ],
+      ],
       child: compact
           ? _buildCompactChild(colorScheme, isActive)
           : _buildNormalChild(colorScheme, isActive),

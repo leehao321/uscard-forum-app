@@ -2,6 +2,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'font_awesome_name_mapping.dart';
 
 class FontAwesomeHelper {
+  /// 徽章没有图标时的默认图标（FA medal）
+  static final FaIconData medal = faIconNameMapping['solid medal']!;
+
   static FaIconData? getIcon(String? name) {
     if (name == null) return null;
     final raw = name.trim().toLowerCase();

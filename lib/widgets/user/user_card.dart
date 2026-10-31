@@ -1194,52 +1194,46 @@ class _UserCardContentState extends ConsumerState<_UserCardContent> {
   }
 
   Widget _buildMoreMenu(ThemeData theme, bool canMute, bool canIgnore) {
-    return SwipeDismissiblePopupMenuButton<String>(
-      tooltip: '',
-      icon: const Icon(AppIcons.moreHoriz),
-      style: IconButton.styleFrom(
-        side: BorderSide(
-          color: theme.colorScheme.outline.withValues(alpha: 0.5),
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        minimumSize: const Size(48, 40),
-      ),
+    return AppMenuAnchor<String>(
+      semanticLabel: S.current.common_more,
       onSelected: _setNotificationLevel,
       menuNavigatorKey: widget.menuNavigatorKey,
-      itemBuilder: (context) => [
-        if (canMute)
-          _notificationLevel == 'mute'
-              ? _menuItem(
-                  'normal',
-                  AppIcons.volumeOn,
-                  S.current.userProfile_restored,
-                )
-              : _menuItem('mute', AppIcons.volumeOff, S.current.userCard_mute),
-        if (canIgnore)
-          _notificationLevel == 'ignore'
-              ? _menuItem(
-                  'normal',
-                  AppIcons.visibility,
-                  S.current.userProfile_restored,
-                )
-              : _menuItem(
-                  'ignore',
-                  AppIcons.visibilityOff,
-                  S.current.userCard_ignore,
-                ),
-      ],
-    );
-  }
-
-  PopupMenuItem<String> _menuItem(String value, IconData icon, String label) {
-    return PopupMenuItem<String>(
-      value: value,
-      child: Row(
-        children: [
-          Icon(icon, size: 18),
-          const SizedBox(width: 12),
-          Text(label),
+      sectionsBuilder: (context) => [
+        [
+          if (canMute)
+            _notificationLevel == 'mute'
+                ? AppMenuItem<String>(
+                    label: S.current.userProfile_restored,
+                    value: 'normal',
+                    icon: AppIcons.volumeOn,
+                  )
+                : AppMenuItem<String>(
+                    label: S.current.userCard_mute,
+                    value: 'mute',
+                    icon: AppIcons.volumeOff,
+                  ),
+          if (canIgnore)
+            _notificationLevel == 'ignore'
+                ? AppMenuItem<String>(
+                    label: S.current.userProfile_restored,
+                    value: 'normal',
+                    icon: AppIcons.visibility,
+                  )
+                : AppMenuItem<String>(
+                    label: S.current.userCard_ignore,
+                    value: 'ignore',
+                    icon: AppIcons.visibilityOff,
+                  ),
         ],
+      ],
+      child: Container(
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 40),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          border: Border.all(color: context.tokens.colors.separator),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Icon(AppIcons.moreHoriz, size: AppSize.iconL),
       ),
     );
   }

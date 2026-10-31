@@ -94,44 +94,25 @@ Future<void> _showSubcategoryMenu({
   required Color parentColor,
   required VoidCallback onDone,
 }) async {
-  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-  final result = await showSwipeDismissibleMenu<Category>(
+  final result = await showAppMenu<Category>(
     context: context,
-    position: RelativeRect.fromRect(
-      Rect.fromCenter(center: tapPosition, width: 0, height: 0),
-      Offset.zero & overlay.size,
-    ),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    elevation: 6,
-    items: [
-      // "全部"
-      PopupMenuItem<Category>(
-        value: parent,
-        child: Row(
-          children: [
-            _buildCategoryIcon(parent, parentColor, 20),
-            const SizedBox(width: 10),
-            Text(
-              S.current.common_all,
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-          ],
+    anchor: Rect.fromCenter(center: tapPosition, width: 0, height: 0),
+    sections: [
+      [
+        // "全部"
+        AppMenuItem<Category>(
+          label: S.current.common_all,
+          value: parent,
+          leading: _buildCategoryIcon(parent, parentColor, 20),
         ),
-      ),
-      // 子分类
-      ...subcategories.map((sub) {
-        final subColor = _parseColor(sub.color);
-        return PopupMenuItem<Category>(
-          value: sub,
-          child: Row(
-            children: [
-              _buildCategoryIcon(sub, subColor, 20),
-              const SizedBox(width: 10),
-              Expanded(child: Text(sub.name, overflow: TextOverflow.ellipsis)),
-            ],
+        // 子分类
+        for (final sub in subcategories)
+          AppMenuItem<Category>(
+            label: sub.name,
+            value: sub,
+            leading: _buildCategoryIcon(sub, _parseColor(sub.color), 20),
           ),
-        );
-      }),
+      ],
     ],
   );
 
@@ -660,39 +641,23 @@ class _EditContent extends ConsumerWidget {
     required List<Category> subcategories,
     required Color parentColor,
   }) async {
-    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
     final allItems = [parent, ...subcategories];
 
-    final result = await showSwipeDismissibleMenu<Category>(
+    final result = await showAppMenu<Category>(
       context: context,
-      position: RelativeRect.fromRect(
-        Rect.fromCenter(center: tapPosition, width: 0, height: 0),
-        Offset.zero & overlay.size,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 6,
-      items: allItems.map((cat) {
-        final color = _parseColor(cat.color);
-        final isParent = cat.id == parent.id;
-        return PopupMenuItem<Category>(
-          value: cat,
-          child: Row(
-            children: [
-              _buildCategoryIcon(cat, color, 20),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  isParent ? S.current.category_parentAll(cat.name) : cat.name,
-                  style: TextStyle(
-                    fontWeight: isParent ? FontWeight.w500 : FontWeight.normal,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
+      anchor: Rect.fromCenter(center: tapPosition, width: 0, height: 0),
+      sections: [
+        [
+          for (final cat in allItems)
+            AppMenuItem<Category>(
+              label: cat.id == parent.id
+                  ? S.current.category_parentAll(cat.name)
+                  : cat.name,
+              value: cat,
+              leading: _buildCategoryIcon(cat, _parseColor(cat.color), 20),
+            ),
+        ],
+      ],
     );
 
     if (result != null && context.mounted) {

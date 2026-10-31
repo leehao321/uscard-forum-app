@@ -312,7 +312,7 @@ class _MaxSessionsRow extends StatelessWidget {
                       AiL10n.current.autoDeleteOldestSession,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
-                        fontSize: 11,
+                        fontSize: AppFontSize.caption,
                       ),
                     ),
                   ],

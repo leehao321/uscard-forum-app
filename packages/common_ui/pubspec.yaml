@@ -15,5 +15,3 @@ dependencies:
     path: ../app_icons
 
 flutter:
-  shaders:
-    - shaders/glass_surface.frag

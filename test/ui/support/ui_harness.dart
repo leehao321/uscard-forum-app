@@ -123,14 +123,6 @@ Future<void> loadUiFonts() async {
         : Directory('.dart_tool').uri.resolveUri(uri).toFilePath();
   }
 
-  final symbols = packageDir('material_symbols_icons');
-  if (symbols != null) {
-    await load(
-      'packages/material_symbols_icons/MaterialSymbolsRounded',
-      '$symbols/lib/fonts/MaterialSymbolsRounded.ttf',
-    );
-  }
-
   final lucide = packageDir('lucide_icons_flutter');
   if (lucide != null) {
     await load(

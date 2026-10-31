@@ -317,8 +317,11 @@ Future<T?> showAppMenu<T>({
   /// 重新取一份内容
   Listenable? refresh,
   List<List<AppMenuItem<T>>> Function()? liveSections,
+
+  /// 把菜单路由推到指定 Navigator（按钮在手动 OverlayEntry 里时，避免被外层盖住）
+  NavigatorState? navigator,
 }) {
-  final navigator = Navigator.of(context, rootNavigator: useRootNavigator);
+  navigator ??= Navigator.of(context, rootNavigator: useRootNavigator);
   return navigator.push(
     _AppMenuRoute<T>(
       requestFocus: requestFocus,
@@ -556,5 +559,63 @@ class AppMenuButton<T> extends StatelessWidget {
               },
       ),
     );
+  }
+}
+
+
+/// 带菜单的自定义触发器（图标按钮之外的文字 / 胶囊触发，取代 child 形态的
+/// PopupMenuButton）：点按在 [child] 下方弹出 [AppMenuPanel]，选中后回调
+/// [onSelected]。触发器本身不画任何外观，点击区域按 [child] 的尺寸。
+class AppMenuAnchor<T> extends StatelessWidget {
+  const AppMenuAnchor({
+    super.key,
+    required this.child,
+    required this.semanticLabel,
+    required this.sectionsBuilder,
+    this.onSelected,
+    this.onOpened,
+    this.width = AppSize.menuWidth,
+    this.enabled = true,
+    this.requestFocus = true,
+    this.menuNavigatorKey,
+  });
+
+  /// 把菜单推到指定 Navigator
+  final GlobalKey<NavigatorState>? menuNavigatorKey;
+
+  final Widget child;
+  final String semanticLabel;
+  final List<List<AppMenuItem<T>>> Function(BuildContext context)
+  sectionsBuilder;
+  final ValueChanged<T>? onSelected;
+  final VoidCallback? onOpened;
+  final double width;
+  final bool enabled;
+
+  /// false：菜单路由不抢焦点（编辑器里不能收起键盘）
+  final bool requestFocus;
+
+  @override
+  Widget build(BuildContext context) {
+    return Builder(
+      builder: (anchorContext) => AppPressable(
+        semanticLabel: semanticLabel,
+        onTap: enabled ? () => _open(anchorContext) : null,
+        child: child,
+      ),
+    );
+  }
+
+  Future<void> _open(BuildContext anchorContext) async {
+    onOpened?.call();
+    final value = await showAppMenu<T>(
+      context: anchorContext,
+      anchor: globalRectOf(anchorContext),
+      sections: sectionsBuilder(anchorContext),
+      width: width,
+      requestFocus: requestFocus,
+      navigator: menuNavigatorKey?.currentState,
+    );
+    if (value != null) onSelected?.call(value);
   }
 }

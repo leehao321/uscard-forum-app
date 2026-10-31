@@ -112,8 +112,6 @@ class _MyTopicsPageState extends ConsumerState<MyTopicsPage> {
     final searchState = ref.watch(
       userContentSearchProvider(SearchInType.created),
     );
-    // 话题卡自定义样式:改设置触发 rebuild(自绘排版直读全局快照)
-    ref.watch(preferencesProvider.select((p) => p.topicCardStyle));
     _canShowBothPanes = MasterDetailLayout.canShowBothPanesFor(context);
 
     final list = PopScope(

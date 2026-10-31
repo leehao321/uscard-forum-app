@@ -4,11 +4,7 @@
 /// 语义常量；自绘场景用 [AppCustomIcon]/[AppIcon]；规则细节见
 /// src/app_icons.dart 头注释。
 ///
-/// 迁移期仍导出 Material Symbols 的 [Symbols]：页面里还没迁完的旧图标
-/// 继续可用，tool/ui_audit.dart 统计其数量，全部迁完（M10）后去掉。
 library;
-
-export 'package:material_symbols_icons/symbols.dart' show Symbols;
 
 export 'src/app_icon.dart';
 export 'src/app_icons.dart';

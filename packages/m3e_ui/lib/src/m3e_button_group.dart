@@ -44,6 +44,9 @@ class M3eButtonGroup<T> extends StatefulWidget {
   State<M3eButtonGroup<T>> createState() => _M3eButtonGroupState<T>();
 }
 
+/// 按钮标签字号（与 v2 meta 档 13 一致；m3e_ui 不依赖 common_ui，所以在本地声明）。
+const double _kLabelSize = 13;
+
 /// Compose ButtonGroup 的按压展宽比例。
 const double _kExpandedRatio = 0.15;
 
@@ -189,7 +192,7 @@ class _M3eButtonGroupState<T> extends State<M3eButtonGroup<T>>
                 ],
                 DefaultTextStyle.merge(
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: _kLabelSize,
                     fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                     color: selected
                         ? scheme.onSecondaryContainer

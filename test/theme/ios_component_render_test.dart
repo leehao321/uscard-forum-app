@@ -27,16 +27,6 @@ Future<void> _loadFonts() async {
   }
 
   await load('MiSans', 'assets/fonts/MiSansVF.ttf');
-  // Symbols 的 fontFamily 带包前缀
-  final pkg = File('.dart_tool/package_config.json').readAsStringSync();
-  final root = RegExp(r'"rootUri":\s*"([^"]*material_symbols_icons[^"]*)"')
-      .firstMatch(pkg)!
-      .group(1)!;
-  final dir = Uri.parse(root).toFilePath();
-  await load(
-    'packages/material_symbols_icons/MaterialSymbolsRounded',
-    '$dir/lib/fonts/MaterialSymbolsRounded.ttf',
-  );
 }
 
 ThemeData _theme(Brightness brightness) => buildAppThemeForTest(
@@ -68,20 +58,20 @@ Widget _settingsScreen() => Builder(
         SegmentedCardGroup(
           children: [
             ListTile(
-              leading: const Icon(Symbols.palette_rounded),
+              leading: const Icon(AppIcons.palette),
               title: const Text('外观'),
-              trailing: const Icon(Symbols.chevron_right_rounded),
+              trailing: const Icon(AppIcons.chevronRight),
               onTap: () {},
             ),
             ListTile(
-              leading: const Icon(Symbols.menu_book_rounded),
+              leading: const Icon(AppIcons.book),
               title: const Text('阅读'),
               subtitle: const Text('字号、行距、盘古之白'),
-              trailing: const Icon(Symbols.chevron_right_rounded),
+              trailing: const Icon(AppIcons.chevronRight),
               onTap: () {},
             ),
             SwitchListTile.adaptive(
-              secondary: const Icon(Symbols.blur_on_rounded),
+              secondary: const Icon(AppIcons.tune),
               title: const Text('毛玻璃效果'),
               value: true,
               onChanged: (_) {},
@@ -126,7 +116,7 @@ Widget _sheetScreen() => Scaffold(
           for (final t in ['版块', '最近活跃', '只看这些标签'])
             ListTile(
               title: Text(t),
-              trailing: const Icon(Symbols.chevron_right_rounded),
+              trailing: const Icon(AppIcons.chevronRight),
             ),
         ],
       ),

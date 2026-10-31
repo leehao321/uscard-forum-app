@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:fluxdo/l10n/s.dart';
 
@@ -40,17 +39,5 @@ void main() {
     expect(heading, findsOneWidget);
     expect(tester.getSemantics(heading).getSemanticsData().headingLevel, 2);
     semantics.dispose();
-  });
-
-  test('背景采样仅在旧版 GLES 纹理约定下翻转', () {
-    // 源码契约测试不能代替 GLES 真机像素验证。
-    const guard =
-        '#if defined(IMPELLER_TARGET_OPENGLES) && '
-        '!defined(IMPELLER_OPENGLES_UNFLIPPED_DEPRECATED)';
-    for (final path in ['packages/common_ui/shaders/glass_surface.frag']) {
-      final shader = File(path).readAsStringSync();
-      expect(shader, contains(guard), reason: path);
-      expect(shader, isNot(contains('#ifdef IMPELLER_TARGET_OPENGLES')));
-    }
   });
 }

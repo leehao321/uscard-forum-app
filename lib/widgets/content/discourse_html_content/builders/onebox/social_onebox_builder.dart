@@ -1,6 +1,5 @@
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:app_icons/app_icons.dart';
 
 import '../../../../../utils/link_launcher.dart';
@@ -255,8 +254,8 @@ class SocialOneboxBuilder {
                   color: AppRawColors.cFFFF4500,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const FaIcon(
-                  FontAwesomeIcons.redditAlien,
+                child: const Icon(
+                  AppIcons.forum,
                   size: 16,
                   color: AppFixedColors.white,
                 ),

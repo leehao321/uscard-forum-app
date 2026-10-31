@@ -3,13 +3,11 @@ import '../constants/composer_tool_defaults.dart';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:common_ui/common_ui.dart' show GlassEffectLevel;
 import 'package:flutter/services.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/topic_card_style.dart';
 import '../navigation/nav_action_bus.dart';
 import '../services/network/request_scheduler_config.dart';
 import '../services/uploads/upload_settings.dart';
@@ -44,50 +42,6 @@ enum BookmarksOpenMode {
     );
   }
 }
-
-/// 进度悬浮条手势可绑定的动作
-enum ProgressGestureAction {
-  none, // 仅用于滑动手势，表示该方向不触发任何动作
-  openTimeline,
-  scrollToTop,
-  jumpToUnread,
-  nextPost,
-  previousPost,
-  reply,
-  share,
-  shareImage,
-  exportArticle,
-  openInBrowser,
-  bookmark,
-  readLater,
-  notification,
-  filter,
-  toggleNestedView,
-  aiAssistant,
-  readingSettings,
-  search,
-  refresh,
-  goBack;
-
-  static ProgressGestureAction fromString(String? value) {
-    return ProgressGestureAction.values.firstWhere(
-      (e) => e.name == value,
-      orElse: () => ProgressGestureAction.openTimeline,
-    );
-  }
-}
-
-/// 长按菜单候选功能默认列表（6 项），覆盖常用操作
-const List<ProgressGestureAction> _defaultProgressGestureMenu = [
-  ProgressGestureAction.openTimeline,
-  ProgressGestureAction.scrollToTop,
-  ProgressGestureAction.reply,
-  ProgressGestureAction.bookmark,
-  ProgressGestureAction.share,
-  ProgressGestureAction.aiAssistant,
-];
-
-const int kProgressGestureMenuMax = 8;
 
 class AppPreferences {
   static const Object _unset = Object();
@@ -161,8 +115,6 @@ class AppPreferences {
   /// Android 首页单次返回直接退出；关闭时需在 2 秒内返回两次
   final bool exitOnSingleBack;
 
-  /// 滚动时收起顶栏和底栏
-  final bool hideBarOnScroll;
 
   /// 退出时清除图片缓存
   final bool clearCacheOnExit;
@@ -267,32 +219,16 @@ class AppPreferences {
   /// 底栏：悬浮底栏（仅手机底栏，宽度随入口数量自适应的悬浮胶囊）
   final bool bottomNavFloating;
 
-  /// 所有玻璃组件的总开关，不影响顶栏、弹窗背景或壁纸模糊。
-  final bool glassEnabled;
 
-  /// 玻璃效果能力档位。
-  final GlassEffectLevel glassEffectLevel;
 
   /// Android 屏幕刷新率偏好（0 = auto/跟随系统，其它为目标刷新率，如 60 / 90 / 120）
   final int displayModeRefreshRate;
 
-  /// 进度悬浮条手势总开关
-  final bool progressGesturesEnabled;
 
-  /// 左滑动作
-  final ProgressGestureAction progressGestureSwipeLeft;
 
-  /// 右滑动作
-  final ProgressGestureAction progressGestureSwipeRight;
 
-  /// 上滑动作
-  final ProgressGestureAction progressGestureSwipeUp;
 
-  /// 长按菜单总开关（关闭时长按不弹出菜单）
-  final bool progressGestureLongPressEnabled;
 
-  /// 长按菜单候选功能（按顺序展示在半圆菜单中）
-  final List<ProgressGestureAction> progressGestureMenuActions;
 
   /// 源码工具栏固定工具及其顺序；空列表表示不固定。
   final List<String> editorToolbarTools;
@@ -303,8 +239,6 @@ class AppPreferences {
   /// 剧透、没有模板/TOC 这类纯 markdown 字面量工具），共用一份会互相污染。
   final List<String> richToolbarTools;
 
-  /// 话题卡片自定义样式（元信息字段开关 / 头像布局 / 动态头像）
-  final TopicCardStyle topicCardStyle;
 
   AppPreferences({
     required this.autoPanguSpacing,
@@ -326,7 +260,6 @@ class AppPreferences {
     required this.portraitLock,
     required this.fullscreenSwipeBack,
     required this.exitOnSingleBack,
-    required this.hideBarOnScroll,
     required this.clearCacheOnExit,
     required this.autoCfChallenge,
     required this.expandRelatedLinks,
@@ -359,18 +292,9 @@ class AppPreferences {
     required this.bottomNavIds,
     this.bottomNavLabelless = false,
     this.bottomNavFloating = false,
-    this.glassEnabled = true,
-    this.glassEffectLevel = GlassEffectLevel.auto,
     this.displayModeRefreshRate = 0,
-    this.progressGesturesEnabled = true,
-    this.progressGestureSwipeLeft = ProgressGestureAction.nextPost,
-    this.progressGestureSwipeRight = ProgressGestureAction.previousPost,
-    this.progressGestureSwipeUp = ProgressGestureAction.jumpToUnread,
-    this.progressGestureLongPressEnabled = true,
-    this.progressGestureMenuActions = _defaultProgressGestureMenu,
     this.editorToolbarTools = kDefaultSourceVisibleTools,
     this.richToolbarTools = kDefaultRichVisibleTools,
-    this.topicCardStyle = TopicCardStyle.defaults,
   });
 
   AppPreferences copyWith({
@@ -393,7 +317,6 @@ class AppPreferences {
     bool? portraitLock,
     bool? fullscreenSwipeBack,
     bool? exitOnSingleBack,
-    bool? hideBarOnScroll,
     bool? clearCacheOnExit,
     bool? autoCfChallenge,
     bool? expandRelatedLinks,
@@ -426,18 +349,9 @@ class AppPreferences {
     List<String>? bottomNavIds,
     bool? bottomNavLabelless,
     bool? bottomNavFloating,
-    bool? glassEnabled,
-    GlassEffectLevel? glassEffectLevel,
     int? displayModeRefreshRate,
-    bool? progressGesturesEnabled,
-    ProgressGestureAction? progressGestureSwipeLeft,
-    ProgressGestureAction? progressGestureSwipeRight,
-    ProgressGestureAction? progressGestureSwipeUp,
-    bool? progressGestureLongPressEnabled,
-    List<ProgressGestureAction>? progressGestureMenuActions,
     List<String>? editorToolbarTools,
     List<String>? richToolbarTools,
-    TopicCardStyle? topicCardStyle,
   }) {
     return AppPreferences(
       autoPanguSpacing: autoPanguSpacing ?? this.autoPanguSpacing,
@@ -461,7 +375,6 @@ class AppPreferences {
       portraitLock: portraitLock ?? this.portraitLock,
       fullscreenSwipeBack: fullscreenSwipeBack ?? this.fullscreenSwipeBack,
       exitOnSingleBack: exitOnSingleBack ?? this.exitOnSingleBack,
-      hideBarOnScroll: hideBarOnScroll ?? this.hideBarOnScroll,
       clearCacheOnExit: clearCacheOnExit ?? this.clearCacheOnExit,
       autoCfChallenge: autoCfChallenge ?? this.autoCfChallenge,
       expandRelatedLinks: expandRelatedLinks ?? this.expandRelatedLinks,
@@ -510,26 +423,10 @@ class AppPreferences {
       bottomNavIds: bottomNavIds ?? this.bottomNavIds,
       bottomNavLabelless: bottomNavLabelless ?? this.bottomNavLabelless,
       bottomNavFloating: bottomNavFloating ?? this.bottomNavFloating,
-      glassEnabled: glassEnabled ?? this.glassEnabled,
-      glassEffectLevel: glassEffectLevel ?? this.glassEffectLevel,
       displayModeRefreshRate:
           displayModeRefreshRate ?? this.displayModeRefreshRate,
-      progressGesturesEnabled:
-          progressGesturesEnabled ?? this.progressGesturesEnabled,
-      progressGestureSwipeLeft:
-          progressGestureSwipeLeft ?? this.progressGestureSwipeLeft,
-      progressGestureSwipeRight:
-          progressGestureSwipeRight ?? this.progressGestureSwipeRight,
-      progressGestureSwipeUp:
-          progressGestureSwipeUp ?? this.progressGestureSwipeUp,
-      progressGestureLongPressEnabled:
-          progressGestureLongPressEnabled ??
-          this.progressGestureLongPressEnabled,
-      progressGestureMenuActions:
-          progressGestureMenuActions ?? this.progressGestureMenuActions,
       editorToolbarTools: editorToolbarTools ?? this.editorToolbarTools,
       richToolbarTools: richToolbarTools ?? this.richToolbarTools,
-      topicCardStyle: topicCardStyle ?? this.topicCardStyle,
     );
   }
 }
@@ -560,7 +457,6 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
   static const String _portraitLockKey = 'pref_portrait_lock';
   static const String _fullscreenSwipeBackKey = 'pref_fullscreen_swipe_back';
   static const String _exitOnSingleBackKey = 'pref_exit_on_single_back';
-  static const String _hideBarOnScrollKey = 'pref_hide_bar_on_scroll';
   static const String _clearCacheOnExitKey = 'pref_clear_cache_on_exit';
   static const String _autoCfChallengeKey = 'pref_auto_cf_challenge';
   static const String _expandRelatedLinksKey = 'pref_expand_related_links';
@@ -600,25 +496,10 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
   static const String _bottomNavIdsKey = 'pref_bottom_nav_ids';
   static const String _bottomNavLabellessKey = 'pref_bottom_nav_labelless';
   static const String _bottomNavFloatingKey = 'pref_bottom_nav_floating';
-  static const String _glassEnabledKey = 'pref_glass_enabled';
-  static const String _glassEffectLevelKey = 'pref_glass_effect_level';
   static const String _displayModeRefreshRateKey =
       'pref_display_mode_refresh_rate';
-  static const String _progressGesturesEnabledKey =
-      'pref_progress_gestures_enabled';
-  static const String _progressGestureSwipeLeftKey =
-      'pref_progress_gesture_swipe_left';
-  static const String _progressGestureSwipeRightKey =
-      'pref_progress_gesture_swipe_right';
-  static const String _progressGestureSwipeUpKey =
-      'pref_progress_gesture_swipe_up';
-  static const String _progressGestureLongPressEnabledKey =
-      'pref_progress_gesture_long_press_enabled';
-  static const String _progressGestureMenuActionsKey =
-      'pref_progress_gesture_menu_actions';
   static const String _editorToolbarToolsKey = 'pref_editor_toolbar_tools';
   static const String _richToolbarToolsKey = 'pref_rich_toolbar_tools';
-  static const String _topicCardStyleKey = 'pref_topic_card_style';
 
   static const _crashlyticsChannel = MethodChannel(
     'com.hao.uscardforum/crashlytics',
@@ -654,7 +535,6 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
           portraitLock: _prefs.getBool(_portraitLockKey) ?? false,
           fullscreenSwipeBack: _prefs.getBool(_fullscreenSwipeBackKey) ?? false,
           exitOnSingleBack: _prefs.getBool(_exitOnSingleBackKey) ?? false,
-          hideBarOnScroll: _prefs.getBool(_hideBarOnScrollKey) ?? true,
           clearCacheOnExit: _prefs.getBool(_clearCacheOnExitKey) ?? false,
           autoCfChallenge: _prefs.getBool(_autoCfChallengeKey) ?? true,
           expandRelatedLinks: _prefs.getBool(_expandRelatedLinksKey) ?? false,
@@ -709,45 +589,17 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
           ),
           bottomNavLabelless: _prefs.getBool(_bottomNavLabellessKey) ?? false,
           bottomNavFloating: _prefs.getBool(_bottomNavFloatingKey) ?? false,
-          // 新全局策略默认自动开启；不继承废弃的底栏局部开关。
-          glassEnabled: _prefs.getBool(_glassEnabledKey) ?? true,
-          glassEffectLevel: GlassEffectLevel.fromStorage(
-            _prefs.getString(_glassEffectLevelKey),
-          ),
           displayModeRefreshRate:
               _prefs.getInt(_displayModeRefreshRateKey) ?? 0,
-          progressGesturesEnabled:
-              _prefs.getBool(_progressGesturesEnabledKey) ?? true,
-          progressGestureSwipeLeft: _readGestureAction(
-            _prefs.getString(_progressGestureSwipeLeftKey),
-            ProgressGestureAction.nextPost,
-          ),
-          progressGestureSwipeRight: _readGestureAction(
-            _prefs.getString(_progressGestureSwipeRightKey),
-            ProgressGestureAction.previousPost,
-          ),
-          progressGestureSwipeUp: _readGestureAction(
-            _prefs.getString(_progressGestureSwipeUpKey),
-            ProgressGestureAction.jumpToUnread,
-          ),
-          progressGestureLongPressEnabled:
-              _prefs.getBool(_progressGestureLongPressEnabledKey) ?? true,
-          progressGestureMenuActions: _readGestureMenuActions(
-            _prefs.getStringList(_progressGestureMenuActionsKey),
-          ),
           editorToolbarTools:
               _prefs.getStringList(_editorToolbarToolsKey) ??
               kDefaultSourceVisibleTools,
           richToolbarTools:
               _prefs.getStringList(_richToolbarToolsKey) ??
               kDefaultRichVisibleTools,
-          topicCardStyle: TopicCardStyle.fromJsonString(
-            _prefs.getString(_topicCardStyleKey),
-          ),
         ),
       ) {
     isPortraitLocked = state.portraitLock;
-    TopicCardStyleScope.current = state.topicCardStyle;
     CfChallengeService().autoVerifyEnabled = state.autoCfChallenge;
     // CF 服务在「切兼容」询问里给用户第二条出路(关掉自动过盾),但它拿不到
     // Riverpod 容器,也不该自己写 SharedPreferences —— 这里把持久化通道注入。
@@ -890,11 +742,6 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
     await _prefs.setBool(_exitOnSingleBackKey, enabled);
   }
 
-  Future<void> setHideBarOnScroll(bool enabled) async {
-    state = state.copyWith(hideBarOnScroll: enabled);
-    await _prefs.setBool(_hideBarOnScrollKey, enabled);
-  }
-
   Future<void> setClearCacheOnExit(bool enabled) async {
     state = state.copyWith(clearCacheOnExit: enabled);
     await _prefs.setBool(_clearCacheOnExitKey, enabled);
@@ -993,15 +840,6 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
     await _prefs.setStringList(_cryptoRecentAlgorithmsKey, next);
   }
 
-  Future<void> setTopicCardStyle(TopicCardStyle style) async {
-    if (state.topicCardStyle == style) return;
-    state = state.copyWith(topicCardStyle: style);
-    // 排版层直读全局快照(免逐调用点透传);stamp 含 style 保证重排,
-    // evictAll 兜底清掉 LRU 里的旧排版
-    TopicCardStyleScope.current = style;
-    await _prefs.setString(_topicCardStyleKey, style.toJsonString());
-  }
-
   Future<void> setShowSignatures(bool enabled) async {
     state = state.copyWith(showSignatures: enabled);
     await _prefs.setBool(_showSignaturesKey, enabled);
@@ -1094,79 +932,12 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
   }
 
   /// 所有玻璃组件共用；保留档位，关闭后再开启不会重置选择。
-  Future<void> setGlassEnabled(bool enabled) async {
-    state = state.copyWith(glassEnabled: enabled);
-    await _prefs.setBool(_glassEnabledKey, enabled);
-  }
-
-  Future<void> setGlassEffectLevel(GlassEffectLevel level) async {
-    state = state.copyWith(glassEffectLevel: level);
-    await _prefs.setString(_glassEffectLevelKey, level.name);
-  }
-
   /// 设置 Android 屏幕刷新率偏好（0 = auto，其它为目标刷新率整数）。
   /// 实际生效由调用方在写入后调用 FlutterDisplayMode.setPreferredMode 完成。
   Future<void> setDisplayModeRefreshRate(int rate) async {
     if (state.displayModeRefreshRate == rate) return;
     state = state.copyWith(displayModeRefreshRate: rate);
     await _prefs.setInt(_displayModeRefreshRateKey, rate);
-  }
-
-  Future<void> setProgressGesturesEnabled(bool enabled) async {
-    if (state.progressGesturesEnabled == enabled) return;
-    state = state.copyWith(progressGesturesEnabled: enabled);
-    await _prefs.setBool(_progressGesturesEnabledKey, enabled);
-  }
-
-  Future<void> setProgressGestureSwipeLeft(ProgressGestureAction action) async {
-    if (state.progressGestureSwipeLeft == action) return;
-    state = state.copyWith(progressGestureSwipeLeft: action);
-    await _prefs.setString(_progressGestureSwipeLeftKey, action.name);
-  }
-
-  Future<void> setProgressGestureSwipeRight(
-    ProgressGestureAction action,
-  ) async {
-    if (state.progressGestureSwipeRight == action) return;
-    state = state.copyWith(progressGestureSwipeRight: action);
-    await _prefs.setString(_progressGestureSwipeRightKey, action.name);
-  }
-
-  Future<void> setProgressGestureSwipeUp(ProgressGestureAction action) async {
-    if (state.progressGestureSwipeUp == action) return;
-    state = state.copyWith(progressGestureSwipeUp: action);
-    await _prefs.setString(_progressGestureSwipeUpKey, action.name);
-  }
-
-  Future<void> setProgressGestureLongPressEnabled(bool enabled) async {
-    if (state.progressGestureLongPressEnabled == enabled) return;
-    state = state.copyWith(progressGestureLongPressEnabled: enabled);
-    await _prefs.setBool(_progressGestureLongPressEnabledKey, enabled);
-  }
-
-  Future<void> setProgressGestureMenuActions(
-    List<ProgressGestureAction> actions,
-  ) async {
-    final deduped = <ProgressGestureAction>[];
-    for (final a in actions) {
-      if (!deduped.contains(a)) deduped.add(a);
-      if (deduped.length >= kProgressGestureMenuMax) break;
-    }
-    if (const ListEquality<ProgressGestureAction>().equals(
-      state.progressGestureMenuActions,
-      deduped,
-    )) {
-      return;
-    }
-    state = state.copyWith(progressGestureMenuActions: deduped);
-    await _prefs.setStringList(
-      _progressGestureMenuActionsKey,
-      deduped.map((e) => e.name).toList(),
-    );
-  }
-
-  Future<void> resetProgressGestureMenuActions() async {
-    await setProgressGestureMenuActions(_defaultProgressGestureMenu);
   }
 
   /// 按用户顺序保存富文本工具栏固定工具。
@@ -1218,29 +989,3 @@ final preferencesProvider =
       final prefs = ref.watch(sharedPreferencesProvider);
       return PreferencesNotifier(prefs);
     });
-
-ProgressGestureAction _readGestureAction(
-  String? raw,
-  ProgressGestureAction fallback,
-) {
-  if (raw == null) return fallback;
-  for (final a in ProgressGestureAction.values) {
-    if (a.name == raw) return a;
-  }
-  return fallback;
-}
-
-List<ProgressGestureAction> _readGestureMenuActions(List<String>? raw) {
-  if (raw == null) return _defaultProgressGestureMenu;
-  final out = <ProgressGestureAction>[];
-  for (final name in raw) {
-    for (final a in ProgressGestureAction.values) {
-      if (a.name == name && !out.contains(a)) {
-        out.add(a);
-        break;
-      }
-    }
-    if (out.length >= kProgressGestureMenuMax) break;
-  }
-  return out;
-}

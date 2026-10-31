@@ -49,7 +49,7 @@ class AppIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = IconTheme.of(context);
     final effectiveSize = size ?? theme.size ?? 24;
-    final effectiveColor = color ?? theme.color ?? Colors.black;
+    final effectiveColor = color ?? theme.color ?? const Color.fromARGB(255, 0, 0, 0);
     final effectiveFill = fill ?? theme.fill ?? 0;
 
     final spec = icon is IconData

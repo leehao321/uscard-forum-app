@@ -1,6 +1,6 @@
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../l10n/s.dart';
 import '../../../../models/topic.dart';
@@ -61,7 +61,7 @@ class PostNoticeWidget extends StatelessWidget {
       case 'new_user':
         return _buildTextNotice(
           theme,
-          icon: FontAwesomeIcons.handsClapping,
+          icon: AppIcons.handHeart,
           iconColor: iconColor,
           text: S.current.post_firstPostNotice(username),
         );
@@ -72,7 +72,7 @@ class PostNoticeWidget extends StatelessWidget {
             : S.current.post_longTimeAgo;
         return _buildTextNotice(
           theme,
-          icon: FontAwesomeIcons.solidHandPointRight,
+          icon: AppIcons.forward,
           iconColor: iconColor,
           text: S.current.post_returningUserNotice(username, timeText),
         );
@@ -83,8 +83,8 @@ class PostNoticeWidget extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.only(top: 2),
-                child: FaIcon(
-                  FontAwesomeIcons.triangleExclamation,
+                child: Icon(
+                  AppIcons.warning,
                   size: 14,
                   color: iconColor,
                 ),
@@ -113,7 +113,7 @@ class PostNoticeWidget extends StatelessWidget {
 
   Widget _buildTextNotice(
     ThemeData theme, {
-    required FaIconData icon,
+    required IconData icon,
     required Color iconColor,
     required String text,
   }) {
@@ -122,7 +122,7 @@ class PostNoticeWidget extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 2),
-          child: FaIcon(icon, size: 14, color: iconColor),
+          child: Icon(icon, size: 14, color: iconColor),
         ),
         const SizedBox(width: 8),
         Expanded(

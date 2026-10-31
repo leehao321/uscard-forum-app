@@ -18,11 +18,9 @@ import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:app_icons/app_icons.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../l10n/s.dart';
-import 'composer_action_menu.dart';
 
 class CursorSwipeControl extends StatefulWidget {
   const CursorSwipeControl({
@@ -244,21 +242,23 @@ class _CursorSwipeControlState extends State<CursorSwipeControl> {
       (s.composer_cursorDown, AppIcons.down),
       (s.composer_cursorSelect, AppIcons.selectAll),
     ];
-    final picked = await showComposerActionMenu<int>(
+    final box = context.findRenderObject();
+    if (box is! RenderBox || !box.hasSize) return;
+    final picked = await showAppMenu<int>(
       context: context,
-      items: [
-        for (var i = 0; i < entries.length; i++)
-          PopupMenuItem(
-            value: i,
-            child: Row(
-              children: [
-                Icon(entries[i].$2, size: 20),
-                const SizedBox(width: 12),
-                Text(entries[i].$1),
-                if (i == 4 && _selecting) const Icon(AppIcons.check, size: 18),
-              ],
+      anchor: box.localToGlobal(Offset.zero) & box.size,
+      // 编辑中的菜单不抢输入焦点，不收键盘
+      requestFocus: false,
+      sections: [
+        [
+          for (var i = 0; i < entries.length; i++)
+            AppMenuItem<int>(
+              label: entries[i].$1,
+              value: i,
+              icon: entries[i].$2,
+              checked: i == 4 && _selecting,
             ),
-          ),
+        ],
       ],
     );
     if (!mounted || picked == null) return;
@@ -311,8 +311,8 @@ class _CursorSwipeControlState extends State<CursorSwipeControl> {
           ),
           child: _selecting
               ? Icon(AppIcons.textSelect, size: 20, color: scheme.primary)
-              : FaIcon(
-                  FontAwesomeIcons.iCursor,
+              : Icon(
+                  AppIcons.textCursor,
                   size: 19,
                   color: active ? scheme.primary : scheme.onSurfaceVariant,
                 ),

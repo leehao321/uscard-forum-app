@@ -43,9 +43,9 @@ extension NavTapActionX on NavTapAction {
       case NavTapAction.none:
         return null;
       case NavTapAction.scrollToTop:
-        return Symbols.keyboard_double_arrow_up_rounded;
+        return AppIcons.toTop;
       case NavTapAction.refresh:
-        return Symbols.refresh_rounded;
+        return AppIcons.refresh;
     }
   }
 

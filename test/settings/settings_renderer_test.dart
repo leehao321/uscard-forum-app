@@ -26,7 +26,7 @@ void main() {
                     id: 'wrapping-action',
                     title: '长说明功能',
                     subtitle: subtitle,
-                    icon: Symbols.info_rounded,
+                    icon: AppIcons.info,
                     wrapSubtitle: wrap,
                     onTap: (_, _) {},
                   ),

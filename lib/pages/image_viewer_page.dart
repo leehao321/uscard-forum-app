@@ -845,53 +845,41 @@ class _ImageViewerPageState extends ConsumerState<ImageViewerPage>
     if (widget.imageBytes == null) return;
 
     if (PlatformUtils.isDesktop && position != null) {
-      final overlayRenderObject = Overlay.of(context).context
-          .findRenderObject();
-      if (overlayRenderObject is RenderBox && overlayRenderObject.hasSize) {
-        final relativeRect = RelativeRect.fromRect(
-          position & Size.zero,
-          Offset.zero & overlayRenderObject.size,
-        );
-        showSwipeDismissibleMenu<String>(
-          context: context,
-          position: relativeRect,
-          items: [
-            PopupMenuItem(
+      showAppMenu<String>(
+        context: context,
+        anchor: position & Size.zero,
+        sections: [
+          [
+            AppMenuItem<String>(
+              label: ImageSaveUtils.actionLabel,
               value: 'save',
-              child: _BytesMenuRow(
-                icon: AppIcons.saveAlt,
-                label: ImageSaveUtils.actionLabel,
-              ),
+              icon: AppIcons.saveAlt,
             ),
-            PopupMenuItem(
+            AppMenuItem<String>(
+              label: S.current.image_copyImage,
               value: 'copy',
-              child: _BytesMenuRow(
-                icon: AppIcons.copy,
-                label: S.current.image_copyImage,
-              ),
+              icon: AppIcons.copy,
             ),
             // Linux 上 share_plus 不支持分享文件,隐藏该项
             if (ShareUtils.canShareFiles)
-              PopupMenuItem(
+              AppMenuItem<String>(
+                label: S.current.common_shareImage,
                 value: 'share',
-                child: _BytesMenuRow(
-                  icon: AppIcons.share,
-                  label: S.current.common_shareImage,
-                ),
+                icon: AppIcons.share,
               ),
           ],
-        ).then((value) {
-          switch (value) {
-            case 'save':
-              _saveMemoryImage();
-            case 'copy':
-              _copyMemoryImage();
-            case 'share':
-              _shareMemoryImage();
-          }
-        });
-        return;
-      }
+        ],
+      ).then((value) {
+        switch (value) {
+          case 'save':
+            _saveMemoryImage();
+          case 'copy':
+            _copyMemoryImage();
+          case 'share':
+            _shareMemoryImage();
+        }
+      });
+      return;
     }
 
     showViewerActionSheet(context, [
@@ -1504,20 +1492,6 @@ class _ImageDecodeFallbackState extends State<_ImageDecodeFallback> {
         size: 64,
         color: AppFixedColors.white54,
       ),
-    );
-  }
-}
-
-class _BytesMenuRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _BytesMenuRow({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [Icon(icon, size: 20), const SizedBox(width: 12), Text(label)],
     );
   }
 }

@@ -321,14 +321,12 @@ class MarkdownEditorState extends ConsumerState<MarkdownEditor> {
           run: () => run(() => tool.action?.call(toolbar)),
           children: tool.hasMenu
               ? [
-                  for (final item
-                      in tool.menuItems!(S.current)
-                          .whereType<PopupMenuItem<String>>())
+                  for (final item in tool.menuItems!(S.current))
                     if (item.value != null)
                       ComposerToolAction(
                         id: '${tool.id}.${item.value}',
                         label:
-                            '${tool.id == 'callout' ? '${tool.label(S.current)} · ' : ''}${item.child is Text ? (item.child as Text).data : item.value}',
+                            '${tool.id == 'callout' ? '${tool.label(S.current)} · ' : ''}${item.label}',
                         icon: tool.icon,
                         searchText: '${tool.id} ${item.value}',
                         group: formatTools.contains(tool.id)

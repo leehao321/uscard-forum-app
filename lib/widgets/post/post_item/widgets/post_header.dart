@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../l10n/s.dart';
 import '../../../../constants.dart';
@@ -222,8 +221,8 @@ class PostHeader extends StatelessWidget {
                   // 版主盾牌图标（版主或分类群组版主）
                   if (post.moderator || post.groupModerator) ...[
                     const SizedBox(width: 4),
-                    FaIcon(
-                      FontAwesomeIcons.shieldHalved,
+                    Icon(
+                      AppIcons.shield,
                       size: 12,
                       color: theme.colorScheme.primary,
                     ),

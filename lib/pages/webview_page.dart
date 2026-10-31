@@ -190,43 +190,31 @@ class _WebViewPageState extends ConsumerState<WebViewPage> {
               onPressed: () => _controller?.reload(),
               tooltip: context.l10n.common_refresh,
             ),
-            SwipeDismissiblePopupMenuButton<String>(
+            AppMenuButton<String>(
+              icon: AppIcons.moreVert,
+              semanticLabel: context.l10n.common_more,
               onSelected: _handleMenuAction,
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'toggle_bookmark',
-                  child: Row(
-                    children: [
-                      Icon(AppIcons.star, fill: isBookmarked ? 1 : 0),
-                      const SizedBox(width: 8),
-                      Text(
-                        isBookmarked
-                            ? context.l10n.webview_removeBookmark
-                            : context.l10n.webview_addBookmark,
-                      ),
-                    ],
+              sectionsBuilder: (context) => [
+                [
+                  AppMenuItem<String>(
+                    label: isBookmarked
+                        ? context.l10n.webview_removeBookmark
+                        : context.l10n.webview_addBookmark,
+                    value: 'toggle_bookmark',
+                    icon: AppIcons.star,
+                    checked: isBookmarked,
                   ),
-                ),
-                PopupMenuItem(
-                  value: 'copy_url',
-                  child: Row(
-                    children: [
-                      const Icon(AppIcons.copy),
-                      const SizedBox(width: 8),
-                      Text(context.l10n.common_copyLink),
-                    ],
+                  AppMenuItem<String>(
+                    label: context.l10n.common_copyLink,
+                    value: 'copy_url',
+                    icon: AppIcons.copy,
                   ),
-                ),
-                PopupMenuItem(
-                  value: 'open_external',
-                  child: Row(
-                    children: [
-                      const Icon(AppIcons.openInNew),
-                      const SizedBox(width: 8),
-                      Text(context.l10n.webview_openExternal),
-                    ],
+                  AppMenuItem<String>(
+                    label: context.l10n.webview_openExternal,
+                    value: 'open_external',
+                    icon: AppIcons.openInNew,
                   ),
-                ),
+                ],
               ],
             ),
           ],

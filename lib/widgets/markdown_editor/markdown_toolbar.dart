@@ -1216,22 +1216,26 @@ class MarkdownToolbarState extends State<MarkdownToolbar> {
 
     if (tool.hasMenu) {
       final theme = Theme.of(context);
-      return SwipeDismissiblePopupMenuButton<String>(
-        icon: IconTheme.merge(
-          data: IconThemeData(
-            size: 16,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          child: icon,
-        ),
-        tooltip: tooltip,
-        itemBuilder: (context) => tool.menuItems!(s),
+      // 编辑器里弹菜单不能收起键盘：requestFocus: false
+      return AppMenuAnchor<String>(
+        semanticLabel: tooltip,
+        requestFocus: false,
+        sectionsBuilder: (context) => [tool.menuItems!(s)],
         onSelected: (value) => anchored
             ? tool.onMenuSelected!(this, value)
             : _desktopAction(() => tool.onMenuSelected!(this, value)),
-        padding: EdgeInsets.zero,
-        iconSize: 20,
-        style: IconButton.styleFrom(minimumSize: const Size.square(AppSize.hit)),
+        child: SizedBox.square(
+          dimension: AppSize.hit,
+          child: Center(
+            child: IconTheme.merge(
+              data: IconThemeData(
+                size: 20,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              child: icon,
+            ),
+          ),
+        ),
       );
     }
 

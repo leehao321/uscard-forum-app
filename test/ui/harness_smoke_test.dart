@@ -28,12 +28,11 @@ class _Probe extends StatelessWidget {
 void main() {
   setUpAll(loadUiFonts);
 
-  test('字体：MiSans、Material Symbols、Lucide 各字重', () {
+  test('字体：MiSans、Lucide 各字重', () {
     expect(
       loadedUiFonts,
       containsAll([
         'MiSans',
-        'packages/material_symbols_icons/MaterialSymbolsRounded',
         'packages/lucide_icons_flutter/Lucide',
         for (final w in [100, 200, 300, 400, 500, 600])
           'packages/lucide_icons_flutter/Lucide$w',

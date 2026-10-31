@@ -385,6 +385,26 @@ abstract final class AppIcons {
   static const moveRight = LucideIcons300.moveRight;
   static const skipForward = LucideIcons300.skipForward;
   // ---- /M10 X ----
+  // ---- M10 Z ----
+  static const textBold = LucideIcons300.bold;
+  static const textItalic = LucideIcons300.italic;
+  static const textStrike = LucideIcons300.strikethrough;
+  static const clipboard = LucideIcons300.clipboard;
+  static const fileCode = LucideIcons300.fileCode;
+  static const squarePlus = LucideIcons300.squarePlus;
+  static const alignLeft = LucideIcons300.textAlignStart;
+  static const textCursor = LucideIcons300.textCursor;
+  static const handHeart = LucideIcons300.handHeart;
+  // ---- /M10 Z ----
+  // ---- M10 收尾 ----
+  static const callout = LucideIcons300.messageSquareWarning;
+  static const squareCode = LucideIcons300.squareCode;
+  static const tableOfContents = LucideIcons300.tableOfContents;
+  static const heading1 = LucideIcons300.heading1;
+  static const heading2 = LucideIcons300.heading2;
+  static const heading3 = LucideIcons300.heading3;
+  // ---- /M10 收尾 ----
+
 
   // 表情 Tab 用的笑脸（更柔和，配合 fill 切实/空）
   static final AppCustomIcon smileyOutline = AppCustomIcon(
