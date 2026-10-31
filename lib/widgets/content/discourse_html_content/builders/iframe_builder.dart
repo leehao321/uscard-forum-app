@@ -1,3 +1,5 @@
+import 'package:common_ui/common_ui.dart';
+
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -6,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../../../../constants.dart';
 import '../../../../utils/layout_lock.dart';
 import '../../../../utils/url_helper.dart';
@@ -217,9 +220,8 @@ class _IframeWidgetState extends State<IframeWidget> with RouteAware {
       onRevoked: _deactivateWindowsWebView,
     );
     if (lease == null) {
-      ScaffoldMessenger.maybeOf(
-        context,
-      )?.showSnackBar(SnackBar(content: Text(S.current.common_pleaseWait)));
+      ScaffoldMessenger.maybeOf(context)
+          ?.showSnackBar(SnackBar(content: Text(S.current.common_pleaseWait)));
       return;
     }
     _browserLease = lease;
@@ -258,7 +260,7 @@ class _IframeWidgetState extends State<IframeWidget> with RouteAware {
         right: 0,
         child: Center(
           child: Material(
-            color: Colors.black87,
+            color: AppFixedColors.black87,
             borderRadius: BorderRadius.circular(20),
             child: InkWell(
               borderRadius: BorderRadius.circular(20),
@@ -272,14 +274,17 @@ class _IframeWidgetState extends State<IframeWidget> with RouteAware {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(
-                      Symbols.close_rounded,
+                      AppIcons.close,
                       size: 18,
-                      color: Colors.white,
+                      color: AppFixedColors.white,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       S.current.iframe_exitInteraction,
-                      style: TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(
+                        color: AppFixedColors.white,
+                        fontSize: AppFontSize.meta,
+                      ),
                     ),
                   ],
                 ),
@@ -408,7 +413,7 @@ class _IframeWidgetState extends State<IframeWidget> with RouteAware {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Symbols.play_circle_rounded,
+                          AppIcons.playCircle,
                           size: 48,
                           color: theme.colorScheme.primary,
                         ),
@@ -445,7 +450,7 @@ class _IframeWidgetState extends State<IframeWidget> with RouteAware {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Symbols.error_rounded,
+                      AppIcons.error,
                       size: 48,
                       color: theme.colorScheme.error,
                     ),
@@ -466,12 +471,12 @@ class _IframeWidgetState extends State<IframeWidget> with RouteAware {
               child: GestureDetector(
                 onTap: _enterInteractMode,
                 child: Container(
-                  color: Colors.black38,
+                  color: AppFixedColors.black38,
                   child: const Center(
                     child: Icon(
-                      Symbols.touch_app_rounded,
+                      AppIcons.touchApp,
                       size: 48,
-                      color: Colors.white70,
+                      color: AppFixedColors.white70,
                     ),
                   ),
                 ),

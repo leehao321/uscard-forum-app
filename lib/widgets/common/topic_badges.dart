@@ -1,6 +1,8 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import '../../models/category.dart';
 import '../../utils/url_helper.dart';
 import '../../services/discourse_cache_manager.dart';
@@ -24,7 +26,7 @@ class BadgeSize {
     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
     radius: 6,
     iconSize: 10,
-    fontSize: 10,
+    fontSize: AppFontSize.caption,
   );
 }
 
@@ -136,7 +138,7 @@ class RemovableTagBadge extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Icon(
-                Symbols.close_rounded,
+                AppIcons.close,
                 size: size.iconSize + 2,
                 color: theme.colorScheme.onSurfaceVariant.withValues(
                   alpha: 0.7,
@@ -183,7 +185,7 @@ class RemovableCategoryBadge extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                Symbols.category_rounded,
+                AppIcons.category,
                 size: size.iconSize,
                 color: theme.colorScheme.onSecondaryContainer,
               ),
@@ -197,7 +199,7 @@ class RemovableCategoryBadge extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Icon(
-                Symbols.close_rounded,
+                AppIcons.close,
                 size: size.iconSize + 2,
                 color: theme.colorScheme.onSecondaryContainer.withValues(
                   alpha: 0.7,
@@ -308,7 +310,7 @@ class CategoryBadge extends StatelessWidget {
   }
 
   Widget _buildCategoryLock(Color color) {
-    return Icon(Symbols.lock_rounded, size: size.iconSize, color: color);
+    return Icon(AppIcons.lock, size: size.iconSize, color: color);
   }
 
   Color _parseColor(String hex) {
@@ -316,6 +318,6 @@ class CategoryBadge extends StatelessWidget {
     if (clean.length == 6) {
       return Color(int.parse('0xFF$clean'));
     }
-    return Colors.grey;
+    return AppFixedColors.neutralGrey;
   }
 }

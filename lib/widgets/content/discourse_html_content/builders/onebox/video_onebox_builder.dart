@@ -1,5 +1,7 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
+
 import '../../../../../utils/link_launcher.dart';
 import '../../../../../services/discourse_cache_manager.dart';
 import 'onebox_base.dart';
@@ -14,12 +16,16 @@ class VideoOneboxBuilder {
     List<LinkCount>? linkCounts,
   }) {
     final url = extractUrl(element);
-    final clickCount = extractClickCountFromOnebox(element, linkCounts: linkCounts);
+    final clickCount = extractClickCountFromOnebox(
+      element,
+      linkCounts: linkCounts,
+    );
 
     // 提取标题
     final h4Element = element.querySelector('h4');
     final h3Element = element.querySelector('h3');
-    final titleLink = h4Element?.querySelector('a') ?? h3Element?.querySelector('a');
+    final titleLink =
+        h4Element?.querySelector('a') ?? h3Element?.querySelector('a');
     final title = titleLink?.text ?? '';
 
     // 提取视频 ID 和缩略图
@@ -29,8 +35,8 @@ class VideoOneboxBuilder {
         : (element.querySelector('img')?.attributes['src'] ?? '');
 
     // 提取频道信息
-    final channelElement = element.querySelector('.channel') ??
-        element.querySelector('.author');
+    final channelElement =
+        element.querySelector('.channel') ?? element.querySelector('.author');
     final channel = channelElement?.text?.trim() ?? '';
 
     // 提取描述
@@ -38,12 +44,14 @@ class VideoOneboxBuilder {
     final description = descElement?.text ?? '';
 
     // 提取时长
-    final durationElement = element.querySelector('.duration') ??
+    final durationElement =
+        element.querySelector('.duration') ??
         element.querySelector('.video-duration');
     final duration = durationElement?.text?.trim() ?? '';
 
     // 提取观看数
-    final viewsElement = element.querySelector('.views') ??
+    final viewsElement =
+        element.querySelector('.views') ??
         element.querySelector('.video-views');
     final views = viewsElement?.text?.trim() ?? '';
 
@@ -61,32 +69,33 @@ class VideoOneboxBuilder {
               AspectRatio(
                 aspectRatio: 16 / 9,
                 child: ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(7)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(7),
+                  ),
                   child: thumbnailUrl.isNotEmpty
                       ? Image(
                           image: discourseImageProvider(thumbnailUrl),
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              color: Colors.black,
+                              color: AppFixedColors.black,
                               child: const Center(
                                 child: Icon(
-                                  Symbols.video_library_rounded,
+                                  AppIcons.videoLibrary,
                                   size: 48,
-                                  color: Colors.white54,
+                                  color: AppFixedColors.white54,
                                 ),
                               ),
                             );
                           },
                         )
                       : Container(
-                          color: Colors.black,
+                          color: AppFixedColors.black,
                           child: const Center(
                             child: Icon(
-                              Symbols.video_library_rounded,
+                              AppIcons.videoLibrary,
                               size: 48,
-                              color: Colors.white54,
+                              color: AppFixedColors.white54,
                             ),
                           ),
                         ),
@@ -97,12 +106,12 @@ class VideoOneboxBuilder {
                 width: 60,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFF0000),
+                  color: AppRawColors.cFFFF0000,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
-                  Symbols.play_arrow_rounded,
-                  color: Colors.white,
+                  AppIcons.play,
+                  color: AppFixedColors.white,
                   size: 32,
                 ),
               ),
@@ -112,17 +121,19 @@ class VideoOneboxBuilder {
                   right: 8,
                   bottom: 8,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.8),
+                      color: AppFixedColors.black.withValues(alpha: 0.8),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       duration,
                       style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
+                        color: AppFixedColors.white,
+                        fontSize: AppFontSize.meta,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -152,9 +163,9 @@ class VideoOneboxBuilder {
                   children: [
                     // YouTube 图标
                     const Icon(
-                      Symbols.play_circle_rounded,
+                      AppIcons.playCircle,
                       size: 16,
-                      color: Color(0xFFFF0000),
+                      color: AppRawColors.cFFFF0000,
                     ),
                     const SizedBox(width: 6),
                     if (channel.isNotEmpty)
@@ -208,12 +219,16 @@ class VideoOneboxBuilder {
     List<LinkCount>? linkCounts,
   }) {
     final url = extractUrl(element);
-    final clickCount = extractClickCountFromOnebox(element, linkCounts: linkCounts);
+    final clickCount = extractClickCountFromOnebox(
+      element,
+      linkCounts: linkCounts,
+    );
 
     // 提取标题
     final h4Element = element.querySelector('h4');
     final h3Element = element.querySelector('h3');
-    final titleLink = h4Element?.querySelector('a') ?? h3Element?.querySelector('a');
+    final titleLink =
+        h4Element?.querySelector('a') ?? h3Element?.querySelector('a');
     final title = titleLink?.text ?? '';
 
     // 提取缩略图
@@ -242,32 +257,33 @@ class VideoOneboxBuilder {
               AspectRatio(
                 aspectRatio: 16 / 9,
                 child: ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(7)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(7),
+                  ),
                   child: thumbnailUrl.isNotEmpty
                       ? Image(
                           image: discourseImageProvider(thumbnailUrl),
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              color: const Color(0xFF1ab7ea),
+                              color: AppRawColors.cFF1AB7EA,
                               child: const Center(
                                 child: Icon(
-                                  Symbols.play_circle_rounded,
+                                  AppIcons.playCircle,
                                   size: 48,
-                                  color: Colors.white,
+                                  color: AppFixedColors.white,
                                 ),
                               ),
                             );
                           },
                         )
                       : Container(
-                          color: const Color(0xFF1ab7ea),
+                          color: AppRawColors.cFF1AB7EA,
                           child: const Center(
                             child: Icon(
-                              Symbols.play_circle_rounded,
+                              AppIcons.playCircle,
                               size: 48,
-                              color: Colors.white,
+                              color: AppFixedColors.white,
                             ),
                           ),
                         ),
@@ -278,12 +294,12 @@ class VideoOneboxBuilder {
                 width: 56,
                 height: 56,
                 decoration: const BoxDecoration(
-                  color: Color(0xFF1ab7ea),
+                  color: AppRawColors.cFF1AB7EA,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Symbols.play_arrow_rounded,
-                  color: Colors.white,
+                  AppIcons.play,
+                  color: AppFixedColors.white,
                   size: 32,
                 ),
               ),
@@ -314,13 +330,13 @@ class VideoOneboxBuilder {
                       width: 16,
                       height: 16,
                       decoration: const BoxDecoration(
-                        color: Color(0xFF1ab7ea),
+                        color: AppRawColors.cFF1AB7EA,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
-                        Symbols.play_arrow_rounded,
+                        AppIcons.play,
                         size: 10,
-                        color: Colors.white,
+                        color: AppFixedColors.white,
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -366,12 +382,16 @@ class VideoOneboxBuilder {
     List<LinkCount>? linkCounts,
   }) {
     final url = extractUrl(element);
-    final clickCount = extractClickCountFromOnebox(element, linkCounts: linkCounts);
+    final clickCount = extractClickCountFromOnebox(
+      element,
+      linkCounts: linkCounts,
+    );
 
     // 提取标题
     final h4Element = element.querySelector('h4');
     final h3Element = element.querySelector('h3');
-    final titleLink = h4Element?.querySelector('a') ?? h3Element?.querySelector('a');
+    final titleLink =
+        h4Element?.querySelector('a') ?? h3Element?.querySelector('a');
     final title = titleLink?.text ?? '';
 
     // 提取缩略图
@@ -396,32 +416,33 @@ class VideoOneboxBuilder {
               AspectRatio(
                 aspectRatio: 16 / 9,
                 child: ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(7)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(7),
+                  ),
                   child: thumbnailUrl.isNotEmpty
                       ? Image(
                           image: discourseImageProvider(thumbnailUrl),
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              color: const Color(0xFF625DF5),
+                              color: AppRawColors.cFF625DF5,
                               child: const Center(
                                 child: Icon(
-                                  Symbols.videocam_rounded,
+                                  AppIcons.video,
                                   size: 48,
-                                  color: Colors.white,
+                                  color: AppFixedColors.white,
                                 ),
                               ),
                             );
                           },
                         )
                       : Container(
-                          color: const Color(0xFF625DF5),
+                          color: AppRawColors.cFF625DF5,
                           child: const Center(
                             child: Icon(
-                              Symbols.videocam_rounded,
+                              AppIcons.video,
                               size: 48,
-                              color: Colors.white,
+                              color: AppFixedColors.white,
                             ),
                           ),
                         ),
@@ -432,12 +453,12 @@ class VideoOneboxBuilder {
                 width: 56,
                 height: 56,
                 decoration: const BoxDecoration(
-                  color: Color(0xFF625DF5),
+                  color: AppRawColors.cFF625DF5,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Symbols.play_arrow_rounded,
-                  color: Colors.white,
+                  AppIcons.play,
+                  color: AppFixedColors.white,
                   size: 32,
                 ),
               ),
@@ -454,16 +475,18 @@ class VideoOneboxBuilder {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF625DF5),
+                        color: AppRawColors.cFF625DF5,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: const Text(
                         'Loom',
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
+                          color: AppFixedColors.white,
+                          fontSize: AppFontSize.caption,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -529,4 +552,3 @@ Future<void> _launchUrl(BuildContext context, String url) async {
   if (url.isEmpty) return;
   await launchContentLink(context, url);
 }
-

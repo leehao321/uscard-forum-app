@@ -1,3 +1,5 @@
+import 'package:common_ui/common_ui.dart';
+
 import 'dart:io' show Platform;
 
 import 'package:dio/dio.dart';
@@ -11,6 +13,7 @@ import 'local_notification_service.dart' show navigatorKey;
 import 'network/cookie/cookie_jar_service.dart';
 import 'toast_service.dart';
 import 'user_api_key_service.dart';
+
 import 'package:m3e_ui/m3e_ui.dart';
 
 /// 浏览器授权登录流程编排
@@ -201,7 +204,7 @@ class _AuthLoadingOverlay extends StatelessWidget {
     final theme = Theme.of(context);
     return Positioned.fill(
       child: ColoredBox(
-        color: Colors.black.withValues(alpha: 0.45),
+        color: AppFixedColors.black.withValues(alpha: 0.45),
         child: Center(
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),

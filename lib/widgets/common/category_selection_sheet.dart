@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -48,7 +49,7 @@ class _CategorySelectionSheetState extends State<CategorySelectionSheet> {
     if (hex.length == 6) {
       return Color(int.parse('0xFF$hex'));
     }
-    return Colors.grey;
+    return AppFixedColors.neutralGrey;
   }
 
   List<_CategoryItem> _buildList() {
@@ -129,7 +130,9 @@ class _CategorySelectionSheetState extends State<CategorySelectionSheet> {
                               controller: _searchController,
                               focusNode: _searchFocusNode,
                               textAlignVertical: TextAlignVertical.center,
-                              style: const TextStyle(fontSize: 16),
+                              style: const TextStyle(
+                                fontSize: AppFontSize.body,
+                              ),
                               decoration: InputDecoration(
                                 hintText: context.l10n.category_searchHint,
                                 hintStyle: TextStyle(
@@ -142,14 +145,14 @@ class _CategorySelectionSheetState extends State<CategorySelectionSheet> {
                                   right: 12,
                                 ),
                                 prefixIcon: Icon(
-                                  Symbols.search_rounded,
+                                  AppIcons.search,
                                   size: 20,
                                   color: theme.colorScheme.onSurface,
                                 ),
                                 suffixIcon: _searchQuery.isNotEmpty
                                     ? IconButton(
                                         icon: const Icon(
-                                          Symbols.cancel_rounded,
+                                          AppIcons.cancelCircle,
                                           size: 18,
                                         ),
                                         color:
@@ -244,7 +247,7 @@ class _CategorySelectionSheetState extends State<CategorySelectionSheet> {
                                                   right: 6,
                                                 ),
                                                 child: Icon(
-                                                  Symbols.lock_rounded,
+                                                  AppIcons.lock,
                                                   size: 14,
                                                   color: theme
                                                       .colorScheme
@@ -286,7 +289,7 @@ class _CategorySelectionSheetState extends State<CategorySelectionSheet> {
                                   ),
                                   if (isSelected)
                                     Icon(
-                                      Symbols.check_rounded,
+                                      AppIcons.check,
                                       color: theme.colorScheme.primary,
                                     ),
                                 ],

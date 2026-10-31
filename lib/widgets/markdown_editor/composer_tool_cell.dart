@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 
@@ -107,7 +108,7 @@ class ToolCellBody extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: AppFontSize.meta,
             color: theme.colorScheme.onSurfaceVariant,
           ),
           maxLines: 1,

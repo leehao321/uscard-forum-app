@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
+
 import '../../providers/topic_list/filter_provider.dart';
 import '../../providers/topic_list/sort_provider.dart';
 import '../common/topic_badges.dart';
@@ -97,32 +99,31 @@ class SortAndTagsBar extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  ...selectedTags.map((tag) => Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: RemovableTagBadge(
-                      name: tag,
-                      onDeleted: () => onTagRemoved(tag),
-                      size: const BadgeSize(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        radius: 6,
-                        iconSize: 12,
-                        fontSize: 12,
+                  ...selectedTags.map(
+                    (tag) => Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: RemovableTagBadge(
+                        name: tag,
+                        onDeleted: () => onTagRemoved(tag),
+                        size: const BadgeSize(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          radius: 6,
+                          iconSize: 12,
+                          fontSize: AppFontSize.meta,
+                        ),
                       ),
                     ),
-                  )),
+                  ),
                   if (onAddTag != null)
-                    _AddTagButton(
-                      colorScheme: colorScheme,
-                      onTap: onAddTag!,
-                    ),
+                    _AddTagButton(colorScheme: colorScheme, onTap: onAddTag!),
                 ],
               ),
             ),
           ),
-          if (trailing != null) ...[
-            const SizedBox(width: 8),
-            trailing!,
-          ],
+          if (trailing != null) ...[const SizedBox(width: 8), trailing!],
         ],
       ),
     );
@@ -133,10 +134,7 @@ class _AddTagButton extends StatelessWidget {
   final ColorScheme colorScheme;
   final VoidCallback onTap;
 
-  const _AddTagButton({
-    required this.colorScheme,
-    required this.onTap,
-  });
+  const _AddTagButton({required this.colorScheme, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -154,9 +152,9 @@ class _AddTagButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Symbols.add_rounded, size: 14, color: colorScheme.onSurfaceVariant),
+            Icon(AppIcons.add, size: 14, color: colorScheme.onSurfaceVariant),
             const SizedBox(width: 2),
-            Icon(Symbols.label_rounded, size: 14, color: colorScheme.onSurfaceVariant),
+            Icon(AppIcons.tag, size: 14, color: colorScheme.onSurfaceVariant),
           ],
         ),
       ),

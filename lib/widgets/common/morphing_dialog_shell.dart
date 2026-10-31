@@ -1,3 +1,5 @@
+import 'package:common_ui/common_ui.dart';
+
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -344,7 +346,7 @@ class _RenderDialogSurface extends RenderShiftedBox {
     final effects = Curves.easeOutCubic.transform(_openness);
     context.canvas.drawShadow(
       Path()..addRRect(shape),
-      Colors.black.withValues(alpha: 0.22 * _surfaceOpacity),
+      AppFixedColors.black.withValues(alpha: 0.22 * _surfaceOpacity),
       12 * effects,
       true,
     );
@@ -405,7 +407,7 @@ class _RenderDialogSurface extends RenderShiftedBox {
               imageSize.height,
             ),
             Paint()
-              ..color = Colors.white.withValues(alpha: sourceOpacity)
+              ..color = AppFixedColors.white.withValues(alpha: sourceOpacity)
               ..filterQuality = FilterQuality.medium,
           );
         }

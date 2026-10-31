@@ -903,7 +903,7 @@ class _EmojiSearchSheetState extends State<_EmojiSearchSheet> {
                       controller: _searchController,
                       focusNode: _searchFocusNode,
                       textAlignVertical: TextAlignVertical.center,
-                      style: const TextStyle(fontSize: 16),
+                      style: const TextStyle(fontSize: AppFontSize.body),
                       decoration: InputDecoration(
                         hintText: S.current.emoji_searchHint,
                         hintStyle: TextStyle(

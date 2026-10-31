@@ -1,3 +1,4 @@
+import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 
@@ -24,7 +25,7 @@ class AdaptiveMenuItem<T> {
 /// 分隔线占位(两个平台各自渲染合适的分隔形态)
 class AdaptiveMenuDivider<T> extends AdaptiveMenuItem<T?> {
   const AdaptiveMenuDivider()
-    : super(value: null, icon: Icons.remove, label: '');
+    : super(value: null, icon: AppIcons.remove, label: '');
 }
 
 /// 双模式菜单:桌面 = 锚点弹出菜单(showSwipeDismissibleMenu,项目标准
@@ -134,9 +135,8 @@ Future<T?> showAdaptiveMenu<T>({
               height: 8,
               indent: 16,
               endIndent: 16,
-              color: Theme.of(
-                sheetContext,
-              ).colorScheme.outlineVariant.withValues(alpha: 0.4),
+              color: Theme.of(sheetContext).colorScheme.outlineVariant
+                  .withValues(alpha: 0.4),
             )
           else
             ListTile(

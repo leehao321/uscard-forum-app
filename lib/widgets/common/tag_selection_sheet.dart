@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:m3e_ui/m3e_ui.dart';
+
 import 'dart:async';
+
 import 'package:fluxdo/l10n/s.dart';
 import 'package:fluxdo/models/tag_search_result.dart';
 import 'package:fluxdo/services/discourse/discourse_service.dart';
@@ -238,7 +240,7 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
                         child: Row(
                           children: [
                             Icon(
-                              Symbols.info_rounded,
+                              AppIcons.info,
                               size: 16,
                               color: theme.colorScheme.primary,
                             ),
@@ -272,7 +274,9 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
                               controller: _searchController,
                               focusNode: _searchFocusNode,
                               textAlignVertical: TextAlignVertical.center,
-                              style: const TextStyle(fontSize: 16),
+                              style: const TextStyle(
+                                fontSize: AppFontSize.body,
+                              ),
                               decoration: InputDecoration(
                                 hintText: hintText,
                                 hintStyle: TextStyle(
@@ -287,7 +291,7 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
                                             : theme
                                                   .colorScheme
                                                   .onSurfaceVariant),
-                                  fontSize: 14,
+                                  fontSize: AppFontSize.meta,
                                 ),
                                 border: InputBorder.none,
                                 isDense: true,
@@ -305,14 +309,14 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
                                         child: LoadingSpinner(size: 20),
                                       )
                                     : Icon(
-                                        Symbols.search_rounded,
+                                        AppIcons.search,
                                         size: 20,
                                         color: theme.colorScheme.onSurface,
                                       ),
                                 suffixIcon: _searchController.text.isNotEmpty
                                     ? IconButton(
                                         icon: const Icon(
-                                          Symbols.cancel_rounded,
+                                          AppIcons.cancelCircle,
                                           size: 18,
                                         ),
                                         color:
@@ -363,7 +367,7 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
                           ),
                           radius: 8,
                           iconSize: 12,
-                          fontSize: 13,
+                          fontSize: AppFontSize.meta,
                         ),
                       );
                     }).toList(),
@@ -403,7 +407,7 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
                                 ),
                                 radius: 6,
                                 iconSize: 12,
-                                fontSize: 12,
+                                fontSize: AppFontSize.meta,
                               ),
                               backgroundColor: Colors.transparent,
                             ),
@@ -413,11 +417,11 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
                             trailing:
                                 _currentSelectedTags.length >= widget.maxTags
                                 ? Icon(
-                                    Symbols.block_rounded,
+                                    AppIcons.block,
                                     color: theme.colorScheme.outline,
                                   )
                                 : Icon(
-                                    Symbols.add_circle_rounded,
+                                    AppIcons.addCircle,
                                     color: theme.colorScheme.primary,
                                   ),
                             onTap: () => _toggleTag(tag.name),

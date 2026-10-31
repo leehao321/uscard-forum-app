@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
+
 import '../../l10n/s.dart';
 
 /// 悄悄话（Whisper）指示器组件
@@ -10,7 +12,7 @@ class WhisperIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -25,7 +27,7 @@ class WhisperIndicator extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Symbols.visibility_off_rounded,
+            AppIcons.visibilityOff,
             size: 12,
             color: theme.colorScheme.tertiary,
           ),
@@ -35,7 +37,7 @@ class WhisperIndicator extends StatelessWidget {
             style: theme.textTheme.labelSmall?.copyWith(
               color: theme.colorScheme.tertiary,
               fontWeight: FontWeight.w500,
-              fontSize: 10,
+              fontSize: AppFontSize.caption,
             ),
           ),
         ],

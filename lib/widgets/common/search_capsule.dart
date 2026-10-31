@@ -1,3 +1,5 @@
+import 'package:common_ui/common_ui.dart';
+
 import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
@@ -55,7 +57,7 @@ class SearchCapsule extends StatelessWidget {
             children: [
               SizedBox(width: iconLeftPadding),
               Icon(
-                Symbols.search_rounded,
+                AppIcons.search,
                 size: iconSize,
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -73,7 +75,7 @@ class SearchCapsule extends StatelessWidget {
                             overflow: TextOverflow.clip,
                             style: TextStyle(
                               color: colorScheme.onSurfaceVariant,
-                              fontSize: 14,
+                              fontSize: AppFontSize.meta,
                             ),
                           ),
                         ),
@@ -129,7 +131,7 @@ class _SearchCapsuleFlight extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final hintStyle = TextStyle(
       color: colorScheme.onSurfaceVariant,
-      fontSize: 14,
+      fontSize: AppFontSize.meta,
     );
     return MediaQuery.withClampedTextScaling(
       maxScaleFactor: 1.2,
@@ -193,7 +195,7 @@ class _SearchCapsuleFlight extends StatelessWidget {
                     child: Opacity(
                       opacity: 1.0 - v,
                       child: Icon(
-                        Symbols.search_rounded,
+                        AppIcons.search,
                         size: iconSize,
                         color: colorScheme.onSurfaceVariant,
                       ),

@@ -316,7 +316,7 @@ class _ChatUploadTile extends StatelessWidget {
                   right: 0,
                   bottom: 0,
                   child: ColoredBox(
-                    color: Colors.black.withValues(alpha: 0.65),
+                    color: AppFixedColors.black.withValues(alpha: 0.65),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -330,7 +330,7 @@ class _ChatUploadTile extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: Colors.white,
+                              color: AppFixedColors.white,
                             ),
                           ),
                         ),
@@ -338,7 +338,7 @@ class _ChatUploadTile extends StatelessWidget {
                           LinearProgressIndicator(
                             value: fraction,
                             minHeight: 2,
-                            backgroundColor: Colors.white24,
+                            backgroundColor: AppFixedColors.white24,
                           ),
                       ],
                     ),
@@ -353,7 +353,7 @@ class _ChatUploadTile extends StatelessWidget {
                       child: const Center(
                         child: Icon(
                           AppIcons.refresh,
-                          color: Colors.white,
+                          color: AppFixedColors.white,
                           shadows: [Shadow(blurRadius: 4)],
                         ),
                       ),
@@ -396,13 +396,13 @@ class _ChatUploadTile extends StatelessWidget {
                   icon: Container(
                     padding: const EdgeInsets.all(3),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.6),
+                      color: AppFixedColors.black.withValues(alpha: 0.6),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       AppIcons.close,
                       size: 14,
-                      color: Colors.white,
+                      color: AppFixedColors.white,
                     ),
                   ),
                 ),

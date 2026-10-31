@@ -559,7 +559,7 @@ class _NestedPostListState extends ConsumerState<NestedPostList> {
                         alignment: AlignmentDirectional.centerStart,
                         child: TextButton.icon(
                           key: const ValueKey('nested-resume-reading'),
-                          icon: const Icon(Icons.history_rounded),
+                          icon: const Icon(AppIcons.history),
                           onPressed: widget.onResume,
                           label: Text(
                             context.l10n.nested_resumeReading(
@@ -795,7 +795,7 @@ class _NestedPostListState extends ConsumerState<NestedPostList> {
                           heroTag: null,
                           tooltip: context.l10n.nested_nextRoot,
                           onPressed: _nextRoot,
-                          child: const Icon(Icons.skip_next_rounded),
+                          child: const Icon(AppIcons.skipForward),
                         );
                       },
                     )
@@ -824,7 +824,7 @@ class _NestedPostListState extends ConsumerState<NestedPostList> {
           Row(
             children: [
               Icon(
-                Symbols.account_tree_rounded,
+                AppIcons.accountTree,
                 size: 16,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -845,7 +845,7 @@ class _NestedPostListState extends ConsumerState<NestedPostList> {
             children: [
               if (widget.onViewFullTopic != null)
                 ActionChip(
-                  avatar: const Icon(Symbols.arrow_back_rounded, size: 16),
+                  avatar: const Icon(AppIcons.back, size: 16),
                   label: Text(context.l10n.nested_contextViewFullTopic),
                   onPressed: widget.onViewFullTopic,
                 ),
@@ -853,7 +853,7 @@ class _NestedPostListState extends ConsumerState<NestedPostList> {
                   ns.topAncestorPostNumber != null &&
                   widget.onViewParentContext != null)
                 ActionChip(
-                  avatar: const Icon(Symbols.arrow_upward_rounded, size: 16),
+                  avatar: const Icon(AppIcons.arrowUp, size: 16),
                   label: Text(context.l10n.nested_contextViewParent),
                   onPressed: () =>
                       widget.onViewParentContext!(ns.topAncestorPostNumber!),

@@ -73,7 +73,7 @@ class _PendingPostCard extends StatelessWidget {
           // 状态行:等待审核 + 提交时间
           Row(
             children: [
-              Icon(Symbols.hourglass_top_rounded, size: 16, color: onContainer),
+              Icon(AppIcons.hourglass, size: 16, color: onContainer),
               const SizedBox(width: 6),
               Text(
                 context.l10n.review_awaitingApproval,

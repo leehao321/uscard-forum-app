@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxdo_render/fluxdo_render.dart';
 import 'package:jovial_svg/jovial_svg.dart';
+
 import '../../constants.dart';
 import '../../l10n/s.dart';
 import '../../models/topic.dart';
@@ -44,13 +46,13 @@ class ShareImageWidget extends ConsumerWidget {
     final cardColor = shareTheme.cardColor;
 
     // 根据主题计算文字颜色
-    final textColor = isDark ? Colors.white : Colors.black;
+    final textColor = isDark ? AppFixedColors.white : AppFixedColors.black;
     final secondaryTextColor = isDark
-        ? Colors.white.withValues(alpha: 0.6)
-        : Colors.black.withValues(alpha: 0.6);
+        ? AppFixedColors.white.withValues(alpha: 0.6)
+        : AppFixedColors.black.withValues(alpha: 0.6);
     final borderColor = isDark
-        ? Colors.white.withValues(alpha: 0.1)
-        : Colors.black.withValues(alpha: 0.1);
+        ? AppFixedColors.white.withValues(alpha: 0.1)
+        : AppFixedColors.black.withValues(alpha: 0.1);
 
     // 优先使用传入的 post，否则查找主帖，最后使用第一个可用帖子
     final targetPost =
@@ -146,7 +148,7 @@ class ShareImageWidget extends ConsumerWidget {
         Text(
           '美卡论坛',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: AppFontSize.body,
             fontWeight: FontWeight.w600,
             color: textColor.withValues(alpha: 0.8),
           ),
@@ -157,7 +159,7 @@ class ShareImageWidget extends ConsumerWidget {
 
   Widget _buildTitle(BuildContext context, Color textColor) {
     final titleStyle = TextStyle(
-      fontSize: 16,
+      fontSize: AppFontSize.body,
       fontWeight: FontWeight.w600,
       color: textColor.withValues(alpha: 0.9),
       height: 1.4,
@@ -194,7 +196,7 @@ class ShareImageWidget extends ConsumerWidget {
             imageUrl: fullAvatarUrl,
             radius: 18,
             fallbackText: post.username,
-            backgroundColor: Colors.grey.shade300,
+            backgroundColor: context.tokens.colors.avatarFill,
             border: Border.all(color: borderColor, width: 1),
           ),
         ),
@@ -206,14 +208,17 @@ class ShareImageWidget extends ConsumerWidget {
               Text(
                 post.name?.isNotEmpty == true ? post.name! : post.username,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: AppFontSize.meta,
                   fontWeight: FontWeight.w500,
                   color: textColor.withValues(alpha: 0.85),
                 ),
               ),
               Text(
                 '@${post.username} · ${TimeUtils.formatRelativeTime(post.createdAt)}',
-                style: TextStyle(fontSize: 12, color: secondaryTextColor),
+                style: TextStyle(
+                  fontSize: AppFontSize.meta,
+                  color: secondaryTextColor,
+                ),
               ),
             ],
           ),
@@ -291,7 +296,10 @@ class ShareImageWidget extends ConsumerWidget {
         Expanded(
           child: Text(
             url,
-            style: TextStyle(fontSize: 11, color: secondaryTextColor),
+            style: TextStyle(
+              fontSize: AppFontSize.caption,
+              color: secondaryTextColor,
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ),

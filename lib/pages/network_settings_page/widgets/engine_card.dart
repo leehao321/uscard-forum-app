@@ -460,9 +460,7 @@ class _EngineCardState extends State<EngineCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
-            color != null
-                ? AppIcons.warning
-                : AppIcons.info,
+            color != null ? AppIcons.warning : AppIcons.info,
             size: 13,
             color: c,
           ),
@@ -472,7 +470,7 @@ class _EngineCardState extends State<EngineCard> {
               text,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: c,
-                fontSize: 11,
+                fontSize: AppFontSize.caption,
               ),
             ),
           ),
@@ -496,7 +494,10 @@ class _EngineCardState extends State<EngineCard> {
         content: SingleChildScrollView(
           child: SelectableText(
             reason,
-            style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+            style: const TextStyle(
+              fontFamily: 'monospace',
+              fontSize: AppFontSize.meta,
+            ),
           ),
         ),
         actions: [

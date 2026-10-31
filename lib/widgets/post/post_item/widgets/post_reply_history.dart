@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
+
 import '../../../../l10n/s.dart';
 import '../../../../models/topic.dart';
 import '../../../../utils/fluxdo_render_callbacks.dart';
@@ -46,7 +48,7 @@ class PostReplyHistory extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  Symbols.format_quote_rounded,
+                  AppIcons.formatQuote,
                   size: 16,
                   color: theme.colorScheme.primary,
                 ),
@@ -67,7 +69,7 @@ class PostReplyHistory extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(4),
                     child: Icon(
-                      Symbols.close_rounded,
+                      AppIcons.close,
                       size: 16,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -122,7 +124,7 @@ class PostReplyHistory extends StatelessWidget {
                               ),
                               const Spacer(),
                               Icon(
-                                Symbols.arrow_outward_rounded,
+                                AppIcons.arrowUpRight,
                                 size: 12,
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
@@ -135,7 +137,10 @@ class PostReplyHistory extends StatelessWidget {
                                 return const LinearGradient(
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
-                                  colors: [Colors.black, Colors.transparent],
+                                  colors: [
+                                    AppFixedColors.black,
+                                    Colors.transparent,
+                                  ],
                                   stops: [0.6, 1.0],
                                 ).createShader(rect);
                               },
@@ -147,19 +152,22 @@ class PostReplyHistory extends StatelessWidget {
                                 child: SingleChildScrollView(
                                   physics: const NeverScrollableScrollPhysics(),
                                   // 回复历史预览:改用自研 FluxdoRender 只读渲染(关闭选区)
-                                  child: FluxdoRenderCallbacks.generic(
-                                    heroTagNamespace:
-                                        'reply_history_${replyPost.postNumber}',
-                                  ).render(
-                                    cookedHtml: replyPost.cooked,
-                                    baseTextStyle: theme.textTheme.bodySmall
-                                        ?.copyWith(
-                                          fontSize: 13 * contentFontScale,
-                                          height: 1.4,
-                                        ),
-                                    compact: true,
-                                    selectionEnabled: false,
-                                  ),
+                                  child:
+                                      FluxdoRenderCallbacks.generic(
+                                        heroTagNamespace:
+                                            'reply_history_${replyPost.postNumber}',
+                                      ).render(
+                                        cookedHtml: replyPost.cooked,
+                                        baseTextStyle: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              fontSize:
+                                                  AppFontSize.meta *
+                                                  contentFontScale,
+                                              height: 1.4,
+                                            ),
+                                        compact: true,
+                                        selectionEnabled: false,
+                                      ),
                                 ),
                               ),
                             ),

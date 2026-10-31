@@ -201,15 +201,13 @@ class _FontSettingsPageState extends ConsumerState<FontSettingsPage> {
                   radioRow(
                     title: l10n.appearance_fontSystem,
                     selected: uiSelected == 'system',
-                    onTap: () =>
-                        notifier.setFontFamily(AppFontFamily.system),
+                    onTap: () => notifier.setFontFamily(AppFontFamily.system),
                   ),
                   radioRow(
                     title: l10n.appearance_fontMiSans,
                     family: 'MiSans',
                     selected: uiSelected == 'misans',
-                    onTap: () =>
-                        notifier.setFontFamily(AppFontFamily.miSans),
+                    onTap: () => notifier.setFontFamily(AppFontFamily.miSans),
                   ),
                   for (final font in fonts)
                     radioRow(
@@ -403,7 +401,7 @@ class _ImportedFontRow extends StatelessWidget {
           '字',
           style: TextStyle(
             fontFamily: font.family,
-            fontSize: 17,
+            fontSize: AppFontSize.body,
             color: colors.textPrimary,
           ),
         ),

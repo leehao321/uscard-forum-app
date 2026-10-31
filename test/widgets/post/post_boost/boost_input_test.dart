@@ -54,8 +54,8 @@ void main() {
     await tester.enterText(find.byType(TextField), text);
     await tester.pump();
     final expectedIcon = visibleLengthWithEmojiShortcodes(text) > 16
-        ? Symbols.reply_rounded
-        : Symbols.send_rounded;
+        ? AppIcons.reply
+        : AppIcons.send;
     await tester.tap(find.widgetWithIcon(IconButton, expectedIcon));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));

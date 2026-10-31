@@ -25,7 +25,6 @@ class SettingsSearchResult {
   final SettingsModel model;
   final String categoryName;
   final IconData categoryIcon;
-  final Color categoryColor;
 
   /// 结果行下方的路径（13 meta），如「外观 › 字体」
   final String path;
@@ -37,7 +36,6 @@ class SettingsSearchResult {
     required this.model,
     required this.categoryName,
     required this.categoryIcon,
-    required this.categoryColor,
     required this.path,
     required this.pageBuilder,
   });
@@ -51,7 +49,6 @@ List<SettingsSearchResult> buildSearchIndex(BuildContext context) {
     List<SettingsGroup> groups, {
     required String categoryName,
     required IconData categoryIcon,
-    required Color categoryColor,
     required Widget Function({String? highlightId}) pageBuilder,
   }) {
     return [
@@ -62,7 +59,6 @@ List<SettingsSearchResult> buildSearchIndex(BuildContext context) {
               model: item is PlatformConditionalModel ? item.inner : item,
               categoryName: categoryName,
               categoryIcon: categoryIcon,
-              categoryColor: categoryColor,
               path: g.title.isEmpty || g.title == categoryName
                   ? categoryName
                   : '$categoryName › ${g.title}',
@@ -76,7 +72,6 @@ List<SettingsSearchResult> buildSearchIndex(BuildContext context) {
       buildReadingGroups(context),
       categoryName: l10n.settings_reading,
       categoryIcon: AppIcons.autoStories,
-      categoryColor: Colors.deepOrange,
       pageBuilder: ({highlightId}) =>
           ReadingSettingsPage(highlightId: highlightId),
     ),
@@ -84,15 +79,12 @@ List<SettingsSearchResult> buildSearchIndex(BuildContext context) {
       buildPreferencesGroups(context),
       categoryName: l10n.settings_preferences,
       categoryIcon: AppIcons.tune,
-      categoryColor: Colors.deepPurple,
-      pageBuilder: ({highlightId}) =>
-          PreferencesPage(highlightId: highlightId),
+      pageBuilder: ({highlightId}) => PreferencesPage(highlightId: highlightId),
     ),
     ...fromGroups(
       buildBottomNavGroups(context),
       categoryName: l10n.settings_bottomNav,
       categoryIcon: AppIcons.menu,
-      categoryColor: Colors.amber,
       pageBuilder: ({highlightId}) =>
           BottomNavSettingsPage(highlightId: highlightId),
     ),
@@ -100,15 +92,12 @@ List<SettingsSearchResult> buildSearchIndex(BuildContext context) {
       buildAppearanceGroups(context),
       categoryName: l10n.settings_appearance,
       categoryIcon: AppIcons.palette,
-      categoryColor: Colors.teal,
-      pageBuilder: ({highlightId}) =>
-          AppearancePage(highlightId: highlightId),
+      pageBuilder: ({highlightId}) => AppearancePage(highlightId: highlightId),
     ),
     ...fromGroups(
       buildNetworkGroups(context),
       categoryName: l10n.settings_network,
       categoryIcon: AppIcons.serverOff,
-      categoryColor: Colors.blueGrey,
       pageBuilder: ({highlightId}) =>
           NetworkSettingsPage(highlightId: highlightId),
     ),
@@ -116,7 +105,6 @@ List<SettingsSearchResult> buildSearchIndex(BuildContext context) {
       buildNetworkCustomGroups(context),
       categoryName: l10n.settings_network,
       categoryIcon: AppIcons.serverOff,
-      categoryColor: Colors.blueGrey,
       pageBuilder: ({highlightId}) =>
           NetworkCustomPage(highlightId: highlightId),
     ),
@@ -124,7 +112,6 @@ List<SettingsSearchResult> buildSearchIndex(BuildContext context) {
       buildDataManagementGroups(context),
       categoryName: l10n.settings_dataManagement,
       categoryIcon: AppIcons.folder,
-      categoryColor: Colors.brown,
       pageBuilder: ({highlightId}) =>
           DataManagementPage(highlightId: highlightId),
     ),
@@ -132,7 +119,6 @@ List<SettingsSearchResult> buildSearchIndex(BuildContext context) {
       buildDiagnosticsGroups(context),
       categoryName: l10n.settings_diagnostics,
       categoryIcon: AppIcons.history,
-      categoryColor: Colors.grey,
       pageBuilder: ({highlightId}) => DiagnosticsPage(highlightId: highlightId),
     ),
     // 快捷键（仅桌面端）
@@ -141,7 +127,6 @@ List<SettingsSearchResult> buildSearchIndex(BuildContext context) {
         buildShortcutGroups(context),
         categoryName: l10n.settings_shortcuts,
         categoryIcon: AppIcons.code,
-        categoryColor: Colors.cyan,
         pageBuilder: ({highlightId}) =>
             ShortcutSettingsPage(highlightId: highlightId),
       ),

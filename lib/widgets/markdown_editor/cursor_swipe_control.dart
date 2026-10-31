@@ -137,7 +137,7 @@ class _CursorSwipeControlState extends State<CursorSwipeControl> {
                 child: Text(
                   text,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: AppFontSize.meta,
                     height: 1.0,
                     color: scheme.onInverseSurface,
                   ),

@@ -42,7 +42,6 @@ import '../utils/fluxdo_render_callbacks.dart';
 import '../widgets/post/reply_sheet.dart';
 import '../widgets/user/user_profile_skeleton.dart';
 import '../widgets/user/ignore_duration_picker.dart';
-import '../widgets/topic/topic_card_prewarmer.dart';
 import '../widgets/topic/topic_item_builder.dart';
 import '../widgets/topic/topic_list_skeleton.dart';
 import '../widgets/post/post_boost/boost_content.dart';
@@ -542,7 +541,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: AppFixedColors.black.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),
@@ -614,7 +613,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                                   TimeUtils.formatFullDate(_user!.silencedTill),
                                 ),
                           reason: _user!.silenceReason,
-                          color: Colors.orange,
+                          color: context.tokens.colors.textDestructive,
                         ),
 
                       // 个人简介
@@ -1510,7 +1509,8 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                                                 ),
                                               ),
                                     reason: _user!.suspendReason,
-                                    color: Colors.redAccent,
+                                    color:
+                                        context.tokens.colors.textDestructive,
                                     reasonColor:
                                         theme.colorScheme.onSurfaceVariant,
                                   ),
@@ -1531,7 +1531,8 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                                                 ),
                                               ),
                                     reason: _user!.silenceReason,
-                                    color: Colors.orangeAccent,
+                                    color:
+                                        context.tokens.colors.textDestructive,
                                     reasonColor:
                                         theme.colorScheme.onSurfaceVariant,
                                   ),
@@ -1629,7 +1630,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.black45, Colors.transparent],
+                  colors: [AppFixedColors.black45, Colors.transparent],
                 ),
               ),
               child: SafeArea(
@@ -2054,7 +2055,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: context.tokens.colors.textPrimary,
-                              fontSize: 16,
+                              fontSize: AppFontSize.body,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -2187,7 +2188,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: context.tokens.colors.textPrimary,
-                            fontSize: 22,
+                            fontSize: AppFontSize.title,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -2214,7 +2215,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                           '@${_user?.username}',
                           style: TextStyle(
                             color: context.tokens.colors.textMeta,
-                            fontSize: 13,
+                            fontSize: AppFontSize.meta,
                           ),
                         ),
                       ),
@@ -2235,7 +2236,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                       _getTrustLevelLabel(_user?.trustLevel ?? 0),
                       style: TextStyle(
                         color: context.tokens.colors.textPrimary,
-                        fontSize: 10,
+                        fontSize: AppFontSize.caption,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -2270,7 +2271,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                             TimeUtils.formatFullDate(_user!.suspendedTill),
                           ),
                     reason: _user!.suspendReason,
-                    color: Colors.redAccent,
+                    color: context.tokens.colors.textDestructive,
                   ),
                   if (_user!.isSilenced) const SizedBox(height: 8),
                 ],
@@ -2284,7 +2285,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                             TimeUtils.formatFullDate(_user!.silencedTill),
                           ),
                     reason: _user!.silenceReason,
-                    color: Colors.orangeAccent,
+                    color: context.tokens.colors.textDestructive,
                   ),
               ],
             ),
@@ -2302,9 +2303,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
               ),
               decoration: BoxDecoration(
                 color: context.tokens.colors.surfaceGrouped,
-                borderRadius: BorderRadius.circular(
-                  context.tokens.radius.card,
-                ),
+                borderRadius: BorderRadius.circular(context.tokens.radius.card),
               ),
               child: Row(
                 children: [
@@ -2316,7 +2315,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                             overflow: TextOverflow.ellipsis,
                             textStyle: TextStyle(
                               color: context.tokens.colors.textMeta,
-                              fontSize: 13,
+                              fontSize: AppFontSize.meta,
                               height: 1.4,
                             ),
                           )
@@ -2326,7 +2325,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: context.tokens.colors.textMeta,
-                              fontSize: 13,
+                              fontSize: AppFontSize.meta,
                               height: 1.4,
                             ),
                           ),
@@ -2428,7 +2427,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                   dateTime: _user?.lastSeenAt ?? _user!.lastPostedAt!,
                   style: TextStyle(
                     color: context.tokens.colors.textMeta,
-                    fontSize: 11,
+                    fontSize: AppFontSize.caption,
                   ),
                 ),
               ],
@@ -2591,7 +2590,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
               minimumSize: const Size(0, 44),
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               textStyle: const TextStyle(
-                fontSize: 13,
+                fontSize: AppFontSize.meta,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -2624,7 +2623,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                   label,
                   style: TextStyle(
                     color: color,
-                    fontSize: 13,
+                    fontSize: AppFontSize.meta,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -2639,7 +2638,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: reasonColor ?? context.tokens.colors.textMeta,
-                fontSize: 12,
+                fontSize: AppFontSize.meta,
                 height: 1.4,
               ),
             ),
@@ -2670,7 +2669,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
       );
     }
 
-    return Text(emoji, style: const TextStyle(fontSize: 16));
+    return Text(emoji, style: const TextStyle(fontSize: AppFontSize.body));
   }
 
   Widget _buildActionList(String filter) {
@@ -3136,7 +3135,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onPrimaryContainer,
                           fontWeight: FontWeight.w600,
-                          fontSize: 10,
+                          fontSize: AppFontSize.caption,
                         ),
                       ),
                     ),
@@ -3422,38 +3421,34 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
       },
       child: M3eRefreshIndicator(
         onRefresh: () => _loadVotes(),
-        child: TopicCardPrewarmScope(
-          topics: topics,
-          child: ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: topics.length + 1,
-            itemBuilder: (context, index) {
-              if (index == topics.length) {
-                return PagedListFooter(
-                  hasMore: hasMore,
-                  isLoadingMore:
-                      _votesLoadMoreCoordinator.isRunning && isLoading,
-                  isLoadMoreFailed: _votesLoadMoreFailed,
-                  onRetry: _loadMoreVotes,
-                );
-              }
-              final topic = topics[index];
-              return buildTopicItem(
-                context: context,
-                topic: topic,
-                isSelected: false,
-                onTap: () => _openTopic(
-                  topicId: topic.id,
-                  initialTitle: topic.title,
-                  scrollToPostNumber:
-                      ref.read(preferencesProvider).defaultNestedView
-                      ? null
-                      : topic.lastReadPostNumber,
-                ),
-                enableLongPress: enableLongPress,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(12),
+          itemCount: topics.length + 1,
+          itemBuilder: (context, index) {
+            if (index == topics.length) {
+              return PagedListFooter(
+                hasMore: hasMore,
+                isLoadingMore: _votesLoadMoreCoordinator.isRunning && isLoading,
+                isLoadMoreFailed: _votesLoadMoreFailed,
+                onRetry: _loadMoreVotes,
               );
-            },
-          ),
+            }
+            final topic = topics[index];
+            return buildTopicItem(
+              context: context,
+              topic: topic,
+              isSelected: false,
+              onTap: () => _openTopic(
+                topicId: topic.id,
+                initialTitle: topic.title,
+                scrollToPostNumber:
+                    ref.read(preferencesProvider).defaultNestedView
+                    ? null
+                    : topic.lastReadPostNumber,
+              ),
+              enableLongPress: enableLongPress,
+            );
+          },
         ),
       ),
     );

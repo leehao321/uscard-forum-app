@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/search_filter.dart';
 import '../models/topic.dart';
 import '../providers/discourse_providers.dart';
@@ -13,7 +14,6 @@ import '../widgets/layout/master_detail_layout.dart';
 import '../widgets/layout/master_detail_pane_host.dart';
 import '../widgets/search/searchable_app_bar.dart';
 import '../widgets/search/user_content_search_view.dart';
-import '../widgets/topic/topic_card_prewarmer.dart';
 import '../widgets/topic/topic_item_builder.dart';
 import '../widgets/topic/topic_list_skeleton.dart';
 import '../providers/preferences_provider.dart';
@@ -86,7 +86,9 @@ class _MyTopicsPageState extends ConsumerState<MyTopicsPage> {
         : topic.lastReadPostNumber;
     // 宽屏进右栏,窄屏全屏 push——与草稿页同一套形态
     if (_canShowBothPanes) {
-      ref.read(selectedMyTopicsPaneProvider.notifier).select(
+      ref
+          .read(selectedMyTopicsPaneProvider.notifier)
+          .select(
             topicId: topic.id,
             initialTitle: topic.title,
             scrollToPostNumber: scrollToPostNumber,
@@ -194,9 +196,7 @@ class _MyTopicsPageState extends ConsumerState<MyTopicsPage> {
             );
           }
 
-          return TopicCardPrewarmScope(
-            topics: topics,
-            child: ListView.builder(
+          return ListView.builder(
             controller: _scrollController,
             padding: const EdgeInsets.all(12),
             itemCount: topics.length + 1,
@@ -223,7 +223,6 @@ class _MyTopicsPageState extends ConsumerState<MyTopicsPage> {
                 enableLongPress: enableLongPress,
               );
             },
-            ),
           );
         },
         loading: () => const TopicListSkeleton(),

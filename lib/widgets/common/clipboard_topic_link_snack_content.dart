@@ -62,7 +62,7 @@ class ClipboardTopicLinkSnackContent extends StatelessWidget {
                     ),
                     alignment: Alignment.center,
                     child: Icon(
-                      Symbols.link_rounded,
+                      AppIcons.link,
                       size: 19,
                       color: colorScheme.onPrimaryContainer,
                     ),
@@ -90,10 +90,9 @@ class ClipboardTopicLinkSnackContent extends StatelessWidget {
                   ),
                   IconButton(
                     onPressed: onDismiss,
-                    tooltip: MaterialLocalizations.of(
-                      context,
-                    ).closeButtonTooltip,
-                    icon: const Icon(Symbols.close_rounded),
+                    tooltip: MaterialLocalizations.of(context)
+                        .closeButtonTooltip,
+                    icon: const Icon(AppIcons.close),
                     iconSize: 20,
                     style: IconButton.styleFrom(
                       foregroundColor: colorScheme.onSurfaceVariant,

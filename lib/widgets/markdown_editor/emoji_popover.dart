@@ -1,8 +1,9 @@
+import 'package:common_ui/common_ui.dart';
+
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 
 /// 桌面端表情悬浮弹层的固定尺寸
 const Size kEmojiPopoverSize = Size(440, 480);
@@ -255,13 +256,17 @@ class EmojiPopoverController with ChangeNotifier, WidgetsBindingObserver {
                 // 比 Material elevation 的默认投影轻盈(桌面弹层观感)
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.14),
+                    color: AppFixedColors.black.withValues(
+                      alpha: isDark ? 0.45 : 0.14,
+                    ),
                     blurRadius: 32,
                     spreadRadius: -4,
                     offset: const Offset(0, 12),
                   ),
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.08),
+                    color: AppFixedColors.black.withValues(
+                      alpha: isDark ? 0.30 : 0.08,
+                    ),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),

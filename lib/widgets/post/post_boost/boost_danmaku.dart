@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:common_ui/common_ui.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -445,14 +447,14 @@ class _DanmakuItemState extends State<_DanmakuItem> {
     final fallbackText = displayText.isEmpty ? 'Boost' : displayText;
 
     // 视频弹幕风格：白字 + 深色描边 / 暗色模式 = 浅描边
-    final textColor = isDark ? Colors.white : Colors.white;
+    final textColor = isDark ? AppFixedColors.white : AppFixedColors.white;
     final strokeColor = isDark
-        ? Colors.black.withValues(alpha: 0.85)
-        : Colors.black.withValues(alpha: 0.7);
+        ? AppFixedColors.black.withValues(alpha: 0.85)
+        : AppFixedColors.black.withValues(alpha: 0.7);
     final highlightColor = theme.colorScheme.primary;
 
     final baseStyle = TextStyle(
-      fontSize: 14,
+      fontSize: AppFontSize.meta,
       height: 1.0,
       fontWeight: FontWeight.w600,
       color: widget.item.isHighlighted ? highlightColor : textColor,
@@ -490,7 +492,7 @@ class _DanmakuItemState extends State<_DanmakuItem> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.42),
+                color: AppFixedColors.black.withValues(alpha: 0.42),
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Row(
@@ -516,11 +518,11 @@ class _DanmakuItemState extends State<_DanmakuItem> {
                     Text(
                       '×${group.count}',
                       style: baseStyle.copyWith(
-                        fontSize: 12,
+                        fontSize: AppFontSize.meta,
                         fontWeight: FontWeight.w700,
                         color: widget.item.isHighlighted
                             ? highlightColor
-                            : Colors.amber.shade300,
+                            : context.tokens.colors.brandPrimary,
                       ),
                     ),
                   ],
@@ -561,7 +563,7 @@ class _AvatarStrip extends StatelessWidget {
 
     final borderColor = isHighlighted
         ? theme.colorScheme.primary
-        : Colors.white.withValues(alpha: 0.9);
+        : AppFixedColors.white.withValues(alpha: 0.9);
 
     return SizedBox(
       width: totalWidth,
@@ -579,7 +581,7 @@ class _AvatarStrip extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: borderColor, width: 1.2),
                   boxShadow: const [
-                    BoxShadow(color: Color(0x66000000), blurRadius: 2),
+                    BoxShadow(color: AppRawColors.c66000000, blurRadius: 2),
                   ],
                 ),
                 child: SmartAvatar(
@@ -590,8 +592,8 @@ class _AvatarStrip extends StatelessWidget {
                       : null,
                   radius: size / 2,
                   fallbackText: visible[i].username,
-                  backgroundColor: const Color(0x33FFFFFF),
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppRawColors.c33FFFFFF,
+                  foregroundColor: AppFixedColors.white,
                 ),
               ),
             ),

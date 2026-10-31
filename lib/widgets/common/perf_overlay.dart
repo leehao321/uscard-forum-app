@@ -1,3 +1,6 @@
+import 'package:common_ui/common_ui.dart';
+import 'package:app_icons/app_icons.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -110,13 +113,13 @@ class _PerfPanelState extends State<_PerfPanel> {
   }
 
   Color get _dotColor {
-    if (!FrameJankMonitor.isRunning) return Colors.grey;
+    if (!FrameJankMonitor.isRunning) return AppFixedColors.neutralGrey;
     final frames = FrameJankMonitor.sessionFrames;
-    if (frames == 0) return Colors.grey;
+    if (frames == 0) return AppFixedColors.neutralGrey;
     final rate = FrameJankMonitor.sessionJanks / frames * 100;
-    if (rate < 1) return Colors.lightGreenAccent.shade700;
-    if (rate < 3) return Colors.orange;
-    return Colors.redAccent;
+    if (rate < 1) return AppFixedColors.signalGood;
+    if (rate < 3) return AppFixedColors.signalWarn;
+    return AppFixedColors.signalBad;
   }
 
   /// 诊断监控启停(与诊断页开关同源:prefs + start/stop),局部监控的
@@ -139,9 +142,7 @@ class _PerfPanelState extends State<_PerfPanel> {
   }
 
   Future<void> _copyExport() async {
-    await Clipboard.setData(
-      ClipboardData(text: FrameJankMonitor.exportText()),
-    );
+    await Clipboard.setData(ClipboardData(text: FrameJankMonitor.exportText()));
   }
 
   @override
@@ -156,7 +157,7 @@ class _PerfPanelState extends State<_PerfPanel> {
         }),
         child: Material(
           key: _panelKey,
-          color: Colors.black.withValues(alpha: 0.78),
+          color: AppFixedColors.black.withValues(alpha: 0.78),
           borderRadius: BorderRadius.circular(10),
           elevation: 4,
           child: ValueListenableBuilder<int>(
@@ -182,13 +183,13 @@ class _PerfPanelState extends State<_PerfPanel> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.circle, size: 8, color: _dotColor),
+            Icon(AppIcons.circleIcon, size: 8, color: _dotColor),
             const SizedBox(width: 6),
             Text(
               FrameJankMonitor.isRunning ? _rateText : '暂停',
               style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
+                color: AppFixedColors.white,
+                fontSize: AppFontSize.meta,
                 fontFeatures: [FontFeature.tabularFigures()],
               ),
             ),
@@ -205,10 +206,13 @@ class _PerfPanelState extends State<_PerfPanel> {
         ? null
         : FrameJankMonitor.jankRecords.last;
     String ms(Duration d) => (d.inMicroseconds / 1000).toStringAsFixed(1);
-    const labelStyle = TextStyle(color: Colors.white70, fontSize: 11);
+    const labelStyle = TextStyle(
+      color: AppFixedColors.white70,
+      fontSize: AppFontSize.caption,
+    );
     const valueStyle = TextStyle(
-      color: Colors.white,
-      fontSize: 11,
+      color: AppFixedColors.white,
+      fontSize: AppFontSize.caption,
       fontFeatures: [FontFeature.tabularFigures()],
     );
 
@@ -221,7 +225,7 @@ class _PerfPanelState extends State<_PerfPanel> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.circle, size: 8, color: _dotColor),
+              Icon(AppIcons.circleIcon, size: 8, color: _dotColor),
               const SizedBox(width: 6),
               Text(
                 FrameJankMonitor.isRunning
@@ -241,9 +245,9 @@ class _PerfPanelState extends State<_PerfPanel> {
                   _reclampAfterLayout();
                 },
                 child: const Icon(
-                  Icons.unfold_less,
+                  AppIcons.chevronsDownUp,
                   size: 14,
-                  color: Colors.white54,
+                  color: AppFixedColors.white54,
                 ),
               ),
             ],
@@ -261,10 +265,7 @@ class _PerfPanelState extends State<_PerfPanel> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _btn(
-                FrameJankMonitor.isRunning ? '暂停' : '开始',
-                _toggleMonitor,
-              ),
+              _btn(FrameJankMonitor.isRunning ? '暂停' : '开始', _toggleMonitor),
               _btn('清零', FrameJankMonitor.clear),
               if (FrameJankMonitor.cpuSampleSupported)
                 _btn(_sampling ? '采样中…' : 'CPU', _sampleCpu),
@@ -286,12 +287,15 @@ class _PerfPanelState extends State<_PerfPanel> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.12),
+            color: AppFixedColors.white.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Text(
             label,
-            style: const TextStyle(color: Colors.white, fontSize: 11),
+            style: const TextStyle(
+              color: AppFixedColors.white,
+              fontSize: AppFontSize.caption,
+            ),
           ),
         ),
       ),

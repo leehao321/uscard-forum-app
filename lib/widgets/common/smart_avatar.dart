@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:jovial_svg/jovial_svg.dart';
+
 import '../../services/discourse_cache_manager.dart';
 import '../../utils/svg_utils.dart';
 
@@ -329,7 +330,7 @@ class _SmartAvatarState extends State<SmartAvatar> {
       );
     }
     return Center(
-      child: Icon(Symbols.person_rounded, size: radius, color: fgColor),
+      child: Icon(AppIcons.person, size: radius, color: fgColor),
     );
   }
 }

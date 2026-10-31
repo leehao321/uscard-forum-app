@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app_icons/app_icons.dart';
 import 'package:fluxdo_render/fluxdo_render.dart';
 
 import '../../../l10n/s.dart';
@@ -64,7 +65,7 @@ class TopicTocSidePanel extends StatelessWidget {
                       title: context.l10n.topicDetail_toc,
                       entryCount: controller.tocData?.flat.length ?? 0,
                       trailing: IconButton(
-                        icon: const Icon(Icons.chevron_right, size: 20),
+                        icon: const Icon(AppIcons.chevronRight, size: 20),
                         tooltip: context.l10n.topicDetail_tocCollapse,
                         visualDensity: VisualDensity.compact,
                         onPressed: onToggleVisible,
@@ -93,7 +94,7 @@ class TopicTocSidePanel extends StatelessWidget {
                     child: Tooltip(
                       message: context.l10n.topicDetail_tocExpand,
                       child: Icon(
-                        Icons.format_list_bulleted,
+                        AppIcons.listBulleted,
                         size: 20,
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -123,7 +124,7 @@ class _PanelHeader extends StatelessWidget {
         child: Row(
           children: [
             Icon(
-              Icons.format_list_bulleted,
+              AppIcons.listBulleted,
               size: 16,
               color: theme.colorScheme.primary,
             ),
@@ -172,7 +173,7 @@ class TopicTocFab extends StatelessWidget {
         controller: controller,
         onEntryTap: onEntryTap,
       ),
-      child: const Icon(Icons.format_list_bulleted, size: 20),
+      child: const Icon(AppIcons.listBulleted, size: 20),
     );
   }
 }
@@ -203,7 +204,7 @@ Future<void> showTocBottomSheet({
               title: sheetContext.l10n.topicDetail_toc,
               entryCount: controller.tocData?.flat.length ?? 0,
               trailing: IconButton(
-                icon: const Icon(Icons.close, size: 20),
+                icon: const Icon(AppIcons.close, size: 20),
                 visualDensity: VisualDensity.compact,
                 onPressed: () => Navigator.of(sheetContext).pop(),
               ),
@@ -339,8 +340,10 @@ class _TocTreeState extends State<_TocTree> {
     final viewBottom = viewTop + pos.viewportDimension;
     if (itemTop >= viewTop && itemBottom <= viewBottom) return; // 已完整可见
 
-    final target = (itemTop - pos.viewportDimension / 2 + extent / 2)
-        .clamp(pos.minScrollExtent, pos.maxScrollExtent);
+    final target = (itemTop - pos.viewportDimension / 2 + extent / 2).clamp(
+      pos.minScrollExtent,
+      pos.maxScrollExtent,
+    );
     if (animate) {
       _scrollController.animateTo(
         target,

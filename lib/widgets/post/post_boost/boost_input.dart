@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../l10n/s.dart';
 import '../../../models/emoji.dart';
 import '../../../utils/emoji_shortcodes.dart';
@@ -213,9 +214,7 @@ class _BoostInputSheetState extends ConsumerState<_BoostInputSheet> {
                 IconButton(
                   onPressed: _toggleEmojiPanel,
                   icon: Icon(
-                    _showEmojiPanel
-                        ? Symbols.keyboard_rounded
-                        : Symbols.emoji_emotions_rounded,
+                    _showEmojiPanel ? AppIcons.keyboard : AppIcons.emoji,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                   visualDensity: VisualDensity.compact,
@@ -276,9 +275,7 @@ class _BoostInputSheetState extends ConsumerState<_BoostInputSheet> {
                       ? context.l10n.common_reply
                       : context.l10n.boost_send,
                   icon: Icon(
-                    isReplyIntent
-                        ? Symbols.reply_rounded
-                        : Symbols.send_rounded,
+                    isReplyIntent ? AppIcons.reply : AppIcons.send,
                     color: _canSubmit
                         ? theme.colorScheme.primary
                         : theme.colorScheme.onSurfaceVariant.withValues(
@@ -329,7 +326,7 @@ class _BoostInputSheetState extends ConsumerState<_BoostInputSheet> {
                               child: Transform.translate(
                                 offset: const Offset(-1, 0),
                                 child: Icon(
-                                  Symbols.backspace_rounded,
+                                  AppIcons.backspace,
                                   size: 20,
                                   color: _controller.text.isEmpty
                                       ? theme.colorScheme.onSurfaceVariant

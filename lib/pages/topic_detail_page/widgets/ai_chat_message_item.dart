@@ -263,7 +263,10 @@ class AiChatMessageItem extends StatelessWidget {
     final theme = Theme.of(context);
     return Text(
       '▊',
-      style: TextStyle(color: theme.colorScheme.primary, fontSize: 16),
+      style: TextStyle(
+        color: theme.colorScheme.primary,
+        fontSize: AppFontSize.body,
+      ),
     );
   }
 
@@ -304,7 +307,7 @@ class AiChatMessageItem extends StatelessWidget {
               label: Text(
                 context.l10n.ai_retryLabel,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: AppFontSize.meta,
                   color: theme.colorScheme.primary,
                 ),
               ),
@@ -334,7 +337,7 @@ class AiChatMessageItem extends StatelessWidget {
     return Text(
       text,
       style: theme.textTheme.bodySmall?.copyWith(
-        fontSize: 11,
+        fontSize: AppFontSize.caption,
         color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
       ),
     );
@@ -626,7 +629,7 @@ class _TappableImage extends StatelessWidget {
 
   Widget _brokenPlaceholder() => Container(
     height: 120,
-    color: Colors.black12,
+    color: AppFixedColors.black12,
     alignment: Alignment.center,
     child: const Icon(AppIcons.imageBroken),
   );
@@ -721,7 +724,7 @@ class _OptimizedPromptBlockState extends State<_OptimizedPromptBlock> {
                 widget.prompt,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: color,
-                  fontSize: 12,
+                  fontSize: AppFontSize.meta,
                   height: 1.4,
                   fontFamilyFallback: const ['monospace'],
                 ),
@@ -740,7 +743,7 @@ class _PartialBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.black54,
+        color: AppFixedColors.black54,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -751,15 +754,15 @@ class _PartialBadge extends StatelessWidget {
             width: 8,
             child: CircularProgressIndicator(
               strokeWidth: 1.5,
-              valueColor: AlwaysStoppedAnimation(Colors.white),
+              valueColor: AlwaysStoppedAnimation(AppFixedColors.white),
             ),
           ),
           const SizedBox(width: 6),
           Text(
             context.l10n.ai_imageDraft,
             style: const TextStyle(
-              color: Colors.white,
-              fontSize: 10,
+              color: AppFixedColors.white,
+              fontSize: AppFontSize.caption,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -865,7 +868,7 @@ class _ImageGenerationPlaceholderState
                         ],
                       ).createShader(rect);
                     },
-                    child: Container(color: Colors.white),
+                    child: Container(color: AppFixedColors.white),
                   );
                 },
               ),
@@ -985,7 +988,7 @@ class _ThinkingBlockState extends State<_ThinkingBlock> {
                 widget.text,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: color,
-                  fontSize: 12,
+                  fontSize: AppFontSize.meta,
                   height: 1.4,
                 ),
               ),
@@ -1063,7 +1066,7 @@ class _AttachmentThumbnails extends StatelessWidget {
   Widget _placeholder(double size) => Container(
     width: size,
     height: size,
-    color: Colors.black12,
+    color: AppFixedColors.black12,
     child: const Icon(AppIcons.image, size: 24),
   );
 }
@@ -1094,7 +1097,10 @@ class _ActionButton extends StatelessWidget {
           children: [
             Icon(icon, size: 14, color: color),
             const SizedBox(width: 3),
-            Text(label, style: TextStyle(fontSize: 11, color: color)),
+            Text(
+              label,
+              style: TextStyle(fontSize: AppFontSize.caption, color: color),
+            ),
           ],
         ),
       ),

@@ -274,8 +274,8 @@ class _MentionAutocompleteState extends State<MentionAutocomplete> {
         // 减去水平 padding (假设左右各 12)
         final maxWidth = size.width - 24;
         final style =
-            theme.textTheme.bodyLarge?.copyWith(fontSize: 16) ??
-            const TextStyle(fontSize: 16);
+            theme.textTheme.bodyLarge?.copyWith(fontSize: AppFontSize.body) ??
+            const TextStyle(fontSize: AppFontSize.body);
 
         final painter = TextPainter(
           text: TextSpan(text: text, style: style),
@@ -509,7 +509,7 @@ class _MentionItemTile extends StatelessWidget {
         style: TextStyle(
           color: colors.textMeta,
           fontWeight: FontWeight.w600,
-          fontSize: 13,
+          fontSize: AppFontSize.meta,
         ),
       ),
     );

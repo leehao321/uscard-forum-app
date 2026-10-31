@@ -3212,7 +3212,7 @@ class RichComposerEditorState extends State<RichComposerEditor> {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: AppFontSize.meta,
                                         color: scheme.primary,
                                       ),
                                     ),
@@ -4713,7 +4713,10 @@ class _MarkdownInputDialogState extends State<_MarkdownInputDialog> {
           controller: _controller,
           autofocus: true,
           maxLines: 10,
-          style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+          style: const TextStyle(
+            fontFamily: 'monospace',
+            fontSize: AppFontSize.meta,
+          ),
           decoration: const InputDecoration(
             hintText: '任意 Discourse markdown/bbcode…',
             border: OutlineInputBorder(),
@@ -4801,7 +4804,7 @@ class _FloatingPanel extends StatelessWidget {
         border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.18),
+            color: AppFixedColors.black.withValues(alpha: 0.18),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -4886,7 +4889,7 @@ class _MentionRow extends StatelessWidget {
                           ? '?'
                           : user.username[0].toUpperCase(),
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: AppFontSize.caption,
                         fontWeight: FontWeight.w500,
                         color: scheme.onPrimaryContainer,
                       ),
@@ -4901,7 +4904,7 @@ class _MentionRow extends StatelessWidget {
                       Text(
                         '@${user.username}',
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: AppFontSize.meta,
                           fontWeight: FontWeight.w500,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -4910,7 +4913,7 @@ class _MentionRow extends StatelessWidget {
                         Text(
                           user.name!,
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: AppFontSize.caption,
                             color: scheme.onSurfaceVariant,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -4970,7 +4973,7 @@ class _EmojiCandidateRow extends StatelessWidget {
                   child: Text(
                     ':${hit.name}:',
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: AppFontSize.meta,
                       fontWeight: FontWeight.w500,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -4982,7 +4985,7 @@ class _EmojiCandidateRow extends StatelessWidget {
                     child: Text(
                       hit.matchedAlias!,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: AppFontSize.caption,
                         color: scheme.onSurfaceVariant,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -5027,7 +5030,7 @@ class _EmojiMoreRow extends StatelessWidget {
                 Text(
                   S.current.emoji_more,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppFontSize.meta,
                     fontWeight: FontWeight.w500,
                     color: scheme.primary,
                   ),

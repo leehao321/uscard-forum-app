@@ -610,13 +610,13 @@ class _MultiImageUploadDialogState extends State<MultiImageUploadDialog> {
                             child: Container(
                               padding: const EdgeInsets.all(2),
                               decoration: BoxDecoration(
-                                color: Colors.black54,
+                                color: AppFixedColors.black54,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(
                                 AppIcons.close,
                                 size: 16,
-                                color: Colors.white,
+                                color: AppFixedColors.white,
                               ),
                             ),
                           ),
@@ -632,14 +632,14 @@ class _MultiImageUploadDialogState extends State<MultiImageUploadDialog> {
                                 vertical: 1,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.black54,
+                                color: AppFixedColors.black54,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 _formatFileSize(item.size!),
                                 style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
+                                  color: AppFixedColors.white,
+                                  fontSize: AppFontSize.caption,
                                 ),
                               ),
                             ),

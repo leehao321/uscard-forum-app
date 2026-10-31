@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 
 /// 全息渐变动画文字（模拟 CSS holographic 效果）
@@ -5,7 +6,11 @@ class HolographicText extends StatefulWidget {
   final String text;
   final double fontSize;
 
-  const HolographicText({super.key, required this.text, required this.fontSize});
+  const HolographicText({
+    super.key,
+    required this.text,
+    required this.fontSize,
+  });
 
   @override
   State<HolographicText> createState() => _HolographicTextState();
@@ -15,23 +20,9 @@ class _HolographicTextState extends State<HolographicText>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
-  // 深色背景：高饱和亮色
-  static const _darkColors = [
-    Color(0xFFFF00FF), // magenta
-    Color(0xFF00FFFF), // cyan
-    Color(0xFFFFFF00), // yellow
-    Color(0xFFFF00FF), // magenta
-    Color(0xFF00FFFF), // cyan
-  ];
-
-  // 浅色背景：降低明度，保证可读性
-  static const _lightColors = [
-    Color(0xFFCC00CC), // dark magenta
-    Color(0xFF0099AA), // dark cyan
-    Color(0xFFCC8800), // dark gold
-    Color(0xFFCC00CC), // dark magenta
-    Color(0xFF0099AA), // dark cyan
-  ];
+  // 深色背景：高饱和亮色；浅色背景：降低明度，保证可读性
+  static const _darkColors = AppFixedColors.holographicDark;
+  static const _lightColors = AppFixedColors.holographicLight;
 
   @override
   void initState() {

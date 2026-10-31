@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 
 /// 头像脉冲光晕效果
@@ -8,7 +9,7 @@ class AvatarGlow extends StatefulWidget {
   const AvatarGlow({
     super.key,
     required this.child,
-    this.glowColor = const Color(0xFFF5BF03),
+    this.glowColor = AppFixedColors.glowGold,
   });
 
   @override

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../../../../l10n/s.dart';
 import '../../../../models/topic.dart';
 import '../../../../utils/fluxdo_render_callbacks.dart';
@@ -124,7 +125,7 @@ class _PostFlagSheetState extends State<PostFlagSheet> {
       contentPadding: EdgeInsets.zero,
       titleWidget: Row(
         children: [
-          Icon(Symbols.flag_rounded, color: theme.colorScheme.error),
+          Icon(AppIcons.flag, color: theme.colorScheme.error),
           const SizedBox(width: 8),
           Text(
             context.l10n.post_flagTitle,
@@ -248,7 +249,7 @@ class _PostFlagSheetState extends State<PostFlagSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  isSelected ? Symbols.radio_button_checked_rounded : Symbols.radio_button_unchecked_rounded,
+                  isSelected ? AppIcons.radioButton : AppIcons.radioButtonOff,
                   size: 20,
                   color: isSelected
                       ? theme.colorScheme.primary

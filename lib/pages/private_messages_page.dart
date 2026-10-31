@@ -6,6 +6,7 @@ import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flutter_riverpod/legacy.dart';
+
 import '../models/topic.dart';
 import '../navigation/nav_action_bus.dart';
 import '../providers/message_bus/pm_tracking_providers.dart';
@@ -17,7 +18,6 @@ import '../utils/load_more_coordinator.dart';
 import '../widgets/common/paged_list_footer.dart';
 import '../widgets/layout/master_detail_layout.dart';
 import '../widgets/layout/pane_projection_back_scope.dart';
-import '../widgets/topic/topic_card_prewarmer.dart';
 import '../widgets/topic/topic_item_builder.dart';
 import '../widgets/topic/topic_list_skeleton.dart';
 import '../widgets/post/reply_sheet.dart';
@@ -326,7 +326,9 @@ class _PrivateMessageTabViewState extends ConsumerState<_PrivateMessageTabView>
   void _onItemTap(Topic topic) {
     final canShowDetailPane = MasterDetailLayout.canShowBothPanesFor(context);
     if (canShowDetailPane) {
-      ref.read(selectedMessageProvider.notifier).select(
+      ref
+          .read(selectedMessageProvider.notifier)
+          .select(
             topicId: topic.id,
             initialTitle: topic.title,
             scrollToPostNumber: topic.lastReadPostNumber,
@@ -404,21 +406,22 @@ class _PrivateMessageTabViewState extends ConsumerState<_PrivateMessageTabView>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(AppIcons.mail, size: 64, color: Colors.grey),
+                  Icon(
+                    AppIcons.mail,
+                    size: 64,
+                    color: context.tokens.colors.textMeta,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     context.l10n.privateMessages_empty,
-                    style: const TextStyle(color: Colors.grey),
+                    style: TextStyle(color: context.tokens.colors.textMeta),
                   ),
                 ],
               ),
             );
           }
 
-          return TopicCardPrewarmScope(
-            topics: topics,
-            messageStyle: true,
-            child: ListView.builder(
+          return ListView.builder(
             controller: _scrollController,
             // 底部让出 extendBody 注入的底栏高度
             padding: EdgeInsets.fromLTRB(
@@ -437,7 +440,9 @@ class _PrivateMessageTabViewState extends ConsumerState<_PrivateMessageTabView>
               final enableLongPress = ref
                   .watch(preferencesProvider)
                   .longPressPreview;
-              final selectedTopicId = ref.watch(selectedMessageProvider).topicId;
+              final selectedTopicId = ref
+                  .watch(selectedMessageProvider)
+                  .topicId;
               return buildTopicItem(
                 context: context,
                 topic: topic,
@@ -449,7 +454,6 @@ class _PrivateMessageTabViewState extends ConsumerState<_PrivateMessageTabView>
                 messageStyle: true,
               );
             },
-            ),
           );
         },
         loading: () => const TopicListSkeleton(messageStyle: true),

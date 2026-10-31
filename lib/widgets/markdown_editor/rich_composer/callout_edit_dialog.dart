@@ -121,7 +121,10 @@ class _CalloutEditDialogState extends State<_CalloutEditDialog> {
                 children: [
                   for (final t in types)
                     ChoiceChip(
-                      label: Text(t, style: const TextStyle(fontSize: 12)),
+                      label: Text(
+                        t,
+                        style: const TextStyle(fontSize: AppFontSize.meta),
+                      ),
                       selected: _type == t,
                       visualDensity: VisualDensity.compact,
                       onSelected: (_) => setState(() => _type = t),
@@ -159,9 +162,8 @@ class _CalloutEditDialogState extends State<_CalloutEditDialog> {
               const SizedBox(height: 4),
               Text(
                 '可折叠 = [!$_type]+ / 默认折叠 = [!$_type]-',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(color: scheme.onSurfaceVariant),
               ),
             ],
           ),

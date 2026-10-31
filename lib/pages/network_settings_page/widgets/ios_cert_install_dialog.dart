@@ -37,9 +37,7 @@ class _IosCertInstallSheetState extends State<_IosCertInstallSheet> {
   bool _installing = false;
   bool _regenerating = false;
 
-  static const _browserChannel = MethodChannel(
-    'com.hao.uscardforum/browser',
-  );
+  static const _browserChannel = MethodChannel('com.hao.uscardforum/browser');
 
   Future<void> _downloadProfile() async {
     setState(() => _installing = true);
@@ -273,7 +271,7 @@ class _IosCertInstallSheetState extends State<_IosCertInstallSheet> {
             label: Text(
               l10n.dohSettings_certRegenerate,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: AppFontSize.meta,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),

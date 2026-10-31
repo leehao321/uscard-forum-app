@@ -6,6 +6,7 @@
 /// 通吃)。
 library;
 
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 
 import 'dart:async';
@@ -331,7 +332,7 @@ class _VoiceRecorderSheetState extends State<_VoiceRecorderSheet> {
                   icon: const Icon(AppIcons.flask, size: 16),
                   label: const Text(
                     '生成测试音频(debug)',
-                    style: TextStyle(fontSize: 12),
+                    style: TextStyle(fontSize: AppFontSize.meta),
                   ),
                   onPressed: _debugSynthesize,
                 ),

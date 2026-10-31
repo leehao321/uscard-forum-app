@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
@@ -20,11 +21,7 @@ class SharedIssueButton extends ConsumerStatefulWidget {
   final TopicDetail topic;
   final void Function(int count, bool userMarked)? onChanged;
 
-  const SharedIssueButton({
-    super.key,
-    required this.topic,
-    this.onChanged,
-  });
+  const SharedIssueButton({super.key, required this.topic, this.onChanged});
 
   @override
   ConsumerState<SharedIssueButton> createState() => _SharedIssueButtonState();
@@ -66,8 +63,9 @@ class _SharedIssueButtonState extends ConsumerState<SharedIssueButton> {
     setState(() => _isLoading = true);
 
     try {
-      final response =
-          await DiscourseService().toggleSharedIssue(widget.topic.id);
+      final response = await DiscourseService().toggleSharedIssue(
+        widget.topic.id,
+      );
       if (!mounted) return;
       setState(() {
         _count = response.count;
@@ -128,8 +126,7 @@ class _SharedIssueButtonState extends ConsumerState<SharedIssueButton> {
             boxShadow: _userMarked
                 ? [
                     BoxShadow(
-                      color:
-                          theme.colorScheme.primary.withValues(alpha: 0.2),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.2),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -153,7 +150,9 @@ class _SharedIssueButtonState extends ConsumerState<SharedIssueButton> {
                   ),
                 )
               else
-                Icon(Symbols.front_hand_rounded, fill: _userMarked ? 1 : 0,
+                Icon(
+                  AppIcons.hand,
+                  fill: _userMarked ? 1 : 0,
                   size: 18,
                   color: _userMarked
                       ? theme.colorScheme.onPrimary
@@ -167,7 +166,7 @@ class _SharedIssueButtonState extends ConsumerState<SharedIssueButton> {
                       ? theme.colorScheme.onPrimary
                       : theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontSize: AppFontSize.meta,
                 ),
               ),
               if (_count > 0) ...[
@@ -191,7 +190,7 @@ class _SharedIssueButtonState extends ConsumerState<SharedIssueButton> {
                       color: _userMarked
                           ? theme.colorScheme.onPrimary
                           : theme.colorScheme.primary,
-                      fontSize: 12,
+                      fontSize: AppFontSize.meta,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

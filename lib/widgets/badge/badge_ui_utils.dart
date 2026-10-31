@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import '../../models/badge.dart';
 import '../../../../../l10n/s.dart';
 
@@ -12,21 +14,16 @@ class BadgeUIUtils {
   // Colors - Refined for "Premium" feel
   // ---------------------------------------------------------------------------
 
+  /// 金 / 银 / 铜不再用奖牌色（设计说明 §8）：金用品牌色，银和铜退到文字色。
   static Color getBadgeColor(BuildContext context, BadgeType type) {
-    final isDark = _isDark(context);
+    final colors = context.tokens.colors;
     switch (type) {
       case BadgeType.gold:
-        return isDark
-            ? const Color(0xFFFFD700) // Gold (Bright)
-            : const Color(0xFFF59E0B); // Amber 600
+        return colors.brandPrimary;
       case BadgeType.silver:
-        return isDark
-            ? const Color(0xFFE0E0E0) // Grey 300
-            : const Color(0xFF78909C); // Blue Grey 400
+        return colors.textPrimary;
       case BadgeType.bronze:
-        return isDark
-            ? const Color(0xFFFFAB91) // Deep Orange 200
-            : const Color(0xFFA1887F); // Brown 300
+        return colors.textMeta;
     }
   }
 
@@ -47,15 +44,18 @@ class BadgeUIUtils {
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [
-        baseColor.withValues(alpha:isDark ? 0.25 : 0.15),
-        baseColor.withValues(alpha:isDark ? 0.10 : 0.05),
-        baseColor.withValues(alpha:isDark ? 0.02 : 0.01),
+        baseColor.withValues(alpha: isDark ? 0.25 : 0.15),
+        baseColor.withValues(alpha: isDark ? 0.10 : 0.05),
+        baseColor.withValues(alpha: isDark ? 0.02 : 0.01),
       ],
       stops: const [0.0, 0.6, 1.0],
     );
   }
 
-  static LinearGradient getHeaderGradient(BuildContext context, BadgeType type) {
+  static LinearGradient getHeaderGradient(
+    BuildContext context,
+    BadgeType type,
+  ) {
     final baseColor = getBadgeColor(context, type);
     final isDark = _isDark(context);
 
@@ -63,8 +63,8 @@ class BadgeUIUtils {
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       colors: [
-        baseColor.withValues(alpha:isDark ? 0.3 : 0.2),
-        baseColor.withValues(alpha:isDark ? 0.05 : 0.02),
+        baseColor.withValues(alpha: isDark ? 0.3 : 0.2),
+        baseColor.withValues(alpha: isDark ? 0.05 : 0.02),
       ],
     );
   }
@@ -84,12 +84,12 @@ class BadgeUIUtils {
       gradient: gradient,
       borderRadius: BorderRadius.circular(20), // Moderner, larger radius
       border: Border.all(
-        color: borderColor.withValues(alpha:isDark ? 0.3 : 0.2),
+        color: borderColor.withValues(alpha: isDark ? 0.3 : 0.2),
         width: 1.5,
       ),
       boxShadow: [
         BoxShadow(
-          color: borderColor.withValues(alpha:isDark ? 0.1 : 0.08),
+          color: borderColor.withValues(alpha: isDark ? 0.1 : 0.08),
           blurRadius: 16,
           offset: const Offset(0, 8), // Soft spread shadow
           spreadRadius: -4,

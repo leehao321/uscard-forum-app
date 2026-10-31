@@ -249,10 +249,10 @@ extension _FilterActions on _TopicDetailPageState {
             // 问答话题:默认按票排序,可切按活动(时间流)
             if (detail?.isPostVoting ?? false)
               ListTile(
-                leading: const Icon(Symbols.history_rounded),
+                leading: const Icon(AppIcons.history),
                 title: Text(context.l10n.topicDetail_sortByActivity),
                 trailing: notifier.isActivityMode
-                    ? Icon(Symbols.check_rounded, color: theme.colorScheme.primary)
+                    ? Icon(AppIcons.check, color: theme.colorScheme.primary)
                     : null,
                 onTap: () {
                   Navigator.pop(ctx);
@@ -266,13 +266,11 @@ extension _FilterActions on _TopicDetailPageState {
             if (detail?.hasSummary ?? false)
               ListTile(
                 leading: Icon(
-                  notifier.isSummaryMode
-                      ? Symbols.local_fire_department_rounded
-                      : Symbols.local_fire_department_rounded,
+                  notifier.isSummaryMode ? AppIcons.hot : AppIcons.hot,
                 ),
                 title: Text(context.l10n.topicDetail_hotOnly),
                 trailing: notifier.isSummaryMode
-                    ? Icon(Symbols.check_rounded, color: theme.colorScheme.primary)
+                    ? Icon(AppIcons.check, color: theme.colorScheme.primary)
                     : null,
                 onTap: () {
                   Navigator.pop(ctx);
@@ -284,13 +282,10 @@ extension _FilterActions on _TopicDetailPageState {
                 },
               ),
             ListTile(
-              leading: Icon(
-                Symbols.person_rounded,
-                fill: isAuthorFilter ? 1 : 0,
-              ),
+              leading: Icon(AppIcons.person, fill: isAuthorFilter ? 1 : 0),
               title: Text(context.l10n.topicDetail_authorOnly),
               trailing: isAuthorFilter
-                  ? Icon(Symbols.check_rounded, color: theme.colorScheme.primary)
+                  ? Icon(AppIcons.check, color: theme.colorScheme.primary)
                   : null,
               onTap: () {
                 Navigator.pop(ctx);
@@ -303,10 +298,10 @@ extension _FilterActions on _TopicDetailPageState {
             ),
             if (isOtherUserFilter)
               ListTile(
-                leading: const Icon(Symbols.person_search_rounded, fill: 1),
+                leading: const Icon(AppIcons.userSearch, fill: 1),
                 title: Text(context.l10n.topicDetail_userOnly(userFilter)),
                 trailing: Icon(
-                  Symbols.check_rounded,
+                  AppIcons.check,
                   color: theme.colorScheme.primary,
                 ),
                 onTap: () {
@@ -317,12 +312,12 @@ extension _FilterActions on _TopicDetailPageState {
             ListTile(
               leading: Icon(
                 notifier.isTopLevelMode
-                    ? Symbols.account_tree_rounded
-                    : Symbols.account_tree_rounded,
+                    ? AppIcons.accountTree
+                    : AppIcons.accountTree,
               ),
               title: Text(context.l10n.topicDetail_topLevelOnly),
               trailing: notifier.isTopLevelMode
-                  ? Icon(Symbols.check_rounded, color: theme.colorScheme.primary)
+                  ? Icon(AppIcons.check, color: theme.colorScheme.primary)
                   : null,
               onTap: () {
                 Navigator.pop(ctx);
@@ -336,10 +331,10 @@ extension _FilterActions on _TopicDetailPageState {
             if (AppConstants.siteCustomization.supportsNestedView) ...[
               const Divider(height: 1, indent: 16, endIndent: 16),
               ListTile(
-                leading: Icon(Symbols.forum_rounded, fill: _isNestedView ? 1 : 0),
+                leading: Icon(AppIcons.forum, fill: _isNestedView ? 1 : 0),
                 title: Text(context.l10n.nested_title),
                 trailing: _isNestedView
-                    ? Icon(Symbols.check_rounded, color: theme.colorScheme.primary)
+                    ? Icon(AppIcons.check, color: theme.colorScheme.primary)
                     : null,
                 onTap: () {
                   Navigator.pop(ctx);
@@ -351,7 +346,7 @@ extension _FilterActions on _TopicDetailPageState {
               const Divider(height: 1, indent: 16, endIndent: 16),
               ListTile(
                 leading: Icon(
-                  Symbols.filter_list_off_rounded,
+                  AppIcons.filterOff,
                   color: theme.colorScheme.error,
                 ),
                 title: Text(

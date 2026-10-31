@@ -15,7 +15,9 @@ import '../../../services/network/vpn_auto_toggle_service.dart';
 import '../../../services/network/webview/webview_adapter_settings_service.dart';
 import '../../../services/toast_service.dart';
 import '../../../services/windows_webview_environment_service.dart';
+
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../doh_detail_settings_page.dart';
 import 'ios_cert_install_dialog.dart';
 
@@ -241,7 +243,9 @@ class _DohSettingsCardInner extends StatelessWidget {
                     label: isRunning
                         ? context.l10n.dohSettings_proxyRunning
                         : context.l10n.dohSettings_proxyNotStarted,
-                    color: isRunning ? Colors.green : theme.colorScheme.error,
+                    color: isRunning
+                        ? context.tokens.colors.brandPrimary
+                        : theme.colorScheme.error,
                   ),
           ),
           const SizedBox(width: 12),
@@ -279,11 +283,7 @@ class _DohSettingsCardInner extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(
-                AppIcons.warning,
-                size: 16,
-                color: theme.colorScheme.error,
-              ),
+              Icon(AppIcons.warning, size: 16, color: theme.colorScheme.error),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -310,7 +310,7 @@ class _DohSettingsCardInner extends StatelessWidget {
                       proxyService.lastError!,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
-                        fontSize: 11,
+                        fontSize: AppFontSize.caption,
                       ),
                     ),
                   ),
@@ -511,7 +511,9 @@ class _CertGuideState extends State<_CertGuide> {
       return ListTile(
         leading: Icon(
           _installed ? AppIcons.verifiedUser : AppIcons.security,
-          color: _installed ? Colors.green : theme.colorScheme.error,
+          color: _installed
+              ? context.tokens.colors.brandPrimary
+              : theme.colorScheme.error,
         ),
         title: Text(
           _installed
@@ -524,7 +526,7 @@ class _CertGuideState extends State<_CertGuide> {
               : l10n.dohSettings_certInstallHint,
           style: TextStyle(
             color: theme.colorScheme.onSurfaceVariant,
-            fontSize: 12,
+            fontSize: AppFontSize.meta,
           ),
         ),
         trailing: _installed
@@ -546,7 +548,9 @@ class _CertGuideState extends State<_CertGuide> {
       return ListTile(
         leading: Icon(
           _installed ? AppIcons.verifiedUser : AppIcons.security,
-          color: _installed ? Colors.green : theme.colorScheme.error,
+          color: _installed
+              ? context.tokens.colors.brandPrimary
+              : theme.colorScheme.error,
         ),
         title: Text(
           _installed
@@ -559,7 +563,7 @@ class _CertGuideState extends State<_CertGuide> {
               : l10n.dohSettings_certInstallHint,
           style: TextStyle(
             color: theme.colorScheme.onSurfaceVariant,
-            fontSize: 12,
+            fontSize: AppFontSize.meta,
           ),
         ),
         trailing: _installed
@@ -577,10 +581,8 @@ class _CertGuideState extends State<_CertGuide> {
     // 其他平台: per-device 证书开关
     return SwitchListTile.adaptive(
       secondary: Icon(
-        _perDeviceEnabled
-            ? AppIcons.verifiedUser
-            : AppIcons.security,
-        color: _perDeviceEnabled ? Colors.green : null,
+        _perDeviceEnabled ? AppIcons.verifiedUser : AppIcons.security,
+        color: _perDeviceEnabled ? context.tokens.colors.brandPrimary : null,
       ),
       title: Text(l10n.dohSettings_perDeviceCert),
       subtitle: Text(
@@ -589,7 +591,7 @@ class _CertGuideState extends State<_CertGuide> {
             : l10n.dohSettings_perDeviceCertDisabledDesc,
         style: TextStyle(
           color: theme.colorScheme.onSurfaceVariant,
-          fontSize: 12,
+          fontSize: AppFontSize.meta,
         ),
       ),
       value: _perDeviceEnabled,

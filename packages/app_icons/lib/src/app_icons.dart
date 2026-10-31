@@ -357,6 +357,35 @@ abstract final class AppIcons {
   static const layoutGrid = LucideIcons300.layoutGrid;
   static const cameraOff = LucideIcons300.cameraOff;
 
+  // ---- M10 Y ----
+  static const circleIcon = LucideIcons300.circle;
+  static const gitMerge = LucideIcons300.gitMerge;
+  static const octagonX = LucideIcons300.octagonX;
+  static const scan = LucideIcons300.scan;
+  static const circleEllipsis = LucideIcons300.circleEllipsis;
+  static const chartBar = LucideIcons300.chartBar;
+  static const chartLine = LucideIcons300.chartLine;
+  static const repeatIcon = LucideIcons300.repeat;
+  static const clockIcon = LucideIcons300.clock;
+  static const videoOff = LucideIcons300.videoOff;
+  static const video = LucideIcons300.video;
+  static const chevronsDownUp = LucideIcons300.chevronsDownUp;
+  // ---- /M10 Y ----
+
+  // ---- M10 X ----
+  static const arrowUp = LucideIcons300.arrowUp;
+  static const arrowDown = LucideIcons300.arrowDown;
+  static const cornerDownRight = LucideIcons300.cornerDownRight;
+  static const userMinus = LucideIcons300.userMinus;
+  static const userPlus = LucideIcons300.userPlus;
+  static const userSearch = LucideIcons300.userSearch;
+  static const chevronFirst = LucideIcons300.chevronFirst;
+  static const chevronLast = LucideIcons300.chevronLast;
+  static const hand = LucideIcons300.hand;
+  static const moveRight = LucideIcons300.moveRight;
+  static const skipForward = LucideIcons300.skipForward;
+  // ---- /M10 X ----
+
   // 表情 Tab 用的笑脸（更柔和，配合 fill 切实/空）
   static final AppCustomIcon smileyOutline = AppCustomIcon(
     ({required color, required fill, required strokeWidth}) =>

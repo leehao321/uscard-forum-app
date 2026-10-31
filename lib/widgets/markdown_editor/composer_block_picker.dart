@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 
 import 'dart:async';
@@ -572,7 +573,7 @@ class _ComposerBlockPickerState extends State<ComposerBlockPicker> {
                           item.glyph!,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: AppFontSize.body,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

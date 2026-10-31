@@ -317,7 +317,7 @@ class FluxdoRenderCallbacks {
       height: size,
       gaplessPlayback: true,
       errorBuilder: (_, _, _) => Icon(
-        Symbols.broken_image_rounded,
+        AppIcons.imageBroken,
         size: size,
         color: Theme.of(ctx).colorScheme.outline,
       ),
@@ -383,7 +383,7 @@ class FluxdoRenderCallbacks {
           child: Math.tex(
             node.latex,
             textStyle: TextStyle(
-              fontSize: 16,
+              fontSize: AppFontSize.body,
               color: Theme.of(ctx).colorScheme.onSurface,
             ),
             onErrorFallback: (_) => Text(
@@ -405,7 +405,7 @@ class FluxdoRenderCallbacks {
     return Math.tex(
       node.latex,
       textStyle: TextStyle(
-        fontSize: 14,
+        fontSize: AppFontSize.meta,
         color: Theme.of(ctx).colorScheme.onSurface,
       ),
       onErrorFallback: (_) => Text(
@@ -703,7 +703,7 @@ class FluxdoRenderCallbacks {
         radius: 8,
         shadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
+            color: AppFixedColors.black.withValues(alpha: 0.15),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -829,7 +829,7 @@ class FluxdoRenderCallbacks {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : Icon(
-                            Symbols.broken_image_rounded,
+                            AppIcons.imageBroken,
                             color: Theme.of(context).colorScheme.outline,
                             size: 24,
                           ),
@@ -1291,7 +1291,7 @@ class FluxdoRenderCallbacks {
                 placeholderColor: dominant == null
                     ? null
                     : Color(
-                        0xFF000000 |
+                        AppFixedColors.black.toARGB32() |
                             (int.tryParse(dominant, radix: 16) ?? 0xEEEEEE),
                       ),
                 width: dispW,
@@ -1656,7 +1656,7 @@ class _AsyncHighlightedCodeState extends State<_AsyncHighlightedCode> {
     final baseStyle = TextStyle(
       fontFamily: 'FiraCode',
       fontFamilyFallback: const ['monospace', 'Menlo', 'Courier'],
-      fontSize: 13,
+      fontSize: AppFontSize.meta,
       height: 1.4,
       color: theme.colorScheme.onSurface,
     );
@@ -1893,19 +1893,19 @@ class _MermaidBlockState extends State<_MermaidBlock> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Symbols.error_rounded, color: theme.colorScheme.error),
+                  Icon(AppIcons.error, color: theme.colorScheme.error),
                   const SizedBox(height: 8),
                   Text(
                     S.current.codeBlock_chartLoadFailed,
                     style: TextStyle(
                       color: theme.colorScheme.error,
-                      fontSize: 12,
+                      fontSize: AppFontSize.meta,
                     ),
                   ),
                   const SizedBox(height: 8),
                   TextButton.icon(
                     onPressed: _retry,
-                    icon: const Icon(Symbols.refresh_rounded, size: 16),
+                    icon: const Icon(AppIcons.refresh, size: 16),
                     label: Text(S.current.common_retry),
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
@@ -1930,11 +1930,12 @@ class _MermaidBlockState extends State<_MermaidBlock> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final screenshotMode = ScreenshotMode.of(context);
-    final bgColor = isDark ? const Color(0xff282a36) : const Color(0xfff6f8fa);
+    final bgColor = isDark
+        ? AppFixedColors.codeBackgroundDark
+        : AppFixedColors.codeBackgroundLight;
     final borderColor = theme.colorScheme.outlineVariant.withValues(alpha: 0.3);
-    final thumbColor = (isDark ? Colors.white : Colors.black).withValues(
-      alpha: 0.15,
-    );
+    final thumbColor = (isDark ? AppFixedColors.white : AppFixedColors.black)
+        .withValues(alpha: 0.15);
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -1966,9 +1967,7 @@ class _MermaidBlockState extends State<_MermaidBlock> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          _showCode
-                              ? Symbols.auto_graph_rounded
-                              : Symbols.code_rounded,
+                          _showCode ? AppIcons.chartLine : AppIcons.code,
                           size: 16,
                           color: theme.colorScheme.onSurface.withValues(
                             alpha: 0.7,
@@ -1980,7 +1979,7 @@ class _MermaidBlockState extends State<_MermaidBlock> {
                               ? S.current.codeBlock_chart
                               : S.current.codeBlock_code,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: AppFontSize.meta,
                             color: theme.colorScheme.onSurface.withValues(
                               alpha: 0.7,
                             ),
@@ -2012,7 +2011,7 @@ class _MermaidBlockState extends State<_MermaidBlock> {
                     child: Padding(
                       padding: const EdgeInsets.all(6),
                       child: Icon(
-                        Symbols.pan_zoom_rounded,
+                        AppIcons.scan,
                         size: 16,
                         color: theme.colorScheme.onSurface.withValues(
                           alpha: 0.7,
@@ -2029,7 +2028,7 @@ class _MermaidBlockState extends State<_MermaidBlock> {
                   child: Padding(
                     padding: const EdgeInsets.all(6),
                     child: Icon(
-                      Symbols.content_copy_rounded,
+                      AppIcons.copy,
                       size: 16,
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
@@ -2329,11 +2328,7 @@ class _VideoErrorFallback extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Symbols.videocam_off_rounded,
-              size: 32,
-              color: theme.colorScheme.outline,
-            ),
+            Icon(AppIcons.videoOff, size: 32, color: theme.colorScheme.outline),
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),

@@ -859,14 +859,14 @@ class _ImageViewerPageState extends ConsumerState<ImageViewerPage>
             PopupMenuItem(
               value: 'save',
               child: _BytesMenuRow(
-                icon: Symbols.save_alt_rounded,
+                icon: AppIcons.saveAlt,
                 label: ImageSaveUtils.actionLabel,
               ),
             ),
             PopupMenuItem(
               value: 'copy',
               child: _BytesMenuRow(
-                icon: Symbols.content_copy_rounded,
+                icon: AppIcons.copy,
                 label: S.current.image_copyImage,
               ),
             ),
@@ -875,7 +875,7 @@ class _ImageViewerPageState extends ConsumerState<ImageViewerPage>
               PopupMenuItem(
                 value: 'share',
                 child: _BytesMenuRow(
-                  icon: Symbols.share_rounded,
+                  icon: AppIcons.share,
                   label: S.current.common_shareImage,
                 ),
               ),
@@ -990,7 +990,7 @@ class _ImageViewerPageState extends ConsumerState<ImageViewerPage>
                 ),
             slidePageBackgroundHandler: (Offset offset, Size pageSize) {
               double progress = offset.distance / (pageSize.height);
-              return Colors.black.withValues(
+              return AppFixedColors.black.withValues(
                 alpha: (1.0 - progress).clamp(0.0, 1.0),
               );
             },
@@ -1085,7 +1085,7 @@ class _ImageViewerPageState extends ConsumerState<ImageViewerPage>
           slidePageBackgroundHandler: (Offset offset, Size pageSize) {
             // 使用垂直偏移量计算背景透明度（与 slideAxis: vertical 匹配）
             double progress = offset.dy.abs() / (pageSize.height / 2);
-            return Colors.black.withValues(
+            return AppFixedColors.black.withValues(
               alpha: (1.0 - progress).clamp(0.0, 1.0),
             );
           },
@@ -1500,9 +1500,9 @@ class _ImageDecodeFallbackState extends State<_ImageDecodeFallback> {
     // 不是 SVG 也不是 AVIF，显示错误图标
     return const Center(
       child: Icon(
-        Symbols.broken_image_rounded,
+        AppIcons.imageBroken,
         size: 64,
-        color: Colors.white54,
+        color: AppFixedColors.white54,
       ),
     );
   }

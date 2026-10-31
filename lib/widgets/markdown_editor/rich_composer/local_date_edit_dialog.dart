@@ -208,7 +208,10 @@ class _LocalDateEditDialogState extends State<_LocalDateEditDialog> {
           CheckboxListTile(
             value: _countdown,
             onChanged: (v) => setState(() => _countdown = v ?? false),
-            title: const Text('倒计时', style: TextStyle(fontSize: 14)),
+            title: const Text(
+              '倒计时',
+              style: TextStyle(fontSize: AppFontSize.meta),
+            ),
             dense: true,
             contentPadding: EdgeInsets.zero,
             controlAffinity: ListTileControlAffinity.leading,

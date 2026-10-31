@@ -147,13 +147,13 @@ class _StickerMarketSheetState extends ConsumerState<StickerMarketSheet> {
             controller: _searchController,
             textInputAction: TextInputAction.search,
             onChanged: (_) => _scheduleSearch(),
-            style: const TextStyle(fontSize: 14),
+            style: const TextStyle(fontSize: AppFontSize.meta),
             decoration: InputDecoration(
               isDense: true,
               hintText: S.current.sticker_marketSearchHint,
               hintStyle: TextStyle(
                 color: theme.colorScheme.onSurfaceVariant,
-                fontSize: 14,
+                fontSize: AppFontSize.meta,
               ),
               prefixIcon: const Icon(AppIcons.search, size: 18),
               suffixIcon: value.text.isEmpty
@@ -215,7 +215,7 @@ class _StickerMarketSheetState extends ConsumerState<StickerMarketSheet> {
             selected: selected,
             onSelected: (_) => _selectTopic(topic.id),
             labelStyle: TextStyle(
-              fontSize: 12,
+              fontSize: AppFontSize.meta,
               color: selected
                   ? theme.colorScheme.onPrimary
                   : theme.colorScheme.onSurfaceVariant,
@@ -256,7 +256,7 @@ class _StickerMarketSheetState extends ConsumerState<StickerMarketSheet> {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: AppFontSize.meta,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
@@ -378,7 +378,7 @@ class _StickerGroupTile extends ConsumerWidget {
         subtitle: Text(
           S.current.sticker_emojiCount(group.emojiCount),
           style: TextStyle(
-            fontSize: 12,
+            fontSize: AppFontSize.meta,
             color: theme.colorScheme.onSurfaceVariant,
           ),
           maxLines: 1,
@@ -434,7 +434,12 @@ class _StickerGroupTile extends ConsumerWidget {
       return SizedBox(
         width: 40,
         height: 40,
-        child: Center(child: Text(icon, style: const TextStyle(fontSize: 24))),
+        child: Center(
+          child: Text(
+            icon,
+            style: const TextStyle(fontSize: AppFontSize.title),
+          ),
+        ),
       );
     }
 
@@ -453,7 +458,7 @@ class _StickerGroupTile extends ConsumerWidget {
         child: Text(
           group.name.isNotEmpty ? group.name.characters.first : '?',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: AppFontSize.body,
             fontWeight: FontWeight.w600,
             color: theme.colorScheme.onSurfaceVariant,
           ),

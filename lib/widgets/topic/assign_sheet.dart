@@ -1,6 +1,11 @@
 import 'dart:async';
 
+import 'package:app_icons/app_icons.dart';
+
 import 'package:flutter/material.dart';
+
+import 'app_select_field.dart';
+
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:m3e_ui/m3e_ui.dart';
@@ -20,8 +25,7 @@ import '../../services/preloaded_data_service.dart';
 /// 随预加载 siteSettings 下发(官方 Web 端就是读
 /// siteSettings.assign_statuses.split("|")),这里同源读取,不硬编码。
 /// enable_assign_status 关闭时官方不显示状态下拉,同样照做。
-List<String> get _assignStatusOptions =>
-    PreloadedDataService().assignStatuses;
+List<String> get _assignStatusOptions => PreloadedDataService().assignStatuses;
 
 bool get _assignStatusEnabled =>
     PreloadedDataService().assignStatusEnabled &&
@@ -325,7 +329,7 @@ class _AssignSheetState extends ConsumerState<_AssignSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  Icon(Icons.assignment_ind_outlined, color: scheme.primary),
+                  Icon(AppIcons.assign, color: scheme.primary),
                   const SizedBox(width: 8),
                   Text('指定', style: Theme.of(context).textTheme.titleMedium),
                 ],
@@ -343,7 +347,7 @@ class _AssignSheetState extends ConsumerState<_AssignSheet> {
                     : CircleAvatar(
                         radius: 16,
                         backgroundColor: scheme.secondaryContainer,
-                        child: const Icon(Icons.group_rounded),
+                        child: const Icon(AppIcons.people),
                       ),
                 title: Text(
                   detail.assignedToUser?.displayName ??
@@ -359,7 +363,7 @@ class _AssignSheetState extends ConsumerState<_AssignSheet> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.edit_outlined, size: 20),
+                      icon: const Icon(AppIcons.edit, size: 20),
                       tooltip: '编辑备注/状态',
                       onPressed: _busy
                           ? null
@@ -378,19 +382,25 @@ class _AssignSheetState extends ConsumerState<_AssignSheet> {
                 ),
               )
             else
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text('尚未指定给任何人', style: TextStyle(color: Colors.grey)),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Text(
+                  '尚未指定给任何人',
+                  style: TextStyle(color: context.tokens.colors.textMeta),
+                ),
               ),
             const Divider(height: 1),
             ListTile(
-              leading: const Icon(Icons.person_pin_circle_outlined),
+              leading: const Icon(AppIcons.mapPin),
               title: const Text('指定给我'),
               enabled: !_busy,
               onTap: _assignToMe,
             ),
             ListTile(
-              leading: const Icon(Icons.person_add_alt_outlined),
+              leading: const Icon(AppIcons.userPlus),
               title: const Text('指定给其他用户…'),
               enabled: !_busy,
               onTap: () => _showAssignDetailsDialog(),
@@ -439,7 +449,7 @@ class _AssignSheetState extends ConsumerState<_AssignSheet> {
               // 没权限指定的群组,点了就等 403。
               for (final group in _suggestions!.assignAllowedForGroups)
                 ListTile(
-                  leading: const Icon(Icons.group_outlined),
+                  leading: const Icon(AppIcons.people),
                   title: Text('指定给群组 $group'),
                   enabled: !_busy,
                   onTap: () => _assignToGroup(group),
@@ -560,7 +570,7 @@ class _AssignDetailsDialogState extends State<_AssignDetailsDialog> {
                     decoration: const InputDecoration(
                       labelText: '受理人',
                       hintText: '搜索用户名/昵称',
-                      suffixIcon: Icon(Icons.search_rounded),
+                      suffixIcon: Icon(AppIcons.search),
                     ),
                   );
                 },
@@ -613,18 +623,18 @@ class _AssignDetailsDialogState extends State<_AssignDetailsDialog> {
               const SizedBox(height: 8),
             ],
             if (_assignStatusEnabled) ...[
-              DropdownButtonFormField<String>(
-                initialValue: _status,
-                decoration: const InputDecoration(labelText: '状态(可选)'),
-                items: [
-                  const DropdownMenuItem(value: null, child: Text('不设置')),
+              AppSelectField<String?>(
+                value: _status,
+                label: '状态(可选)',
+                options: [
+                  const AppSelectOption<String?>(label: '不设置', value: null),
                   // 现有指定的状态值可能已被站点从配置里删掉——仍要出现在
-                  // 列表里,否则 Dropdown 对不上 value 直接断言崩溃。
+                  // 选项里，否则当前值对不上选项。
                   if (_status != null &&
                       !_assignStatusOptions.contains(_status))
-                    DropdownMenuItem(value: _status, child: Text(_status!)),
+                    AppSelectOption<String?>(label: _status!, value: _status),
                   ..._assignStatusOptions.map(
-                    (s) => DropdownMenuItem(value: s, child: Text(s)),
+                    (s) => AppSelectOption<String?>(label: s, value: s),
                   ),
                 ],
                 onChanged: (v) => setState(() => _status = v),
@@ -638,7 +648,7 @@ class _AssignDetailsDialogState extends State<_AssignDetailsDialog> {
                 decoration: const InputDecoration(
                   labelText: '备注(可选)',
                   border: OutlineInputBorder(),
-                  suffixIcon: Icon(Icons.edit_note_rounded),
+                  suffixIcon: Icon(AppIcons.pencilLine),
                 ),
                 child: Text(
                   _noteText.isEmpty ? '点击用编辑器填写' : _noteText,
@@ -720,7 +730,7 @@ class _AssignNoteEditorPageState extends State<_AssignNoteEditorPage> {
       appBar: AppBar(
         title: const Text('编辑备注'),
         leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
+          icon: const Icon(AppIcons.close),
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [

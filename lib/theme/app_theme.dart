@@ -7,7 +7,7 @@ import 'package:m3e_ui/m3e_ui.dart' show M3eFlags, SegmentedCardGroupStyle;
 /// （对照见 0.4.0 计划 §3.1）。页面取色用 `context.tokens.colors`。
 ColorScheme appColorScheme(AppColors c, Brightness brightness) {
   final dark = brightness == Brightness.dark;
-  final onPrimary = dark ? const Color(0xFF000000) : const Color(0xFFFFFFFF);
+  final onPrimary = dark ? AppFixedColors.black : AppFixedColors.white;
   return ColorScheme(
     brightness: brightness,
     primary: c.brandPrimary,
@@ -23,7 +23,7 @@ ColorScheme appColorScheme(AppColors c, Brightness brightness) {
     tertiaryContainer: c.avatarFill,
     onTertiaryContainer: c.textPrimary,
     error: c.textDestructive,
-    onError: const Color(0xFFFFFFFF),
+    onError: AppFixedColors.white,
     errorContainer: c.surfaceGrouped,
     onErrorContainer: c.textDestructive,
     surface: c.surfacePage,
@@ -38,13 +38,13 @@ ColorScheme appColorScheme(AppColors c, Brightness brightness) {
     surfaceContainerHighest: c.surfaceElevated,
     outline: c.quoteRule,
     outlineVariant: c.separator,
-    shadow: const Color(0xFF000000),
-    scrim: const Color(0xFF000000),
+    shadow: AppFixedColors.black,
+    scrim: AppFixedColors.black,
     // Toast 自己画，不用 inverseSurface；这里给个不刺眼的兜底
     inverseSurface: c.textPrimary,
     onInverseSurface: c.surfacePage,
     inversePrimary: c.brandPrimary,
-    surfaceTint: const Color(0x00000000),
+    surfaceTint: Colors.transparent,
   );
 }
 
@@ -141,7 +141,7 @@ ThemeData buildAppTheme({
     appBarTheme: AppBarTheme(
       backgroundColor: c.surfacePage,
       foregroundColor: c.textPrimary,
-      surfaceTintColor: const Color(0x00000000),
+      surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,
@@ -168,7 +168,7 @@ ThemeData buildAppTheme({
     ),
     dialogTheme: DialogThemeData(
       backgroundColor: tokens.materials.sheetFill,
-      surfaceTintColor: const Color(0x00000000),
+      surfaceTintColor: Colors.transparent,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(r.sheet),
@@ -180,7 +180,7 @@ ThemeData buildAppTheme({
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: tokens.materials.sheetFill,
       modalBackgroundColor: tokens.materials.sheetFill,
-      surfaceTintColor: const Color(0x00000000),
+      surfaceTintColor: Colors.transparent,
       elevation: 0,
       modalElevation: 0,
       modalBarrierColor: AppMaterials.scrim,
@@ -194,21 +194,21 @@ ThemeData buildAppTheme({
       ),
     ),
     switchTheme: SwitchThemeData(
-      thumbColor: const WidgetStatePropertyAll(Color(0xFFFFFFFF)),
+      thumbColor: const WidgetStatePropertyAll(AppFixedColors.white),
       trackColor: _SelectedOr(c.brandPrimary, c.avatarFill),
-      trackOutlineColor: const WidgetStatePropertyAll(Color(0x00000000)),
+      trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
     ),
     sliderTheme: SliderThemeData(
       activeTrackColor: c.brandPrimary,
       inactiveTrackColor: c.avatarFill,
-      thumbColor: const Color(0xFFFFFFFF),
+      thumbColor: AppFixedColors.white,
       overlayColor: c.brandPrimary.withValues(alpha: 0.12),
       trackHeight: 4,
     ),
     progressIndicatorTheme: ProgressIndicatorThemeData(
       color: c.brandPrimary,
       linearTrackColor: c.avatarFill,
-      circularTrackColor: const Color(0x00000000),
+      circularTrackColor: Colors.transparent,
     ),
     chipTheme: ChipThemeData(
       backgroundColor: c.surfaceGrouped,
@@ -222,7 +222,7 @@ ThemeData buildAppTheme({
     cardTheme: CardThemeData(
       elevation: 0,
       color: c.surfaceGrouped,
-      surfaceTintColor: const Color(0x00000000),
+      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(r.card),
       ),
@@ -230,9 +230,9 @@ ThemeData buildAppTheme({
     ),
     popupMenuTheme: PopupMenuThemeData(
       color: brightness == Brightness.light ? c.surfacePage : c.surfaceElevated,
-      surfaceTintColor: const Color(0x00000000),
+      surfaceTintColor: Colors.transparent,
       elevation: 3,
-      shadowColor: const Color(0xFF000000),
+      shadowColor: AppFixedColors.black,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(r.card),
         side: menuSide,

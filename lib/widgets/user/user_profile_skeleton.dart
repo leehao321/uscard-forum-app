@@ -264,15 +264,15 @@ class UserProfileSkeleton extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // 名字 (fontSize: 22)
+                        // 名字 (fontSize: AppFontSize.title)
                         const _SkeletonBoxWhite(width: 120, height: 22),
                         const SizedBox(height: 2),
-                        // 用户名 (fontSize:13, 下方留 bottom:6 给等级标签)
+                        // 用户名 (fontSize: AppFontSize.meta, 下方留 bottom:6 给等级标签)
                         const Padding(
                           padding: EdgeInsets.only(bottom: 6),
                           child: _SkeletonBoxWhite(width: 80, height: 16),
                         ),
-                        // 等级标签 (padding vertical:2, fontSize:10, 总高约18)
+                        // 等级标签 (padding vertical:2, fontSize: AppFontSize.caption, 总高约18)
                         const _SkeletonBoxWhite(
                           width: 72,
                           height: 18,

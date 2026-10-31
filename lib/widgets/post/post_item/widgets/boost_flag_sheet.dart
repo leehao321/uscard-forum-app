@@ -10,8 +10,10 @@ import '../../../../utils/fluxdo_render_callbacks.dart';
 import '../../../common/app_bottom_sheet.dart';
 
 typedef BoostFlagTypesLoader = Future<List<FlagType>> Function();
-typedef BoostFlagSubmitter =
-    Future<void> Function(int flagTypeId, String? message);
+typedef BoostFlagSubmitter = Future<void> Function(
+  int flagTypeId,
+  String? message,
+);
 
 bool boostAlreadyReportedByCurrentUser({
   required Boost boost,
@@ -239,7 +241,7 @@ class _BoostFlagSheetState extends State<BoostFlagSheet> {
       contentPadding: EdgeInsets.zero,
       titleWidget: Row(
         children: [
-          Icon(Symbols.flag_rounded, color: theme.colorScheme.error),
+          Icon(AppIcons.flag, color: theme.colorScheme.error),
           const SizedBox(width: 8),
           Text(
             context.l10n.boost_flagTitle,
@@ -372,9 +374,7 @@ class _BoostFlagSheetState extends State<BoostFlagSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
-              isSelected
-                  ? Symbols.radio_button_checked_rounded
-                  : Symbols.radio_button_unchecked_rounded,
+              isSelected ? AppIcons.radioButton : AppIcons.radioButtonOff,
               size: 20,
               color: isSelected
                   ? theme.colorScheme.primary

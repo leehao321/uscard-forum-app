@@ -146,7 +146,7 @@ class _ToolCard extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: AppFontSize.meta,
                     color: fg,
                     fontWeight: FontWeight.w500,
                   ),

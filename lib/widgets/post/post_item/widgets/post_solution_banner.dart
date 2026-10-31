@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 
 import '../../../../l10n/s.dart';
@@ -56,10 +57,10 @@ class _PostSolutionBannerState extends State<PostSolutionBanner> {
         child: Container(
           decoration: BoxDecoration(
             color: isDark
-                ? Colors.green.withValues(alpha: 0.05)
-                : Colors.green.withValues(alpha: 0.04),
+                ? context.tokens.colors.brandPrimary.withValues(alpha: 0.05)
+                : context.tokens.colors.brandPrimary.withValues(alpha: 0.04),
             border: Border.all(
-              color: Colors.green.withValues(alpha: 0.3),
+              color: context.tokens.colors.brandPrimary.withValues(alpha: 0.3),
               width: 1,
             ),
             borderRadius: BorderRadius.circular(12),
@@ -96,22 +97,17 @@ class _BannerHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: isDark
-            ? const Color(0xFF2E7D32)
-            : const Color(0xFF43A047),
-      ),
+      decoration: BoxDecoration(color: context.tokens.colors.brandButton),
       child: Row(
         children: [
-          const Icon(Symbols.check_box_rounded, color: Colors.white, size: 18),
+          const Icon(AppIcons.checkBox, color: AppFixedColors.white, size: 18),
           const SizedBox(width: 8),
           Text(
             context.l10n.post_topicSolved,
             style: theme.textTheme.titleSmall?.copyWith(
-              color: Colors.white,
+              color: AppFixedColors.white,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.3,
             ),
@@ -121,7 +117,7 @@ class _BannerHeader extends StatelessWidget {
             Text(
               context.l10n.post_solutionsCount(count),
               style: theme.textTheme.bodySmall?.copyWith(
-                color: Colors.white.withValues(alpha: 0.85),
+                color: AppFixedColors.white.withValues(alpha: 0.85),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -175,7 +171,9 @@ class _AnswerRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           InkWell(
-            onTap: hasExcerpt ? onToggle : () => onJumpToPost?.call(answer.postNumber),
+            onTap: hasExcerpt
+                ? onToggle
+                : () => onJumpToPost?.call(answer.postNumber),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               child: Row(
@@ -221,13 +219,13 @@ class _AnswerRow extends StatelessWidget {
                   ),
                   if (hasExcerpt)
                     Icon(
-                      expanded ? Symbols.expand_less_rounded : Symbols.expand_more_rounded,
+                      expanded ? AppIcons.expandLess : AppIcons.expandMore,
                       size: 20,
                       color: theme.colorScheme.onSurfaceVariant,
                     )
                   else
                     Icon(
-                      Symbols.arrow_forward_rounded,
+                      AppIcons.forward,
                       size: 18,
                       color: theme.colorScheme.onSurfaceVariant.withValues(
                         alpha: 0.6,
@@ -274,7 +272,7 @@ class _ExpandedExcerpt extends StatelessWidget {
           ).render(
             cookedHtml: excerpt,
             baseTextStyle: theme.textTheme.bodyMedium?.copyWith(
-              fontSize: 14,
+              fontSize: AppFontSize.meta,
               height: 1.5,
               color: theme.colorScheme.onSurface,
             ),
@@ -301,4 +299,3 @@ class _ExpandedExcerpt extends StatelessWidget {
     );
   }
 }
-

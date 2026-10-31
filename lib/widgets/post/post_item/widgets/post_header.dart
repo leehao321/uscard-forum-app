@@ -309,7 +309,7 @@ class PostHeader extends StatelessWidget {
                                     color: theme.colorScheme.primary.withValues(
                                       alpha: 0.8,
                                     ),
-                                    fontSize: 11,
+                                    fontSize: AppFontSize.caption,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
@@ -441,11 +441,7 @@ class PostHeader extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           else
-            Icon(
-              Symbols.reply_rounded,
-              size: 14,
-              color: theme.colorScheme.primary,
-            ),
+            Icon(AppIcons.reply, size: 14, color: theme.colorScheme.primary),
           const SizedBox(width: 6),
           SmartAvatar(
             imageUrl: replyToUser.avatarTemplate.isNotEmpty
@@ -465,7 +461,7 @@ class PostHeader extends StatelessWidget {
                 displayName,
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.primary,
-                  fontSize: 11,
+                  fontSize: AppFontSize.caption,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),

@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 
 /// 媒体覆盖层的共享视觉令牌(黑底白字体系)。
@@ -8,40 +9,48 @@ import 'package:flutter/material.dart';
 abstract final class MediaOverlayStyle {
   /// 强调色(倍速非 1x、菜单选中项):暖琥珀,黑底上的唯一彩色信号。
   // v2：视频控件叠在画面上，只用白色系；强调色不再用黄色
-  static const Color accent = Colors.white;
+  static const Color accent = AppFixedColors.white;
 
   /// 主文字/图标。
-  static const Color foreground = Colors.white;
+  static const Color foreground = AppFixedColors.white;
 
   /// 次级文字(总时长、辅助标签)。
-  static const Color foregroundDim = Colors.white54;
+  static const Color foregroundDim = AppFixedColors.white54;
 
   /// 浮层胶囊统一装饰。
   static BoxDecoration pill({double radius = 10}) => BoxDecoration(
-        color: const Color(0xD91A1A1A),
-        borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: const Color(0x1FFFFFFF)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x59000000),
-            blurRadius: 12,
-            offset: Offset(0, 2),
-          ),
-        ],
-      );
+    color: AppRawColors.cD91A1A1A,
+    borderRadius: BorderRadius.circular(radius),
+    border: Border.all(color: AppRawColors.c1FFFFFFF),
+    boxShadow: const [
+      BoxShadow(
+        color: AppRawColors.c59000000,
+        blurRadius: 12,
+        offset: Offset(0, 2),
+      ),
+    ],
+  );
 
   /// 顶/底控制条 scrim:三段渐变,比两段的落差柔和。
   static const LinearGradient bottomScrim = LinearGradient(
     begin: Alignment.bottomCenter,
     end: Alignment.topCenter,
-    colors: [Color(0xB3000000), Color(0x4D000000), Colors.transparent],
+    colors: [
+      AppRawColors.cB3000000,
+      AppRawColors.c4D000000,
+      Colors.transparent,
+    ],
     stops: [0.0, 0.55, 1.0],
   );
 
   static const LinearGradient topScrim = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xB3000000), Color(0x4D000000), Colors.transparent],
+    colors: [
+      AppRawColors.cB3000000,
+      AppRawColors.c4D000000,
+      Colors.transparent,
+    ],
     stops: [0.0, 0.55, 1.0],
   );
 

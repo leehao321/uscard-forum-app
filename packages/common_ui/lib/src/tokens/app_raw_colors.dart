@@ -1,0 +1,67 @@
+import 'package:flutter/painting.dart';
+
+/// 视频播放器叠层、视频站点与 onebox 品牌色：按原值收口，名字即 ARGB 色值。
+/// 这些颜色是第三方品牌或叠在视频上的固定色，不跟主题走。
+abstract final class AppRawColors {
+  static const c1FFFFFFF = Color(0x1FFFFFFF);
+  static const c24FFFFFF = Color(0x24FFFFFF);
+  static const c33FFFFFF = Color(0x33FFFFFF);
+  static const c42FFFFFF = Color(0x42FFFFFF);
+  static const c4D000000 = Color(0x4D000000);
+  static const c4DFFFFFF = Color(0x4DFFFFFF);
+  static const c59000000 = Color(0x59000000);
+  static const c66000000 = Color(0x66000000);
+  static const c73FFFFFF = Color(0x73FFFFFF);
+  static const c8A000000 = Color(0x8A000000);
+  static const cB3000000 = Color(0xB3000000);
+  static const cCCFFFFFF = Color(0xCCFFFFFF);
+  static const cD91A1A1A = Color(0xD91A1A1A);
+  static const cF21A1A1A = Color(0xF21A1A1A);
+  static const cFF0077CC = Color(0xFF0077CC);
+  static const cFF00ADD8 = Color(0xFF00ADD8);
+  static const cFF00B4AB = Color(0xFF00B4AB);
+  static const cFF00BA7C = Color(0xFF00BA7C);
+  static const cFF010101 = Color(0xFF010101);
+  static const cFF02589D = Color(0xFF02589D);
+  static const cFF178600 = Color(0xFF178600);
+  static const cFF1AB7EA = Color(0xFF1AB7EA);
+  static const cFF1E1E1E = Color(0xFF1E1E1E);
+  static const cFF238636 = Color(0xFF238636);
+  static const cFF282A36 = Color(0xFF282A36);
+  static const cFF3178C6 = Color(0xFF3178C6);
+  static const cFF3572A5 = Color(0xFF3572A5);
+  static const cFF39739D = Color(0xFF39739D);
+  static const cFF41B883 = Color(0xFF41B883);
+  static const cFF4F5D95 = Color(0xFF4F5D95);
+  static const cFF54AEFF = Color(0xFF54AEFF);
+  static const cFF555555 = Color(0xFF555555);
+  static const cFF563D7C = Color(0xFF563D7C);
+  static const cFF5EBA7D = Color(0xFF5EBA7D);
+  static const cFF61DAFB = Color(0xFF61DAFB);
+  static const cFF625DF5 = Color(0xFF625DF5);
+  static const cFF666666 = Color(0xFF666666);
+  static const cFF701516 = Color(0xFF701516);
+  static const cFF833AB4 = Color(0xFF833AB4);
+  static const cFF8957E5 = Color(0xFF8957E5);
+  static const cFF89E051 = Color(0xFF89E051);
+  static const cFF8B8B8B = Color(0xFF8B8B8B);
+  static const cFFA97BFF = Color(0xFFA97BFF);
+  static const cFFB07219 = Color(0xFFB07219);
+  static const cFFDA3633 = Color(0xFFDA3633);
+  static const cFFDEA584 = Color(0xFFDEA584);
+  static const cFFE1306C = Color(0xFFE1306C);
+  static const cFFE1ECF4 = Color(0xFFE1ECF4);
+  static const cFFE34C26 = Color(0xFFE34C26);
+  static const cFFF1C40F = Color(0xFFF1C40F);
+  static const cFFF1E05A = Color(0xFFF1E05A);
+  static const cFFF34B7D = Color(0xFFF34B7D);
+  static const cFFF48024 = Color(0xFFF48024);
+  static const cFFF5F5F5 = Color(0xFFF5F5F5);
+  static const cFFF6F8FA = Color(0xFFF6F8FA);
+  static const cFFF77737 = Color(0xFFF77737);
+  static const cFFF91880 = Color(0xFFF91880);
+  static const cFFFF0000 = Color(0xFFFF0000);
+  static const cFFFF4500 = Color(0xFFFF4500);
+  static const cFFFF6600 = Color(0xFFFF6600);
+  static const cFFFFAC45 = Color(0xFFFFAC45);
+}

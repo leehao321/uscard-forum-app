@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
@@ -42,7 +43,7 @@ class FullscreenVideoPage extends StatefulWidget {
       await navigator.push(
         PageRouteBuilder(
           opaque: true,
-          barrierColor: Colors.black,
+          barrierColor: AppFixedColors.black,
           transitionDuration: const Duration(milliseconds: 200),
           reverseTransitionDuration: const Duration(milliseconds: 180),
           pageBuilder: (_, _, _) => FullscreenVideoPage(session: session),
@@ -106,7 +107,7 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
       autofocus: true,
       onKeyEvent: _handleKey,
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: AppFixedColors.black,
         body: Stack(
           fit: StackFit.expand,
           children: [

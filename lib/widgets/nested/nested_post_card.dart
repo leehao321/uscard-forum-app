@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import '../../utils/copy_source_tracker.dart';
+
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
@@ -393,7 +395,7 @@ class _NestedPostCardState extends ConsumerState<NestedPostCard> {
             SizedBox(
               width: _mobileGutterWidth,
               child: Icon(
-                Symbols.delete_rounded,
+                AppIcons.delete,
                 size: 14,
                 color: theme.colorScheme.onSurfaceVariant.withValues(
                   alpha: 0.4,
@@ -416,7 +418,7 @@ class _NestedPostCardState extends ConsumerState<NestedPostCard> {
               width: _avatarSize,
               height: _avatarSize,
               child: Icon(
-                Symbols.delete_rounded,
+                AppIcons.delete,
                 size: 18,
                 color: theme.colorScheme.onSurfaceVariant.withValues(
                   alpha: 0.4,
@@ -470,7 +472,7 @@ class _NestedPostCardState extends ConsumerState<NestedPostCard> {
                               color: theme.colorScheme.surface,
                             ),
                             child: Icon(
-                              Symbols.remove_circle_rounded,
+                              AppIcons.removeCircle,
                               size: 14,
                               color: depthLineColor,
                             ),
@@ -765,7 +767,7 @@ class _NestedPostCardState extends ConsumerState<NestedPostCard> {
               PostSignatureBlock(
                 post: post,
                 categoryId: widget.detail.categoryId,
-                fontSize: 11,
+                fontSize: AppFontSize.caption,
                 spacing: 6,
               ),
             // 完整操作栏（复用 PostFooterSection，隐藏回复展开按钮）
@@ -876,7 +878,7 @@ class _NestedPostCardState extends ConsumerState<NestedPostCard> {
             child: Text(
               'OP',
               style: TextStyle(
-                fontSize: 10,
+                fontSize: AppFontSize.caption,
                 fontWeight: FontWeight.w600,
                 color: theme.colorScheme.primary,
               ),
@@ -886,7 +888,7 @@ class _NestedPostCardState extends ConsumerState<NestedPostCard> {
         if (post.replyToPostNumber > 0 && post.replyToUser != null) ...[
           const SizedBox(width: 4),
           Icon(
-            Symbols.subdirectory_arrow_right_rounded,
+            AppIcons.cornerDownRight,
             size: 12,
             color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
           ),
@@ -918,7 +920,7 @@ class _NestedPostCardState extends ConsumerState<NestedPostCard> {
                   TimeUtils.formatRelativeTime(post.createdAt),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
-                    fontSize: 11,
+                    fontSize: AppFontSize.caption,
                   ),
                 ),
                 Positioned(
@@ -956,11 +958,7 @@ class _NestedPostCardState extends ConsumerState<NestedPostCard> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Symbols.add_circle_rounded,
-            size: 14,
-            color: theme.colorScheme.primary,
-          ),
+          Icon(AppIcons.addCircle, size: 14, color: theme.colorScheme.primary),
           const SizedBox(width: 4),
           Text(
             context.l10n.nested_repliesCount(_replyCount),
@@ -1161,7 +1159,7 @@ class _NestedPostCardState extends ConsumerState<NestedPostCard> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Symbols.subdirectory_arrow_right_rounded,
+            AppIcons.cornerDownRight,
             size: 14,
             color: theme.colorScheme.primary,
           ),

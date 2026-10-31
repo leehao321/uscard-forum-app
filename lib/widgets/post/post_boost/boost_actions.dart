@@ -69,8 +69,7 @@ class BoostActions {
     Rect? anchorRect,
     String? topicTitle,
     void Function(Boost boost)? onBoostChanged,
-    void Function(Boost boost, {required bool restoreCanBoost})?
-        onBoostDeleted,
+    void Function(Boost boost, {required bool restoreCanBoost})? onBoostDeleted,
   }) async {
     void applyChanged(Boost updated) {
       onBoostChanged?.call(updated);
@@ -256,7 +255,7 @@ class BoostActions {
     required int topicId,
     required Boost boost,
     required void Function(Boost boost, {required bool restoreCanBoost})?
-        onBoostDeleted,
+    onBoostDeleted,
   }) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -271,7 +270,7 @@ class BoostActions {
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
               S.current.common_delete,
-              style: const TextStyle(color: Colors.red),
+              style: TextStyle(color: context.tokens.colors.textDestructive),
             ),
           ),
         ],

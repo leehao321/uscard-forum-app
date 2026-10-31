@@ -19,7 +19,6 @@ import 'package:fluxdo/providers/message_bus/topic_tracking_providers.dart';
 import 'package:fluxdo/providers/message_bus/topic_list_events.dart';
 import 'package:fluxdo/providers/topic_list/filter_provider.dart';
 import 'package:fluxdo/widgets/topic/topic_list_update_banner.dart';
-import 'package:fluxdo/widgets/topic/topic_card_prewarmer.dart';
 import 'package:fluxdo/providers/tag_notification_provider.dart';
 import 'package:fluxdo/providers/theme_provider.dart';
 import 'package:fluxdo/services/discourse/discourse_service.dart';
@@ -310,12 +309,6 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(
-        tester
-            .widget<TopicCardPrewarmScope>(find.byType(TopicCardPrewarmScope))
-            .topics,
-        isEmpty,
-      );
       expect(find.byType(TopicListUpdateBanner), findsNothing);
       expect(tester.takeException(), isNull);
     });

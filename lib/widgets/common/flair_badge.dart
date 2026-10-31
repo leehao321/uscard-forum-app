@@ -1,9 +1,12 @@
+import 'package:common_ui/common_ui.dart';
+
 import 'dart:convert' show utf8;
 
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import '../../services/discourse_cache_manager.dart';
 import '../../services/emoji_handler.dart';
 import '../../utils/svg_utils.dart';
@@ -36,9 +39,9 @@ class FlairBadge extends StatelessWidget {
     if (flairUrl == null) return false;
     // 完整 URL、相对路径、emoji 名称都是图片
     return flairUrl!.startsWith('http://') ||
-           flairUrl!.startsWith('https://') ||
-           flairUrl!.startsWith('/') ||
-           (flairUrl!.startsWith(':') && flairUrl!.endsWith(':'));
+        flairUrl!.startsWith('https://') ||
+        flairUrl!.startsWith('/') ||
+        (flairUrl!.startsWith(':') && flairUrl!.endsWith(':'));
   }
 
   /// 检查是否是 SVG 图片
@@ -107,7 +110,11 @@ class FlairBadge extends StatelessWidget {
       // 有背景时图标缩小一点，留出内边距
       final iconSize = hasBgColor ? size * 0.6 : size * 0.8;
       // 图标颜色：优先使用 flairColor，否则有背景用白色，无背景用主题色
-      final iconColor = fgColor ?? (hasBgColor ? Colors.white : Theme.of(context).colorScheme.onSurface);
+      final iconColor =
+          fgColor ??
+          (hasBgColor
+              ? AppFixedColors.white
+              : Theme.of(context).colorScheme.onSurface);
 
       return Tooltip(
         message: flairName ?? '',
@@ -115,17 +122,10 @@ class FlairBadge extends StatelessWidget {
           width: size,
           height: size,
           decoration: hasBgColor
-              ? BoxDecoration(
-                  color: bgColor,
-                  shape: BoxShape.circle,
-                )
+              ? BoxDecoration(color: bgColor, shape: BoxShape.circle)
               : null,
           child: Center(
-            child: FaIcon(
-              iconData,
-              size: iconSize,
-              color: iconColor,
-            ),
+            child: FaIcon(iconData, size: iconSize, color: iconColor),
           ),
         ),
       );
@@ -154,10 +154,7 @@ class FlairBadge extends StatelessWidget {
         width: size,
         height: size,
         decoration: hasBgColor
-            ? BoxDecoration(
-                color: bgColor,
-                shape: BoxShape.circle,
-              )
+            ? BoxDecoration(color: bgColor, shape: BoxShape.circle)
             : null,
         child: Center(
           child: Image(
@@ -175,7 +172,7 @@ class FlairBadge extends StatelessWidget {
                 style: TextStyle(
                   fontSize: size * 0.6,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey,
+                  color: AppFixedColors.neutralGrey,
                 ),
               );
             },
@@ -194,10 +191,13 @@ class AvatarWithFlair extends StatelessWidget {
   final String? flairName;
   final String? flairBgColor;
   final String? flairColor;
+
   /// Flair 徽章大小，需要调用方根据头像大小自行设置
   final double flairSize;
+
   /// Flair 徽章右偏移，需要调用方根据头像大小自行设置
   final double flairRight;
+
   /// Flair 徽章下偏移，需要调用方根据头像大小自行设置
   final double flairBottom;
 
@@ -294,7 +294,7 @@ class _SvgFlairBadgeState extends State<_SvgFlairBadge> {
       // 读取 SVG 内容并清理动画/不支持的元素
       String content = utf8.decode(bytes, allowMalformed: true);
       content = SvgUtils.sanitize(content);
-      
+
       if (mounted) {
         setState(() {
           _svgContent = content;
@@ -319,7 +319,7 @@ class _SvgFlairBadgeState extends State<_SvgFlairBadge> {
       content = SizedBox(width: widget.imageSize, height: widget.imageSize);
     } else if (_hasError || _svgContent == null) {
       content = Icon(
-        Symbols.broken_image_rounded,
+        AppIcons.imageBroken,
         size: widget.imageSize * 0.8,
         color: Theme.of(context).colorScheme.outline,
       );
@@ -338,10 +338,7 @@ class _SvgFlairBadgeState extends State<_SvgFlairBadge> {
         width: widget.size,
         height: widget.size,
         decoration: widget.hasBgColor
-            ? BoxDecoration(
-                color: widget.bgColor,
-                shape: BoxShape.circle,
-              )
+            ? BoxDecoration(color: widget.bgColor, shape: BoxShape.circle)
             : null,
         child: Center(child: content),
       ),

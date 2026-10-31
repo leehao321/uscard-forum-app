@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
+
 import '../../../content/render_theme.dart';
 import '../../../../l10n/s.dart';
 import '../../../../models/topic.dart';
@@ -99,7 +100,7 @@ class PostSegmentFrame extends StatelessWidget {
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant
                                 .withValues(alpha: 0.6),
-                            fontSize: 11,
+                            fontSize: AppFontSize.caption,
                           ),
                         ),
                       ),
@@ -125,7 +126,7 @@ class PostSegmentFrame extends StatelessWidget {
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant
                                 .withValues(alpha: 0.6),
-                            fontSize: 11,
+                            fontSize: AppFontSize.caption,
                           ),
                         ),
                       ),

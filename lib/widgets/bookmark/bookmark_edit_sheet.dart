@@ -421,7 +421,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
               height: 16,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: Colors.white,
+                color: AppFixedColors.white,
               ),
             )
           : Text(S.current.common_save),
@@ -522,7 +522,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                               )
                             : S.current.bookmark_reminderExpired,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: AppFontSize.meta,
                           color: _currentReminderAt!.isAfter(DateTime.now())
                               ? theme.colorScheme.onPrimaryContainer
                               : theme.colorScheme.onErrorContainer,
@@ -589,7 +589,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
                         child: Text(
                           TimeUtils.formatFullDate(_customReminderAt!),
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: AppFontSize.meta,
                             color: theme.colorScheme.onPrimaryContainer,
                           ),
                         ),

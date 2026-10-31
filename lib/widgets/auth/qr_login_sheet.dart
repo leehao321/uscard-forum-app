@@ -13,6 +13,7 @@ import '../../services/qr_login_service.dart';
 import '../../services/toast_service.dart';
 import '../../utils/dialog_utils.dart';
 import '../../utils/responsive.dart';
+
 import 'package:m3e_ui/m3e_ui.dart';
 
 /// OTP 一次性登录令牌的服务端 TTL(Redis setex 10 分钟,兑换即焚)。
@@ -71,7 +72,9 @@ Future<void> showQrLoginSheet(BuildContext context, {String? username}) async {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(dialogContext.tokens.radius.sheet),
+          borderRadius: BorderRadius.circular(
+            dialogContext.tokens.radius.sheet,
+          ),
         ),
         child: SizedBox(
           width: 440,
@@ -243,8 +246,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
     if (username.isEmpty) return;
     _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
       if (!mounted || _pollInFlight || _consumed || _qrExpired) return;
-      if (WidgetsBinding.instance.lifecycleState !=
-          AppLifecycleState.resumed) {
+      if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
         return;
       }
       _pollInFlight = true;
@@ -278,7 +280,12 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
     final showQrState = _approved || _loading;
 
     return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(AppSpace.pageMargin, widget.inSheet ? 0 : 20, AppSpace.pageMargin, AppSpace.pageMargin),
+      padding: EdgeInsets.fromLTRB(
+        AppSpace.pageMargin,
+        widget.inSheet ? 0 : 20,
+        AppSpace.pageMargin,
+        AppSpace.pageMargin,
+      ),
       child: AnimatedSize(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOutCubic,
@@ -352,9 +359,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
           onPressed: _confirmAndGenerate,
           icon: const Icon(AppIcons.qrCode),
           label: Text(context.l10n.login_qrGenerateAction),
-          style: FilledButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
-          ),
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
         ),
       ],
     );
@@ -370,7 +375,11 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(AppIcons.warning, size: 20, color: context.tokens.colors.textDestructive),
+          Icon(
+            AppIcons.warning,
+            size: 20,
+            color: context.tokens.colors.textDestructive,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -468,7 +477,11 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(AppIcons.error, size: 48, color: context.tokens.colors.textDestructive),
+        Icon(
+          AppIcons.error,
+          size: 48,
+          color: context.tokens.colors.textDestructive,
+        ),
         const SizedBox(height: 12),
         Text(_error!, textAlign: TextAlign.center),
         const SizedBox(height: 16),
@@ -494,7 +507,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
               children: [
                 const Icon(
                   AppIcons.checkCircle,
-                  color: Colors.white,
+                  color: AppFixedColors.white,
                   size: 40,
                 ),
                 const SizedBox(height: 10),
@@ -504,7 +517,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
                     context.l10n.login_qrScannedSuccess,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.titleSmall?.copyWith(
-                      color: Colors.white,
+                      color: AppFixedColors.white,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -532,7 +545,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
                 children: [
                   const Icon(
                     AppIcons.refresh,
-                    color: Colors.white,
+                    color: AppFixedColors.white,
                     size: 40,
                   ),
                   const SizedBox(height: 10),
@@ -542,7 +555,7 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
                       context.l10n.login_qrExpiredTapRegenerate,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.titleSmall?.copyWith(
-                        color: Colors.white,
+                        color: AppFixedColors.white,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -583,14 +596,14 @@ class _QrCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppFixedColors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: scheme.outlineVariant.withValues(alpha: 0.4),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(
+                color: AppFixedColors.black.withValues(
                   alpha: theme.brightness == Brightness.dark ? 0.35 : 0.08,
                 ),
                 blurRadius: 20,
@@ -602,14 +615,14 @@ class _QrCard extends StatelessWidget {
             data: data,
             version: QrVersions.auto,
             size: 224,
-            backgroundColor: Colors.white,
+            backgroundColor: AppFixedColors.white,
             eyeStyle: const QrEyeStyle(
               eyeShape: QrEyeShape.square,
-              color: Colors.black,
+              color: AppFixedColors.black,
             ),
             dataModuleStyle: const QrDataModuleStyle(
               dataModuleShape: QrDataModuleShape.square,
-              color: Colors.black,
+              color: AppFixedColors.black,
             ),
             errorStateBuilder: (context, error) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -618,7 +631,7 @@ class _QrCard extends StatelessWidget {
               return Center(
                 child: Text(
                   S.current.login_qrGenerateFailed,
-                  style: const TextStyle(color: Colors.red),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               );
             },

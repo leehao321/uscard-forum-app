@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../constants.dart';
 import '../models/shortcut_binding.dart';
 import '../providers/discourse_providers.dart';
@@ -10,7 +11,9 @@ import '../models/search_result.dart';
 import '../services/preloaded_data_service.dart';
 import '../widgets/common/smart_avatar.dart';
 import '../widgets/common/error_view.dart';
+
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../widgets/common/paged_list_footer.dart';
 import '../widgets/search/search_filter_panel.dart';
 import '../widgets/search/search_list_skeleton.dart';
@@ -21,7 +24,9 @@ import '../providers/shortcut_provider.dart';
 import '../widgets/layout/master_detail_layout.dart';
 import '../utils/responsive.dart';
 import 'topic_detail_page/topic_detail_page.dart';
+
 import 'package:dio/dio.dart';
+
 import '../services/app_error_handler.dart';
 import '../l10n/s.dart';
 import 'user_profile_page.dart';
@@ -47,10 +52,8 @@ String normalizeDirectSearchLink(String rawValue) {
 
 /// 不带协议的站内链接：主域去掉 `www.` 后，可带或不带 `www.` 前缀。
 final RegExp _bareSiteLinkPattern = () {
-  final host = Uri.parse(AppConstants.baseUrl).host.replaceFirst(
-    RegExp(r'^www\.'),
-    '',
-  );
+  final host = Uri.parse(AppConstants.baseUrl).host
+      .replaceFirst(RegExp(r'^www\.'), '');
   return RegExp(
     '^(?:www\\.)?${RegExp.escape(host)}(?::\\d+)?/',
     caseSensitive: false,
@@ -442,9 +445,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   /// 从查询字符串中提取排序方式
   SearchSortOrder? _extractOrderFromQuery(String query) {
-    final match = RegExp(
-      r'order:(relevance|latest|likes|views|latest_topic)',
-    ).firstMatch(query);
+    final match = RegExp(r'order:(relevance|latest|likes|views|latest_topic)')
+        .firstMatch(query);
     if (match == null) return null;
     final orderValue = match.group(1);
     return SearchSortOrder.values.firstWhere(
@@ -809,7 +811,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           ),
       ],
       emptyDetail: MasterDetailEmptyState(
-        icon: Symbols.preview_rounded,
+        icon: AppIcons.visibility,
         iconSize: 56,
         message: context.l10n.search_selectResultHint,
       ),
@@ -897,7 +899,10 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                 ? _buildEmptyState(theme)
                 : _buildSearchResults(theme),
           ),
-          ColoredBox(color: tokens.colors.surfacePage, child: SafeArea(top: false, child: searchBar)),
+          ColoredBox(
+            color: tokens.colors.surfacePage,
+            child: SafeArea(top: false, child: searchBar),
+          ),
         ],
       ),
     );
@@ -959,7 +964,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   void _insertSyntax(String token) {
     final text = _searchController.text;
-    final next = text.isEmpty || text.endsWith(' ') ? '$text$token' : '$text $token';
+    final next = text.isEmpty || text.endsWith(' ')
+        ? '$text$token'
+        : '$text $token';
     _searchController.value = TextEditingValue(
       text: next,
       selection: TextSelection.collapsed(offset: next.length),
@@ -1022,7 +1029,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                 Text(context.l10n.search_recentSearches, style: metaStyle),
                 // 「清除」文字按钮，无确认
                 AppPressable(
-                  onTap: _isClearingRecentSearches ? null : _clearRecentSearches,
+                  onTap: _isClearingRecentSearches
+                      ? null
+                      : _clearRecentSearches,
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(
                       minHeight: AppSize.hit,
@@ -1085,7 +1094,11 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           padding: const EdgeInsets.only(left: AppSpace.pageMargin),
           child: Row(
             children: [
-              Icon(AppIcons.history, size: AppSize.iconM, color: colors.textMeta),
+              Icon(
+                AppIcons.history,
+                size: AppSize.iconM,
+                color: colors.textMeta,
+              ),
               const SizedBox(width: AppSpace.m),
               Expanded(
                 child: Text(

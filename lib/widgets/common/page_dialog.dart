@@ -113,12 +113,12 @@ class _PageDialogScaffoldState extends State<PageDialogScaffold> {
                   if (widget.fullscreenBuilder != null)
                     _PageDialogTopButton(
                       tooltip: context.l10n.common_fullscreenOpen,
-                      icon: Symbols.open_in_full_rounded,
+                      icon: AppIcons.maximize,
                       onPressed: _openFullscreen,
                     ),
                   _PageDialogTopButton(
                     tooltip: context.l10n.common_close,
-                    icon: Symbols.close_rounded,
+                    icon: AppIcons.close,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],

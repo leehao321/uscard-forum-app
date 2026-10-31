@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 
 import '../../../../l10n/s.dart';
@@ -16,7 +17,9 @@ class PostSolutionStamp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = accepted ? Colors.green : theme.colorScheme.outline;
+    final color = accepted
+        ? context.tokens.colors.brandPrimary
+        : theme.colorScheme.outline;
     return IgnorePointer(
       child: Opacity(
         opacity: accepted ? 0.12 : 0.05,
@@ -30,7 +33,7 @@ class PostSolutionStamp extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    accepted ? Symbols.verified_rounded : Symbols.help_rounded,
+                    accepted ? AppIcons.verifiedUser : AppIcons.help,
                     color: color,
                     size: 28,
                   ),
@@ -41,7 +44,7 @@ class PostSolutionStamp extends StatelessWidget {
                         : context.l10n.post_unsolved,
                     style: TextStyle(
                       color: color,
-                      fontSize: 22,
+                      fontSize: AppFontSize.title,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 2,
                       fontFamily: theme.textTheme.titleLarge?.fontFamily,

@@ -1,6 +1,8 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_icons/app_icons.dart';
+
 import '../l10n/s.dart';
 import '../models/notification.dart';
 import '../providers/discourse_providers.dart';
@@ -239,8 +241,7 @@ class _NotificationPagerDialogState extends State<_NotificationPagerDialog>
     final notification = widget.playlist[_index];
     final hasMultiple = widget.playlist.length > 1;
     // 常驻侧栏需要 880(内容) + 332(列表) + 页边距的空间
-    final useSidebar =
-        hasMultiple && MediaQuery.sizeOf(context).width >= 1240;
+    final useSidebar = hasMultiple && MediaQuery.sizeOf(context).width >= 1240;
 
     final list = _NotificationPagerList(
       playlist: widget.playlist,
@@ -268,7 +269,7 @@ class _NotificationPagerDialogState extends State<_NotificationPagerDialog>
           if (!useSidebar)
             pageDialogTopButton(
               tooltip: context.l10n.notification_showList,
-              icon: Symbols.list_rounded,
+              icon: AppIcons.listIcon,
               onPressed: () {
                 if (_drawerController.isForwardOrCompleted) {
                   _drawerController.reverse();
@@ -279,12 +280,12 @@ class _NotificationPagerDialogState extends State<_NotificationPagerDialog>
             ),
           pageDialogTopButton(
             tooltip: context.l10n.notification_previous,
-            icon: Symbols.keyboard_arrow_up_rounded,
+            icon: AppIcons.chevronUp,
             onPressed: _index > 0 ? () => _goTo(_index - 1) : null,
           ),
           pageDialogTopButton(
             tooltip: context.l10n.notification_next,
-            icon: Symbols.keyboard_arrow_down_rounded,
+            icon: AppIcons.chevronDown,
             onPressed: _index < widget.playlist.length - 1
                 ? () => _goTo(_index + 1)
                 : null,
@@ -322,7 +323,7 @@ class _NotificationPagerDialogState extends State<_NotificationPagerDialog>
                 child: GestureDetector(
                   onTap: () => _drawerController.reverse(),
                   child: ColoredBox(
-                    color: Colors.black26.withValues(alpha: 0.26 * t),
+                    color: AppFixedColors.black26.withValues(alpha: 0.26 * t),
                   ),
                 ),
               ),
@@ -371,11 +372,8 @@ class _NotificationPagerListState extends State<_NotificationPagerList> {
   static const double _estimatedItemExtent = 88;
 
   late final ScrollController _scrollController = ScrollController(
-    initialScrollOffset:
-        (widget.currentIndex * _estimatedItemExtent - 120).clamp(
-          0,
-          double.infinity,
-        ),
+    initialScrollOffset: (widget.currentIndex * _estimatedItemExtent - 120)
+        .clamp(0, double.infinity),
   );
 
   @override

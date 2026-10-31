@@ -938,7 +938,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         // 模式区分：image 用橙色 accent + palette icon（调色板，比 auto_awesome
         // 更切题）+ "生成图片"；text 用 primary + chat_bubble icon + "ai_askTitle"
         final accent = isImage
-            ? const Color(0xFFEA580C)
+            ? context.tokens.colors.textDestructive
             : theme.colorScheme.primary;
         final iconData = isImage ? AppIcons.palette : AppIcons.chatBubble;
         final title = isImage
@@ -978,7 +978,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                       Text(
                         title,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: AppFontSize.meta,
                           fontWeight: FontWeight.w500,
                           letterSpacing: 0.5,
                           color: accent,
@@ -1111,7 +1111,10 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
             const SizedBox(width: 4),
             Text(
               context.l10n.ai_selectedCount(_selectedMessageIds.length),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                fontSize: AppFontSize.body,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -1245,7 +1248,7 @@ class _SessionHistorySheetState extends State<_SessionHistorySheet> {
             title: Text(
               _formatSessionTitle(session, index),
               style: TextStyle(
-                fontSize: 14,
+                fontSize: AppFontSize.meta,
                 fontWeight: isCurrent ? FontWeight.w500 : FontWeight.normal,
                 color: isCurrent ? theme.colorScheme.primary : null,
               ),
@@ -1438,7 +1441,7 @@ class _ThinkingButton extends StatelessWidget {
           ? Text(
               '${current.customBudget}',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: AppFontSize.meta,
                 fontWeight: FontWeight.w500,
                 color: cs.primary,
               ),

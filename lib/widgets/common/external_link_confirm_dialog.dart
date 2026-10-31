@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart';
+
 import '../../config/site_customization.dart';
 import '../../l10n/s.dart';
 import '../../services/toast_service.dart';
@@ -97,7 +98,7 @@ class _ExternalLinkConfirmSheet extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      Symbols.language_rounded,
+                      AppIcons.language,
                       size: 16,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -122,7 +123,7 @@ class _ExternalLinkConfirmSheet extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Icon(
-                          Symbols.content_copy_rounded,
+                          AppIcons.copy,
                           size: 16,
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -159,11 +160,7 @@ class _ExternalLinkConfirmSheet extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Symbols.warning_amber_rounded,
-                    color: config.color,
-                    size: 20,
-                  ),
+                  Icon(AppIcons.warning, color: config.color, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -234,7 +231,7 @@ class _ExternalLinkConfirmSheet extends StatelessWidget {
     switch (level) {
       case LinkRiskLevel.normal:
         return _DialogConfig(
-          icon: Symbols.open_in_new_rounded,
+          icon: AppIcons.openInNew,
           color: theme.colorScheme.primary,
           buttonColor: theme.colorScheme.primary,
           title: l10n.externalLink_leavingTitle,
@@ -242,25 +239,25 @@ class _ExternalLinkConfirmSheet extends StatelessWidget {
         );
       case LinkRiskLevel.risky:
         return _DialogConfig(
-          icon: Symbols.link_off_rounded,
-          color: Colors.orange,
-          buttonColor: Colors.orange,
+          icon: AppIcons.linkOff,
+          color: theme.colorScheme.onSurfaceVariant,
+          buttonColor: theme.colorScheme.onSurfaceVariant,
           title: l10n.externalLink_shortLinkTitle,
           message: l10n.externalLink_shortLinkMessage,
           warning: l10n.externalLink_shortLinkWarning,
         );
       case LinkRiskLevel.dangerous:
         return _DialogConfig(
-          icon: Symbols.shield_rounded,
-          color: Colors.red,
-          buttonColor: Colors.red,
+          icon: AppIcons.shield,
+          color: theme.colorScheme.error,
+          buttonColor: theme.colorScheme.error,
           title: l10n.externalLink_securityWarningTitle,
           message: l10n.externalLink_securityWarningMessage,
           warning: l10n.externalLink_securityWarningHint,
         );
       default:
         return _DialogConfig(
-          icon: Symbols.open_in_new_rounded,
+          icon: AppIcons.openInNew,
           color: theme.colorScheme.primary,
           buttonColor: theme.colorScheme.primary,
           title: l10n.externalLink_leavingTitle,
@@ -317,10 +314,14 @@ class _LinkBlockedSheet extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: Colors.red.withValues(alpha: 0.12),
+              color: theme.colorScheme.error.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Symbols.block_rounded, color: Colors.red, size: 28),
+            child: Icon(
+              AppIcons.block,
+              color: theme.colorScheme.error,
+              size: 28,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
@@ -345,24 +346,26 @@ class _LinkBlockedSheet extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.red.withValues(alpha: 0.06),
+              color: theme.colorScheme.error.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.red.withValues(alpha: 0.15)),
+              border: Border.all(
+                color: theme.colorScheme.error.withValues(alpha: 0.15),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  Symbols.dangerous_rounded,
+                  AppIcons.octagonX,
                   size: 18,
-                  color: Colors.red.shade400,
+                  color: theme.colorScheme.error,
                 ),
                 const SizedBox(width: 10),
                 Flexible(
                   child: Text(
                     host,
                     style: theme.textTheme.titleSmall?.copyWith(
-                      color: Colors.red.shade700,
+                      color: theme.colorScheme.error,
                       fontWeight: FontWeight.w500,
                     ),
                     maxLines: 1,
@@ -386,7 +389,7 @@ class _LinkBlockedSheet extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  Symbols.info_rounded,
+                  AppIcons.info,
                   color: theme.colorScheme.onSurfaceVariant,
                   size: 18,
                 ),

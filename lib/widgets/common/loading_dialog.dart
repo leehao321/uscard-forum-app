@@ -1,5 +1,8 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
+
 import '../../utils/dialog_utils.dart';
+
 import 'package:m3e_ui/m3e_ui.dart';
 
 /// 显示 Loading 对话框
@@ -17,7 +20,7 @@ class LoadingDialog {
     showAppDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black26,
+      barrierColor: AppFixedColors.black26,
       builder: (context) => _LoadingDialogContent(message: message),
     ).whenComplete(controller._markClosed);
     return controller;
@@ -76,7 +79,7 @@ class _LoadingDialogContent extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: AppFixedColors.black.withValues(alpha: 0.1),
               blurRadius: 20,
               offset: const Offset(0, 4),
             ),

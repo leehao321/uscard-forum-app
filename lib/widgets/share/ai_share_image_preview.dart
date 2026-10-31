@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../../providers/preferences_provider.dart';
 import '../../services/discourse/discourse_service.dart';
 import '../../l10n/s.dart';
@@ -114,8 +115,9 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
   }
 
   ThemeData _buildThemeData(ThemeData currentTheme) {
-    final brightness =
-        _selectedTheme.isDark ? Brightness.dark : Brightness.light;
+    final brightness = _selectedTheme.isDark
+        ? Brightness.dark
+        : Brightness.light;
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
@@ -213,7 +215,9 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
       // 上传到 Discourse
       final service = DiscourseService();
       final uploadResult = await service.uploadImage(tempFile.path);
-      final imageMarkdown = uploadResult.toMarkdown(alt: S.current.share_aiReplyAlt);
+      final imageMarkdown = uploadResult.toMarkdown(
+        alt: S.current.share_aiReplyAlt,
+      );
 
       if (mounted) {
         // 关闭预览页
@@ -263,14 +267,19 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
 
           // 标题栏：左对齐 17 + 右侧 x（同 AppSheetScaffold）
           Padding(
-            padding: const EdgeInsets.only(left: AppSpace.pageMargin, right: AppSpace.s),
+            padding: const EdgeInsets.only(
+              left: AppSpace.pageMargin,
+              right: AppSpace.s,
+            ),
             child: Row(
               children: [
                 Expanded(
                   child: Semantics(
                     header: true,
                     child: Text(
-                      widget.messages.length > 1 ? context.l10n.share_exportChatImage : context.l10n.share_exportImage,
+                      widget.messages.length > 1
+                          ? context.l10n.share_exportChatImage
+                          : context.l10n.share_exportImage,
                       style: theme.textTheme.titleMedium
                           ?.merge(context.tokens.text.headline)
                           .copyWith(color: context.tokens.colors.textPrimary),
@@ -298,7 +307,7 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
+                        color: AppFixedColors.black.withValues(alpha: 0.1),
                         blurRadius: 20,
                         offset: const Offset(0, 4),
                       ),
@@ -345,15 +354,17 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                           border: Border.all(
                             color: isSelected
                                 ? theme.colorScheme.primary
-                                : theme.colorScheme.outline
-                                    .withValues(alpha: 0.3),
+                                : theme.colorScheme.outline.withValues(
+                                    alpha: 0.3,
+                                  ),
                             width: isSelected ? 2.5 : 1,
                           ),
                           boxShadow: isSelected
                               ? [
                                   BoxShadow(
-                                    color: theme.colorScheme.primary
-                                        .withValues(alpha: 0.3),
+                                    color: theme.colorScheme.primary.withValues(
+                                      alpha: 0.3,
+                                    ),
                                     blurRadius: 8,
                                   ),
                                 ]
@@ -363,8 +374,9 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                             ? Icon(
                                 AppIcons.check,
                                 size: 18,
-                                color:
-                                    t.isDark ? Colors.white : Colors.black87,
+                                color: t.isDark
+                                    ? AppFixedColors.white
+                                    : AppFixedColors.black87,
                               )
                             : null,
                       ),
@@ -372,12 +384,13 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                       Text(
                         t.name,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: AppFontSize.caption,
                           color: isSelected
                               ? context.tokens.colors.brandPrimary
                               : context.tokens.colors.textMeta,
-                          fontWeight:
-                              isSelected ? FontWeight.w500 : FontWeight.normal,
+                          fontWeight: isSelected
+                              ? FontWeight.w500
+                              : FontWeight.normal,
                         ),
                       ),
                     ],
@@ -419,7 +432,9 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                             : const Icon(AppIcons.copy, size: 18),
                         label: Text(context.l10n.common_copy),
                         style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(AppSize.replyButton),
+                          minimumSize: const Size.fromHeight(
+                            AppSize.replyButton,
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ).merge(AppButtonStyles.secondary(context)),
                       ),
@@ -434,7 +449,9 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                             : const Icon(AppIcons.saveAlt, size: 18),
                         label: Text(ImageSaveUtils.actionLabel),
                         style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(AppSize.replyButton),
+                          minimumSize: const Size.fromHeight(
+                            AppSize.replyButton,
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ).merge(AppButtonStyles.secondary(context)),
                       ),
@@ -445,12 +462,14 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                       child: FilledButton.icon(
                         onPressed: _anyLoading ? null : _shareImage,
                         icon: _isSharing
-                            ? const LoadingSpinner(size: 18, color: Colors.white)
+                            ? const LoadingSpinner(
+                                size: 18,
+                                color: AppFixedColors.white,
+                              )
                             : const Icon(AppIcons.share, size: 18),
                         label: Text(context.l10n.common_share),
                         style: FilledButton.styleFrom(
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                       ),
                     ),
@@ -466,10 +485,13 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                       icon: _isReplying
                           ? const LoadingSpinner(size: 18)
                           : const Icon(AppIcons.reply, size: 18),
-                      label: Text(_isReplying ? context.l10n.share_uploading : context.l10n.share_replyToTopic),
+                      label: Text(
+                        _isReplying
+                            ? context.l10n.share_uploading
+                            : context.l10n.share_replyToTopic,
+                      ),
                       style: FilledButton.styleFrom(
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ).merge(AppButtonStyles.secondary(context)),
                     ),
                   ),

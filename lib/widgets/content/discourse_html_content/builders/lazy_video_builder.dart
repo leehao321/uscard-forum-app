@@ -1,5 +1,7 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
+
 import '../../../../services/discourse_cache_manager.dart';
 import '../../../../utils/link_launcher.dart';
 import 'iframe_builder.dart';
@@ -47,10 +49,10 @@ class _LazyVideoAttributes {
 
   /// 品牌色
   Color get brandColor => switch (provider) {
-    'youtube' => const Color(0xFFFF0000),
-    'vimeo' => const Color(0xFF1ab7ea),
-    'tiktok' => const Color(0xFF010101),
-    _ => const Color(0xFF666666),
+    'youtube' => AppRawColors.cFFFF0000,
+    'vimeo' => AppRawColors.cFF1AB7EA,
+    'tiktok' => AppRawColors.cFF010101,
+    _ => AppRawColors.cFF666666,
   };
 
   /// 将 "1h30m45s" 格式的时间转换为秒数
@@ -90,7 +92,8 @@ Widget? buildLazyVideo({
   final thumbnailUrl = (imgElement?.attributes['src'] as String?) ?? '';
 
   // 提取链接 URL
-  final titleLink = element.querySelector('a.title-link') ?? element.querySelector('a');
+  final titleLink =
+      element.querySelector('a.title-link') ?? element.querySelector('a');
   final url = (titleLink?.attributes['href'] as String?) ?? '';
 
   final videoAttrs = _LazyVideoAttributes(
@@ -112,10 +115,7 @@ Widget? buildLazyVideo({
     }
   }
 
-  return _LazyVideoWidget(
-    videoAttrs: videoAttrs,
-    clickCount: clickCount,
-  );
+  return _LazyVideoWidget(videoAttrs: videoAttrs, clickCount: clickCount);
 }
 
 /// 懒加载视频 StatefulWidget：缩略图 ↔ iframe 切换
@@ -123,10 +123,7 @@ class _LazyVideoWidget extends StatefulWidget {
   final _LazyVideoAttributes videoAttrs;
   final String? clickCount;
 
-  const _LazyVideoWidget({
-    required this.videoAttrs,
-    this.clickCount,
-  });
+  const _LazyVideoWidget({required this.videoAttrs, this.clickCount});
 
   @override
   State<_LazyVideoWidget> createState() => _LazyVideoWidgetState();
@@ -160,7 +157,7 @@ class _LazyVideoWidgetState extends State<_LazyVideoWidget> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          color: Colors.black,
+          color: AppFixedColors.black,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -176,15 +173,24 @@ class _LazyVideoWidgetState extends State<_LazyVideoWidget> {
                           ? Image(
                               image: discourseImageProvider(attrs.thumbnailUrl),
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => Container(
-                                color: Colors.black,
-                                child: const Center(
-                                  child: Icon(Symbols.video_library_rounded, size: 48, color: Colors.white54),
-                                ),
-                              ),
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Container(
+                                    color: AppFixedColors.black,
+                                    child: const Center(
+                                      child: Icon(
+                                        AppIcons.videoLibrary,
+                                        size: 48,
+                                        color: AppFixedColors.white54,
+                                      ),
+                                    ),
+                                  ),
                             )
                           : const Center(
-                              child: Icon(Symbols.video_library_rounded, size: 48, color: Colors.white54),
+                              child: Icon(
+                                AppIcons.videoLibrary,
+                                size: 48,
+                                color: AppFixedColors.white54,
+                              ),
                             ),
                     ),
                     // 播放按钮
@@ -195,7 +201,11 @@ class _LazyVideoWidgetState extends State<_LazyVideoWidget> {
                         color: attrs.brandColor.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Symbols.play_arrow_rounded, color: Colors.white, size: 32),
+                      child: const Icon(
+                        AppIcons.play,
+                        color: AppFixedColors.white,
+                        size: 32,
+                      ),
                     ),
                   ],
                 ),
@@ -207,8 +217,13 @@ class _LazyVideoWidgetState extends State<_LazyVideoWidget> {
                       ? () => launchContentLink(context, attrs.url)
                       : null,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    color: theme.colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.5,
+                    ),
                     child: Row(
                       children: [
                         Expanded(
@@ -227,9 +242,9 @@ class _LazyVideoWidgetState extends State<_LazyVideoWidget> {
                           const SizedBox(width: 8),
                           OneboxClickCount(count: widget.clickCount!),
                         ],
-                    ],
+                      ],
+                    ),
                   ),
-                ),
                 ),
             ],
           ),
@@ -247,7 +262,13 @@ class _LazyVideoWidgetState extends State<_LazyVideoWidget> {
     final iframeAttrs = IframeAttributes(
       src: embedUrl,
       allowFullscreen: true,
-      allow: {'accelerometer', 'autoplay', 'encrypted-media', 'gyroscope', 'picture-in-picture'},
+      allow: {
+        'accelerometer',
+        'autoplay',
+        'encrypted-media',
+        'gyroscope',
+        'picture-in-picture',
+      },
       title: attrs.title,
       classes: {'${attrs.provider}-onebox'},
     );

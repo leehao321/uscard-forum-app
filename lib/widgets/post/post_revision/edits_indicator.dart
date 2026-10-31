@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 
 import '../../../l10n/s.dart';
@@ -8,7 +9,7 @@ import '../../../utils/time_utils.dart';
 /// 帖子编辑指示器：铅笔图标 + 编辑次数,紧贴时间右侧。
 ///
 /// 对齐 discourse 网页版 `post/meta-data/edits-indicator.gjs`：
-/// - 图标：普通帖 [Symbols.edit_rounded]，wiki 帖 [Symbols.auto_stories_rounded]
+/// - 图标：普通帖 [AppIcons.edit]，wiki 帖 [AppIcons.autoStories]
 /// - 数字：[Post.editsCount]（首次发布不显示数字）
 /// - tooltip：显示最后编辑时间(wiki / 普通文案不同)
 /// - 点击三分支：
@@ -42,22 +43,18 @@ class EditsIndicator extends StatelessWidget {
     final enabled = canEnterEditor || canShowHistory;
 
     final tooltip = _buildTooltip(context, enabled: enabled);
-    final iconData = post.wiki ? Symbols.auto_stories_rounded : Symbols.edit_rounded;
+    final iconData = post.wiki ? AppIcons.autoStories : AppIcons.edit;
 
     final content = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          iconData,
-          size: 12,
-          color: enabled ? color : disabledColor,
-        ),
+        Icon(iconData, size: 12, color: enabled ? color : disabledColor),
         if (post.editsCount > 0) ...[
           const SizedBox(width: 2),
           Text(
             '${post.editsCount}',
             style: theme.textTheme.labelSmall?.copyWith(
-              fontSize: 10,
+              fontSize: AppFontSize.caption,
               color: enabled ? color : disabledColor,
               fontWeight: FontWeight.w500,
               height: 1.0,
@@ -88,11 +85,7 @@ class EditsIndicator extends StatelessWidget {
             child: content,
           );
 
-    return Tooltip(
-      message: tooltip,
-      preferBelow: false,
-      child: tappable,
-    );
+    return Tooltip(message: tooltip, preferBelow: false, child: tappable);
   }
 
   String _buildTooltip(BuildContext context, {required bool enabled}) {

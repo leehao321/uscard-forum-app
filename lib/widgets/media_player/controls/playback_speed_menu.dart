@@ -1,8 +1,7 @@
-import 'package:app_icons/app_icons.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 
 import '../../../l10n/s.dart';
-import 'media_overlay_style.dart';
 
 /// 可选倍速档位(视频/音频共用)。
 const kPlaybackSpeedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
@@ -24,71 +23,23 @@ Future<double?> showPlaybackSpeedMenu(
   required double current,
   bool darkOverlay = false,
 }) {
-  final box = context.findRenderObject() as RenderBox?;
-  final overlay =
-      Overlay.of(context).context.findRenderObject() as RenderBox?;
-  RelativeRect position = const RelativeRect.fromLTRB(0, 0, 0, 0);
-  if (box != null && overlay != null) {
-    position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        box.localToGlobal(Offset.zero, ancestor: overlay),
-        box.localToGlobal(box.size.bottomRight(Offset.zero),
-            ancestor: overlay),
-      ),
-      Offset.zero & overlay.size,
-    );
-  }
-
-  final theme = Theme.of(context);
-  // 媒体覆盖层(视频控制条)上弹菜单用深色玻璃质感(与 HUD/胶囊同一
-  // 令牌),选中项琥珀强调;普通页面内(音频条)跟随应用主题。
-  final Color? menuColor = darkOverlay ? const Color(0xF21A1A1A) : null;
-  final Color itemColor =
-      darkOverlay ? MediaOverlayStyle.foreground : theme.colorScheme.onSurface;
-  final Color checkColor =
-      darkOverlay ? MediaOverlayStyle.accent : theme.colorScheme.primary;
-
-  return showMenu<double>(
+  // 倍速菜单统一走 v2 AppMenu：当前档位打勾，不再区分媒体覆盖层的深色玻璃样式
+  final anchor = globalRectOf(context);
+  return showAppMenu<double>(
     context: context,
-    position: position,
-    color: menuColor,
-    elevation: darkOverlay ? 12 : null,
-    shape: darkOverlay
-        ? RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: const BorderSide(color: Color(0x1FFFFFFF)),
-          )
-        : null,
-    items: [
-      for (final speed in kPlaybackSpeedOptions)
-        PopupMenuItem<double>(
-          value: speed,
-          height: 40,
-          child: Row(
-            children: [
-              SizedBox(
-                width: 24,
-                child: speed == current
-                    ? Icon(AppIcons.check, size: 18, color: checkColor)
-                    : null,
-              ),
-              Text(
-                speed == 1.0
-                    ? '${formatPlaybackSpeed(speed)} '
-                        '(${S.current.mediaPlayer_speedNormal})'
-                    : formatPlaybackSpeed(speed),
-                style: TextStyle(
-                  color: speed == current && darkOverlay
-                      ? MediaOverlayStyle.accent
-                      : itemColor,
-                  fontSize: 14,
-                  fontWeight:
-                      speed == current ? FontWeight.w600 : FontWeight.w400,
-                ),
-              ),
-            ],
+    anchor: anchor,
+    sections: [
+      [
+        for (final speed in kPlaybackSpeedOptions)
+          AppMenuItem<double>(
+            label: speed == 1.0
+                ? '${formatPlaybackSpeed(speed)} '
+                      '(${S.current.mediaPlayer_speedNormal})'
+                : formatPlaybackSpeed(speed),
+            value: speed,
+            checked: speed == current,
           ),
-        ),
+      ],
     ],
   );
 }

@@ -69,7 +69,7 @@ class _MoreTopicsSectionState extends ConsumerState<MoreTopicsSection> {
                   children: [
                     _MoreTopicsTab(
                       label: l10n.topicDetail_relatedTopics,
-                      icon: Symbols.auto_awesome_rounded,
+                      icon: AppIcons.autoAwesome,
                       selected: showRelated,
                       onTap: () => setState(() => _preferRelated = true),
                     ),
@@ -85,7 +85,7 @@ class _MoreTopicsSectionState extends ConsumerState<MoreTopicsSection> {
                   children: [
                     if (showRelated) ...[
                       Icon(
-                        Symbols.auto_awesome_rounded,
+                        AppIcons.autoAwesome,
                         size: 16,
                         color: theme.colorScheme.primary,
                       ),
@@ -328,29 +328,35 @@ class _MoreTopicTile extends StatelessWidget {
 
     final rightSpans = <InlineSpan>[];
     if (density.replyCount > 0) {
-      rightSpans.add(iconGlyphSpan(
-        context,
-        Symbols.chat_bubble_rounded,
-        size: 12,
-        color: metaColor,
-        gap: 3,
-        textStyle: rightStyle,
-      ));
-      rightSpans.add(TextSpan(
-        text: NumberUtils.formatCount(density.replyCount),
-        style: rightStyle,
-      ));
+      rightSpans.add(
+        iconGlyphSpan(
+          context,
+          AppIcons.chatBubble,
+          size: 12,
+          color: metaColor,
+          gap: 3,
+          textStyle: rightStyle,
+        ),
+      );
+      rightSpans.add(
+        TextSpan(
+          text: NumberUtils.formatCount(density.replyCount),
+          style: rightStyle,
+        ),
+      );
     }
     if (density.showTime) {
       if (rightSpans.isNotEmpty) {
         rightSpans.add(TextSpan(text: ' · ', style: rightStyle));
       }
-      rightSpans.add(TextSpan(
-        text: TimeUtils.formatRelativeTime(
-          topic.lastPostedAt ?? topic.createdAt,
+      rightSpans.add(
+        TextSpan(
+          text: TimeUtils.formatRelativeTime(
+            topic.lastPostedAt ?? topic.createdAt,
+          ),
+          style: rightStyle,
         ),
-        style: rightStyle,
-      ));
+      );
     }
 
     return Row(

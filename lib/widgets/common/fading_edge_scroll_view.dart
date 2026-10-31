@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 
 /// 为可滚动子组件添加边缘渐变遮罩
@@ -62,17 +63,17 @@ class _FadingEdgeScrollViewState extends State<FadingEdgeScrollView> {
           shaderCallback: (Rect bounds) {
             if (!showLeft && !showRight) {
               return const LinearGradient(
-                colors: [Colors.white, Colors.white],
+                colors: [AppFixedColors.white, AppFixedColors.white],
               ).createShader(bounds);
             }
             return LinearGradient(
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
               colors: [
-                if (showLeft) Colors.white.withValues(alpha: 0),
-                Colors.white,
-                Colors.white,
-                if (showRight) Colors.white.withValues(alpha: 0),
+                if (showLeft) AppFixedColors.white.withValues(alpha: 0),
+                AppFixedColors.white,
+                AppFixedColors.white,
+                if (showRight) AppFixedColors.white.withValues(alpha: 0),
               ],
               stops: [
                 if (showLeft) 0.0,

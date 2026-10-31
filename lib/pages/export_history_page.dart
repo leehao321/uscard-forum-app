@@ -53,7 +53,11 @@ class _ExportHistoryPageState extends ConsumerState<ExportHistoryPage> {
               current: _filter,
               onChange: (v) => setState(() => _filter = v),
             ),
-            AppIconButton(icon: AppIcons.delete, semanticLabel: context.l10n.exportHistory_clearAll, onPressed: _confirmClear),
+            AppIconButton(
+              icon: AppIcons.delete,
+              semanticLabel: context.l10n.exportHistory_clearAll,
+              onPressed: _confirmClear,
+            ),
           ],
         ],
       ),
@@ -417,7 +421,7 @@ class _ExportEntryCard extends StatelessWidget {
                                 : entry.sourceTitle,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w600,
-                              fontSize: 14,
+                              fontSize: AppFontSize.meta,
                               height: 1.3,
                             ),
                             maxLines: 1,
@@ -432,7 +436,7 @@ class _ExportEntryCard extends StatelessWidget {
                     DefaultTextStyle.merge(
                       style: theme.textTheme.bodySmall!.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
-                        fontSize: 11.5,
+                        fontSize: AppFontSize.caption,
                       ),
                       child: Wrap(
                         spacing: 10,
@@ -523,7 +527,7 @@ class _FormatPill extends StatelessWidget {
         label,
         style: TextStyle(
           color: color,
-          fontSize: 10,
+          fontSize: AppFontSize.caption,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.3,
         ),

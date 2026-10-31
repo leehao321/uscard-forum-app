@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:common_ui/common_ui.dart';
+
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 
@@ -150,8 +152,7 @@ class _BoostPopoverLayoutDelegate extends SingleChildLayoutDelegate {
   @override
   BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
     final maxWidth = math.min(_maxWidth, constraints.maxWidth - _margin * 2);
-    final maxHeight =
-        constraints.maxHeight - safeInsets.vertical - _margin * 2;
+    final maxHeight = constraints.maxHeight - safeInsets.vertical - _margin * 2;
     return BoxConstraints(
       maxWidth: math.max(0, maxWidth),
       maxHeight: math.max(0, maxHeight),
@@ -212,20 +213,20 @@ class _BoostAuthorPopoverCard extends StatelessWidget {
     final actions = <Widget>[
       if (canViewAuthor)
         _PopoverActionButton(
-          icon: Symbols.person_rounded,
+          icon: AppIcons.person,
           label: context.l10n.boost_authorProfile,
           onTap: () => _select(context, BoostAuthorPopoverAction.profile),
         ),
       if (canFlag)
         _PopoverActionButton(
-          icon: Symbols.flag_rounded,
+          icon: AppIcons.flag,
           label: context.l10n.common_report,
           foregroundColor: theme.colorScheme.error,
           onTap: () => _select(context, BoostAuthorPopoverAction.flag),
         ),
       if (canDelete)
         _PopoverActionButton(
-          icon: Symbols.delete_rounded,
+          icon: AppIcons.delete,
           label: context.l10n.common_delete,
           foregroundColor: theme.colorScheme.error,
           onTap: () => _select(context, BoostAuthorPopoverAction.delete),
@@ -238,7 +239,7 @@ class _BoostAuthorPopoverCard extends StatelessWidget {
         child: Material(
           color: theme.colorScheme.surfaceContainer,
           elevation: 4,
-          shadowColor: Colors.black.withValues(alpha: 0.35),
+          shadowColor: AppFixedColors.black.withValues(alpha: 0.35),
           borderRadius: BorderRadius.circular(16),
           clipBehavior: Clip.antiAlias,
           child: Column(
@@ -247,7 +248,8 @@ class _BoostAuthorPopoverCard extends StatelessWidget {
             children: [
               InkWell(
                 onTap: canViewAuthor
-                    ? () => _select(context, BoostAuthorPopoverAction.authorCard)
+                    ? () =>
+                          _select(context, BoostAuthorPopoverAction.authorCard)
                     : null,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),

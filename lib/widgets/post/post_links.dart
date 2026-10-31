@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
+
 import '../../l10n/s.dart';
 import '../../models/topic.dart';
 import '../../pages/topic_detail_page/topic_detail_page.dart';
@@ -17,17 +19,14 @@ class PostLinks extends StatefulWidget {
   /// 最大折叠显示数量
   static const int maxCollapsedLinks = 5;
 
-  const PostLinks({
-    super.key,
-    this.linkCounts,
-    this.defaultExpanded = false,
-  });
+  const PostLinks({super.key, this.linkCounts, this.defaultExpanded = false});
 
   @override
   State<PostLinks> createState() => _PostLinksState();
 }
 
-class _PostLinksState extends State<PostLinks> with SingleTickerProviderStateMixin {
+class _PostLinksState extends State<PostLinks>
+    with SingleTickerProviderStateMixin {
   late bool _expanded = widget.defaultExpanded;
   bool _showAll = false; // 链接列表内部的"查看更多"
 
@@ -37,7 +36,13 @@ class _PostLinksState extends State<PostLinks> with SingleTickerProviderStateMix
 
     // 过滤：内部链接 + reflection + 有标题
     final filtered = widget.linkCounts!
-        .where((l) => l.internal && l.reflection && l.title != null && l.title!.isNotEmpty)
+        .where(
+          (l) =>
+              l.internal &&
+              l.reflection &&
+              l.title != null &&
+              l.title!.isNotEmpty,
+        )
         .toList();
 
     // 按标题去重
@@ -125,7 +130,7 @@ class _PostLinksState extends State<PostLinks> with SingleTickerProviderStateMix
               child: Row(
                 children: [
                   Icon(
-                    Symbols.link_rounded,
+                    AppIcons.link,
                     size: 16,
                     color: theme.colorScheme.primary,
                   ),
@@ -139,9 +144,14 @@ class _PostLinksState extends State<PostLinks> with SingleTickerProviderStateMix
                   ),
                   const SizedBox(width: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 1,
+                    ),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+                      color: theme.colorScheme.primaryContainer.withValues(
+                        alpha: 0.5,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -157,7 +167,7 @@ class _PostLinksState extends State<PostLinks> with SingleTickerProviderStateMix
                     turns: _expanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
                     child: Icon(
-                      Symbols.expand_more_rounded,
+                      AppIcons.expandMore,
                       size: 20,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -181,9 +191,13 @@ class _PostLinksState extends State<PostLinks> with SingleTickerProviderStateMix
                       Divider(
                         height: 1,
                         thickness: 0.5,
-                        color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                        color: theme.colorScheme.outlineVariant.withValues(
+                          alpha: 0.3,
+                        ),
                       ),
-                      ..._displayedLinks.map((link) => _buildLinkItem(link, theme)),
+                      ..._displayedLinks.map(
+                        (link) => _buildLinkItem(link, theme),
+                      ),
                       if (_canShowMore)
                         InkWell(
                           onTap: () => setState(() => _showAll = true),
@@ -198,7 +212,7 @@ class _PostLinksState extends State<PostLinks> with SingleTickerProviderStateMix
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Symbols.more_horiz_rounded,
+                                  AppIcons.moreHoriz,
                                   size: 16,
                                   color: theme.colorScheme.primary,
                                 ),
@@ -229,7 +243,7 @@ class _PostLinksState extends State<PostLinks> with SingleTickerProviderStateMix
         child: Row(
           children: [
             Icon(
-              Symbols.subdirectory_arrow_right_rounded,
+              AppIcons.cornerDownRight,
               size: 16,
               color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
             ),
@@ -256,14 +270,14 @@ class _PostLinksState extends State<PostLinks> with SingleTickerProviderStateMix
                   _formatClicks(link.clicks),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
-                    fontSize: 10,
+                    fontSize: AppFontSize.caption,
                   ),
                 ),
               ),
             ],
             const SizedBox(width: 4),
             Icon(
-              Symbols.arrow_outward_rounded,
+              AppIcons.arrowUpRight,
               size: 14,
               color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),

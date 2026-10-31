@@ -1,9 +1,14 @@
 import 'dart:async';
+
+import 'package:common_ui/common_ui.dart';
+
 import '../../utils/copy_source_tracker.dart';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../l10n/s.dart';
 import '../../utils/dialog_utils.dart';
 import '../../models/topic.dart';
@@ -18,7 +23,9 @@ import '../../utils/html_text_mapper.dart';
 import '../../utils/html_to_markdown.dart';
 import '../../utils/quote_builder.dart';
 import '../common/app_bottom_sheet.dart';
+
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../../utils/fluxdo_render_callbacks.dart';
 import 'post_item/quote_selection_helper.dart';
 import '../crypto/crypto_decrypt_sheet.dart';
@@ -521,9 +528,8 @@ class _PostRepliesSheetContentState
                 topicId: widget.topicId,
               ).render(
                 cookedHtml: post.cooked,
-                baseTextStyle: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(fontSize: 14, height: 1.5),
+                baseTextStyle: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(fontSize: AppFontSize.meta, height: 1.5),
                 compact: true,
                 selectionEnabled: _isLoggedIn,
                 onQuoteRequest: _isLoggedIn
@@ -587,7 +593,7 @@ class _PostRepliesSheetContentState
                   height: 12,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Icon(Symbols.expand_more_rounded, size: 16),
+              : const Icon(AppIcons.expandMore, size: 16),
           label: Text(S.current.post_loadMoreReplies),
           style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
         ),

@@ -489,7 +489,7 @@ class _PollBuilderDialogState extends State<_PollBuilderDialog> {
                       Text(
                         '高级选项',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: AppFontSize.meta,
                           color: scheme.onSurfaceVariant,
                         ),
                       ),
@@ -498,23 +498,55 @@ class _PollBuilderDialogState extends State<_PollBuilderDialog> {
                 ),
               ),
               if (_showAdvanced) ...[
-                DropdownButtonFormField<String>(
-                  initialValue: _results,
-                  decoration: const InputDecoration(
-                    labelText: '结果可见性',
-                    isDense: true,
-                    border: OutlineInputBorder(),
+                Builder(
+                  builder: (ctx) => ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('结果可见性'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          kPollResults.firstWhere((e) => e.$1 == _results).$2,
+                          style: TextStyle(
+                            fontSize: AppFontSize.meta,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpace.xs),
+                        Icon(
+                          AppIcons.chevronDown,
+                          size: AppSize.iconS,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ],
+                    ),
+                    onTap: () async {
+                      final picked = await showAppMenu<String>(
+                        context: ctx,
+                        anchor: globalRectOf(ctx),
+                        sections: [
+                          [
+                            for (final (v, label) in kPollResults)
+                              AppMenuItem<String>(
+                                label: label,
+                                value: v,
+                                checked: v == _results,
+                              ),
+                          ],
+                        ],
+                      );
+                      if (picked != null) setState(() => _results = picked);
+                    },
                   ),
-                  items: [
-                    for (final (v, label) in kPollResults)
-                      DropdownMenuItem(value: v, child: Text(label)),
-                  ],
-                  onChanged: (v) => setState(() => _results = v ?? 'always'),
                 ),
                 SwitchListTile.adaptive(
                   value: _public,
                   onChanged: (v) => setState(() => _public = v),
-                  title: const Text('公开投票人', style: TextStyle(fontSize: 14)),
+                  title: const Text(
+                    '公开投票人',
+                    style: TextStyle(fontSize: AppFontSize.meta),
+                  ),
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -524,20 +556,26 @@ class _PollBuilderDialogState extends State<_PollBuilderDialog> {
                       Text(
                         '图表',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: AppFontSize.meta,
                           color: scheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(width: 10),
                       ChoiceChip(
-                        label: const Text('柱状', style: TextStyle(fontSize: 12)),
+                        label: const Text(
+                          '柱状',
+                          style: TextStyle(fontSize: AppFontSize.meta),
+                        ),
                         selected: _chartType == 'bar',
                         visualDensity: VisualDensity.compact,
                         onSelected: (_) => setState(() => _chartType = 'bar'),
                       ),
                       const SizedBox(width: 6),
                       ChoiceChip(
-                        label: const Text('饼图', style: TextStyle(fontSize: 12)),
+                        label: const Text(
+                          '饼图',
+                          style: TextStyle(fontSize: AppFontSize.meta),
+                        ),
                         selected: _chartType == 'pie',
                         visualDensity: VisualDensity.compact,
                         onSelected: (_) => setState(() => _chartType = 'pie'),
@@ -568,7 +606,10 @@ class _PollBuilderDialogState extends State<_PollBuilderDialog> {
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     _error!,
-                    style: TextStyle(fontSize: 12, color: scheme.error),
+                    style: TextStyle(
+                      fontSize: AppFontSize.meta,
+                      color: scheme.error,
+                    ),
                   ),
                 ),
             ],

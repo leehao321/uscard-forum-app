@@ -155,9 +155,9 @@ void main() {
 
       expect(find.byType(LinearProgressIndicator), findsNWidgets(2),
           reason: 'hasVoted=true 应显示条形结果,而不是选项列表');
-      expect(find.byIcon(Symbols.check_circle_rounded), findsOneWidget,
+      expect(find.byIcon(AppIcons.checkCircle), findsOneWidget,
           reason: '自己投的选项应有勾选标记');
-      expect(find.byIcon(Symbols.radio_button_unchecked_rounded), findsNothing,
+      expect(find.byIcon(AppIcons.radioButtonOff), findsNothing,
           reason: '不应回到未投票的选项界面');
     });
 
@@ -166,7 +166,7 @@ void main() {
       await tester.pump();
 
       expect(find.byType(LinearProgressIndicator), findsNothing);
-      expect(find.byIcon(Symbols.radio_button_unchecked_rounded),
+      expect(find.byIcon(AppIcons.radioButtonOff),
           findsNWidgets(2));
     });
   });

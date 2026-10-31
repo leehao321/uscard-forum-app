@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import '../../../../models/topic.dart';
 import '../../../../services/discourse_cache_manager.dart';
 import '../../../../utils/font_awesome_helper.dart';
@@ -26,15 +28,17 @@ class PostGrantedBadgeIcon extends StatelessWidget {
 
   /// 根据徽章类型获取颜色（1=Gold, 2=Silver, 3=Bronze）
   Color _badgeTypeColor(ThemeData theme) {
+    final colors =
+        (theme.extension<AppTokens>() ??
+                AppTokens.resolve(brightness: theme.brightness))
+            .colors;
     switch (badge.badgeTypeId) {
       case 1:
-        return const Color(0xFFE5A100);
+        return colors.brandPrimary;
       case 2:
-        return const Color(0xFF9A9A9A);
-      case 3:
-        return const Color(0xFFCD7F32);
+        return colors.textPrimary;
       default:
-        return theme.colorScheme.onSurfaceVariant;
+        return colors.textMeta;
     }
   }
 

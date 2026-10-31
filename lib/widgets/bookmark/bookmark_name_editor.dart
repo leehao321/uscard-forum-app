@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 
 import '../../l10n/s.dart';
 import 'bookmark_name_autocomplete_field.dart';
@@ -61,7 +62,7 @@ class _BookmarkNameEditorState extends State<BookmarkNameEditor> {
                     height: 16,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.white,
+                      color: AppFixedColors.white,
                     ),
                   )
                 : Text(context.l10n.common_save),

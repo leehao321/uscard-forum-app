@@ -171,7 +171,7 @@ class _PostHeaderSectionState extends ConsumerState<PostHeaderSection> {
         text,
         style: TextStyle(
           color: textColor,
-          fontSize: 10,
+          fontSize: AppFontSize.caption,
           fontWeight: FontWeight.w600,
           height: 1.1,
         ),

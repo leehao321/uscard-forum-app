@@ -1,5 +1,7 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
+
 import '../../../../../utils/link_launcher.dart';
 import 'onebox_base.dart';
 
@@ -13,35 +15,43 @@ class TechOneboxBuilder {
     List<LinkCount>? linkCounts,
   }) {
     final url = extractUrl(element);
-    final clickCount = extractClickCountFromOnebox(element, linkCounts: linkCounts);
+    final clickCount = extractClickCountFromOnebox(
+      element,
+      linkCounts: linkCounts,
+    );
 
     // 提取标题
     final h4Element = element.querySelector('h4');
     final h3Element = element.querySelector('h3');
-    final titleLink = h4Element?.querySelector('a') ?? h3Element?.querySelector('a');
+    final titleLink =
+        h4Element?.querySelector('a') ?? h3Element?.querySelector('a');
     final title = titleLink?.text ?? '';
 
     // 提取描述/摘要
-    final descElement = element.querySelector('p') ??
+    final descElement =
+        element.querySelector('p') ??
         element.querySelector('.question-summary');
     final description = descElement?.text ?? '';
 
     // 提取投票数
-    final voteElement = element.querySelector('.vote-count') ??
-        element.querySelector('.votes');
+    final voteElement =
+        element.querySelector('.vote-count') ?? element.querySelector('.votes');
     final votes = voteElement?.text?.trim() ?? '';
 
     // 提取答案数
-    final answerElement = element.querySelector('.answer-count') ??
+    final answerElement =
+        element.querySelector('.answer-count') ??
         element.querySelector('.answers');
     final answers = answerElement?.text?.trim() ?? '';
 
     // 检查是否已有被接受的答案
-    final hasAccepted = element.querySelector('.accepted-answer') != null ||
+    final hasAccepted =
+        element.querySelector('.accepted-answer') != null ||
         element.classes?.contains('accepted') == true;
 
     // 提取标签
-    final tagElements = element.querySelectorAll('.tag') +
+    final tagElements =
+        element.querySelectorAll('.tag') +
         element.querySelectorAll('.post-tag');
     final tags = tagElements
         .map((tag) => tag.text?.trim())
@@ -50,8 +60,8 @@ class TechOneboxBuilder {
         .toList();
 
     // 提取提问者和时间
-    final userElement = element.querySelector('.user-info') ??
-        element.querySelector('.author');
+    final userElement =
+        element.querySelector('.user-info') ?? element.querySelector('.author');
     final userInfo = userElement?.text?.trim() ?? '';
 
     // 判断是 Stack Overflow 还是其他 SE 站点
@@ -78,7 +88,7 @@ class TechOneboxBuilder {
                 label: 'answers',
                 theme: theme,
                 isHighlighted: hasAccepted,
-                highlightColor: const Color(0xFF5eba7d),
+                highlightColor: AppRawColors.cFF5EBA7D,
               ),
             ],
           ),
@@ -93,18 +103,20 @@ class TechOneboxBuilder {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: isStackOverflow
-                            ? const Color(0xFFf48024)
-                            : const Color(0xFF0077cc),
+                            ? AppRawColors.cFFF48024
+                            : AppRawColors.cFF0077CC,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         isStackOverflow ? 'Stack Overflow' : 'Stack Exchange',
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
+                          color: AppFixedColors.white,
+                          fontSize: AppFontSize.caption,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -120,7 +132,7 @@ class TechOneboxBuilder {
                   title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF0077cc),
+                    color: AppRawColors.cFF0077CC,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -146,16 +158,18 @@ class TechOneboxBuilder {
                     children: tags.take(5).map((tag) {
                       return Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFe1ecf4),
+                          color: AppRawColors.cFFE1ECF4,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           tag,
                           style: const TextStyle(
-                            color: Color(0xFF39739d),
-                            fontSize: 11,
+                            color: AppRawColors.cFF39739D,
+                            fontSize: AppFontSize.caption,
                           ),
                         ),
                       );
@@ -189,36 +203,41 @@ class TechOneboxBuilder {
     List<LinkCount>? linkCounts,
   }) {
     final url = extractUrl(element);
-    final clickCount = extractClickCountFromOnebox(element, linkCounts: linkCounts);
+    final clickCount = extractClickCountFromOnebox(
+      element,
+      linkCounts: linkCounts,
+    );
 
     // 提取标题
     final h4Element = element.querySelector('h4');
     final h3Element = element.querySelector('h3');
-    final titleLink = h4Element?.querySelector('a') ?? h3Element?.querySelector('a');
+    final titleLink =
+        h4Element?.querySelector('a') ?? h3Element?.querySelector('a');
     final title = titleLink?.text ?? '';
 
     // 提取来源 URL
-    final sourceElement = element.querySelector('.source') ??
-        element.querySelector('.hn-source');
+    final sourceElement =
+        element.querySelector('.source') ?? element.querySelector('.hn-source');
     final source = sourceElement?.text?.trim() ?? '';
 
     // 提取分数
-    final scoreElement = element.querySelector('.score') ??
-        element.querySelector('.hn-score');
+    final scoreElement =
+        element.querySelector('.score') ?? element.querySelector('.hn-score');
     final score = scoreElement?.text?.trim() ?? '';
 
     // 提取评论数
-    final commentsElement = element.querySelector('.comments') ??
+    final commentsElement =
+        element.querySelector('.comments') ??
         element.querySelector('.hn-comments');
     final comments = commentsElement?.text?.trim() ?? '';
 
     // 提取作者和时间
-    final authorElement = element.querySelector('.author') ??
-        element.querySelector('.hn-author');
+    final authorElement =
+        element.querySelector('.author') ?? element.querySelector('.hn-author');
     final author = authorElement?.text?.trim() ?? '';
 
-    final timeElement = element.querySelector('time') ??
-        element.querySelector('.hn-time');
+    final timeElement =
+        element.querySelector('time') ?? element.querySelector('.hn-time');
     final time = timeElement?.text?.trim() ?? '';
 
     return OneboxContainer(
@@ -233,15 +252,15 @@ class TechOneboxBuilder {
                 width: 20,
                 height: 20,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFff6600),
+                  color: AppRawColors.cFFFF6600,
                   borderRadius: BorderRadius.circular(2),
                 ),
                 child: const Center(
                   child: Text(
                     'Y',
                     style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
+                      color: AppFixedColors.white,
+                      fontSize: AppFontSize.meta,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -281,17 +300,14 @@ class TechOneboxBuilder {
             children: [
               if (score.isNotEmpty)
                 OneboxStatItem(
-                  icon: Symbols.arrow_upward_rounded,
+                  icon: AppIcons.up,
                   value: score,
-                  iconColor: const Color(0xFFff6600),
+                  iconColor: AppRawColors.cFFFF6600,
                 ),
               if (score.isNotEmpty && comments.isNotEmpty)
                 const SizedBox(width: 16),
               if (comments.isNotEmpty)
-                OneboxStatItem(
-                  icon: Symbols.chat_bubble_rounded,
-                  value: comments,
-                ),
+                OneboxStatItem(icon: AppIcons.chatBubble, value: comments),
               if (clickCount != null && clickCount.isNotEmpty) ...[
                 const SizedBox(width: 16),
                 OneboxClickCount(count: clickCount),
@@ -323,26 +339,31 @@ class TechOneboxBuilder {
   }) {
     final url = extractUrl(element);
     final isDark = theme.brightness == Brightness.dark;
-    final clickCount = extractClickCountFromOnebox(element, linkCounts: linkCounts);
+    final clickCount = extractClickCountFromOnebox(
+      element,
+      linkCounts: linkCounts,
+    );
 
     // 提取标题
     final h4Element = element.querySelector('h4');
     final h3Element = element.querySelector('h3');
-    final titleLink = h4Element?.querySelector('a') ?? h3Element?.querySelector('a');
-    final title = (titleLink?.text ?? '').isEmpty ? 'Untitled' : titleLink!.text;
+    final titleLink =
+        h4Element?.querySelector('a') ?? h3Element?.querySelector('a');
+    final title = (titleLink?.text ?? '').isEmpty
+        ? 'Untitled'
+        : titleLink!.text;
 
     // 提取代码预览
-    final codeElement = element.querySelector('pre') ??
-        element.querySelector('code');
+    final codeElement =
+        element.querySelector('pre') ?? element.querySelector('code');
     final codeText = codeElement?.text ?? '';
 
     // 提取语言
-    final langElement = element.querySelector('.syntax') ??
-        element.querySelector('.language');
+    final langElement =
+        element.querySelector('.syntax') ?? element.querySelector('.language');
     final language = langElement?.text?.trim() ?? '';
 
-    final bgColor =
-        isDark ? const Color(0xff1e1e1e) : const Color(0xfff5f5f5);
+    final bgColor = isDark ? AppRawColors.cFF1E1E1E : AppRawColors.cFFF5F5F5;
     final borderColor = theme.colorScheme.outlineVariant.withValues(alpha: 0.3);
 
     return Container(
@@ -362,23 +383,24 @@ class TechOneboxBuilder {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF02589D),
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(7)),
+                color: AppRawColors.cFF02589D,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(7),
+                ),
               ),
               child: Row(
                 children: [
                   const Icon(
-                    Symbols.content_paste_rounded,
+                    AppIcons.paste,
                     size: 16,
-                    color: Colors.white,
+                    color: AppFixedColors.white,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       title,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppFixedColors.white,
                         fontWeight: FontWeight.w500,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -387,25 +409,27 @@ class TechOneboxBuilder {
                   if (clickCount != null && clickCount.isNotEmpty) ...[
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: AppFixedColors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Icon(
-                            Symbols.visibility_rounded,
+                            AppIcons.visibility,
                             size: 10,
-                            color: Colors.white,
+                            color: AppFixedColors.white,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             clickCount,
                             style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
+                              color: AppFixedColors.white,
+                              fontSize: AppFontSize.caption,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -417,16 +441,18 @@ class TechOneboxBuilder {
                   if (language.isNotEmpty)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: AppFixedColors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         language.toUpperCase(),
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
+                          color: AppFixedColors.white,
+                          fontSize: AppFontSize.caption,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -447,8 +473,10 @@ class TechOneboxBuilder {
                         codeText,
                         style: TextStyle(
                           fontFamily: 'monospace',
-                          fontSize: 12,
-                          color: isDark ? Colors.white70 : Colors.black87,
+                          fontSize: AppFontSize.meta,
+                          color: isDark
+                              ? AppFixedColors.white70
+                              : AppFixedColors.black87,
                         ),
                       ),
                     ),
@@ -484,7 +512,7 @@ class _StatBox extends StatelessWidget {
         ? (highlightColor ?? theme.colorScheme.primary)
         : theme.colorScheme.surfaceContainerHigh;
     final textColor = isHighlighted
-        ? Colors.white
+        ? AppFixedColors.white
         : theme.colorScheme.onSurface;
 
     return Container(
@@ -502,7 +530,7 @@ class _StatBox extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AppFontSize.body,
               fontWeight: FontWeight.w600,
               color: textColor,
             ),
@@ -510,7 +538,7 @@ class _StatBox extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: AppFontSize.caption,
               color: textColor.withValues(alpha: 0.7),
             ),
           ),
@@ -526,4 +554,3 @@ Future<void> _launchUrl(BuildContext context, String url) async {
   if (url.isEmpty) return;
   await launchContentLink(context, url);
 }
-

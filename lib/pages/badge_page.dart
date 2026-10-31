@@ -140,7 +140,7 @@ class _BadgePageState extends ConsumerState<BadgePage> {
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
                                   fontWeight: FontWeight.w600,
-                                  fontSize: 18,
+                                  fontSize: AppFontSize.body,
                                 ),
                           ),
                           const Spacer(),
@@ -301,7 +301,10 @@ class _BadgeInfoCard extends StatelessWidget {
             textAlign: TextAlign.center,
             style: theme.textTheme.titleMedium
                 ?.merge(tokens.text.title)
-                .copyWith(color: colors.textPrimary, fontSize: 17),
+                .copyWith(
+                  color: colors.textPrimary,
+                  fontSize: AppFontSize.body,
+                ),
           ),
         ),
         SizedBox(height: AppSpace.s),
@@ -417,14 +420,14 @@ class _UserBadgeItem extends StatelessWidget {
                       if (user.admin == true) ...[
                         const SizedBox(width: 4),
                         Icon(
-                          Symbols.shield_rounded,
+                          AppIcons.shield,
                           size: 14,
                           color: context.tokens.colors.textDestructive,
                         ),
                       ] else if (user.moderator == true) ...[
                         const SizedBox(width: 4),
                         Icon(
-                          Symbols.shield_rounded,
+                          AppIcons.shield,
                           size: 14,
                           color: context.tokens.colors.brandPrimary,
                         ),
@@ -459,7 +462,7 @@ class _UserBadgeItem extends StatelessWidget {
                       child: Row(
                         children: [
                           Icon(
-                            Symbols.article_rounded,
+                            AppIcons.article,
                             size: 14,
                             color: theme.colorScheme.primary,
                           ),
@@ -469,7 +472,7 @@ class _UserBadgeItem extends StatelessWidget {
                               userBadge.topicTitle!,
                               style: TextStyle(
                                 color: theme.colorScheme.onSurfaceVariant,
-                                fontSize: 13,
+                                fontSize: AppFontSize.meta,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

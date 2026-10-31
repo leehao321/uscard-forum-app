@@ -243,7 +243,7 @@ Color parseHexColor(String hex) {
   if (hex.length == 6) {
     return Color(int.parse('0xFF$hex'));
   }
-  return Colors.grey;
+  return AppFixedColors.neutralGrey;
 }
 
 /// 构建颜色点
@@ -494,7 +494,9 @@ class TagsArea extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text(
                   tag,
-                  style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontSize: AppFontSize.meta,
+                  ),
                 ),
                 const SizedBox(width: 4),
                 GestureDetector(
@@ -1010,7 +1012,9 @@ class ComposerMetaBar extends StatelessWidget {
     final theme = desktop
         ? base.copyWith(
             textTheme: base.textTheme.copyWith(
-              labelMedium: base.textTheme.labelMedium?.copyWith(fontSize: 13),
+              labelMedium: base.textTheme.labelMedium?.copyWith(
+                fontSize: AppFontSize.meta,
+              ),
             ),
           )
         : base;
@@ -1077,12 +1081,12 @@ class PreviewTagsList extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 radius: 6,
                 iconSize: 12,
-                fontSize: 13,
+                fontSize: AppFontSize.meta,
               ),
               backgroundColor: theme.colorScheme.surfaceContainerHighest
                   .withValues(alpha: 0.3),
               textStyle: theme.textTheme.bodyMedium?.copyWith(
-                fontSize: 13,
+                fontSize: AppFontSize.meta,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),

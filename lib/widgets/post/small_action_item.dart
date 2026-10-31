@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../l10n/s.dart';
 import '../../models/topic.dart';
 import '../../providers/discourse_providers.dart';
@@ -57,45 +58,45 @@ class PostTypes {
 
 /// action_code 对应的图标映射
 const Map<String, IconData> _actionCodeIcons = {
-  'closed.enabled': Symbols.lock_rounded,
-  'closed.disabled': Symbols.lock_open_rounded,
-  'autoclosed.enabled': Symbols.lock_rounded,
-  'autoclosed.disabled': Symbols.lock_open_rounded,
-  'archived.enabled': Symbols.folder_rounded,
-  'archived.disabled': Symbols.folder_open_rounded,
-  'pinned.enabled': Symbols.push_pin_rounded,
-  'pinned.disabled': Symbols.push_pin_rounded,
-  'pinned_globally.enabled': Symbols.push_pin_rounded,
-  'pinned_globally.disabled': Symbols.push_pin_rounded,
-  'banner.enabled': Symbols.push_pin_rounded,
-  'banner.disabled': Symbols.push_pin_rounded,
-  'visible.enabled': Symbols.visibility_rounded,
-  'visible.disabled': Symbols.visibility_off_rounded,
-  'split_topic': Symbols.call_split_rounded,
-  'invited_user': Symbols.person_add_rounded,
-  'invited_group': Symbols.group_add_rounded,
-  'user_left': Symbols.person_remove_rounded,
-  'removed_user': Symbols.person_remove_rounded,
-  'removed_group': Symbols.group_remove_rounded,
-  'public_topic': Symbols.forum_rounded,
-  'open_topic': Symbols.forum_rounded,
-  'private_topic': Symbols.mail_rounded,
-  'autobumped': Symbols.arrow_upward_rounded,
-  'tags_changed': Symbols.label_rounded,
-  'category_changed': Symbols.category_rounded,
-  'assigned': Symbols.assignment_ind_rounded,
-  'reassigned': Symbols.assignment_ind_rounded,
-  'assigned_group': Symbols.assignment_ind_rounded,
-  'reassigned_group': Symbols.assignment_ind_rounded,
-  'unassigned': Symbols.assignment_late_rounded,
-  'unassigned_group': Symbols.assignment_late_rounded,
-  'assigned_to_post': Symbols.assignment_ind_rounded,
-  'assigned_group_to_post': Symbols.assignment_ind_rounded,
-  'unassigned_from_post': Symbols.assignment_late_rounded,
-  'unassigned_group_from_post': Symbols.assignment_late_rounded,
-  'note_change': Symbols.edit_note_rounded,
-  'status_change': Symbols.edit_note_rounded,
-  'details_change': Symbols.edit_note_rounded,
+  'closed.enabled': AppIcons.lock,
+  'closed.disabled': AppIcons.lockOpen,
+  'autoclosed.enabled': AppIcons.lock,
+  'autoclosed.disabled': AppIcons.lockOpen,
+  'archived.enabled': AppIcons.folder,
+  'archived.disabled': AppIcons.folderOpen,
+  'pinned.enabled': AppIcons.pushPin,
+  'pinned.disabled': AppIcons.pushPin,
+  'pinned_globally.enabled': AppIcons.pushPin,
+  'pinned_globally.disabled': AppIcons.pushPin,
+  'banner.enabled': AppIcons.pushPin,
+  'banner.disabled': AppIcons.pushPin,
+  'visible.enabled': AppIcons.visibility,
+  'visible.disabled': AppIcons.visibilityOff,
+  'split_topic': AppIcons.callSplit,
+  'invited_user': AppIcons.userPlus,
+  'invited_group': AppIcons.userPlus,
+  'user_left': AppIcons.userMinus,
+  'removed_user': AppIcons.userMinus,
+  'removed_group': AppIcons.userMinus,
+  'public_topic': AppIcons.forum,
+  'open_topic': AppIcons.forum,
+  'private_topic': AppIcons.mail,
+  'autobumped': AppIcons.arrowUp,
+  'tags_changed': AppIcons.tag,
+  'category_changed': AppIcons.category,
+  'assigned': AppIcons.assign,
+  'reassigned': AppIcons.assign,
+  'assigned_group': AppIcons.assign,
+  'reassigned_group': AppIcons.assign,
+  'unassigned': AppIcons.warning,
+  'unassigned_group': AppIcons.warning,
+  'assigned_to_post': AppIcons.assign,
+  'assigned_group_to_post': AppIcons.assign,
+  'unassigned_from_post': AppIcons.warning,
+  'unassigned_group_from_post': AppIcons.warning,
+  'note_change': AppIcons.pencilLine,
+  'status_change': AppIcons.pencilLine,
+  'details_change': AppIcons.pencilLine,
 };
 
 /// action_code 对应的本地化描述
@@ -270,7 +271,7 @@ class SmallActionItem extends ConsumerWidget {
 
   IconData get _icon {
     final code = post.actionCode ?? '';
-    return _actionCodeIcons[code] ?? Symbols.info_rounded;
+    return _actionCodeIcons[code] ?? AppIcons.info;
   }
 
   String get _description {
@@ -318,9 +319,8 @@ class SmallActionItem extends ConsumerWidget {
     return callbacks.render(
       cookedHtml: parsed.preprocessed,
       parsedNodes: parsed.nodes,
-      baseTextStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
-        color: Theme.of(context).colorScheme.onSurface,
-      ),
+      baseTextStyle: Theme.of(context).textTheme.bodySmall
+          ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
       compact: true,
     );
   }
@@ -409,7 +409,7 @@ class SmallActionItem extends ConsumerWidget {
                       // Discourse 核心的 post.canEdit。
                       if (post.canEdit && onEdit != null)
                         IconButton(
-                          icon: const Icon(Icons.edit_outlined, size: 16),
+                          icon: const Icon(AppIcons.edit, size: 16),
                           tooltip: '编辑',
                           visualDensity: VisualDensity.compact,
                           onPressed: onEdit,
@@ -417,7 +417,7 @@ class SmallActionItem extends ConsumerWidget {
                       if (post.canDelete)
                         IconButton(
                           icon: Icon(
-                            Icons.delete_outline_rounded,
+                            AppIcons.delete,
                             size: 16,
                             color: theme.colorScheme.error,
                           ),

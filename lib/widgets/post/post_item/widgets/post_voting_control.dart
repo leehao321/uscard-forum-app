@@ -10,6 +10,7 @@
 library;
 
 import 'package:dio/dio.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:app_icons/app_icons.dart';
@@ -59,8 +60,7 @@ class _PostVotingControlState extends ConsumerState<PostVotingControl> {
   void didUpdateWidget(PostVotingControl oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.post.id != widget.post.id ||
-        oldWidget.post.postVotingVoteCount !=
-            widget.post.postVotingVoteCount ||
+        oldWidget.post.postVotingVoteCount != widget.post.postVotingVoteCount ||
         oldWidget.post.postVotingUserVotedDirection !=
             widget.post.postVotingUserVotedDirection) {
       _count = widget.post.postVotingVoteCount;
@@ -166,7 +166,7 @@ class _PostVotingControlState extends ConsumerState<PostVotingControl> {
     final downActive = _direction == 'down';
     final muted = theme.colorScheme.onSurfaceVariant;
     // 官方配色:已投上=绿(--success),已投下=红(--danger)
-    final upColor = upActive ? Colors.green : muted;
+    final upColor = upActive ? context.tokens.colors.brandPrimary : muted;
     final downColor = downActive ? theme.colorScheme.error : muted;
     final vertical = widget.axis == Axis.vertical;
 
@@ -208,7 +208,7 @@ class _PostVotingControlState extends ConsumerState<PostVotingControl> {
             color: _count == 0
                 ? muted.withValues(alpha: 0.7)
                 : (upActive
-                      ? Colors.green
+                      ? context.tokens.colors.brandPrimary
                       : downActive
                       ? theme.colorScheme.error
                       : theme.colorScheme.onSurface),
@@ -220,13 +220,13 @@ class _PostVotingControlState extends ConsumerState<PostVotingControl> {
     );
 
     final upArrow = arrow(
-      icon: Symbols.arrow_upward_rounded,
+      icon: AppIcons.arrowUp,
       color: upColor,
       active: upActive,
       onTap: () => _handleTap('up'),
     );
     final downArrow = arrow(
-      icon: Symbols.arrow_downward_rounded,
+      icon: AppIcons.arrowDown,
       color: downColor,
       active: downActive,
       onTap: () => _handleTap('down'),
@@ -286,8 +286,9 @@ class _PostVotingVotersSheetState extends State<PostVotingVotersSheet> {
 
   Future<void> _load() async {
     try {
-      final (voters, total) =
-          await DiscourseService().getPostVotingVoters(widget.postId);
+      final (voters, total) = await DiscourseService().getPostVotingVoters(
+        widget.postId,
+      );
       if (!mounted) return;
       setState(() {
         _voters = voters;
@@ -342,9 +343,7 @@ class _PostVotingVotersSheetState extends State<PostVotingVotersSheet> {
                 ),
               ),
               Icon(
-                voter.direction == 'up'
-                    ? Symbols.arrow_upward_rounded
-                    : Symbols.arrow_downward_rounded,
+                voter.direction == 'up' ? AppIcons.arrowUp : AppIcons.arrowDown,
                 size: 16,
                 color: voter.direction == 'up'
                     ? theme.colorScheme.primary
@@ -411,7 +410,10 @@ class _PostVotingVotersSheetState extends State<PostVotingVotersSheet> {
             ],
             if (downs.isNotEmpty) ...[
               _groupHeader(
-                  theme, S.current.postVoting_votersDown, downs.length),
+                theme,
+                S.current.postVoting_votersDown,
+                downs.length,
+              ),
               for (final v in downs) _voterRow(theme, v),
             ],
             if (_total > voters.length)
@@ -435,8 +437,7 @@ class _PostVotingVotersSheetState extends State<PostVotingVotersSheet> {
       contentPadding: EdgeInsets.zero,
       titleWidget: Row(
         children: [
-          Icon(Symbols.thumbs_up_down_rounded,
-              color: theme.colorScheme.primary),
+          Icon(AppIcons.thumbUp, color: theme.colorScheme.primary),
           const SizedBox(width: 8),
           Text(
             S.current.postVoting_votersTitle,
@@ -447,10 +448,7 @@ class _PostVotingVotersSheetState extends State<PostVotingVotersSheet> {
         ],
       ),
       child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: body,
-        ),
+        child: Padding(padding: const EdgeInsets.only(bottom: 16), child: body),
       ),
     );
   }

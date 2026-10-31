@@ -73,7 +73,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     // 飞行中途:shuttle 在 overlay 上,含搜索图标(靠近首页端应可见)
-    expect(find.byIcon(Symbols.search_rounded), findsWidgets);
+    expect(find.byIcon(AppIcons.search), findsWidgets);
     expect(tester.takeException(), isNull);
 
     await tester.pumpAndSettle();

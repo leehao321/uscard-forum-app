@@ -1,9 +1,11 @@
 import 'package:ai_model_manager/ai_model_manager.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:jovial_svg/jovial_svg.dart';
 import 'package:markdown/markdown.dart' as md;
+
 import '../../constants.dart';
 import '../../l10n/s.dart';
 import '../../services/emoji_handler.dart';
@@ -50,13 +52,13 @@ class AiShareImageWidget extends StatelessWidget {
     final bgColor = shareTheme.bgColor;
     final cardColor = shareTheme.cardColor;
 
-    final textColor = isDark ? Colors.white : Colors.black;
+    final textColor = isDark ? AppFixedColors.white : AppFixedColors.black;
     final secondaryTextColor = isDark
-        ? Colors.white.withValues(alpha: 0.6)
-        : Colors.black.withValues(alpha: 0.6);
+        ? AppFixedColors.white.withValues(alpha: 0.6)
+        : AppFixedColors.black.withValues(alpha: 0.6);
     final borderColor = isDark
-        ? Colors.white.withValues(alpha: 0.1)
-        : Colors.black.withValues(alpha: 0.1);
+        ? AppFixedColors.white.withValues(alpha: 0.1)
+        : AppFixedColors.black.withValues(alpha: 0.1);
 
     return RepaintBoundary(
       key: repaintBoundaryKey,
@@ -138,7 +140,7 @@ class AiShareImageWidget extends StatelessWidget {
         Text(
           '美卡论坛',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: AppFontSize.body,
             fontWeight: FontWeight.w600,
             color: textColor.withValues(alpha: 0.8),
           ),
@@ -153,7 +155,7 @@ class AiShareImageWidget extends StatelessWidget {
         Text(
           S.current.share_aiAssistant,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: AppFontSize.meta,
             color: textColor.withValues(alpha: 0.5),
           ),
         ),
@@ -163,7 +165,7 @@ class AiShareImageWidget extends StatelessWidget {
 
   Widget _buildTitle(BuildContext context, Color textColor) {
     final titleStyle = TextStyle(
-      fontSize: 16,
+      fontSize: AppFontSize.body,
       fontWeight: FontWeight.w600,
       color: textColor.withValues(alpha: 0.9),
       height: 1.4,
@@ -195,7 +197,7 @@ class AiShareImageWidget extends StatelessWidget {
         Text(
           isUser ? S.current.share_aiQuestion : S.current.share_aiReply,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: AppFontSize.meta,
             fontWeight: FontWeight.w500,
             color: secondaryTextColor,
           ),
@@ -226,7 +228,7 @@ class AiShareImageWidget extends StatelessWidget {
           ).render(
             cookedHtml: html,
             baseTextStyle: TextStyle(
-              fontSize: 14,
+              fontSize: AppFontSize.meta,
               height: 1.6,
               color: textColor.withValues(alpha: 0.85),
             ),
@@ -294,21 +296,23 @@ class AiShareImageWidget extends StatelessWidget {
         // 生成标识
         Row(
           children: [
-            Icon(
-              AppIcons.autoAwesome,
-              size: 12,
-              color: secondaryTextColor,
-            ),
+            Icon(AppIcons.autoAwesome, size: 12, color: secondaryTextColor),
             const SizedBox(width: 4),
             Text(
               S.current.share_generatedByAi,
-              style: TextStyle(fontSize: 11, color: secondaryTextColor),
+              style: TextStyle(
+                fontSize: AppFontSize.caption,
+                color: secondaryTextColor,
+              ),
             ),
             if (time.isNotEmpty) ...[
               const Spacer(),
               Text(
                 time,
-                style: TextStyle(fontSize: 11, color: secondaryTextColor),
+                style: TextStyle(
+                  fontSize: AppFontSize.caption,
+                  color: secondaryTextColor,
+                ),
               ),
             ],
           ],
@@ -322,7 +326,10 @@ class AiShareImageWidget extends StatelessWidget {
             Expanded(
               child: Text(
                 url,
-                style: TextStyle(fontSize: 10, color: secondaryTextColor),
+                style: TextStyle(
+                  fontSize: AppFontSize.caption,
+                  color: secondaryTextColor,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),

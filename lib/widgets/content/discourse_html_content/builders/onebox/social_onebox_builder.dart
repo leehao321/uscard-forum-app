@@ -1,6 +1,8 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:app_icons/app_icons.dart';
+
 import '../../../../../utils/link_launcher.dart';
 import 'onebox_base.dart';
 
@@ -14,43 +16,53 @@ class SocialOneboxBuilder {
     List<LinkCount>? linkCounts,
   }) {
     final url = extractUrl(element);
-    final clickCount = extractClickCountFromOnebox(element, linkCounts: linkCounts);
+    final clickCount = extractClickCountFromOnebox(
+      element,
+      linkCounts: linkCounts,
+    );
 
     // 提取用户信息
-    final displayName = element.querySelector('.display-name')?.text?.trim() ??
+    final displayName =
+        element.querySelector('.display-name')?.text?.trim() ??
         element.querySelector('h4')?.text?.trim() ??
         '';
-    final username = element.querySelector('.screen-name')?.text?.trim() ??
+    final username =
+        element.querySelector('.screen-name')?.text?.trim() ??
         element.querySelector('.username')?.text?.trim() ??
         _extractTwitterUsername(url);
 
     // 提取头像
-    final avatarElement = element.querySelector('img.twitter-avatar') ??
+    final avatarElement =
+        element.querySelector('img.twitter-avatar') ??
         element.querySelector('img');
     final avatarUrl = avatarElement?.attributes['src'] ?? '';
 
     // 提取推文内容
-    final contentElement = element.querySelector('.tweet-content') ??
+    final contentElement =
+        element.querySelector('.tweet-content') ??
         element.querySelector('.tweet') ??
         element.querySelector('blockquote') ??
         element.querySelector('p');
     final content = contentElement?.text?.trim() ?? '';
 
     // 提取时间
-    final timeElement = element.querySelector('time') ??
-        element.querySelector('.tweet-date');
+    final timeElement =
+        element.querySelector('time') ?? element.querySelector('.tweet-date');
     final time = timeElement?.text?.trim() ?? '';
 
     // 提取统计
-    final likesElement = element.querySelector('.likes') ??
+    final likesElement =
+        element.querySelector('.likes') ??
         element.querySelector('.favorite-count');
-    final retweetsElement = element.querySelector('.retweets') ??
+    final retweetsElement =
+        element.querySelector('.retweets') ??
         element.querySelector('.retweet-count');
     final likes = likesElement?.text?.trim();
     final retweets = retweetsElement?.text?.trim();
 
     // 提取图片
-    final imageElements = element.querySelectorAll('.tweet-image img') +
+    final imageElements =
+        element.querySelectorAll('.tweet-image img') +
         element.querySelectorAll('.media img');
     final images = imageElements
         .map((img) => img.attributes['src'] as String?)
@@ -66,11 +78,7 @@ class SocialOneboxBuilder {
           Row(
             children: [
               // 头像
-              OneboxAvatar(
-                imageUrl: avatarUrl,
-                size: 40,
-                borderRadius: 20,
-              ),
+              OneboxAvatar(imageUrl: avatarUrl, size: 40, borderRadius: 20),
               const SizedBox(width: 10),
               // 用户名
               Expanded(
@@ -101,19 +109,19 @@ class SocialOneboxBuilder {
                 height: 24,
                 decoration: BoxDecoration(
                   color: theme.brightness == Brightness.dark
-                      ? Colors.white
-                      : Colors.black,
+                      ? AppFixedColors.white
+                      : AppFixedColors.black,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
                   child: Text(
                     '𝕏',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: AppFontSize.meta,
                       fontWeight: FontWeight.w600,
                       color: theme.brightness == Brightness.dark
-                          ? Colors.black
-                          : Colors.white,
+                          ? AppFixedColors.black
+                          : AppFixedColors.white,
                     ),
                   ),
                 ),
@@ -139,7 +147,7 @@ class SocialOneboxBuilder {
                 imageUrl: images.first,
                 size: 150,
                 borderRadius: 8,
-                fallbackIcon: Symbols.image_rounded,
+                fallbackIcon: AppIcons.image,
               ),
             ),
           ],
@@ -161,16 +169,16 @@ class SocialOneboxBuilder {
               ],
               if (retweets != null && retweets.isNotEmpty)
                 OneboxStatItem(
-                  icon: Symbols.repeat_rounded,
+                  icon: AppIcons.repeatIcon,
                   value: retweets,
-                  iconColor: const Color(0xFF00ba7c),
+                  iconColor: AppRawColors.cFF00BA7C,
                 ),
               if (retweets != null && likes != null) const SizedBox(width: 12),
               if (likes != null && likes.isNotEmpty)
                 OneboxStatItem(
-                  icon: Symbols.favorite_rounded,
+                  icon: AppIcons.heart,
                   value: likes,
-                  iconColor: const Color(0xFFf91880),
+                  iconColor: AppRawColors.cFFF91880,
                 ),
             ],
           ),
@@ -187,41 +195,48 @@ class SocialOneboxBuilder {
     List<LinkCount>? linkCounts,
   }) {
     final url = extractUrl(element);
-    final clickCount = extractClickCountFromOnebox(element, linkCounts: linkCounts);
+    final clickCount = extractClickCountFromOnebox(
+      element,
+      linkCounts: linkCounts,
+    );
 
     // 提取标题
     final h4Element = element.querySelector('h4');
     final h3Element = element.querySelector('h3');
-    final titleLink = h4Element?.querySelector('a') ?? h3Element?.querySelector('a');
+    final titleLink =
+        h4Element?.querySelector('a') ?? h3Element?.querySelector('a');
     final title = titleLink?.text ?? '';
 
     // 提取子版块
-    final subredditElement = element.querySelector('.subreddit') ??
+    final subredditElement =
+        element.querySelector('.subreddit') ??
         element.querySelector('.reddit-subreddit');
-    final subreddit = subredditElement?.text?.trim() ??
-        _extractSubreddit(url);
+    final subreddit = subredditElement?.text?.trim() ?? _extractSubreddit(url);
 
     // 提取作者
-    final authorElement = element.querySelector('.author') ??
+    final authorElement =
+        element.querySelector('.author') ??
         element.querySelector('.reddit-author');
     final author = authorElement?.text?.trim() ?? '';
 
     // 提取内容摘要
-    final contentElement = element.querySelector('.reddit-content') ??
-        element.querySelector('p');
+    final contentElement =
+        element.querySelector('.reddit-content') ?? element.querySelector('p');
     final content = contentElement?.text?.trim() ?? '';
 
     // 提取统计
-    final scoreElement = element.querySelector('.score') ??
+    final scoreElement =
+        element.querySelector('.score') ??
         element.querySelector('.reddit-score');
-    final commentsElement = element.querySelector('.comments') ??
+    final commentsElement =
+        element.querySelector('.comments') ??
         element.querySelector('.reddit-comments');
     final score = scoreElement?.text?.trim();
     final comments = commentsElement?.text?.trim();
 
     // 提取缩略图
-    final thumbnailElement = element.querySelector('.thumbnail') ??
-        element.querySelector('img');
+    final thumbnailElement =
+        element.querySelector('.thumbnail') ?? element.querySelector('img');
     final thumbnailUrl = thumbnailElement?.attributes['src'] ?? '';
 
     return OneboxContainer(
@@ -237,13 +252,13 @@ class SocialOneboxBuilder {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFF4500),
+                  color: AppRawColors.cFFFF4500,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const FaIcon(
                   FontAwesomeIcons.redditAlien,
                   size: 16,
-                  color: Colors.white,
+                  color: AppFixedColors.white,
                 ),
               ),
               const SizedBox(width: 8),
@@ -295,7 +310,7 @@ class SocialOneboxBuilder {
                     imageUrl: thumbnailUrl,
                     size: 70,
                     borderRadius: 6,
-                    fallbackIcon: Symbols.image_rounded,
+                    fallbackIcon: AppIcons.image,
                   ),
                 ),
               ],
@@ -319,16 +334,13 @@ class SocialOneboxBuilder {
             children: [
               if (score != null && score.isNotEmpty)
                 OneboxStatItem(
-                  icon: Symbols.arrow_upward_rounded,
+                  icon: AppIcons.up,
                   value: score,
-                  iconColor: const Color(0xFFFF4500),
+                  iconColor: AppRawColors.cFFFF4500,
                 ),
               if (score != null && comments != null) const SizedBox(width: 16),
               if (comments != null && comments.isNotEmpty)
-                OneboxStatItem(
-                  icon: Symbols.chat_bubble_rounded,
-                  value: comments,
-                ),
+                OneboxStatItem(icon: AppIcons.chatBubble, value: comments),
               const Spacer(),
               if (clickCount != null && clickCount.isNotEmpty)
                 OneboxClickCount(count: clickCount),
@@ -347,15 +359,20 @@ class SocialOneboxBuilder {
     List<LinkCount>? linkCounts,
   }) {
     final url = extractUrl(element);
-    final clickCount = extractClickCountFromOnebox(element, linkCounts: linkCounts);
+    final clickCount = extractClickCountFromOnebox(
+      element,
+      linkCounts: linkCounts,
+    );
 
     // 提取用户名
-    final usernameElement = element.querySelector('.instagram-username') ??
+    final usernameElement =
+        element.querySelector('.instagram-username') ??
         element.querySelector('.author');
     final username = usernameElement?.text?.trim() ?? '';
 
     // 提取描述
-    final captionElement = element.querySelector('.instagram-caption') ??
+    final captionElement =
+        element.querySelector('.instagram-caption') ??
         element.querySelector('p');
     final caption = captionElement?.text?.trim() ?? '';
 
@@ -378,9 +395,9 @@ class SocialOneboxBuilder {
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [
-                      Color(0xFF833AB4),
-                      Color(0xFFE1306C),
-                      Color(0xFFF77737),
+                      AppRawColors.cFF833AB4,
+                      AppRawColors.cFFE1306C,
+                      AppRawColors.cFFF77737,
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -388,9 +405,9 @@ class SocialOneboxBuilder {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
-                  Symbols.camera_alt_rounded,
+                  AppIcons.camera,
                   size: 18,
-                  color: Colors.white,
+                  color: AppFixedColors.white,
                 ),
               ),
               const SizedBox(width: 10),
@@ -415,7 +432,7 @@ class SocialOneboxBuilder {
                   imageUrl: imageUrl,
                   size: double.infinity,
                   borderRadius: 8,
-                  fallbackIcon: Symbols.image_rounded,
+                  fallbackIcon: AppIcons.image,
                 ),
               ),
             ),
@@ -437,9 +454,7 @@ class SocialOneboxBuilder {
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OneboxClickCount(count: clickCount),
-              ],
+              children: [OneboxClickCount(count: clickCount)],
             ),
           ],
         ],
@@ -464,4 +479,3 @@ Future<void> _launchUrl(BuildContext context, String url) async {
   if (url.isEmpty) return;
   await launchContentLink(context, url);
 }
-

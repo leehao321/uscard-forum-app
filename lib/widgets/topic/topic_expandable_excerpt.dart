@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -111,7 +112,7 @@ class _TopicExpandableExcerptState
     final textStyle =
         widget.style ??
         theme.textTheme.bodyMedium?.copyWith(
-          fontSize: 13 * scale,
+          fontSize: AppFontSize.meta * scale,
           height: 1.45,
           color: theme.colorScheme.onSurfaceVariant.withValues(
             alpha: widget.isFullyRead ? 0.7 : 1,
@@ -176,9 +177,7 @@ class _TopicExpandableExcerptState
                       ),
                       const SizedBox(width: 2),
                       Icon(
-                        _isExpanded
-                            ? Symbols.expand_less_rounded
-                            : Symbols.expand_more_rounded,
+                        _isExpanded ? AppIcons.expandLess : AppIcons.expandMore,
                         size: 16,
                       ),
                     ],
@@ -243,12 +242,12 @@ class _TopicExpandableExcerptState
                     ),
                     if (index == count - 1 && images.length > count)
                       ColoredBox(
-                        color: Colors.black45,
+                        color: AppFixedColors.black45,
                         child: Center(
                           child: Text(
                             '+${images.length - count}',
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppFixedColors.white,
                               fontWeight: FontWeight.w600,
                             ),
                           ),

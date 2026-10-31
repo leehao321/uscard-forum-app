@@ -242,7 +242,7 @@ class _RecordKeyDialogState extends State<_RecordKeyDialog> {
                         spacing: 8,
                         runSpacing: 8,
                         minKeyWidth: 36,
-                        fontSize: 14,
+                        fontSize: AppFontSize.meta,
                         keyPadding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 8,
@@ -372,10 +372,8 @@ class _ShortcutMetaChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
+        style: Theme.of(context).textTheme.labelSmall
+            ?.copyWith(color: color, fontWeight: FontWeight.w600),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 
@@ -153,8 +154,8 @@ class _SpotlightWidgetState extends State<_SpotlightWidget>
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Icon(
-                        Symbols.arrow_downward_rounded,
-                        color: Colors.white.withValues(alpha: 0.8),
+                        AppIcons.down,
+                        color: AppFixedColors.white.withValues(alpha: 0.8),
                         size: 20,
                       ),
                     ),
@@ -164,8 +165,9 @@ class _SpotlightWidgetState extends State<_SpotlightWidget>
                       vertical: 14,
                     ),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.inverseSurface
-                          .withValues(alpha: 0.92),
+                      color: theme.colorScheme.inverseSurface.withValues(
+                        alpha: 0.92,
+                      ),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -193,14 +195,11 @@ class _SpotlightPainter extends CustomPainter {
   final Rect targetRect;
   final double borderRadius;
 
-  _SpotlightPainter({
-    required this.targetRect,
-    required this.borderRadius,
-  });
+  _SpotlightPainter({required this.targetRect, required this.borderRadius});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.black.withValues(alpha: 0.6);
+    final paint = Paint()..color = AppFixedColors.black.withValues(alpha: 0.6);
 
     // 全屏路径
     final fullPath = Path()
@@ -213,8 +212,11 @@ class _SpotlightPainter extends CustomPainter {
       );
 
     // 差集
-    final combinedPath =
-        Path.combine(PathOperation.difference, fullPath, holePath);
+    final combinedPath = Path.combine(
+      PathOperation.difference,
+      fullPath,
+      holePath,
+    );
 
     canvas.drawPath(combinedPath, paint);
   }
@@ -229,10 +231,7 @@ class _PulsingBorder extends StatefulWidget {
   final double borderRadius;
   final Color color;
 
-  const _PulsingBorder({
-    required this.borderRadius,
-    required this.color,
-  });
+  const _PulsingBorder({required this.borderRadius, required this.color});
 
   @override
   State<_PulsingBorder> createState() => _PulsingBorderState();

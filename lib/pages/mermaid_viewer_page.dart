@@ -93,13 +93,13 @@ class _MermaidViewerPageState extends State<MermaidViewerPage> {
     // 内容底色对齐 mermaid 块容器灰底(282a36/f6f8fa):kroki SVG 背景
     // 透明,dark 主题图形浅色线条,必须深底才可读。
     final canvasColor = isDark
-        ? const Color(0xff282a36)
-        : const Color(0xfff6f8fa);
+        ? AppFixedColors.codeBackgroundDark
+        : AppFixedColors.codeBackgroundLight;
 
     // 外壳和图片查看器一致：黑底 + 44 圆钮；SVG 文档需要浅 / 深底才可读，
     // 所以画布仍用 mermaid 块的底色，放在顶栏下面，不被浮钮盖住首行
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppFixedColors.black,
       body: Column(
         children: [
           SafeArea(
@@ -194,7 +194,11 @@ class _MermaidViewerPageState extends State<MermaidViewerPage> {
               ),
             ),
           if (!_loaded && !_error)
-            const Center(child: CupertinoActivityIndicator(color: Colors.grey)),
+            Center(
+              child: CupertinoActivityIndicator(
+                color: context.tokens.colors.textMeta,
+              ),
+            ),
           if (_error)
             Center(
               child: Column(
@@ -206,7 +210,7 @@ class _MermaidViewerPageState extends State<MermaidViewerPage> {
                     S.current.codeBlock_chartLoadFailed,
                     style: TextStyle(
                       color: theme.colorScheme.error,
-                      fontSize: 13,
+                      fontSize: AppFontSize.meta,
                     ),
                   ),
                   const SizedBox(height: 12),

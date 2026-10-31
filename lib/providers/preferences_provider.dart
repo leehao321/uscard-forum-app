@@ -17,7 +17,6 @@ import '../services/cf_challenge_service.dart';
 import '../services/crash_context_reporter.dart';
 import '../services/render_backend_service.dart';
 import '../utils/blocked_user_filter.dart';
-import '../widgets/topic/topic_card_layout.dart';
 import 'theme_provider.dart';
 
 /// 嵌套视图连接线样式
@@ -1000,7 +999,6 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
     // 排版层直读全局快照(免逐调用点透传);stamp 含 style 保证重排,
     // evictAll 兜底清掉 LRU 里的旧排版
     TopicCardStyleScope.current = style;
-    TopicCardLayout.evictAll();
     await _prefs.setString(_topicCardStyleKey, style.toJsonString());
   }
 

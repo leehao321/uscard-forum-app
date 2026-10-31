@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 
@@ -40,14 +41,12 @@ class VolumeBrightnessIndicator extends StatelessWidget {
             duration: const Duration(milliseconds: 150),
             curve: Curves.easeOutCubic,
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: MediaOverlayStyle.pill(radius: 12),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(_icon,
-                      color: MediaOverlayStyle.foreground, size: 22),
+                  Icon(_icon, color: MediaOverlayStyle.foreground, size: 22),
                   const SizedBox(width: 10),
                   SizedBox(
                     width: 110,
@@ -56,13 +55,14 @@ class VolumeBrightnessIndicator extends StatelessWidget {
                       borderRadius: BorderRadius.circular(2),
                       child: Stack(
                         children: [
-                          const ColoredBox(color: Color(0x4DFFFFFF)),
+                          const ColoredBox(color: AppRawColors.c4DFFFFFF),
                           // 用 FractionallySizedBox 替代 LinearProgressIndicator:
                           // 无 Material 内建动画插值,跟手零滞后
                           FractionallySizedBox(
                             widthFactor: clamped,
-                            child:
-                                const ColoredBox(color: Colors.white),
+                            child: const ColoredBox(
+                              color: AppFixedColors.white,
+                            ),
                           ),
                         ],
                       ),
@@ -80,7 +80,7 @@ class VolumeBrightnessIndicator extends StatelessWidget {
                       softWrap: false,
                       style: const TextStyle(
                         color: MediaOverlayStyle.foreground,
-                        fontSize: 12.5,
+                        fontSize: AppFontSize.meta,
                         fontWeight: FontWeight.w600,
                         fontFeatures: [FontFeature.tabularFigures()],
                       ),

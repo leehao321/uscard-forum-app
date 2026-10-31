@@ -43,7 +43,7 @@ class PostDeviceSource extends StatelessWidget {
                 splashFactory: NoSplash.splashFactory,
                 foregroundColor: theme.colorScheme.onSurfaceVariant,
                 textStyle: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
+                  fontSize: AppFontSize.caption,
                   height: 1.4,
                 ),
                 alignment: AlignmentDirectional.centerStart,

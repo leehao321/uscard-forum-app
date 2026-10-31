@@ -3,6 +3,7 @@ import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/topic.dart';
 import '../models/category.dart';
 import '../providers/discourse_providers.dart';
@@ -17,7 +18,6 @@ import '../widgets/topic/keyword_filter_hint_bar.dart';
 import '../widgets/topic/topic_list_update_banner.dart';
 import '../widgets/topic/topic_list_updates_mixin.dart';
 import '../widgets/topic/sort_and_tags_bar.dart';
-import '../widgets/topic/topic_card_prewarmer.dart';
 import '../widgets/topic/topic_item_builder.dart';
 import '../widgets/topic/topic_notification_button.dart';
 import '../widgets/common/tag_selection_sheet.dart';
@@ -25,7 +25,9 @@ import '../widgets/common/error_view.dart';
 import 'topic_detail_page/topic_detail_page.dart';
 import 'search_page.dart';
 import '../models/search_filter.dart';
+
 import 'package:dio/dio.dart';
+
 import '../services/app_error_handler.dart';
 import '../l10n/s.dart';
 import '../widgets/desktop_refresh_indicator.dart';
@@ -531,7 +533,9 @@ class _CategoryTopicsPageState extends ConsumerState<CategoryTopicsPage>
         : topic.lastReadPostNumber;
     // 宽屏进右栏(本页自己是平行视界宿主),窄屏全屏 push。
     if (MasterDetailLayout.canShowBothPanesFor(context)) {
-      ref.read(_paneProvider.notifier).select(
+      ref
+          .read(_paneProvider.notifier)
+          .select(
             topicId: topic.id,
             initialTitle: topic.title,
             scrollToPostNumber: scrollToPostNumber,
@@ -569,7 +573,9 @@ class _CategoryTopicsPageState extends ConsumerState<CategoryTopicsPage>
           if (isLoggedIn)
             CategoryNotificationButton(
               level: CategoryNotificationLevel.fromValue(
-                ref.watch(categoryNotificationOverridesProvider)[widget.category.id] ??
+                ref.watch(
+                      categoryNotificationOverridesProvider,
+                    )[widget.category.id] ??
                     widget.category.notificationLevel,
               ),
               isLoading: _isUpdatingNotificationLevel,
@@ -621,10 +627,7 @@ class _CategoryTopicsPageState extends ConsumerState<CategoryTopicsPage>
       ),
     );
 
-    return MasterDetailPaneHost(
-      stackProvider: _paneProvider,
-      master: list,
-    );
+    return MasterDetailPaneHost(stackProvider: _paneProvider, master: list);
   }
 
   Widget _buildBody(int? selectedTopicId) {
@@ -662,9 +665,7 @@ class _CategoryTopicsPageState extends ConsumerState<CategoryTopicsPage>
     );
     final hintOffset = (showFilterHint && hidden > 0) ? 1 : 0;
 
-    return TopicCardPrewarmScope(
-      topics: visible,
-      child: DesktopRefreshIndicator(
+    return DesktopRefreshIndicator(
       onRefresh: _loadTopics,
       child: ListView.builder(
         controller: _scrollController,
@@ -674,8 +675,10 @@ class _CategoryTopicsPageState extends ConsumerState<CategoryTopicsPage>
         itemBuilder: (context, index) {
           if (updateOffset > 0 && index == 0) {
             return TopicListUpdateBanner(
-              count: updateCount, filter: _currentFilter,
-              newNewView: newNewViewEnabled, loading: isLoadingTopicUpdates,
+              count: updateCount,
+              filter: _currentFilter,
+              newNewView: newNewViewEnabled,
+              loading: isLoadingTopicUpdates,
               onTap: _showTopicUpdates,
             );
           }
@@ -690,15 +693,20 @@ class _CategoryTopicsPageState extends ConsumerState<CategoryTopicsPage>
             if (visible.isEmpty && !_hasMore) {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 100),
-                child: Center(child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Symbols.inbox_rounded, size: 48,
-                      color: Theme.of(context).colorScheme.outline),
-                    const SizedBox(height: 12),
-                    Text(context.l10n.categoryTopics_empty),
-                  ],
-                )),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        AppIcons.inbox,
+                        size: 48,
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(context.l10n.categoryTopics_empty),
+                    ],
+                  ),
+                ),
               );
             }
             return PagedListFooter(
@@ -725,7 +733,6 @@ class _CategoryTopicsPageState extends ConsumerState<CategoryTopicsPage>
             enableLongPress: enableLongPress,
           );
         },
-      ),
       ),
     );
   }
@@ -757,7 +764,7 @@ class _CreateTopicButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Symbols.edit_rounded, size: 14, color: fgColor),
+              Icon(AppIcons.edit, size: 14, color: fgColor),
               const SizedBox(width: 4),
               Text(
                 context.l10n.categoryTopics_createPost,

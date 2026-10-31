@@ -1379,19 +1379,21 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
                                 color: colors.textMeta,
                               ),
                               // 输入框内的清除键（有内容才显示）
-                              suffixIcon: ValueListenableBuilder<TextEditingValue>(
-                                valueListenable: _searchController,
-                                builder: (context, value, _) => value.text.isEmpty
-                                    ? const SizedBox.shrink()
-                                    : AppIconButton(
-                                        icon: AppIcons.cancelCircle,
-                                        size: AppSize.iconM,
-                                        semanticLabel:
-                                            context.l10n.common_clear,
-                                        color: colors.textMeta,
-                                        onPressed: _searchController.clear,
-                                      ),
-                              ),
+                              suffixIcon:
+                                  ValueListenableBuilder<TextEditingValue>(
+                                    valueListenable: _searchController,
+                                    builder: (context, value, _) =>
+                                        value.text.isEmpty
+                                        ? const SizedBox.shrink()
+                                        : AppIconButton(
+                                            icon: AppIcons.cancelCircle,
+                                            size: AppSize.iconM,
+                                            semanticLabel:
+                                                context.l10n.common_clear,
+                                            color: colors.textMeta,
+                                            onPressed: _searchController.clear,
+                                          ),
+                                  ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: AppSpace.m,
                                 vertical: AppSpace.m,
@@ -1513,7 +1515,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
                   child: Padding(
                     padding: const EdgeInsets.only(right: 4),
                     child: Icon(
-                      Symbols.mail_rounded,
+                      AppIcons.mail,
                       size: 18,
                       color: theme.colorScheme.primary,
                     ),
@@ -1525,7 +1527,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
                   child: Padding(
                     padding: const EdgeInsets.only(right: 4),
                     child: Icon(
-                      Symbols.lock_rounded,
+                      AppIcons.lock,
                       size: 18,
                       color:
                           theme.textTheme.titleMedium?.color ??
@@ -1539,9 +1541,9 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
                   child: Padding(
                     padding: const EdgeInsets.only(right: 4),
                     child: Icon(
-                      Symbols.check_box_rounded,
+                      AppIcons.checkBox,
                       size: 18,
-                      color: Colors.green,
+                      color: context.tokens.colors.brandPrimary,
                     ),
                   ),
                 ),
@@ -1631,7 +1633,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
                 child: Padding(
                   padding: const EdgeInsets.only(right: 4),
                   child: Icon(
-                    Symbols.mail_rounded,
+                    AppIcons.mail,
                     size: 16,
                     color: theme.colorScheme.primary,
                   ),
@@ -1643,7 +1645,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
                 child: Padding(
                   padding: const EdgeInsets.only(right: 4),
                   child: Icon(
-                    Symbols.lock_rounded,
+                    AppIcons.lock,
                     size: 16,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -1655,9 +1657,9 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
                 child: Padding(
                   padding: const EdgeInsets.only(right: 4),
                   child: Icon(
-                    Symbols.check_box_rounded,
+                    AppIcons.checkBox,
                     size: 16,
-                    color: Colors.green,
+                    color: context.tokens.colors.brandPrimary,
                   ),
                 ),
               ),
@@ -2934,7 +2936,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
                       onTap: _toggleExpandedHeader,
                       child: FadeTransition(
                         opacity: _expandController,
-                        child: Container(color: Colors.black54),
+                        child: Container(color: AppFixedColors.black54),
                       ),
                     ),
                   ),
@@ -3335,7 +3337,7 @@ class _AiAssistantActionIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!isGenerating) {
-      return const Icon(Symbols.auto_awesome_rounded);
+      return const Icon(AppIcons.autoAwesome);
     }
 
     final color = IconTheme.of(context).color;
@@ -3346,7 +3348,7 @@ class _AiAssistantActionIcon extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           LoadingSpinner(size: 22, color: color),
-          Icon(Symbols.auto_awesome_rounded, size: 13, color: color),
+          Icon(AppIcons.autoAwesome, size: 13, color: color),
         ],
       ),
     );

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import '../../../../l10n/s.dart';
 import '../../../../models/topic.dart';
 import '../../../../utils/fluxdo_render_callbacks.dart';
@@ -25,14 +27,22 @@ class PostNoticeWidget extends StatelessWidget {
 
     // custom 类型用浅红色，其他用浅蓝色
     final bgColor = isCustom
-        ? (isDark ? Colors.red.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.06))
-        : (isDark ? Colors.blue.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.06));
+        ? (isDark
+              ? context.tokens.colors.textDestructive.withValues(alpha: 0.1)
+              : context.tokens.colors.textDestructive.withValues(alpha: 0.06))
+        : (isDark
+              ? context.tokens.colors.brandPrimary.withValues(alpha: 0.1)
+              : context.tokens.colors.brandPrimary.withValues(alpha: 0.06));
     final borderColor = isCustom
-        ? Colors.red.withValues(alpha: 0.2)
-        : Colors.blue.withValues(alpha: 0.2);
+        ? context.tokens.colors.textDestructive.withValues(alpha: 0.2)
+        : context.tokens.colors.brandPrimary.withValues(alpha: 0.2);
     final iconColor = isCustom
-        ? (isDark ? Colors.red.shade300 : Colors.red.shade600)
-        : (isDark ? Colors.blue.shade300 : Colors.blue.shade600);
+        ? (isDark
+              ? context.tokens.colors.textDestructive
+              : context.tokens.colors.textDestructive)
+        : (isDark
+              ? context.tokens.colors.brandPrimary
+              : context.tokens.colors.brandPrimary);
 
     return Container(
       width: double.infinity,
@@ -81,14 +91,16 @@ class PostNoticeWidget extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: FluxdoRenderCallbacks.generic(
-                  heroTagNamespace: 'post_notice',
-                ).render(
-                  cookedHtml: notice.cooked!,
-                  baseTextStyle:
-                      theme.textTheme.bodySmall?.copyWith(height: 1.5),
-                  selectionEnabled: false,
-                ),
+                child:
+                    FluxdoRenderCallbacks.generic(
+                      heroTagNamespace: 'post_notice',
+                    ).render(
+                      cookedHtml: notice.cooked!,
+                      baseTextStyle: theme.textTheme.bodySmall?.copyWith(
+                        height: 1.5,
+                      ),
+                      selectionEnabled: false,
+                    ),
               ),
             ],
           );

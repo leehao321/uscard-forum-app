@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,7 +15,7 @@ Future<void> showShortcutHelpOverlay(BuildContext context, WidgetRef ref) {
 
   return showAppDialog<void>(
     context: context,
-    barrierColor: Colors.black54,
+    barrierColor: AppFixedColors.black54,
     shortcutSurface: const ShortcutSurfaceConfig(
       id: ShortcutSurfaceIds.shortcutHelp,
       triggerAction: ShortcutAction.showShortcutHelp,
@@ -165,13 +166,13 @@ class _ShortcutSearchField extends StatelessWidget {
       onChanged: onChanged,
       decoration: InputDecoration(
         hintText: l10n.settings_searchHint,
-        prefixIcon: const Icon(Symbols.search_rounded, size: 20),
+        prefixIcon: const Icon(AppIcons.search, size: 20),
         suffixIcon: value.isEmpty
             ? null
             : IconButton(
                 tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
                 onPressed: onClear,
-                icon: const Icon(Symbols.close_rounded, size: 18),
+                icon: const Icon(AppIcons.close, size: 18),
               ),
         filled: true,
         fillColor: theme.colorScheme.surfaceContainerLow.withValues(
@@ -239,7 +240,7 @@ class _ShortcutDialogHeader extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         IconButton(
-          icon: const Icon(Symbols.close_rounded, size: 20),
+          icon: const Icon(AppIcons.close, size: 20),
           onPressed: () => Navigator.of(context).pop(),
           style: IconButton.styleFrom(
             padding: EdgeInsets.zero,
@@ -266,7 +267,7 @@ class _ShortcutEmptyState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Symbols.manage_search_rounded,
+            AppIcons.search,
             size: 34,
             color: theme.colorScheme.onSurfaceVariant,
           ),

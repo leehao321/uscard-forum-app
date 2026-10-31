@@ -10,6 +10,7 @@
 library;
 
 import 'package:dio/dio.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:app_icons/app_icons.dart';
@@ -65,15 +66,16 @@ class _PostVotingCommentsViewState
   final FocusNode _composerFocus = FocusNode();
 
   /// 评论字数上限:站点 post_voting_comment_max_raw_length,缺省 600
-  late final int _maxLength = (PreloadedDataService()
-              .siteSettingsSync?['post_voting_comment_max_raw_length']
-          as num?)
+  late final int _maxLength =
+      (PreloadedDataService()
+                  .siteSettingsSync?['post_voting_comment_max_raw_length']
+              as num?)
           ?.toInt() ??
       600;
 
   /// 评论最短长度:站点 min_post_length,缺省 1
-  late final int _minLength = (PreloadedDataService()
-              .siteSettingsSync?['min_post_length'] as num?)
+  late final int _minLength =
+      (PreloadedDataService().siteSettingsSync?['min_post_length'] as num?)
           ?.toInt() ??
       1;
 
@@ -239,9 +241,11 @@ class _PostVotingCommentsViewState
                   child: Padding(
                     padding: const EdgeInsets.all(2),
                     child: Icon(
-                      Symbols.arrow_upward_rounded,
+                      AppIcons.arrowUp,
                       size: 14,
-                      color: comment.userVoted ? Colors.green : muted,
+                      color: comment.userVoted
+                          ? context.tokens.colors.brandPrimary
+                          : muted,
                       weight: comment.userVoted ? 700 : null,
                     ),
                   ),
@@ -351,7 +355,7 @@ class _PostVotingCommentsViewState
                         height: 14,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Symbols.reply_rounded, size: 16),
+                    : const Icon(AppIcons.reply, size: 16),
                 label: Text(S.current.postVoting_commentSubmit),
               ),
               const SizedBox(width: 4),
@@ -385,7 +389,7 @@ class _PostVotingCommentsViewState
             ),
             child: Text(
               S.current.postVoting_commentAdd,
-              style: const TextStyle(fontSize: 12),
+              style: const TextStyle(fontSize: AppFontSize.meta),
             ),
           ),
         const Spacer(),
@@ -404,7 +408,7 @@ class _PostVotingCommentsViewState
                   )
                 : Text(
                     S.current.postVoting_commentsMore(_remaining),
-                    style: const TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: AppFontSize.meta),
                   ),
           ),
       ],

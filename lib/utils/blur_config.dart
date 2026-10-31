@@ -1,3 +1,5 @@
+import 'package:common_ui/common_ui.dart';
+
 import 'dart:ui';
 
 /// Telegram 风格模糊效果参数
@@ -75,11 +77,12 @@ ImageFilter createBlurFilter(double sigma) {
 /// 参考 Telegram BottomSheet dimBehindAlpha=51/255≈0.2。
 Color blurBarrierColor(Brightness brightness, {ModalBlurScene? scene}) {
   if (scene != null) {
-    return const Color(0xFF000000).withValues(
+    return AppFixedColors.black.withValues(
       alpha: brightness == Brightness.dark ? scene.darkDim : scene.lightDim,
     );
   }
   return brightness == Brightness.dark
-      ? const Color(0x47000000) // ~28% 黑
-      : const Color(0x26000000); // ~15% 黑
+      ? AppFixedColors
+            .scrimDark // ~28% 黑
+      : AppFixedColors.scrimLight; // ~15% 黑
 }

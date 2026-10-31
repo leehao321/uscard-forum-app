@@ -23,7 +23,11 @@ class AppMark extends StatelessWidget {
           color: colors.brandButton,
           borderRadius: BorderRadius.circular(size * 0.2273),
         ),
-        child: Icon(AppIcons.compass, size: size * 0.5, color: Colors.white),
+        child: Icon(
+          AppIcons.compass,
+          size: size * 0.5,
+          color: AppFixedColors.white,
+        ),
       ),
     );
   }

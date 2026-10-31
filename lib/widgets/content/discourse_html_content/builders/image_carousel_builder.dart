@@ -1,3 +1,5 @@
+import 'package:common_ui/common_ui.dart';
+
 import 'dart:async' show unawaited;
 import 'dart:math' as math;
 import 'dart:ui' show PointerDeviceKind;
@@ -5,6 +7,7 @@ import 'dart:ui' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../../../../services/discourse_cache_manager.dart';
 import '../../../../services/image_decode_spec_memo.dart';
 import '../../../common/hero_image.dart';
@@ -108,8 +111,9 @@ class _ImageCarouselState extends State<_ImageCarousel> {
     }
 
     // 按距当前页的距离排序，优先解析近的
-    pending.sort((a, b) =>
-        (a - _currentIndex).abs().compareTo((b - _currentIndex).abs()));
+    pending.sort(
+      (a, b) => (a - _currentIndex).abs().compareTo((b - _currentIndex).abs()),
+    );
 
     for (final i in pending) {
       if (!mounted) return;
@@ -132,9 +136,7 @@ class _ImageCarouselState extends State<_ImageCarousel> {
     for (int i = start; i <= end; i++) {
       final url = _resolvedUrls[i];
       if (url != null) {
-        unawaited(
-          BlobImageCache.precache(BlobImageCache.contentBucket, url),
-        );
+        unawaited(BlobImageCache.precache(BlobImageCache.contentBucket, url));
       }
     }
   }
@@ -156,13 +158,18 @@ class _ImageCarouselState extends State<_ImageCarousel> {
     _preloadAdjacent(index);
   }
 
-  void _openViewer(BuildContext context, int imageIndex, String resolvedFullUrl) {
+  void _openViewer(
+    BuildContext context,
+    int imageIndex,
+    String resolvedFullUrl,
+  ) {
     final imageData = widget.images[imageIndex];
     final galleryImages = widget.galleryInfo.images;
     final heroTags = widget.galleryInfo.heroTags;
-    final globalIndex = widget.galleryInfo.findIndex(imageData.src)
-        ?? widget.galleryInfo.findIndex(imageData.fullSrc)
-        ?? -1;
+    final globalIndex =
+        widget.galleryInfo.findIndex(imageData.src) ??
+        widget.galleryInfo.findIndex(imageData.fullSrc) ??
+        -1;
 
     final heroTag = globalIndex >= 0 && globalIndex < heroTags.length
         ? heroTags[globalIndex]
@@ -172,8 +179,9 @@ class _ImageCarouselState extends State<_ImageCarousel> {
         .map((url) => DiscourseImageUtils.getOriginalUrl(url))
         .toList();
     if (globalIndex >= 0 && globalIndex < resolvedGalleryImages.length) {
-      resolvedGalleryImages[globalIndex] =
-          DiscourseImageUtils.getOriginalUrl(resolvedFullUrl);
+      resolvedGalleryImages[globalIndex] = DiscourseImageUtils.getOriginalUrl(
+        resolvedFullUrl,
+      );
     }
 
     DiscourseImageUtils.openViewer(
@@ -250,7 +258,7 @@ class _ImageCarouselState extends State<_ImageCarousel> {
                     bottom: 0,
                     child: Center(
                       child: _NavButton(
-                        icon: Symbols.chevron_left_rounded,
+                        icon: AppIcons.chevronLeft,
                         onTap: _currentIndex > 0
                             ? () => _goToPage(_currentIndex - 1)
                             : null,
@@ -264,7 +272,7 @@ class _ImageCarouselState extends State<_ImageCarousel> {
                     bottom: 0,
                     child: Center(
                       child: _NavButton(
-                        icon: Symbols.chevron_right_rounded,
+                        icon: AppIcons.chevronRight,
                         onTap: _currentIndex < widget.images.length - 1
                             ? () => _goToPage(_currentIndex + 1)
                             : null,
@@ -306,7 +314,12 @@ class _CarouselSlide extends StatefulWidget {
   final GalleryInfo galleryInfo;
   final double carouselHeight;
   final ThemeData theme;
-  final void Function(BuildContext context, int imageIndex, String resolvedFullUrl) onTap;
+  final void Function(
+    BuildContext context,
+    int imageIndex,
+    String resolvedFullUrl,
+  )
+  onTap;
 
   const _CarouselSlide({
     required this.index,
@@ -327,7 +340,6 @@ class _CarouselSlideState extends State<_CarouselSlide>
   @override
   bool get wantKeepAlive => true;
 
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -335,14 +347,13 @@ class _CarouselSlideState extends State<_CarouselSlide>
     final url = widget.resolvedUrl;
     if (url == null) {
       // URL 还在解析中
-      return const Center(
-        child: LoadingSpinner(size: 24),
-      );
+      return const Center(child: LoadingSpinner(size: 24));
     }
 
-    final globalIndex = widget.galleryInfo.findIndex(widget.imageData.src)
-        ?? widget.galleryInfo.findIndex(widget.imageData.fullSrc)
-        ?? -1;
+    final globalIndex =
+        widget.galleryInfo.findIndex(widget.imageData.src) ??
+        widget.galleryInfo.findIndex(widget.imageData.fullSrc) ??
+        -1;
     final heroTags = widget.galleryInfo.heroTags;
     final heroTag = globalIndex >= 0 && globalIndex < heroTags.length
         ? heroTags[globalIndex]
@@ -391,7 +402,6 @@ class _CarouselSlideState extends State<_CarouselSlide>
     return w / h;
   }
 
-
   Widget _buildImage(
     String url,
     int cacheWidth,
@@ -429,7 +439,7 @@ class _CarouselSlideState extends State<_CarouselSlide>
       errorBuilder: (context, error, stackTrace) {
         return Center(
           child: Icon(
-            Symbols.broken_image_rounded,
+            AppIcons.imageBroken,
             color: widget.theme.colorScheme.outline,
           ),
         );
@@ -443,10 +453,7 @@ class _NavButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
 
-  const _NavButton({
-    required this.icon,
-    required this.onTap,
-  });
+  const _NavButton({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -464,16 +471,12 @@ class _NavButton extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
+                color: AppFixedColors.black.withValues(alpha: 0.1),
                 blurRadius: 4,
               ),
             ],
           ),
-          child: Icon(
-            icon,
-            size: 20,
-            color: theme.colorScheme.onSurface,
-          ),
+          child: Icon(icon, size: 20, color: theme.colorScheme.onSurface),
         ),
       ),
     );

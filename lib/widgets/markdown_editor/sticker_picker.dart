@@ -487,7 +487,7 @@ class _StickerPickerState extends ConsumerState<StickerPicker>
       );
     }
     if (icon.isNotEmpty) {
-      return Text(icon, style: const TextStyle(fontSize: 18));
+      return Text(icon, style: const TextStyle(fontSize: AppFontSize.body));
     }
     return _buildFallbackIcon(group.name);
   }
@@ -497,7 +497,7 @@ class _StickerPickerState extends ConsumerState<StickerPicker>
     return Text(
       name.isNotEmpty ? name.characters.first : '?',
       style: TextStyle(
-        fontSize: 14,
+        fontSize: AppFontSize.meta,
         fontWeight: FontWeight.w600,
         color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
@@ -560,7 +560,7 @@ class _StickerPickerState extends ConsumerState<StickerPicker>
       child: Text(
         title,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: AppFontSize.meta,
           fontWeight: FontWeight.w500,
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
@@ -877,7 +877,7 @@ class _StickerPreviewPopup extends StatelessWidget {
                       child: Text(
                         sticker.name,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: AppFontSize.meta,
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                         maxLines: 1,

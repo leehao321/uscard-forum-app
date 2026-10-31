@@ -6,10 +6,7 @@ import '../../l10n/s.dart';
 import '../../models/category.dart';
 import '../../models/topic.dart';
 
-
 import '../../utils/responsive.dart';
-import 'topic_card_layout.dart';
-import 'painted_topic_card.dart' show topicCardEmojiUrlResolver;
 import 'preview_action.dart';
 import 'topic_row.dart';
 
@@ -23,35 +20,6 @@ double topicCardWidthFor(BuildContext context) {
   return viewportWidth > Breakpoints.maxContentWidth
       ? Breakpoints.maxContentWidth
       : viewportWidth;
-}
-
-/// 话题卡自绘路径总开关:false 一键回退 widget 版 TopicCard
-/// (验收期保险丝;稳定后与 widget 分支一并清理)
-const bool kUsePaintedTopicCard = true;
-
-/// 普通/私信话题卡的排版取用单一入口:[buildTopicItem] 挂载路径与
-/// [TopicCardPrewarmer] 空闲预热路径共用,保证 identity/宽度/theme/
-/// category/statsAvailableWidth 全部同源 —— 预热建的缓存挂载帧必命中
-/// (任一参数口径不一致,stamp 对不上就是白热)。
-TopicCardLayout obtainTopicItemLayout({
-  required BuildContext context,
-  required Topic topic,
-  Map<int, Category>? categoryMap,
-  double? statsAvailableWidth,
-  bool messageStyle = false,
-}) {
-  final cardWidth = topicCardWidthFor(context);
-  final categoryId = int.tryParse(topic.categoryId);
-  return TopicCardLayout.obtain(
-    identity: 'topic:${topic.id}',
-    topic: topic,
-    width: cardWidth,
-    theme: Theme.of(context),
-    category: categoryMap?[categoryId],
-    emojiUrlOf: topicCardEmojiUrlResolver,
-    statsAvailableWidth: statsAvailableWidth ?? (cardWidth - 64),
-    messageStyle: messageStyle,
-  );
 }
 
 /// 话题卡片渲染公共函数
@@ -149,7 +117,8 @@ Widget _buildV2Row({
             ),
         ],
       ],
-      liftedBuilder: (_) => topic.pinned && topWidget == null && middleWidget == null
+      liftedBuilder: (_) =>
+          topic.pinned && topWidget == null && middleWidget == null
           ? PinnedTopicRow(topic: topic, onTap: () {})
           : TopicRow(
               topic: topic,

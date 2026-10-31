@@ -222,7 +222,10 @@ class _QrLoginScanPageState extends State<QrLoginScanPage> {
                         borderRadius: BorderRadius.circular(
                           context.tokens.radius.sheet,
                         ),
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(
+                          color: AppFixedColors.white,
+                          width: 2,
+                        ),
                       ),
                     ),
                   ),
@@ -309,20 +312,24 @@ class _CameraErrorPane extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return ColoredBox(
-      color: Colors.black,
+      color: AppFixedColors.black,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(AppIcons.cameraOff, color: Colors.white70, size: 48),
+              const Icon(
+                AppIcons.cameraOff,
+                color: AppFixedColors.white70,
+                size: 48,
+              ),
               const SizedBox(height: 12),
               Text(
                 context.l10n.login_qrCameraUnavailable,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppFixedColors.white,
                 ),
               ),
               const SizedBox(height: 8),
@@ -330,7 +337,7 @@ class _CameraErrorPane extends StatelessWidget {
                 message,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: Colors.white70,
+                  color: AppFixedColors.white70,
                 ),
               ),
               const SizedBox(height: 20),

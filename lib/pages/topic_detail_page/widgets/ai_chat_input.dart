@@ -278,7 +278,7 @@ class _AiChatInputState extends State<AiChatInput> {
                       icon: const Icon(AppIcons.up, size: 20),
                       style: IconButton.styleFrom(
                         backgroundColor: context.tokens.colors.brandButton,
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppFixedColors.white,
                         disabledBackgroundColor:
                             context.tokens.colors.avatarFill,
                         disabledForegroundColor: context.tokens.colors.textMeta,
@@ -374,7 +374,9 @@ class _ToolCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final baseColor = active
         ? theme.colorScheme.primaryContainer
-        : (isDark ? Colors.white10 : const Color(0xFFF2F3F5));
+        : (isDark
+              ? AppFixedColors.white12
+              : context.tokens.colors.surfaceGrouped);
     final fg = active
         ? theme.colorScheme.onPrimaryContainer
         : (dimmed
@@ -397,7 +399,7 @@ class _ToolCard extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: AppFontSize.meta,
                     color: fg,
                     fontWeight: FontWeight.w500,
                   ),
@@ -435,14 +437,18 @@ class _PendingAttachmentTile extends StatelessWidget {
           top: -4,
           right: -4,
           child: Material(
-            color: Colors.black54,
+            color: AppFixedColors.black54,
             shape: const CircleBorder(),
             child: InkWell(
               onTap: onRemove,
               customBorder: const CircleBorder(),
               child: const Padding(
                 padding: EdgeInsets.all(2),
-                child: Icon(AppIcons.close, size: 12, color: Colors.white),
+                child: Icon(
+                  AppIcons.close,
+                  size: 12,
+                  color: AppFixedColors.white,
+                ),
               ),
             ),
           ),
@@ -477,7 +483,7 @@ class _PendingAttachmentTile extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      color: Colors.black12,
+      color: AppFixedColors.black12,
       child: const Icon(AppIcons.image),
     );
   }

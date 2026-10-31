@@ -210,7 +210,7 @@ class _SidebarCategoryAddButton extends StatelessWidget {
                     children: [
                       const SizedBox(width: 16),
                       Icon(
-                        Symbols.add_rounded,
+                        AppIcons.add,
                         color: Theme.of(context).colorScheme.primary,
                         size: 22,
                       ),
@@ -231,7 +231,7 @@ class _SidebarCategoryAddButton extends StatelessWidget {
                   )
                 : Center(
                     child: Icon(
-                      Symbols.add_rounded,
+                      AppIcons.add,
                       color: Theme.of(context).colorScheme.primary,
                       size: 22,
                     ),

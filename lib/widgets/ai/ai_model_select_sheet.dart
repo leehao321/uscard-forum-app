@@ -437,7 +437,7 @@ class _AiModelSelectSheetState extends ConsumerState<_AiModelSelectSheet> {
                             ? context.l10n.ai_modelFavoritesDock
                             : section.title,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: AppFontSize.meta,
                           fontWeight: FontWeight.w500,
                           color: theme.colorScheme.onSurface,
                         ),
@@ -544,7 +544,7 @@ class _ModelRow extends StatelessWidget {
                                 item.model.id,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
-                                  fontSize: 11,
+                                  fontSize: AppFontSize.caption,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -601,7 +601,9 @@ class _ModelRow extends StatelessWidget {
                   ? context.l10n.ai_modelFavoriteRemove
                   : context.l10n.ai_modelFavoriteAdd,
               onPressed: onToggleFavorite,
-              icon: Icon(AppIcons.favorite, fill: isFavorite ? 1 : 0,
+              icon: Icon(
+                AppIcons.favorite,
+                fill: isFavorite ? 1 : 0,
                 size: 20,
                 color: isFavorite
                     ? theme.colorScheme.error
@@ -649,7 +651,7 @@ class _CapabilityBadge extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 9,
+              fontSize: AppFontSize.caption,
               color: color,
               fontWeight: FontWeight.w500,
             ),

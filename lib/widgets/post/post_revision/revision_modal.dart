@@ -114,7 +114,7 @@ class _RevisionSheetFrame extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                Symbols.history_rounded,
+                AppIcons.history,
                 size: 18,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -129,7 +129,7 @@ class _RevisionSheetFrame extends StatelessWidget {
               ),
               IconButton(
                 tooltip: MaterialLocalizations.of(context).closeButtonLabel,
-                icon: const Icon(Symbols.close_rounded, size: 20),
+                icon: const Icon(AppIcons.close, size: 20),
                 onPressed: () => Navigator.of(context).maybePop(),
               ),
             ],

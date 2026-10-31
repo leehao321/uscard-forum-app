@@ -1,3 +1,4 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/gestures.dart'
     show PointerDeviceKind, PointerHoverEvent;
@@ -431,7 +432,10 @@ class _BlockTypeIcon extends StatelessWidget {
         block.isHeading) {
       return Text(
         'H${block.headingLevel}',
-        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        style: const TextStyle(
+          fontSize: AppFontSize.meta,
+          fontWeight: FontWeight.w600,
+        ),
       );
     }
     final icon = object.image != null

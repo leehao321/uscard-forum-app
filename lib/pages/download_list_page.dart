@@ -95,7 +95,11 @@ class _DownloadListPageState extends ConsumerState<DownloadListPage> {
         title: context.l10n.myBrowser_downloads,
         trailing: [
           if (downloads.any((e) => e.status == DownloadItemStatus.completed))
-            AppIconButton(icon: AppIcons.delete, semanticLabel: context.l10n.myBrowser_clearCompleted, onPressed: () => _confirmClear(context)),
+            AppIconButton(
+              icon: AppIcons.delete,
+              semanticLabel: context.l10n.myBrowser_clearCompleted,
+              onPressed: () => _confirmClear(context),
+            ),
         ],
       ),
       body: downloads.isEmpty
@@ -388,7 +392,7 @@ class _DownloadCard extends StatelessWidget {
                         TimeUtils.formatRelativeTime(item.createdAt),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
-                          fontSize: 11,
+                          fontSize: AppFontSize.caption,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -396,7 +400,7 @@ class _DownloadCard extends StatelessWidget {
                         _statusText(context),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: _statusColorOf(context),
-                          fontSize: 11,
+                          fontSize: AppFontSize.caption,
                         ),
                       ),
                     ],

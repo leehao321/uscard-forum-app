@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
+
 import '../../../../l10n/s.dart';
 import '../../../../models/topic.dart';
 import '../../../../utils/fluxdo_render_callbacks.dart';
@@ -128,19 +130,22 @@ class PostRepliesList extends StatelessWidget {
                               const SizedBox(height: 4),
                               IgnorePointer(
                                 // 回复预览:改用自研 FluxdoRender 只读渲染(关闭选区)
-                                child: FluxdoRenderCallbacks.generic(
-                                  heroTagNamespace:
-                                      'reply_preview_${reply.postNumber}',
-                                ).render(
-                                  cookedHtml: reply.cooked,
-                                  baseTextStyle: theme.textTheme.bodySmall
-                                      ?.copyWith(
-                                        fontSize: 13 * contentFontScale,
-                                        height: 1.4,
-                                      ),
-                                  compact: true,
-                                  selectionEnabled: false,
-                                ),
+                                child:
+                                    FluxdoRenderCallbacks.generic(
+                                      heroTagNamespace:
+                                          'reply_preview_${reply.postNumber}',
+                                    ).render(
+                                      cookedHtml: reply.cooked,
+                                      baseTextStyle: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            fontSize:
+                                                AppFontSize.meta *
+                                                contentFontScale,
+                                            height: 1.4,
+                                          ),
+                                      compact: true,
+                                      selectionEnabled: false,
+                                    ),
                               ),
                             ],
                           ),
@@ -169,7 +174,7 @@ class PostRepliesList extends StatelessWidget {
                               height: 12,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Icon(Symbols.refresh_rounded, size: 16),
+                          : const Icon(AppIcons.refresh, size: 16),
                       label: Text(context.l10n.post_loadMoreReplies),
                       style: TextButton.styleFrom(
                         visualDensity: VisualDensity.compact,
@@ -181,7 +186,7 @@ class PostRepliesList extends StatelessWidget {
                       showRepliesNotifier.value = false;
                     },
                     icon: Icon(
-                      Symbols.expand_less_rounded,
+                      AppIcons.expandLess,
                       size: 16,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),

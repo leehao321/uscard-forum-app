@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import '../../../utils/copy_source_tracker.dart';
+
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
@@ -453,7 +455,7 @@ class _PostItemState extends ConsumerState<PostItem> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              Symbols.visibility_rounded,
+                              AppIcons.visibility,
                               size: 15,
                               color: theme.colorScheme.primary,
                             ),
@@ -565,11 +567,7 @@ class _PostAssignmentBadge extends ConsumerWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.assignment_ind_rounded,
-                size: 16,
-                color: theme.colorScheme.primary,
-              ),
+              Icon(AppIcons.assign, size: 16, color: theme.colorScheme.primary),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
@@ -582,13 +580,10 @@ class _PostAssignmentBadge extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              PopupMenuButton<String>(
-                padding: EdgeInsets.zero,
-                icon: Icon(
-                  Icons.more_vert_rounded,
-                  size: 16,
-                  color: theme.colorScheme.primary,
-                ),
+              AppMenuButton<String>(
+                icon: AppIcons.moreVert,
+                semanticLabel: '指定操作',
+                size: AppSize.iconS,
                 onSelected: (value) {
                   if (value == 'edit') {
                     showPostAssignDialog(
@@ -602,9 +597,19 @@ class _PostAssignmentBadge extends ConsumerWidget {
                     unassignPost(ref, topicId: topicId, postId: info.postId);
                   }
                 },
-                itemBuilder: (context) => const [
-                  PopupMenuItem(value: 'edit', child: Text('编辑指定')),
-                  PopupMenuItem(value: 'cancel', child: Text('取消指定')),
+                sectionsBuilder: (_) => const [
+                  [
+                    AppMenuItem<String>(
+                      label: '编辑指定',
+                      value: 'edit',
+                      icon: AppIcons.edit,
+                    ),
+                    AppMenuItem<String>(
+                      label: '取消指定',
+                      value: 'cancel',
+                      icon: AppIcons.close,
+                    ),
+                  ],
                 ],
               ),
             ],

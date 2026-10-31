@@ -210,7 +210,9 @@ class _LinkInsertDialogState extends State<LinkInsertDialog> {
                                   t.title,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 13),
+                                  style: const TextStyle(
+                                    fontSize: AppFontSize.meta,
+                                  ),
                                 ),
                               ),
                             ],

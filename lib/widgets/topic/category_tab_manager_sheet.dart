@@ -3,6 +3,7 @@ import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../../models/category.dart';
 import '../../providers/discourse_providers.dart';
 import '../../providers/pinned_categories_provider.dart';
@@ -10,7 +11,9 @@ import '../../utils/font_awesome_helper.dart';
 import '../../services/discourse_cache_manager.dart';
 import '../../utils/url_helper.dart';
 import '../../pages/category_topics_page.dart';
+
 import 'package:common_ui/common_ui.dart';
+
 import '../../../../../l10n/s.dart';
 
 // ============================================================
@@ -21,7 +24,7 @@ Color _parseColor(String hex) {
   try {
     return Color(int.parse('FF$hex', radix: 16));
   } catch (e) {
-    return Colors.grey;
+    return AppFixedColors.neutralGrey;
   }
 }
 
@@ -68,7 +71,7 @@ Widget _buildCategoryIcon(
   }
 
   if (category.readRestricted) {
-    return Icon(Symbols.lock_rounded, size: size * 0.7, color: color);
+    return Icon(AppIcons.lock, size: size * 0.7, color: color);
   }
 
   return _buildColorDot(color, size * 0.5);
@@ -233,12 +236,12 @@ class _BrowseContent extends ConsumerWidget {
                   ),
                 );
               },
-              icon: const Icon(Symbols.edit_rounded, size: 14),
+              icon: const Icon(AppIcons.edit, size: 14),
               label: Text(S.current.common_edit),
               style: TextButton.styleFrom(
                 visualDensity: VisualDensity.compact,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                textStyle: const TextStyle(fontSize: 13),
+                textStyle: const TextStyle(fontSize: AppFontSize.meta),
               ),
             ),
           ],
@@ -249,7 +252,10 @@ class _BrowseContent extends ConsumerWidget {
             padding: const EdgeInsets.only(bottom: 16),
             child: Text(
               S.current.category_editHint,
-              style: TextStyle(color: colorScheme.outline, fontSize: 13),
+              style: TextStyle(
+                color: colorScheme.outline,
+                fontSize: AppFontSize.meta,
+              ),
             ),
           )
         else
@@ -353,7 +359,10 @@ class _BrowseContent extends ConsumerWidget {
             const SizedBox(width: 6),
             Text(
               category.name,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                fontSize: AppFontSize.meta,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -417,7 +426,7 @@ class _CategoryGridItem extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: AppFontSize.meta,
                     fontWeight: isSelected
                         ? FontWeight.w600
                         : FontWeight.normal,
@@ -426,11 +435,7 @@ class _CategoryGridItem extends StatelessWidget {
                 ),
               ),
               if (hasSubs)
-                Icon(
-                  Symbols.arrow_drop_down_rounded,
-                  size: 14,
-                  color: colorScheme.outline,
-                ),
+                Icon(AppIcons.dropdown, size: 14, color: colorScheme.outline),
             ],
           ),
         ],
@@ -528,7 +533,10 @@ class _EditContent extends ConsumerWidget {
         const SizedBox(height: 4),
         Text(
           S.current.category_dragHint,
-          style: TextStyle(color: colorScheme.outline, fontSize: 12),
+          style: TextStyle(
+            color: colorScheme.outline,
+            fontSize: AppFontSize.meta,
+          ),
         ),
         const SizedBox(height: 8),
         if (pinnedCategories.isEmpty)
@@ -537,7 +545,10 @@ class _EditContent extends ConsumerWidget {
             child: Center(
               child: Text(
                 S.current.category_addHint,
-                style: TextStyle(color: colorScheme.outline, fontSize: 13),
+                style: TextStyle(
+                  color: colorScheme.outline,
+                  fontSize: AppFontSize.meta,
+                ),
               ),
             ),
           )
@@ -736,7 +747,7 @@ class _PinnedCategoryTile extends StatelessWidget {
                   Text(
                     category.name,
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: AppFontSize.meta,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -744,7 +755,7 @@ class _PinnedCategoryTile extends StatelessWidget {
                     Text(
                       parentName,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: AppFontSize.meta,
                         color: colorScheme.outline,
                       ),
                     ),
@@ -754,7 +765,7 @@ class _PinnedCategoryTile extends StatelessWidget {
             GestureDetector(
               onTap: onRemove,
               child: Icon(
-                Symbols.remove_circle_rounded,
+                AppIcons.removeCircle,
                 size: 20,
                 color: colorScheme.error,
               ),
@@ -762,11 +773,7 @@ class _PinnedCategoryTile extends StatelessWidget {
             const SizedBox(width: 12),
             ReorderableDragStartListener(
               index: index,
-              child: Icon(
-                Symbols.drag_indicator_rounded,
-                size: 20,
-                color: colorScheme.outline,
-              ),
+              child: Icon(AppIcons.grip, size: 20, color: colorScheme.outline),
             ),
           ],
         ),

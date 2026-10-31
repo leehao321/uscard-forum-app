@@ -1,5 +1,8 @@
+import 'package:common_ui/common_ui.dart';
+
 import 'dart:async';
 import 'dart:isolate';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:re_highlight/languages/all.dart';
@@ -17,12 +20,19 @@ class HighlightToken {
   const HighlightToken.open(String this.scope) : type = 'open', content = null;
   const HighlightToken.close() : type = 'close', content = null, scope = null;
 
-  Map<String, dynamic> toMap() => {'type': type, 'content': content, 'scope': scope};
+  Map<String, dynamic> toMap() => {
+    'type': type,
+    'content': content,
+    'scope': scope,
+  };
   factory HighlightToken.fromMap(Map<String, dynamic> map) {
     switch (map['type']) {
-      case 'text': return HighlightToken.text(map['content'] as String);
-      case 'open': return HighlightToken.open(map['scope'] as String);
-      default: return const HighlightToken.close();
+      case 'text':
+        return HighlightToken.text(map['content'] as String);
+      case 'open':
+        return HighlightToken.open(map['scope'] as String);
+      default:
+        return const HighlightToken.close();
     }
   }
 }
@@ -83,7 +93,8 @@ class _HighlightWorker {
         if (type == 'highlight') {
           final code = message['code'] as String;
           final language = message['language'] as String?;
-          final fallbackLanguages = (message['fallbackLanguages'] as List).cast<String>();
+          final fallbackLanguages = (message['fallbackLanguages'] as List)
+              .cast<String>();
           final replyPort = message['replyPort'] as SendPort;
 
           final result = _processHighlight(
@@ -111,7 +122,8 @@ class _HighlightWorker {
   ) {
     // 按需注册语言
     void ensureLanguageRegistered(String lang) {
-      if (!registeredLanguages.contains(lang) && builtinAllLanguages.containsKey(lang)) {
+      if (!registeredLanguages.contains(lang) &&
+          builtinAllLanguages.containsKey(lang)) {
         highlight.registerLanguage(lang, builtinAllLanguages[lang]!);
         registeredLanguages.add(lang);
       }
@@ -138,7 +150,11 @@ class _HighlightWorker {
     return renderer.tokens.map((t) => t.toMap()).toList();
   }
 
-  Future<List<Map<String, dynamic>>> highlight(String code, String? language, List<String> fallbackLanguages) async {
+  Future<List<Map<String, dynamic>>> highlight(
+    String code,
+    String? language,
+    List<String> fallbackLanguages,
+  ) async {
     await ensureInitialized();
 
     final receivePort = ReceivePort();
@@ -166,10 +182,35 @@ class _HighlightWorker {
 class HighlighterService {
   static HighlighterService? _instance;
   static const _commonLanguages = [
-    'json', 'javascript', 'typescript', 'python', 'java', 'kotlin',
-    'go', 'rust', 'dart', 'c', 'cpp', 'csharp', 'php', 'ruby',
-    'yaml', 'xml', 'html', 'css', 'bash', 'sql', 'markdown', 'swift',
-    'objectivec', 'lua', 'perl', 'r', 'scala', 'groovy', 'powershell',
+    'json',
+    'javascript',
+    'typescript',
+    'python',
+    'java',
+    'kotlin',
+    'go',
+    'rust',
+    'dart',
+    'c',
+    'cpp',
+    'csharp',
+    'php',
+    'ruby',
+    'yaml',
+    'xml',
+    'html',
+    'css',
+    'bash',
+    'sql',
+    'markdown',
+    'swift',
+    'objectivec',
+    'lua',
+    'perl',
+    'r',
+    'scala',
+    'groovy',
+    'powershell',
   ];
 
   // LRU 缓存
@@ -212,15 +253,21 @@ class HighlighterService {
   /// 初始化服务（预加载字体和 Isolate Worker）
   Future<void> initialize() async {
     // 预加载 FiraCode 字体
-    _firaCodeStyle = GoogleFonts.firaCode(fontSize: 13, height: 1.5);
+    _firaCodeStyle = GoogleFonts.firaCode(
+      fontSize: AppFontSize.meta,
+      height: 1.5,
+    );
     // 预热 Isolate Worker
     await _HighlightWorker.instance.ensureInitialized();
   }
 
   /// 获取预加载的字体样式
-  TextStyle get firaCodeStyle => _firaCodeStyle ?? GoogleFonts.firaCode(fontSize: 13, height: 1.5);
+  TextStyle get firaCodeStyle =>
+      _firaCodeStyle ??
+      GoogleFonts.firaCode(fontSize: AppFontSize.meta, height: 1.5);
 
-  String _cacheKey(String code, String? language) => '${language ?? 'auto'}:${code.hashCode}';
+  String _cacheKey(String code, String? language) =>
+      '${language ?? 'auto'}:${code.hashCode}';
 
   void _addToCache(String key, List<HighlightToken> tokens) {
     if (_cache.length >= _maxCacheSize) {
@@ -231,7 +278,10 @@ class HighlighterService {
   }
 
   /// 异步获取高亮 tokens（带并发限制）
-  Future<List<HighlightToken>> highlightAsync(String code, {String? language}) async {
+  Future<List<HighlightToken>> highlightAsync(
+    String code, {
+    String? language,
+  }) async {
     // 网页端同款熔断:超大块 / lang-auto 大块直接纯文本,不进 isolate
     if (shouldSkipHighlight(code, language)) {
       return [HighlightToken.text(code)];
@@ -255,7 +305,11 @@ class HighlighterService {
 
     try {
       final normalizedLang = _normalizeLanguage(language, code);
-      final tokenMaps = await _HighlightWorker.instance.highlight(code, normalizedLang, _commonLanguages);
+      final tokenMaps = await _HighlightWorker.instance.highlight(
+        code,
+        normalizedLang,
+        _commonLanguages,
+      );
       final tokens = tokenMaps.map((m) => HighlightToken.fromMap(m)).toList();
 
       _addToCache(key, tokens);
@@ -274,7 +328,8 @@ class HighlighterService {
   /// wrapper 的 TextStyle 继承链等价),相邻同样式 token 合并为单个 span。
   /// 大代码块 token 数以千计,嵌套树 + 逐 token span 是主线程排版大头,
   /// 合并后 span 数下降一个量级。
-  TextSpan tokensToSpan(List<HighlightToken> tokens, {
+  TextSpan tokensToSpan(
+    List<HighlightToken> tokens, {
     bool isDark = false,
     TextStyle? baseStyle,
   }) {
@@ -327,7 +382,10 @@ class HighlighterService {
     }
     flush();
 
-    return TextSpan(style: base, children: spans.isEmpty ? [const TextSpan(text: '')] : spans);
+    return TextSpan(
+      style: base,
+      children: spans.isEmpty ? [const TextSpan(text: '')] : spans,
+    );
   }
 
   /// 构建高亮代码块 Widget
@@ -382,12 +440,20 @@ class HighlighterService {
       if (trimmed.startsWith('<?xml')) return 'xml';
     }
     if (trimmed.startsWith('#!') && trimmed.contains('bash')) return 'bash';
-    if (RegExp(r'^(sudo|apt|npm|yarn|pip|git|docker)\s').hasMatch(trimmed)) return 'bash';
-    if (RegExp(r'^(def |class |import |from \w+ import )').hasMatch(trimmed)) return 'python';
-    if (RegExp(r'^(function |const |let |var |export )').hasMatch(trimmed)) return 'javascript';
+    if (RegExp(r'^(sudo|apt|npm|yarn|pip|git|docker)\s').hasMatch(trimmed))
+      return 'bash';
+    if (RegExp(r'^(def |class |import |from \w+ import )').hasMatch(trimmed))
+      return 'python';
+    if (RegExp(r'^(function |const |let |var |export )').hasMatch(trimmed))
+      return 'javascript';
     if (trimmed.contains("import 'package:")) return 'dart';
-    if (RegExp(r'^\w+:\s*(\n|$)').hasMatch(trimmed) && !trimmed.contains('{')) return 'yaml';
-    if (RegExp(r'^(SELECT|INSERT|UPDATE|CREATE)\s', caseSensitive: false).hasMatch(trimmed)) return 'sql';
+    if (RegExp(r'^\w+:\s*(\n|$)').hasMatch(trimmed) && !trimmed.contains('{'))
+      return 'yaml';
+    if (RegExp(
+      r'^(SELECT|INSERT|UPDATE|CREATE)\s',
+      caseSensitive: false,
+    ).hasMatch(trimmed))
+      return 'sql';
     return null;
   }
 }
@@ -429,7 +495,8 @@ class _HighlightCodeBlockState extends State<HighlightCodeBlock> {
   @override
   void didUpdateWidget(HighlightCodeBlock oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.code != widget.code || oldWidget.language != widget.language) {
+    if (oldWidget.code != widget.code ||
+        oldWidget.language != widget.language) {
       _loadHighlight();
     }
   }
@@ -448,7 +515,8 @@ class _HighlightCodeBlockState extends State<HighlightCodeBlock> {
 
   @override
   Widget build(BuildContext context) {
-    final baseStyle = widget.textStyle ?? HighlighterService.instance.firaCodeStyle;
+    final baseStyle =
+        widget.textStyle ?? HighlighterService.instance.firaCodeStyle;
 
     final textSpan = _tokens != null
         ? HighlighterService.instance.tokensToSpan(

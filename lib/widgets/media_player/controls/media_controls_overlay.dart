@@ -1,3 +1,5 @@
+import 'package:common_ui/common_ui.dart';
+
 import 'dart:async';
 
 import 'package:flutter/gestures.dart';
@@ -259,7 +261,8 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
       _controller.setVolume(0);
     } else {
       _controller.setVolume(
-          session.volumeBeforeMute > 0 ? session.volumeBeforeMute : 1.0);
+        session.volumeBeforeMute > 0 ? session.volumeBeforeMute : 1.0,
+      );
     }
     _showControls();
   }
@@ -274,8 +277,9 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
   void _handleScrollVolume(PointerSignalEvent event) {
     if (event is! PointerScrollEvent) return;
     final delta = event.scrollDelta.dy > 0 ? -0.05 : 0.05;
-    final volume =
-        (_controller.value.volume + delta).clamp(0.0, 1.0).toDouble();
+    final volume = (_controller.value.volume + delta)
+        .clamp(0.0, 1.0)
+        .toDouble();
     _setPlayerVolume(volume);
     setState(() {
       _hudIsVolume = true;
@@ -337,8 +341,8 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
         }
         _syncStablyPaused(value.isPlaying);
 
-        final showLoading = !value.isInitialized ||
-            (value.isBuffering && value.isPlaying);
+        final showLoading =
+            !value.isInitialized || (value.isBuffering && value.isPlaying);
 
         // 全屏锁定态:整层只剩「单击唤锁钮 + 解锁钮 + 迷你进度条」
         if (_locked) {
@@ -367,14 +371,15 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
               enableVerticalGestures: widget.isFullscreen,
               positionProvider: () => _controller.value.position,
               durationProvider: () => _controller.value.duration,
-              onSeekPreview: (target, {required forward, required cancelArmed}) {
-                if (!mounted) return;
-                setState(() {
-                  _seekPreviewTarget = target;
-                  _seekPreviewForward = forward;
-                  _seekPreviewCancelArmed = cancelArmed;
-                });
-              },
+              onSeekPreview:
+                  (target, {required forward, required cancelArmed}) {
+                    if (!mounted) return;
+                    setState(() {
+                      _seekPreviewTarget = target;
+                      _seekPreviewForward = forward;
+                      _seekPreviewCancelArmed = cancelArmed;
+                    });
+                  },
               onSeekCommit: (target) {
                 widget.session.resumedPosition = null;
                 _controller.seekTo(target);
@@ -412,21 +417,25 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
                 child: IgnorePointer(
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
                     decoration: MediaOverlayStyle.pill(radius: 10),
                     child: _seekPreviewCancelArmed
                         ? Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(AppIcons.close,
-                                  color: MediaOverlayStyle.foreground,
-                                  size: 18),
+                              const Icon(
+                                AppIcons.close,
+                                color: MediaOverlayStyle.foreground,
+                                size: 18,
+                              ),
                               const SizedBox(width: 8),
                               Text(
                                 S.current.mediaPlayer_releaseToCancel,
                                 style: const TextStyle(
                                   color: MediaOverlayStyle.foreground,
-                                  fontSize: 14,
+                                  fontSize: AppFontSize.meta,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -448,10 +457,10 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
                                   text: _fmt(_seekPreviewTarget!),
                                   style: const TextStyle(
                                     color: MediaOverlayStyle.foreground,
-                                    fontSize: 15,
+                                    fontSize: AppFontSize.body,
                                     fontWeight: FontWeight.w600,
                                     fontFeatures: [
-                                      FontFeature.tabularFigures()
+                                      FontFeature.tabularFigures(),
                                     ],
                                   ),
                                   children: [
@@ -459,10 +468,9 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
                                       text:
                                           ' / ${_fmt(_controller.value.duration)}',
                                       style: const TextStyle(
-                                        color: MediaOverlayStyle
-                                            .foregroundDim,
+                                        color: MediaOverlayStyle.foregroundDim,
                                         fontWeight: FontWeight.w400,
-                                        fontSize: 13,
+                                        fontSize: AppFontSize.meta,
                                       ),
                                     ),
                                   ],
@@ -497,20 +505,26 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
                     ),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: MediaOverlayStyle.pill(radius: 8),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(AppIcons.history,
-                              color: Colors.white70, size: 15),
+                          const Icon(
+                            AppIcons.history,
+                            color: AppFixedColors.white70,
+                            size: 15,
+                          ),
                           const SizedBox(width: 6),
                           Text(
-                            S.current
-                                .mediaPlayer_resumedFrom(_fmt(_resumedHint!)),
+                            S.current.mediaPlayer_resumedFrom(
+                              _fmt(_resumedHint!),
+                            ),
                             style: const TextStyle(
                               color: MediaOverlayStyle.foreground,
-                              fontSize: 12.5,
+                              fontSize: AppFontSize.meta,
                             ),
                           ),
                         ],
@@ -529,13 +543,13 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
                     width: 52,
                     height: 52,
                     decoration: const BoxDecoration(
-                      color: Color(0x66000000),
+                      color: AppRawColors.c66000000,
                       shape: BoxShape.circle,
                     ),
                     padding: const EdgeInsets.all(12),
                     child: const LoadingSpinner(
                       size: 28,
-                      color: Colors.white,
+                      color: AppFixedColors.white,
                     ),
                   ),
                 ),
@@ -554,8 +568,10 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
               child: _buildBottomBar(value),
             ),
             // 贴底迷你进度条:控制条隐藏时的常驻进度指示,不可交互
-            _buildMiniProgress(value,
-                visible: !_controlsVisible && value.isInitialized),
+            _buildMiniProgress(
+              value,
+              visible: !_controlsVisible && value.isInitialized,
+            ),
             // 全屏锁定钮(仅移动端全屏;锁定态在上方 early-return 分支)
             if (widget.isFullscreen && !_isDesktop) _buildLockButton(),
           ],
@@ -585,8 +601,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
 
   /// 贴底迷你进度条:控制条隐藏时保留 3px 细进度线(含缓冲段),
   /// 不可交互 —— 播放中扫一眼即知进度,不必唤出控制条。
-  Widget _buildMiniProgress(VideoPlayerValue value,
-      {required bool visible}) {
+  Widget _buildMiniProgress(VideoPlayerValue value, {required bool visible}) {
     final totalMs = value.duration.inMilliseconds;
     return Align(
       alignment: Alignment.bottomCenter,
@@ -601,20 +616,21 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
                 ? const SizedBox.shrink()
                 : Stack(
                     children: [
-                      const ColoredBox(color: Color(0x33FFFFFF)),
+                      const ColoredBox(color: AppRawColors.c33FFFFFF),
                       for (final range in value.buffered)
                         FractionallySizedBox(
                           alignment: Alignment.centerLeft,
                           widthFactor: (range.end.inMilliseconds / totalMs)
                               .clamp(0.0, 1.0),
-                          child: const ColoredBox(color: Color(0x4DFFFFFF)),
+                          child: const ColoredBox(
+                            color: AppRawColors.c4DFFFFFF,
+                          ),
                         ),
                       FractionallySizedBox(
                         alignment: Alignment.centerLeft,
-                        widthFactor:
-                            (value.position.inMilliseconds / totalMs)
-                                .clamp(0.0, 1.0),
-                        child: const ColoredBox(color: Color(0xCCFFFFFF)),
+                        widthFactor: (value.position.inMilliseconds / totalMs)
+                            .clamp(0.0, 1.0),
+                        child: const ColoredBox(color: AppRawColors.cCCFFFFFF),
                       ),
                     ],
                   ),
@@ -640,9 +656,9 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
               opacity: visible ? 1 : 0,
               duration: MediaOverlayStyle.barDuration,
               child: Material(
-                color: const Color(0x8A000000),
+                color: AppRawColors.c8A000000,
                 shape: const CircleBorder(
-                  side: BorderSide(color: Color(0x24FFFFFF)),
+                  side: BorderSide(color: AppRawColors.c24FFFFFF),
                 ),
                 child: InkWell(
                   customBorder: const CircleBorder(),
@@ -650,9 +666,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
                   child: Padding(
                     padding: const EdgeInsets.all(11),
                     child: Icon(
-                      _locked
-                          ? AppIcons.lock
-                          : AppIcons.lockOpen,
+                      _locked ? AppIcons.lock : AppIcons.lockOpen,
                       color: MediaOverlayStyle.foreground,
                       size: 22,
                       semanticLabel: _locked
@@ -671,8 +685,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
 
   Widget _buildTopBar() {
     return Container(
-      decoration:
-          const BoxDecoration(gradient: MediaOverlayStyle.topScrim),
+      decoration: const BoxDecoration(gradient: MediaOverlayStyle.topScrim),
       child: SafeArea(
         bottom: false,
         child: Row(
@@ -691,8 +704,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
 
   Widget _buildBottomBar(VideoPlayerValue value) {
     return Container(
-      decoration:
-          const BoxDecoration(gradient: MediaOverlayStyle.bottomScrim),
+      decoration: const BoxDecoration(gradient: MediaOverlayStyle.bottomScrim),
       // SafeArea 只在全屏需要(inline 在正文流里,底部 inset 与它无关,
       // 包上反而平白垫高控制条)
       child: widget.isFullscreen
@@ -728,7 +740,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
               _fmt(value.position),
               style: const TextStyle(
                 color: MediaOverlayStyle.foreground,
-                fontSize: 11.5,
+                fontSize: AppFontSize.caption,
                 fontWeight: FontWeight.w600,
                 fontFeatures: [FontFeature.tabularFigures()],
               ),
@@ -740,7 +752,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
               _fmt(value.duration),
               style: const TextStyle(
                 color: MediaOverlayStyle.foregroundDim,
-                fontSize: 11.5,
+                fontSize: AppFontSize.caption,
                 fontFeatures: [FontFeature.tabularFigures()],
               ),
             ),
@@ -781,7 +793,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
                   text: _fmt(value.position),
                   style: const TextStyle(
                     color: MediaOverlayStyle.foreground,
-                    fontSize: 12,
+                    fontSize: AppFontSize.meta,
                     fontWeight: FontWeight.w600,
                     fontFeatures: [FontFeature.tabularFigures()],
                   ),
@@ -831,8 +843,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
     );
   }
 
-  Widget _buildPlayButton(VideoPlayerValue value,
-      {required double iconSize}) {
+  Widget _buildPlayButton(VideoPlayerValue value, {required double iconSize}) {
     return IconButton(
       icon: value.isCompleted && !value.isPlaying
           ? const Icon(AppIcons.refresh)
@@ -864,7 +875,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
             color: value.playbackSpeed == 1.0
                 ? MediaOverlayStyle.foreground
                 : MediaOverlayStyle.accent,
-            fontSize: 13,
+            fontSize: AppFontSize.meta,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -881,9 +892,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
         children: [
           IconButton(
             icon: Icon(
-              value.volume > 0
-                  ? AppIcons.volumeUp
-                  : AppIcons.volumeOff,
+              value.volume > 0 ? AppIcons.volumeUp : AppIcons.volumeOff,
             ),
             color: MediaOverlayStyle.foreground,
             iconSize: 22,
@@ -922,11 +931,7 @@ class _MediaControlsOverlayState extends State<MediaControlsOverlay>
 
   Widget _buildFullscreenButton({required double iconSize}) {
     return IconButton(
-      icon: Icon(
-        widget.isFullscreen
-            ? AppIcons.minimize
-            : AppIcons.maximize,
-      ),
+      icon: Icon(widget.isFullscreen ? AppIcons.minimize : AppIcons.maximize),
       color: MediaOverlayStyle.foreground,
       iconSize: iconSize,
       visualDensity: VisualDensity.compact,
@@ -958,9 +963,7 @@ class _SlidingBar extends StatelessWidget {
       child: IgnorePointer(
         ignoring: !visible,
         child: AnimatedSlide(
-          offset: visible
-              ? Offset.zero
-              : Offset(0, fromTop ? -0.3 : 0.3),
+          offset: visible ? Offset.zero : Offset(0, fromTop ? -0.3 : 0.3),
           duration: MediaOverlayStyle.barDuration,
           curve: MediaOverlayStyle.barCurve,
           child: AnimatedOpacity(
@@ -999,10 +1002,7 @@ class _CompactIconButton extends StatelessWidget {
         width: 36,
         height: 36,
         child: IconTheme(
-          data: IconThemeData(
-            color: MediaOverlayStyle.foreground,
-            size: size,
-          ),
+          data: IconThemeData(color: MediaOverlayStyle.foreground, size: size),
           child: Center(child: icon),
         ),
       ),
@@ -1070,14 +1070,12 @@ class _CenterPlayButtonState extends State<_CenterPlayButton> {
               width: side,
               height: side,
               decoration: BoxDecoration(
-                color: const Color(0x8A000000),
+                color: AppRawColors.c8A000000,
                 borderRadius: BorderRadius.circular(radius),
-                border: Border.all(color: const Color(0x24FFFFFF)),
+                border: Border.all(color: AppRawColors.c24FFFFFF),
               ),
               child: Icon(
-                widget.isCompleted
-                    ? AppIcons.refresh
-                    : AppIcons.play,
+                widget.isCompleted ? AppIcons.refresh : AppIcons.play,
                 color: MediaOverlayStyle.foreground,
                 size: expressive ? 32 : 36,
               ),
@@ -1120,8 +1118,7 @@ class _MiniVolumeSliderState extends State<_MiniVolumeSlider> {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTapDown: (d) => _setFromDx(d.localPosition.dx, width),
-            onHorizontalDragStart: (d) =>
-                _setFromDx(d.localPosition.dx, width),
+            onHorizontalDragStart: (d) => _setFromDx(d.localPosition.dx, width),
             onHorizontalDragUpdate: (d) =>
                 _setFromDx(d.localPosition.dx, width),
             child: SizedBox(
@@ -1155,16 +1152,16 @@ class _MiniSliderPainter extends CustomPainter {
     final paint = Paint();
 
     RRect track(double start, double end) => RRect.fromLTRBR(
-          size.width * start,
-          centerY - trackHeight / 2,
-          size.width * end,
-          centerY + trackHeight / 2,
-          radius,
-        );
+      size.width * start,
+      centerY - trackHeight / 2,
+      size.width * end,
+      centerY + trackHeight / 2,
+      radius,
+    );
 
-    paint.color = const Color(0x4DFFFFFF);
+    paint.color = AppRawColors.c4DFFFFFF;
     canvas.drawRRect(track(0, 1), paint);
-    paint.color = Colors.white;
+    paint.color = AppFixedColors.white;
     canvas.drawRRect(track(0, fraction), paint);
     canvas.drawCircle(
       Offset(size.width * fraction, centerY),
@@ -1202,7 +1199,9 @@ class _FastForwardBadge extends StatelessWidget {
             child: Center(
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 4),
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: MediaOverlayStyle.pill(radius: 14),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1211,12 +1210,15 @@ class _FastForwardBadge extends StatelessWidget {
                       '2x ',
                       style: TextStyle(
                         color: MediaOverlayStyle.foreground,
-                        fontSize: 13,
+                        fontSize: AppFontSize.meta,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    Icon(AppIcons.fastForward,
-                        color: MediaOverlayStyle.foreground, size: 16),
+                    Icon(
+                      AppIcons.fastForward,
+                      color: MediaOverlayStyle.foreground,
+                      size: 16,
+                    ),
                   ],
                 ),
               ),

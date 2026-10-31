@@ -189,7 +189,7 @@ class _EntryTile extends StatelessWidget {
                   Text(
                     title,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      fontSize: 15,
+                      fontSize: AppFontSize.body,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -602,7 +602,7 @@ class _HistoryCard extends StatelessWidget {
                         TimeUtils.formatRelativeTime(item.visitedAt),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
-                          fontSize: 11,
+                          fontSize: AppFontSize.caption,
                         ),
                       ),
                     ],
@@ -684,7 +684,7 @@ class _BookmarkCard extends StatelessWidget {
                         TimeUtils.formatRelativeTime(item.createdAt),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
-                          fontSize: 11,
+                          fontSize: AppFontSize.caption,
                         ),
                       ),
                     ],

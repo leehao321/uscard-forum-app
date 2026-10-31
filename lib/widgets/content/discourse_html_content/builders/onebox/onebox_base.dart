@@ -1,5 +1,7 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
+
 import '../../../../../models/topic.dart';
 import '../../../../../services/discourse_cache_manager.dart';
 
@@ -30,18 +32,12 @@ class OneboxContainer extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant,
-          width: 1,
-        ),
+        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
       ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(borderRadius),
-        child: Padding(
-          padding: padding,
-          child: child,
-        ),
+        child: Padding(padding: padding, child: child),
       ),
     );
   }
@@ -89,10 +85,7 @@ class OneboxContainerWithHeader extends StatelessWidget {
               ),
               child: header,
             ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: child,
-            ),
+            Padding(padding: const EdgeInsets.all(12), child: child),
           ],
         ),
       ),
@@ -131,7 +124,8 @@ class OneboxStatItem extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           value,
-          style: textStyle ??
+          style:
+              textStyle ??
               theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -167,7 +161,7 @@ class OneboxLabel extends StatelessWidget {
         text,
         style: theme.textTheme.labelSmall?.copyWith(
           color: textColor ?? theme.colorScheme.onSurfaceVariant,
-          fontSize: 10,
+          fontSize: AppFontSize.caption,
           height: 1.2,
         ),
       ),
@@ -192,8 +186,8 @@ class OneboxStatusIndicator extends StatelessWidget {
   factory OneboxStatusIndicator.issueOpen() {
     return const OneboxStatusIndicator(
       status: 'Open',
-      color: Color(0xFF238636),
-      icon: Symbols.circle_rounded,
+      color: AppRawColors.cFF238636,
+      icon: AppIcons.circleIcon,
     );
   }
 
@@ -201,8 +195,8 @@ class OneboxStatusIndicator extends StatelessWidget {
   factory OneboxStatusIndicator.issueClosed() {
     return const OneboxStatusIndicator(
       status: 'Closed',
-      color: Color(0xFF8957e5),
-      icon: Symbols.check_circle_rounded,
+      color: AppRawColors.cFF8957E5,
+      icon: AppIcons.checkCircle,
     );
   }
 
@@ -210,8 +204,8 @@ class OneboxStatusIndicator extends StatelessWidget {
   factory OneboxStatusIndicator.prOpen() {
     return const OneboxStatusIndicator(
       status: 'Open',
-      color: Color(0xFF238636),
-      icon: Symbols.call_merge_rounded,
+      color: AppRawColors.cFF238636,
+      icon: AppIcons.gitMerge,
     );
   }
 
@@ -219,8 +213,8 @@ class OneboxStatusIndicator extends StatelessWidget {
   factory OneboxStatusIndicator.prMerged() {
     return const OneboxStatusIndicator(
       status: 'Merged',
-      color: Color(0xFF8957e5),
-      icon: Symbols.merge_rounded,
+      color: AppRawColors.cFF8957E5,
+      icon: AppIcons.gitMerge,
     );
   }
 
@@ -228,8 +222,8 @@ class OneboxStatusIndicator extends StatelessWidget {
   factory OneboxStatusIndicator.prClosed() {
     return const OneboxStatusIndicator(
       status: 'Closed',
-      color: Color(0xFFda3633),
-      icon: Symbols.close_rounded,
+      color: AppRawColors.cFFDA3633,
+      icon: AppIcons.close,
     );
   }
 
@@ -252,7 +246,7 @@ class OneboxStatusIndicator extends StatelessWidget {
           Text(
             status,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: AppFontSize.meta,
               fontWeight: FontWeight.w500,
               color: color,
             ),
@@ -282,7 +276,7 @@ class OneboxClickCount extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Symbols.visibility_rounded,
+            AppIcons.visibility,
             size: 10,
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -290,7 +284,7 @@ class OneboxClickCount extends StatelessWidget {
           Text(
             count,
             style: theme.textTheme.labelSmall?.copyWith(
-              fontSize: 10,
+              fontSize: AppFontSize.caption,
               color: theme.colorScheme.onSurfaceVariant,
               height: 1,
             ),
@@ -325,7 +319,7 @@ class OneboxSourceHeader extends StatelessWidget {
             width: 16,
             height: 16,
             errorBuilder: (context, error, stackTrace) {
-              return const Icon(Symbols.link_rounded, size: 16);
+              return const Icon(AppIcons.link, size: 16);
             },
           ),
           const SizedBox(width: 8),
@@ -360,7 +354,7 @@ class OneboxAvatar extends StatelessWidget {
     this.imageUrl,
     this.size = 40,
     this.borderRadius = 20,
-    this.fallbackIcon = Symbols.person_rounded,
+    this.fallbackIcon = AppIcons.person,
   });
 
   @override
@@ -402,7 +396,10 @@ class OneboxAvatar extends StatelessWidget {
 
 /// 从 onebox 元素中提取点击数
 /// 从 linkCounts 数据中通过 URL 匹配查找
-String? extractClickCountFromOnebox(dynamic element, {List<LinkCount>? linkCounts}) {
+String? extractClickCountFromOnebox(
+  dynamic element, {
+  List<LinkCount>? linkCounts,
+}) {
   if (element == null || linkCounts == null) return null;
 
   // 提取 onebox 的 URL
@@ -421,8 +418,12 @@ String? extractClickCountFromOnebox(dynamic element, {List<LinkCount>? linkCount
 
 /// URL 匹配（忽略末尾斜杠和协议差异）
 bool _urlMatches(String url1, String url2) {
-  final normalized1 = url1.replaceFirst(RegExp(r'^https?://'), '').replaceFirst(RegExp(r'/$'), '');
-  final normalized2 = url2.replaceFirst(RegExp(r'^https?://'), '').replaceFirst(RegExp(r'/$'), '');
+  final normalized1 = url1
+      .replaceFirst(RegExp(r'^https?://'), '')
+      .replaceFirst(RegExp(r'/$'), '');
+  final normalized2 = url2
+      .replaceFirst(RegExp(r'^https?://'), '')
+      .replaceFirst(RegExp(r'/$'), '');
   return normalized1 == normalized2;
 }
 

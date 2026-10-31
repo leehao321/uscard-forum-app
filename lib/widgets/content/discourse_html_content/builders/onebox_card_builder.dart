@@ -206,7 +206,8 @@ Widget _buildByType({
     }
   } catch (e, stackTrace) {
     debugPrint(
-        '=== Onebox Build Error [$type] ===\nError: $e\nStackTrace: $stackTrace');
+      '=== Onebox Build Error [$type] ===\nError: $e\nStackTrace: $stackTrace',
+    );
     // 专用 builder 失败时回退到默认样式
     return _buildSafeDefault(
       context: context,
@@ -243,7 +244,7 @@ Widget _buildSafeDefault({
       ),
       child: Row(
         children: [
-          Icon(Symbols.link_rounded, color: theme.colorScheme.onSurfaceVariant),
+          Icon(AppIcons.link, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

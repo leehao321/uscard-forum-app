@@ -8,8 +8,8 @@ import '../widgets/common/app_bottom_sheet.dart';
 ///
 /// 查看器是黑底，不跟主题走：控件是黑色半透明圆钮 + 白色图标。
 /// 圆钮 44×44（热区同大），页码是胶囊，加载进度是「原图加载中 62%」胶囊。
-const Color kViewerScrim = Colors.black54;
-const Color kViewerForeground = Colors.white;
+const Color kViewerScrim = AppFixedColors.black54;
+const Color kViewerForeground = AppFixedColors.white;
 
 /// 顶部或底部的渐变遮罩，让状态栏和文字在亮图上也看得清。
 class ViewerGradient extends StatelessWidget {
@@ -31,7 +31,10 @@ class ViewerGradient extends StatelessWidget {
           gradient: LinearGradient(
             begin: fromTop ? Alignment.topCenter : Alignment.bottomCenter,
             end: fromTop ? Alignment.bottomCenter : Alignment.topCenter,
-            colors: [Colors.black.withValues(alpha: 0.6), Colors.transparent],
+            colors: [
+              AppFixedColors.black.withValues(alpha: 0.6),
+              Colors.transparent,
+            ],
           ),
         ),
       ),
@@ -132,7 +135,7 @@ class ViewerFilename extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
-          colors: [Colors.black54, Colors.transparent],
+          colors: [AppFixedColors.black54, Colors.transparent],
         ),
       ),
       child: Padding(

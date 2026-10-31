@@ -307,7 +307,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
     if (level == 'error' || (statusCode is int && statusCode >= 400)) {
       return scheme.error;
     }
-    if (level == 'warning') return Colors.orange;
+    if (level == 'warning') return context.tokens.colors.textDestructive;
     return Colors.transparent;
   }
 
@@ -535,7 +535,9 @@ class _AppLogsPageState extends State<AppLogsPage> {
               ),
               child: SelectableText(
                 text,
-                style: value.merge(mono).copyWith(fontSize: 11),
+                style: value
+                    .merge(mono)
+                    .copyWith(fontSize: AppFontSize.caption),
               ),
             ),
           ],
@@ -693,7 +695,9 @@ class _AppLogsPageState extends State<AppLogsPage> {
                     child: SelectableText(
                       [for (final e in extras.entries) '${e.key}: ${e.value}']
                           .join('\n'),
-                      style: value.merge(mono).copyWith(fontSize: 11),
+                      style: value
+                          .merge(mono)
+                          .copyWith(fontSize: AppFontSize.caption),
                     ),
                   ),
                 ],
@@ -985,7 +989,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
       if (duration != null) '${duration}ms',
       ?adapter,
     ].join(' · ');
-    const mono = TextStyle(fontFamily: 'monospace', fontSize: 13);
+    const mono = TextStyle(fontFamily: 'monospace', fontSize: AppFontSize.meta);
     return InkWell(
       onTap: () => _showDetail(entry),
       child: Container(
@@ -1058,7 +1062,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
     // v2：不再用彩色左边条，错误行只把标题改成 destructive 文字色
     final isErrorRow = barColor == theme.colorScheme.error;
     final titleStyle = theme.textTheme.bodyMedium?.copyWith(
-      fontSize: 13.5,
+      fontSize: AppFontSize.meta,
       color: isErrorRow ? context.tokens.colors.textDestructive : null,
     );
     final subtitleStyle = theme.textTheme.bodySmall?.copyWith(

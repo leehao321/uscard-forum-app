@@ -31,10 +31,8 @@ Future<PostVotingComment?> showPostVotingCommentSheet(
   return showAppBottomSheet<PostVotingComment>(
     context: context,
     isScrollControlled: true,
-    builder: (ctx) => _CommentInputSheet(
-      postId: postId,
-      replyToUsername: replyToUsername,
-    ),
+    builder: (ctx) =>
+        _CommentInputSheet(postId: postId, replyToUsername: replyToUsername),
   );
 }
 
@@ -94,9 +92,10 @@ class _CommentInputSheetState extends State<_CommentInputSheet> {
   bool _normalizingSelection = false;
 
   /// 评论字数上限:站点 post_voting_comment_max_raw_length,缺省 600
-  late final int _maxLength = (PreloadedDataService()
-              .siteSettingsSync?['post_voting_comment_max_raw_length']
-          as num?)
+  late final int _maxLength =
+      (PreloadedDataService()
+                  .siteSettingsSync?['post_voting_comment_max_raw_length']
+              as num?)
           ?.toInt() ??
       600;
 
@@ -218,7 +217,7 @@ class _CommentInputSheetState extends State<_CommentInputSheet> {
             child: Row(
               children: [
                 Icon(
-                  Symbols.mode_comment_rounded,
+                  AppIcons.chatBubble,
                   size: 14,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -258,9 +257,7 @@ class _CommentInputSheetState extends State<_CommentInputSheet> {
                 IconButton(
                   onPressed: _toggleEmojiPanel,
                   icon: Icon(
-                    _showEmojiPanel
-                        ? Symbols.keyboard_rounded
-                        : Symbols.emoji_emotions_rounded,
+                    _showEmojiPanel ? AppIcons.keyboard : AppIcons.emoji,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                   visualDensity: VisualDensity.compact,
@@ -319,7 +316,7 @@ class _CommentInputSheetState extends State<_CommentInputSheet> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : Icon(
-                          Symbols.send_rounded,
+                          AppIcons.send,
                           color: _canSubmit
                               ? theme.colorScheme.primary
                               : theme.colorScheme.onSurfaceVariant.withValues(
@@ -364,7 +361,7 @@ class _CommentInputSheetState extends State<_CommentInputSheet> {
                               child: Transform.translate(
                                 offset: const Offset(-1, 0),
                                 child: Icon(
-                                  Symbols.backspace_rounded,
+                                  AppIcons.backspace,
                                   size: 20,
                                   color: _controller.text.isEmpty
                                       ? theme.colorScheme.onSurfaceVariant

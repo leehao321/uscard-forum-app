@@ -1,4 +1,6 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
+
 import '../../models/category.dart';
 import '../../models/topic.dart';
 import '../../utils/color_utils.dart';
@@ -95,6 +97,6 @@ class CategoryTagsLine extends StatelessWidget {
     if (clean.length == 6) {
       return Color(int.parse('0xFF$clean'));
     }
-    return Colors.grey;
+    return AppFixedColors.neutralGrey;
   }
 }

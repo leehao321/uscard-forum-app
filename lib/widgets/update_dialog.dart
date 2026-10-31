@@ -75,7 +75,7 @@ class UpdateDialog extends StatelessWidget {
                             context.l10n.update_newVersionFound,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
-                              fontSize: 18,
+                              fontSize: AppFontSize.body,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -140,7 +140,7 @@ class UpdateDialog extends StatelessWidget {
                             baseTextStyle: theme.textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                               height: 1.5,
-                              fontSize: 14,
+                              fontSize: AppFontSize.meta,
                             ),
                             selectionEnabled: false,
                           ),
@@ -185,7 +185,7 @@ class UpdateDialog extends StatelessWidget {
                               ),
                               child: Text(
                                 context.l10n.update_dontRemind,
-                                style: const TextStyle(fontSize: 13),
+                                style: const TextStyle(fontSize: AppFontSize.meta),
                               ),
                             ),
                           if (onOpenReleasePage != null)
@@ -202,7 +202,7 @@ class UpdateDialog extends StatelessWidget {
                               ),
                               child: Text(
                                 context.l10n.common_viewDetails,
-                                style: const TextStyle(fontSize: 13),
+                                style: const TextStyle(fontSize: AppFontSize.meta),
                               ),
                             ),
                           const Spacer(),
@@ -219,7 +219,7 @@ class UpdateDialog extends StatelessWidget {
                             ),
                             child: Text(
                               context.l10n.common_later,
-                              style: const TextStyle(fontSize: 13),
+                              style: const TextStyle(fontSize: AppFontSize.meta),
                             ),
                           ),
                         ],
@@ -248,7 +248,7 @@ class UpdateDialog extends StatelessWidget {
       child: Text(
         'v$version',
         style: TextStyle(
-          fontSize: 12,
+          fontSize: AppFontSize.meta,
           fontWeight: isNew ? FontWeight.w600 : FontWeight.normal,
           color: isNew ? colorScheme.primary : colorScheme.onSurfaceVariant,
         ),

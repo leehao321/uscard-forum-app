@@ -376,7 +376,7 @@ class _AiPostReviewButtonState extends ConsumerState<AiPostReviewButton> {
       radius: 8,
       shadow: [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.15),
+          color: AppFixedColors.black.withValues(alpha: 0.15),
           blurRadius: 8,
           offset: const Offset(0, 2),
         ),
@@ -585,7 +585,7 @@ class _LevelHeader extends StatelessWidget {
             child: Text(
               levelText,
               style: theme.textTheme.labelMedium?.copyWith(
-                color: Colors.white,
+                color: AppFixedColors.white,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -630,7 +630,7 @@ class _SuggestionList extends StatelessWidget {
                   child: Text(
                     '${index + 1}',
                     style: theme.textTheme.labelMedium?.copyWith(
-                      color: Colors.white,
+                      color: AppFixedColors.white,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
