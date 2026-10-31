@@ -341,10 +341,7 @@ mixin _UsersMixin on _DiscourseServiceBase {
 
   /// 拉书签接口并返回原始 JSON map，给本地缓存对账层使用——
   /// 需要保留每条书签自身的 updated_at 等字段，无法通过 [TopicListResponse] 转回。
-  Future<Map<String, dynamic>> getUserBookmarksRaw({
-    int page = 0,
-    int? limit,
-  }) {
+  Future<Map<String, dynamic>> getUserBookmarksRaw({int page = 0, int? limit}) {
     return _getUserBookmarksRaw(page: page, limit: limit);
   }
 
@@ -418,6 +415,30 @@ mixin _UsersMixin on _DiscourseServiceBase {
     );
 
     return BadgeDetailResponse.fromJson(response.data);
+  }
+
+  /// 榜单：按徽章分页取「获得这枚徽章的帖子」。
+  ///
+  /// 对应 Discourse `UserBadgesController#index`：`offset` 起算、`limit`
+  /// 缺省 96、上限 400，按授予时间倒序。只在用户操作（打开 / 下拉 / 滑到底）
+  /// 时调用，不预取。
+  Future<BadgeTopicsPage> getBadgeTopicsPage({
+    required int badgeId,
+    int offset = 0,
+    int limit = BadgeTopicsPage.pageSize,
+  }) async {
+    final response = await _dio.get(
+      '/user_badges.json',
+      queryParameters: {
+        'badge_id': badgeId,
+        if (offset > 0) 'offset': offset,
+        'limit': limit,
+      },
+    );
+    return BadgeTopicsPage.fromJson(
+      response.data as Map<String, dynamic>,
+      limit: limit,
+    );
   }
 
   /// 获取待使用的邀请链接

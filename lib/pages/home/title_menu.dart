@@ -4,16 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/s.dart';
+import '../../providers/leaderboard_provider.dart';
 import '../../providers/message_bus/topic_tracking_providers.dart';
 import '../../providers/topic_list/filter_provider.dart';
 import '../../providers/topic_list/sort_provider.dart';
 import '../../providers/topic_list/tab_state_provider.dart';
 import '../../widgets/topic/sort_and_tags_bar.dart'
     show filterOptions, filterLabel;
+import 'leaderboard_topic_list.dart' show leaderboardLabel;
 
 /// 菜单值哨兵（与筛选 / 排序 / 子过滤的枚举值区分）
 const _dismissAllValue = #homeTitleMenuDismissAll;
 const _selectTagsValue = #homeTitleMenuSelectTags;
+
+/// 「浏览方式」组的值：null = 全部
+class _BrowseChoice {
+  const _BrowseChoice(this.kind);
+
+  final LeaderboardKind? kind;
+}
 
 /// 首页导航栏的标题菜单（设计说明 §3.1 导航 · 收起单行）：
 /// 「最新 ▾」17 Regular + chevron-down 14，热区 52×44。
@@ -27,6 +36,7 @@ class HomeTitleMenu extends ConsumerWidget {
     required this.categoryId,
     required this.onSelectTags,
     required this.onDismissAll,
+    required this.onBrowse,
   });
 
   final bool isLoggedIn;
@@ -35,6 +45,9 @@ class HomeTitleMenu extends ConsumerWidget {
 
   /// 点「全部标为已读」后由页面弹确认
   final void Function(TopicListFilter filter) onDismissAll;
+
+  /// 选「浏览方式」：null = 全部，否则是榜单；由首页统一处理（分类条同步）
+  final void Function(LeaderboardKind? kind) onBrowse;
 
   static int _countFor(TopicListFilter filter, int newCount, int unreadCount) =>
       switch (filter) {
@@ -53,6 +66,7 @@ class HomeTitleMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = context.tokens;
     final filter = ref.watch(topicFilterProvider);
+    final mode = ref.watch(homeBrowseModeProvider);
     final order = ref.watch(topicSortOrderProvider);
     final ascending = ref.watch(topicSortAscendingProvider);
     final subset = ref.watch(topicNewSubsetProvider);
@@ -69,10 +83,11 @@ class HomeTitleMenu extends ConsumerWidget {
       return n > 0 ? '$base ($n)' : base;
     }
 
+    // 标题始终是筛选方式（Figma「首页 · 选中精彩」里仍写「最新」）
     final label = withCount(filter, filterLabel(filter));
-    final orderActive = order != TopicSortOrder.defaultOrder;
+    final orderActive = mode == null && order != TopicSortOrder.defaultOrder;
 
-    List<List<AppMenuItem<Object>>> sections() {
+    List<List<AppMenuItem<Object>>> sections(BuildContext buttonContext) {
       final visibleFilters = filterOptions.where(
         (o) =>
             isLoggedIn ||
@@ -80,7 +95,25 @@ class HomeTitleMenu extends ConsumerWidget {
                 o.$1 != TopicListFilter.unread &&
                 o.$1 != TopicListFilter.unseen),
       );
+      final kinds = availableLeaderboards();
+      final browse = <AppMenuItem<Object>>[
+        AppMenuItem<Object>(
+          label: S.current.common_all,
+          value: const _BrowseChoice(null),
+          checked: mode == null && categoryId == null,
+        ),
+        for (final kind in kinds)
+          AppMenuItem<Object>(
+            label: leaderboardLabel(buttonContext, kind),
+            value: _BrowseChoice(kind),
+            checked: mode == kind,
+          ),
+      ];
+      // 榜单模式下排序 / 筛选都不适用，菜单只留「浏览方式」
+      if (mode != null) return [browse];
       return [
+        // 「浏览方式」：全部 / 精彩 / 难绷（站点没有榜单徽章时整组不出现）
+        if (kinds.isNotEmpty) browse,
         [
           for (final o in visibleFilters)
             AppMenuItem<Object>(
@@ -144,7 +177,7 @@ class HomeTitleMenu extends ConsumerWidget {
           final value = await showAppMenu<Object>(
             context: buttonContext,
             anchor: globalRectOf(buttonContext),
-            sections: sections(),
+            sections: sections(buttonContext),
           );
           if (value == null) return;
           if (value is TopicListFilter) {
@@ -158,6 +191,8 @@ class HomeTitleMenu extends ConsumerWidget {
             } else {
               ref.read(topicSortOrderProvider.notifier).setOrder(value);
             }
+          } else if (value is _BrowseChoice) {
+            onBrowse(value.kind);
           } else if (value == _selectTagsValue) {
             onSelectTags();
           } else if (value == _dismissAllValue) {

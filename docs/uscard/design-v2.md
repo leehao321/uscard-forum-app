@@ -28,8 +28,10 @@
 | 补充 · 设置与登录 [52:2](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=52-2) | 设置 [52:518](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=52-518)；外观 [52:1436](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=52-1436)；阅读 · 功能 · 标签栏 · 数据管理 [53:1241](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=53-1241)；网络与代理 [53:1823](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=53-1823)；关于 · 诊断 [54:1133](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=54-1133)；登录 · 验证 · 引导 [54:1903](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=54-1903) |
 | 补充 · 首页与阅读页变体 [62:2](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=62-2) | 首页 · 带发帖入口 [62:814](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=62-814)（浅 / 深，取代首页原导航，D11）；阅读页 · 横屏 [62:1483](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=62-1483)（顶部、引用与表格，浅 / 深） |
 | 补充 · 393 抽查 [55:2520](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=55-2520) | 393 抽查 · 浅色 [55:3224](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=55-3224)（通知、我的、搜索结果、外观，393×852） |
+| 补充 · 首页精彩 / 难绷 [97:536](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=97-536) | 首页 · 选中精彩 · 浅色 [104:630](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=104-630)、首页 · 选中难绷 · 深色 [104:1034](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=104-1034)（§5.7） |
 
 已知显示问题：列表行组件里的点赞数 / 回复数用 SF Pro，在 Figma 网页里正常显示，但用 MCP 导出的截图里是空白；状态栏时间和字母头像已改用 Noto Sans SC Medium（Semibold 占位，同 Figma 原稿）。
+
 
 ## 1. 总原则（来自 Tokens 页）
 
@@ -426,6 +428,21 @@ Figma：补充 · 组件与状态 [40:29](https://www.figma.com/design/WMaCKTCa1
 - AI 局部总结卡片、引用块、表格都在阅读列内，宽度跟随列宽；表格首列固定 140，其余列在列内横向滚动，超出时底部显示滚动指示条。
 - 其余所有页面横屏都套同一条规则（内容列最大 640 居中、遵守左右安全区、底部悬浮栏与 Tab 胶囊对齐内容列），不另出横屏帧。
 
+### 5.7 精彩 / 难绷（首页浏览方式；0.4.0 M9.6 新增，依据是用户原稿「全部 · 精彩 · 难绷」）
+
+Figma：[首页 · 选中精彩 · 浅色 104:630](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=104-630)、[首页 · 选中难绷 · 深色 104:1034](https://www.figma.com/design/WMaCKTCa1FfVdj51QaUvJj/?node-id=104-1034)（页面「补充 · 首页精彩 / 难绷」97:536）。
+
+- 入口在首页，不另开页面：
+  - 分类条固定在最前的「全部 · 精彩 · 难绷」，后面一根 0.5×16 竖线（只在有分类时画），再是分类；这三项不参与分类排序。
+  - 标题菜单最上面一组「浏览方式」：全部 / 精彩 / 难绷（当前项打勾）；「全部分类」半屏里同名一组（同 §5.1）。
+  - 三处读写同一个状态：选「精彩」「难绷」后分类条选中对应项；选任何分类或「全部」回到普通列表。站点没配对应徽章时，分类条和菜单里都不出现该项，「全部」仍在。
+  - 选中榜单后标题仍写筛选方式（Figma 里写「最新」）；排序、标签、全部标为已读不适用，菜单只剩「浏览方式」一组。
+- 列表：同首页话题行（上下 12、标题 17 Semibold 最多 2 行、间距 8），不显示赞数和回复数；元信息一行 13 meta：「作者 · 获得于 日期 · N 回复」（日期 `TimeUtils.formatShortDate`；N = 话题回帖数 − 1，回帖数不详时不显示）。按获得时间倒序；整行可点进话题（授予的楼层不是 1 楼时直接定位到那一楼）。
+- 数据：论坛官方徽章授予记录，精彩 = #20「精彩的话题」，难绷 = #115「难绷的话题」（美卡自定义）。徽章编号在站点配置里（`SiteCustomization.greatTopicBadgeId` / `funnyTopicBadgeId`），不写死在页面里。接口 `/user_badges.json?badge_id=…&offset=…&limit=…`（Discourse `UserBadgesController#index`：授予时间倒序，缺省每页 96，上限 400）。按 topic_id 去重；下一页的 offset 按服务端返回的授予记录条数推进（不是去重后的条数）。
+- 请求时机：只在用户操作时发——选中这一项、下拉刷新（从第一页重取）、拖到底（拖动后离底部 < 400）。不预取、不后台刷新。
+- 状态：加载 200ms 内静默，之后骨架，3 秒后加「正在等待论坛响应」；空 =「榜上还没有帖子」；出错 = 共享错误状态（重试），没登录时下面多一行说明和「登录」按钮（接口不登录能不能用还没在真机核实）；分页脚用共享的「没有更多了 / 加载更多失败 · 重试」。
+- 横屏：列居中 640；动态字体到 2.0 不溢出；VoiceOver 整行合并朗读「标题，作者 · 获得于 … · N 回复」。
+
 ## 6. 提议新增 token
 
 全部从稿内已有用法推导；只有「强调色备选」是新颜色值，单列说明。
@@ -508,6 +525,7 @@ Figma：补充 · 组件与状态 [40:29](https://www.figma.com/design/WMaCKTCa1
 | D37 | 等宽字体 | A App 用系统等宽字体（SF Mono），Figma 里用 Roboto Mono 占位；B 全部用 Noto Sans SC | A |
 | D38 | 标签栏设置页的 4 标签预览 | A 用浮动 Tab 栏同款材质与 62 宽标签，加满 4 个后 Tab 胶囊变宽、搜索胶囊收窄到只放「搜索」；B 不出预览 | A |
 | D39 | 长按楼层的触发区域（实现偏差，2026-10-30 经 Fluxdo 评估会话同意） | A 整层长按都出菜单；B 正文长按仍是选文字，头部 / 页脚 / 空白处长按出菜单 | B（和 iOS 原生一致：正文长按选字；选字要靠长按才能开始，整层抢走会让人没法选文字） |
+| D40 | 精彩 / 难绷放在哪、数据从哪来（用户原稿：「全部 · 精彩 · 难绷」在分类条最前，标题菜单「浏览方式」同样三项） | A 入口在分类条和「浏览方式」，选中后首页列表换成对应徽章榜单（#20 / #115）；B 另开独立「榜单」页加分段控件；C 客户端按点赞 / 回复数自己排 | A（依据是用户原稿；数据来自论坛官方徽章授予记录，不需要客户端批量拉列表自己排——论坛条款不允许程序批量访问；徽章编号放站点配置，别的 Discourse 站没有对应徽章时入口自动隐藏）。未登录能否访问接口待真机核实 |
 
 ### 7.3 另批结果（2026-10-30，用户委托决定；原 5 页仍未改，变体放在补充页）
 

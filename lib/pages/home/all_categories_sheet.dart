@@ -6,6 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/s.dart';
 import '../../models/category.dart';
 import '../../providers/category_provider.dart';
+import '../../providers/topic_list/tab_state_provider.dart'
+    show currentTabCategoryIdProvider;
+import '../../providers/leaderboard_provider.dart';
+import 'leaderboard_topic_list.dart' show leaderboardLabel;
 import '../../utils/dialog_utils.dart';
 import '../../widgets/topic/category_tab_manager_sheet.dart'
     show PinnedCategoryEditPage;
@@ -59,6 +63,8 @@ class _AllCategoriesSheetState extends ConsumerState<_AllCategoriesSheet> {
             selectedIndex: _page,
             onSelected: (i) => setState(() => _page = i),
           ),
+          if (_page == 0)
+            _BrowseModeGroup(onDone: () => Navigator.of(context).pop()),
           Flexible(
             child: _page == 0
                 ? _CategoryList(onOpen: _open)
@@ -94,6 +100,93 @@ class _AllCategoriesSheetState extends ConsumerState<_AllCategoriesSheet> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// 分组「浏览方式」：全部 / 精彩 / 难绷（当前项打勾），和分类条、标题菜单同一个状态；
+/// 站点没有榜单徽章时整组不出现
+class _BrowseModeGroup extends ConsumerWidget {
+  const _BrowseModeGroup({required this.onDone});
+
+  final VoidCallback onDone;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final kinds = availableLeaderboards();
+    if (kinds.isEmpty) return const SizedBox.shrink();
+    final tokens = context.tokens;
+    final mode = ref.watch(homeBrowseModeProvider);
+    final categoryId = ref.watch(currentTabCategoryIdProvider);
+    final style = Theme.of(context).textTheme.bodyLarge!
+        .merge(tokens.text.control)
+        .copyWith(color: tokens.colors.textPrimary);
+
+    Widget row(String label, bool checked, VoidCallback onTap) => Semantics(
+      selected: checked,
+      child: AppPressable(
+        highlight: true,
+        onTap: () {
+          onTap();
+          onDone();
+        },
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: AppSize.row48),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpace.pageMargin,
+            ),
+            child: Row(
+              children: [
+                Expanded(child: Text(label, style: style)),
+                if (checked)
+                  Icon(
+                    AppIcons.check,
+                    size: AppSize.iconM,
+                    color: tokens.colors.brandPrimary,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpace.pageMargin,
+            AppSpace.m,
+            AppSpace.pageMargin,
+            AppSpace.xs,
+          ),
+          child: Text(
+            context.l10n.leaderboard_browseMode,
+            style: Theme.of(context).textTheme.bodySmall!
+                .merge(tokens.text.meta)
+                .copyWith(color: tokens.colors.textMeta),
+          ),
+        ),
+        row(
+          context.l10n.common_all,
+          mode == null && categoryId == null,
+          () => ref.read(homeShowAllSignalProvider.notifier).state++,
+        ),
+        for (final kind in kinds) ...[
+          const AppHairline(
+            indent: AppSpace.pageMargin,
+            endIndent: AppSpace.pageMargin,
+          ),
+          row(
+            leaderboardLabel(context, kind),
+            mode == kind,
+            () => ref.read(homeBrowseModeProvider.notifier).state = kind,
+          ),
+        ],
+        const AppHairline(),
+      ],
     );
   }
 }

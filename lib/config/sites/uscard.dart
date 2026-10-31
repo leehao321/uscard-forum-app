@@ -12,6 +12,9 @@ final uscardCustomization = SiteCustomization(
   supportsNestedView: false,
   // 没有 linux.do 的 fingerprint 插件，也不下发 `_rt`，不跑 WebView 会话 bootstrap
   hasSessionBootstrapPlugin: false,
+  // 榜单：徽章 #20「精彩的话题」、#115「难绷的话题」（美卡自定义）
+  greatTopicBadgeId: 20,
+  funnyTopicBadgeId: 115,
   linkSecurityConfig: _uscardLinkSecurityConfig,
 );
 
@@ -33,11 +36,23 @@ const _uscardLinkSecurityConfig = LinkSecurityConfig(
     '^172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){2}',
   ],
   riskyDomains: [
-    'bit.ly', 'tinyurl.com', 't.co', 'goo.gl', 'ow.ly', 'buff.ly',
-    'adf.ly', 'short.link', '*.short.link', 'tiny.cc', 'is.gd',
-    'cutt.us', 'v.gd', 'j.mp', 'bitly.com', 'lnkd.in', 'link.zip',
+    'bit.ly',
+    'tinyurl.com',
+    't.co',
+    'goo.gl',
+    'ow.ly',
+    'buff.ly',
+    'adf.ly',
+    'short.link',
+    '*.short.link',
+    'tiny.cc',
+    'is.gd',
+    'cutt.us',
+    'v.gd',
+    'j.mp',
+    'bitly.com',
+    'lnkd.in',
+    'link.zip',
   ],
-  dangerousDomains: [
-    '**aff=',
-  ],
+  dangerousDomains: ['**aff='],
 );

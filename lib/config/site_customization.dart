@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/topic.dart';
 import '../plugins/site_plugin.dart';
 
@@ -79,10 +80,7 @@ class UserTitleStyleRule {
   /// 自定义 widget builder
   final Widget Function(String title, double fontSize) builder;
 
-  const UserTitleStyleRule({
-    required this.title,
-    required this.builder,
-  });
+  const UserTitleStyleRule({required this.title, required this.builder});
 }
 
 /// 站点自定义配置
@@ -122,6 +120,13 @@ class SiteCustomization {
   /// 否则每次都找不到插件，反复起无头 WebView 拉首页和插件 JS，登录也会白等。
   final bool hasSessionBootstrapPlugin;
 
+  /// 「精彩帖」榜单用的徽章编号（站点没有对应徽章时为 null，入口隐藏）。
+  /// 美卡 #20「精彩的话题」（Discourse 自带 GreatTopic）。
+  final int? greatTopicBadgeId;
+
+  /// 「难绷帖」榜单用的徽章编号（美卡自定义徽章 #115「难绷的话题」）
+  final int? funnyTopicBadgeId;
+
   const SiteCustomization({
     this.avatarGlowRules = const [],
     this.userTitleStyleRules = const [],
@@ -132,6 +137,8 @@ class SiteCustomization {
     this.mediaUploadAsXz = false,
     this.supportsNestedView = true,
     this.hasSessionBootstrapPlugin = true,
+    this.greatTopicBadgeId,
+    this.funnyTopicBadgeId,
   });
 
   /// 匹配头像光晕（返回光晕颜色，null 表示无光晕）

@@ -17,9 +17,10 @@ class HomeCategoryBar extends StatelessWidget {
     required this.onSelected,
     required this.onReselect,
     required this.onOpenAllCategories,
+    this.dividerAfter,
   });
 
-  /// 第一项是「全部」，其余是置顶分类名
+  /// 前面是浏览方式（全部 / 精彩 / 难绷），后面是置顶分类名
   final List<String> labels;
   final int selectedIndex;
   final ValueChanged<int> onSelected;
@@ -27,6 +28,9 @@ class HomeCategoryBar extends StatelessWidget {
   /// 再点已选中的一项：回到顶部
   final VoidCallback onReselect;
   final VoidCallback onOpenAllCategories;
+
+  /// 「全部 · 精彩 · 难绷」与分类之间的竖线位置（最后一个浏览方式项的下标）
+  final int? dividerAfter;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +44,7 @@ class HomeCategoryBar extends StatelessWidget {
             child: FilterTabs(
               labels: labels,
               selectedIndex: selectedIndex,
+              dividerAfter: dividerAfter,
               padding: EdgeInsets.only(
                 left: insets.left + AppSpace.pageMargin,
                 right: AppSpace.m,
