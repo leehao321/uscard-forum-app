@@ -431,7 +431,7 @@ void main() {
       expect(tester.getRect(send).left - tester.getRect(lastAction).right, 8);
       expect(
         find.byType(ComposerPreviewButton),
-        width >= 420 && scale == 1 ? findsOneWidget : findsNothing,
+        width >= 390 && scale == 1 ? findsOneWidget : findsNothing,
       );
 
       final field = find.descendant(
@@ -461,7 +461,7 @@ void main() {
           ),
           isEmpty,
         );
-        if (width >= 420 && scale == 1) {
+        if (width >= 390 && scale == 1) {
           await tester.tapAt(const Offset(2, 300));
           await tester.pumpAndSettle();
           await tester.tap(

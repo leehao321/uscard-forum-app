@@ -139,8 +139,8 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
                 AiL10n.current.selectModelToTest,
-                style:
-                    const TextStyle(fontSize: AppFontSize.body, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                    fontSize: AppFontSize.body, fontWeight: FontWeight.w500),
               ),
             ),
             Flexible(
@@ -157,7 +157,8 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
                     ),
                     title: Text(m.name ?? m.id),
                     subtitle: m.name != null
-                        ? Text(m.id, style: const TextStyle(fontSize: AppFontSize.meta))
+                        ? Text(m.id,
+                            style: const TextStyle(fontSize: AppFontSize.meta))
                         : null,
                     onTap: () {
                       Navigator.pop(ctx);
@@ -349,7 +350,8 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
           const SizedBox(width: AppSpace.xs),
         ],
       ),
-      body: Row(
+      body: ReadableBody(
+          child: Row(
         children: [
           if (showRail) ...[
             _buildRail(context),
@@ -366,7 +368,7 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
             ),
           ),
         ],
-      ),
+      )),
       bottomNavigationBar: showRail ? null : _buildBottomNav(),
     );
   }
@@ -1003,8 +1005,7 @@ class _FetchedModelsSelectorState extends State<_FetchedModelsSelector> {
                     prefixIcon: const Icon(AppIcons.search, size: 20),
                     isDense: true,
                     filled: true,
-                    fillColor:
-                        cs.surfaceContainerHigh,
+                    fillColor: cs.surfaceContainerHigh,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,

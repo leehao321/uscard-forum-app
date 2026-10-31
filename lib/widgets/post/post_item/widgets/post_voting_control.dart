@@ -336,7 +336,7 @@ class _PostVotingVotersSheetState extends State<PostVotingVotersSheet> {
                 child: Text(
                   displayName,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/draft.dart';
 import '../navigation/nav_action_bus.dart';
 import '../providers/discourse_providers.dart';
 import '../widgets/desktop_refresh_indicator.dart';
-import '../services/discourse/discourse_service.dart';
 import '../widgets/common/skeleton.dart';
 import '../widgets/common/error_view.dart';
 import '../widgets/layout/master_detail_layout.dart';
@@ -182,53 +182,55 @@ class _DraftsPageState extends ConsumerState<DraftsPage> {
 
     final list = Scaffold(
       appBar: AppNavBar(title: context.l10n.drafts_title, showDivider: true),
-      body: DesktopRefreshIndicator(
-        onRefresh: _onRefresh,
-        child: draftsAsync.when(
-          data: (drafts) {
-            if (drafts.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      AppIcons.article,
-                      size: 64,
-                      color: context.tokens.colors.textMeta,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      context.l10n.drafts_empty,
-                      style: TextStyle(color: context.tokens.colors.textMeta),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return ListView.builder(
-              controller: _scrollController,
-              // 底部让出 extendBody 注入的底栏高度
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.paddingOf(context).bottom,
-              ),
-              itemCount: drafts.length,
-              itemBuilder: (context, index) {
-                final draft = drafts[index];
-                return _DraftCard(
-                  draft: draft,
-                  selected: paneOpen && draft.draftKey == _selectedDraftKey,
-                  onTap: () => _onDraftTap(draft),
-                  onDelete: () => _onDraftDelete(draft),
+      body: ReadableBody(
+        child: DesktopRefreshIndicator(
+          onRefresh: _onRefresh,
+          child: draftsAsync.when(
+            data: (drafts) {
+              if (drafts.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        AppIcons.article,
+                        size: 64,
+                        color: context.tokens.colors.textMeta,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        context.l10n.drafts_empty,
+                        style: TextStyle(color: context.tokens.colors.textMeta),
+                      ),
+                    ],
+                  ),
                 );
-              },
-            );
-          },
-          loading: () => const _DraftsListSkeleton(),
-          error: (error, stack) => ErrorView(
-            error: error,
-            stackTrace: stack,
-            onRetry: () => ref.invalidate(draftsProvider),
+              }
+
+              return ListView.builder(
+                controller: _scrollController,
+                // 底部让出 extendBody 注入的底栏高度
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.paddingOf(context).bottom,
+                ),
+                itemCount: drafts.length,
+                itemBuilder: (context, index) {
+                  final draft = drafts[index];
+                  return _DraftCard(
+                    draft: draft,
+                    selected: paneOpen && draft.draftKey == _selectedDraftKey,
+                    onTap: () => _onDraftTap(draft),
+                    onDelete: () => _onDraftDelete(draft),
+                  );
+                },
+              );
+            },
+            loading: () => const _DraftsListSkeleton(),
+            error: (error, stack) => ErrorView(
+              error: error,
+              stackTrace: stack,
+              onRetry: () => ref.invalidate(draftsProvider),
+            ),
           ),
         ),
       ),
@@ -349,11 +351,14 @@ class _DraftsPageState extends ConsumerState<DraftsPage> {
                     : () async {
                         setState(() => isDeleting = true);
                         try {
-                          await DiscourseService().deleteDraft(
-                            draft.draftKey,
-                            sequence: draft.sequence,
-                          );
-                          final account = await DiscourseService()
+                          await ref
+                              .read(discourseServiceProvider)
+                              .deleteDraft(
+                                draft.draftKey,
+                                sequence: draft.sequence,
+                              );
+                          final account = await ref
+                              .read(discourseServiceProvider)
                               .getUsername();
                           if (account != null) {
                             await ref

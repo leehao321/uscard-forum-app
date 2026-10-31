@@ -68,61 +68,66 @@ class _AppLockSettingsPageState extends State<AppLockSettingsPage> {
     return Scaffold(
       backgroundColor: colors.surfacePage,
       appBar: const AppNavBar(title: '应用锁'),
-      body: Align(
-        alignment: Alignment.topCenter,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: kReadableMaxWidth),
-          child: ListView(
-            padding: EdgeInsets.fromLTRB(
-              AppSpace.pageMargin,
-              AppSpace.s,
-              AppSpace.pageMargin,
-              MediaQuery.paddingOf(context).bottom + AppSpace.x32,
-            ),
-            children: [
-              SegmentedCardGroup(
-                children: [
-                  SwitchListTile.adaptive(
-                    secondary: Icon(AppIcons.lock, color: colors.brandPrimary),
-                    title: const Text('启用应用锁'),
-                    value: _service.enabled,
-                    onChanged: available == true && !_service.authenticating
-                        ? _toggle
-                        : null,
-                  ),
-                ],
+      body: ReadableBody(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: kReadableMaxWidth),
+            child: ListView(
+              padding: EdgeInsets.fromLTRB(
+                AppSpace.pageMargin,
+                AppSpace.s,
+                AppSpace.pageMargin,
+                MediaQuery.paddingOf(context).bottom + AppSpace.x32,
               ),
-              footer(
-                available == false
-                    ? '这台设备没有设置生物识别或设备密码，无法使用应用锁。'
-                    : '打开 App 时需要 Face ID / Touch ID 或设备密码',
-                color: available == false ? colors.textDestructive : null,
-              ),
-              if (_service.enabled) ...[
-                const SizedBox(height: AppSpace.xl),
-                header('离开 App 多久后上锁'),
+              children: [
                 SegmentedCardGroup(
                   children: [
-                    for (final e in AppLockService.timeoutChoices.entries)
-                      Semantics(
-                        inMutuallyExclusiveGroup: true,
-                        checked: _service.timeoutSeconds == e.key,
-                        child: ListTile(
-                          title: Text(e.value),
-                          trailing: _service.timeoutSeconds == e.key
-                              ? Icon(
-                                  AppIcons.check,
-                                  size: AppSize.iconM,
-                                  color: colors.brandPrimary,
-                                )
-                              : null,
-                          onTap: () => _service.setTimeout(e.key),
-                        ),
+                    SwitchListTile.adaptive(
+                      secondary: Icon(
+                        AppIcons.lock,
+                        color: colors.brandPrimary,
                       ),
+                      title: const Text('启用应用锁'),
+                      value: _service.enabled,
+                      onChanged: available == true && !_service.authenticating
+                          ? _toggle
+                          : null,
+                    ),
                   ],
                 ),
+                footer(
+                  available == false
+                      ? '这台设备没有设置生物识别或设备密码，无法使用应用锁。'
+                      : '打开 App 时需要 Face ID / Touch ID 或设备密码',
+                  color: available == false ? colors.textDestructive : null,
+                ),
+                if (_service.enabled) ...[
+                  const SizedBox(height: AppSpace.xl),
+                  header('离开 App 多久后上锁'),
+                  SegmentedCardGroup(
+                    children: [
+                      for (final e in AppLockService.timeoutChoices.entries)
+                        Semantics(
+                          inMutuallyExclusiveGroup: true,
+                          checked: _service.timeoutSeconds == e.key,
+                          child: ListTile(
+                            title: Text(e.value),
+                            trailing: _service.timeoutSeconds == e.key
+                                ? Icon(
+                                    AppIcons.check,
+                                    size: AppSize.iconM,
+                                    color: colors.brandPrimary,
+                                  )
+                                : null,
+                            onTap: () => _service.setTimeout(e.key),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

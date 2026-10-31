@@ -66,11 +66,13 @@ class Responsive {
 
   static DeviceType? _lastDeviceType;
 
-  /// 根据屏幕宽度获取设备类型
+  /// 获取设备类型：短边 < 600 是手机（竖屏、横屏都一样，横屏手机仍走单栏 +
+  /// 底部 Tab，只是正文限宽 640，见计划 P3 / §7）；其余按宽度分平板和桌面。
   static DeviceType getDeviceType(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
+    final size = MediaQuery.sizeOf(context);
+    final width = size.width;
     DeviceType computed;
-    if (width < Breakpoints.mobile) {
+    if (size.shortestSide < Breakpoints.mobile) {
       computed = DeviceType.mobile;
     } else if (width < Breakpoints.tablet) {
       computed = DeviceType.tablet;

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../models/badge.dart';
+import '../providers/core_providers.dart';
 import '../services/discourse/discourse_service.dart';
 import '../widgets/common/relative_time_text.dart';
 import '../utils/font_awesome_helper.dart';
@@ -44,7 +45,8 @@ class BadgePage extends ConsumerStatefulWidget {
 }
 
 class _BadgePageState extends ConsumerState<BadgePage> {
-  final DiscourseService _service = DiscourseService();
+  // 走 provider，测试里才能换成假服务（M-3）
+  DiscourseService get _service => ref.read(discourseServiceProvider);
   BadgeDetailResponse? _badgeDetail;
   bool _isLoading = true;
   Object? _error;
@@ -100,128 +102,134 @@ class _BadgePageState extends ConsumerState<BadgePage> {
   @override
   Widget build(BuildContext context) {
     final list = Scaffold(
-      body: _isLoading
-          ? const Center(child: LoadingSpinner())
-          : _error != null
-          ? ErrorView(
-              error: _error!,
-              stackTrace: _errorStack,
-              onRetry: _onRefresh,
-            )
-          : M3eRefreshIndicator(
-              onRefresh: _onRefresh,
-              child: CustomScrollView(
-                slivers: [
-                  // Modern Sliver App Bar
-                  _buildSliverAppBar(context),
+      // 内容加载出来后顶栏在 CustomScrollView 里；加载和出错态没有顶栏，补一个带返回键的
+      appBar: (_isLoading || _error != null)
+          ? AppNavBar(title: context.l10n.badge_defaultName)
+          : null,
+      body: ReadableBody(
+        child: _isLoading
+            ? const Center(child: LoadingSpinner())
+            : _error != null
+            ? ErrorView(
+                error: _error!,
+                stackTrace: _errorStack,
+                onRetry: _onRefresh,
+              )
+            : M3eRefreshIndicator(
+                onRefresh: _onRefresh,
+                child: CustomScrollView(
+                  slivers: [
+                    // Modern Sliver App Bar
+                    _buildSliverAppBar(context),
 
-                  // Badge Info Card (Floating effect)
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                    sliver: SliverToBoxAdapter(
-                      child: _BadgeInfoCard(badge: _badgeDetail!.badge),
-                    ),
-                  ),
-
-                  // Users Header
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-                    sliver: SliverToBoxAdapter(
-                      child: Row(
-                        children: [
-                          Icon(
-                            AppIcons.people,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 22,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            context.l10n.badge_grantees,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: AppFontSize.body,
-                                ),
-                          ),
-                          const Spacer(),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              context.l10n.badge_granteeCount(
-                                _badgeDetail!.totalCount,
-                              ),
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ],
+                    // Badge Info Card (Floating effect)
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                      sliver: SliverToBoxAdapter(
+                        child: _BadgeInfoCard(badge: _badgeDetail!.badge),
                       ),
                     ),
-                  ),
 
-                  // User List
-                  _badgeDetail!.userBadges.isEmpty
-                      ? SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  AppIcons.userOff,
-                                  size: 48,
-                                  color: Theme.of(context).colorScheme.outline
-                                      .withValues(alpha: 0.5),
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  context.l10n.badge_noGrantees,
-                                  style: TextStyle(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .outline,
-                                  ),
-                                ),
-                              ],
+                    // Users Header
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+                      sliver: SliverToBoxAdapter(
+                        child: Row(
+                          children: [
+                            Icon(
+                              AppIcons.people,
+                              color: Theme.of(context).colorScheme.primary,
+                              size: 22,
                             ),
-                          ),
-                        )
-                      : SliverList(
-                          delegate: SliverChildBuilderDelegate((
-                            context,
-                            index,
-                          ) {
-                            final userBadge = _badgeDetail!.userBadges[index];
-
-                            if (_badgeDetail!.grantedBies.isEmpty) {
-                              return const SizedBox.shrink();
-                            }
-
-                            // Safe user lookup
-                            final user = _badgeDetail!.grantedBies.firstWhere(
-                              (u) => u.id == userBadge.userId,
-                              orElse: () => _badgeDetail!.grantedBies.first,
-                            );
-
-                            return _UserBadgeItem(
-                              userBadge: userBadge,
-                              user: user,
-                            );
-                          }, childCount: _badgeDetail!.userBadges.length),
+                            const SizedBox(width: 8),
+                            Text(
+                              context.l10n.badge_grantees,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: AppFontSize.body,
+                                  ),
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                context.l10n.badge_granteeCount(
+                                  _badgeDetail!.totalCount,
+                                ),
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
                         ),
-                  const SliverPadding(padding: EdgeInsets.only(bottom: 48)),
-                ],
+                      ),
+                    ),
+
+                    // User List
+                    _badgeDetail!.userBadges.isEmpty
+                        ? SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    AppIcons.userOff,
+                                    size: 48,
+                                    color: Theme.of(context).colorScheme.outline
+                                        .withValues(alpha: 0.5),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    context.l10n.badge_noGrantees,
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .outline,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : SliverList(
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              final userBadge = _badgeDetail!.userBadges[index];
+
+                              if (_badgeDetail!.grantedBies.isEmpty) {
+                                return const SizedBox.shrink();
+                              }
+
+                              // 只认 id 对得上的授予人，对不上就不显示这一行
+                              final user = _badgeDetail!.grantedBies
+                                  .where((u) => u.id == userBadge.userId)
+                                  .firstOrNull;
+                              if (user == null) return const SizedBox.shrink();
+
+                              return _UserBadgeItem(
+                                userBadge: userBadge,
+                                user: user,
+                              );
+                            }, childCount: _badgeDetail!.userBadges.length),
+                          ),
+                    const SliverPadding(padding: EdgeInsets.only(bottom: 48)),
+                  ],
+                ),
               ),
-            ),
+      ),
     );
 
     return MasterDetailPaneHost(

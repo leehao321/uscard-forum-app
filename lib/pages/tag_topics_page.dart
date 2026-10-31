@@ -398,10 +398,10 @@ class _TagTopicsPageState extends ConsumerState<TagTopicsPage>
     final isLoggedIn = currentUser != null;
 
     final list = Scaffold(
-      appBar: AppBar(
-        title: Text('#${widget.tagName}'),
-        centerTitle: false,
-        actions: [
+      appBar: AppNavBar(
+        title: '#${widget.tagName}',
+        showDivider: true,
+        trailing: [
           if (currentUser != null)
             TagNotificationButton(
               key: ValueKey(currentUser.id),
@@ -422,25 +422,27 @@ class _TagTopicsPageState extends ConsumerState<TagTopicsPage>
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // 筛选 + 排序栏（不需要标签选择功能）
-          SortAndTagsBar(
-            currentFilter: _currentFilter,
-            isLoggedIn: isLoggedIn,
-            onFilterChanged: _setFilter,
-            currentSubset: _currentSubset,
-            onSubsetChanged: _setSubset,
-            currentOrder: _currentOrder,
-            ascending: _ascending,
-            onOrderChanged: _setOrder,
-            onToggleAscending: _toggleAscending,
-            selectedTags: const [],
-            onTagRemoved: (_) {},
-          ),
-          // 列表
-          Expanded(child: _buildBody(selectedTopicId)),
-        ],
+      body: ReadableBody(
+        child: Column(
+          children: [
+            // 筛选 + 排序栏（不需要标签选择功能）
+            SortAndTagsBar(
+              currentFilter: _currentFilter,
+              isLoggedIn: isLoggedIn,
+              onFilterChanged: _setFilter,
+              currentSubset: _currentSubset,
+              onSubsetChanged: _setSubset,
+              currentOrder: _currentOrder,
+              ascending: _ascending,
+              onOrderChanged: _setOrder,
+              onToggleAscending: _toggleAscending,
+              selectedTags: const [],
+              onTagRemoved: (_) {},
+            ),
+            // 列表
+            Expanded(child: _buildBody(selectedTopicId)),
+          ],
+        ),
       ),
     );
 
@@ -452,7 +454,7 @@ class _TagTopicsPageState extends ConsumerState<TagTopicsPage>
     final updateCount = topicUpdateSnapshot.length;
     final updateOffset = updateCount > 0 || isLoadingTopicUpdates ? 1 : 0;
     if (_isLoading) {
-      return const TopicListSkeleton(padding: EdgeInsets.all(12));
+      return const TopicListSkeleton(padding: EdgeInsets.only(top: 8));
     }
 
     if (_error != null) {
@@ -485,7 +487,8 @@ class _TagTopicsPageState extends ConsumerState<TagTopicsPage>
       child: ListView.builder(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(12),
+        // 行自带左右 20 边距：外层不再叠加（M-6）
+        padding: const EdgeInsets.only(top: 8, bottom: 24),
         itemCount: visible.length + updateOffset + hintOffset + 1,
         itemBuilder: (context, index) {
           if (updateOffset > 0 && index == 0) {

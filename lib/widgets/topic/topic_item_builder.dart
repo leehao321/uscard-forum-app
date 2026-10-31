@@ -83,7 +83,12 @@ Widget _buildV2Row({
 }) {
   final category = categoryMap?[int.tryParse(topic.categoryId)];
   Widget row = topic.pinned && topWidget == null && middleWidget == null
-      ? PinnedTopicRow(topic: topic, onTap: onTap, isSelected: isSelected)
+      ? PinnedTopicRow(
+          topic: topic,
+          onTap: onTap,
+          onMiddleClick: onMiddleClick,
+          isSelected: isSelected,
+        )
       : TopicRow(
           topic: topic,
           category: category,

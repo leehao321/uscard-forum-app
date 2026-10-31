@@ -56,7 +56,7 @@ class EditsIndicator extends StatelessWidget {
             style: theme.textTheme.labelSmall?.copyWith(
               fontSize: AppFontSize.caption,
               color: enabled ? color : disabledColor,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
               height: 1.0,
             ),
           ),

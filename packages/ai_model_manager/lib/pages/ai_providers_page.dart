@@ -35,7 +35,8 @@ class AiProvidersPage extends ConsumerWidget {
       _EntryRow(
         icon: AppIcons.server,
         title: l10n.providersTitle,
-        value: providerCount > 0 ? l10n.providerCountLabel(providerCount) : null,
+        value:
+            providerCount > 0 ? l10n.providerCountLabel(providerCount) : null,
         subtitle: providerCount > 0 ? null : l10n.noProviderConfigured,
         onTap: () => open(const AiProviderListPage()),
       ),
@@ -48,8 +49,7 @@ class AiProvidersPage extends ConsumerWidget {
       _EntryRow(
         icon: AppIcons.history,
         title: l10n.chatHistory,
-        onTap: () =>
-            open(AiChatHistoryPage(onOpenSession: onOpenSession)),
+        onTap: () => open(AiChatHistoryPage(onOpenSession: onOpenSession)),
       ),
       _EntryRow(
         icon: AppIcons.zap,
@@ -67,7 +67,8 @@ class AiProvidersPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: colors.surfacePage,
       appBar: AppNavBar(title: l10n.aiModelService, slotWidth: 70),
-      body: ListView(
+      body: ReadableBody(
+          child: ListView(
         padding: EdgeInsets.zero,
         children: [
           ReadableColumn(
@@ -118,7 +119,7 @@ class AiProvidersPage extends ConsumerWidget {
             ),
           ),
         ],
-      ),
+      )),
     );
   }
 }

@@ -69,3 +69,29 @@ class SliverReadable extends StatelessWidget {
     sliver: sliver,
   );
 }
+
+/// 页面主体的阅读列限宽（计划 §7）：**手机横屏**（短边 < 600、去掉左右安全区后
+/// 宽 ≥ 640）时把主体居中限宽到 [kReadableMaxWidth]，其余情况原样返回，所以竖屏、
+/// 平板、桌面都不受影响。导航栏、工具栏的底色仍铺满整宽，只有正文列居中。
+///
+/// 套在 `Scaffold.body` 上；页面里原有的 20 页边距照旧留在列内。
+class ReadableBody extends StatelessWidget {
+  const ReadableBody({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final safe = MediaQuery.paddingOf(context);
+    final available = size.width - safe.left - safe.right;
+    if (size.shortestSide >= 600 || available < kReadableMaxWidth) return child;
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: kReadableMaxWidth),
+        child: child,
+      ),
+    );
+  }
+}

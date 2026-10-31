@@ -265,13 +265,19 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
 
   /// 桌面端 Esc 关闭当前层:平行视界嵌入层走 onEmbeddedBack,普通路由
   /// maybePop —— 与 TopicDetailPage 的 closeOverlay 语义对齐。
-  late final ShortcutScopeBinding _shortcutScopeBinding = ShortcutScopeBinding(
-    ref: ref,
-    scope: widget.embeddedMode ? ShortcutScope.detail : ShortcutScope.context,
-    // 嵌入面板挂在 IndexedStack 常驻 tab 里:宿主不活跃时注册失效,
-    // 否则截胡其他 tab 的 ESC(见 TopicDetailPage 同注)。
-    enabled: () => !widget.embeddedMode || widget.parentActive,
-  );
+  ShortcutScopeBinding? _shortcutBindingOrNull;
+
+  /// 只在嵌入面板里真的要注册时才创建；dispose 里不能再创建（此时 ref 已经不能用）
+  ShortcutScopeBinding get _shortcutScopeBinding =>
+      _shortcutBindingOrNull ??= ShortcutScopeBinding(
+        ref: ref,
+        scope: widget.embeddedMode
+            ? ShortcutScope.detail
+            : ShortcutScope.context,
+        // 嵌入面板挂在 IndexedStack 常驻 tab 里:宿主不活跃时注册失效,
+        // 否则截胡其他 tab 的 ESC(见 TopicDetailPage 同注)。
+        enabled: () => !widget.embeddedMode || widget.parentActive,
+      );
 
   /// 全屏形态的 ESC 两段式(右栏开着=让分发落 detail scope 关右栏,
   /// 空了=maybePop 关整页),按右栏开合在 build 里动态同步。
@@ -320,7 +326,8 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
 
   @override
   void dispose() {
-    _shortcutScopeBinding.disposeDeferred();
+    // 没创建过就不用收尾（dispose 里 ref 已经不能用了）
+    _shortcutBindingOrNull?.disposeDeferred();
     _standaloneEsc?.dispose();
     _tabController.dispose();
     _scrollController.dispose();
@@ -730,7 +737,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                         label,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: color,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -1221,17 +1228,19 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
               ? BackButton(onPressed: widget.onEmbeddedBack)
               : null,
         ),
-        body: ErrorView(
-          error: _error!,
-          stackTrace: _errorStack,
-          onRetry: () {
-            setState(() {
-              _isLoading = true;
-              _error = null;
-              _errorStack = null;
-            });
-            _loadUser();
-          },
+        body: ReadableBody(
+          child: ErrorView(
+            error: _error!,
+            stackTrace: _errorStack,
+            onRetry: () {
+              setState(() {
+                _isLoading = true;
+                _error = null;
+                _errorStack = null;
+              });
+              _loadUser();
+            },
+          ),
         ),
       );
     }
@@ -1280,23 +1289,25 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
     double pinnedHeaderHeight,
   ) {
     return Scaffold(
-      body: ScrollConfiguration(
-        // 禁用 overscroll indicator：Material 3 在 Android 上默认
-        // StretchingOverscrollIndicator，与 NestedScrollView/SliverAppBar
-        // 组合存在 framework bug（flutter/flutter #100967、#116522、#100538），
-        // 表现为上滑松手时 tab 区域回弹抖动（与 topics_page 同因同修）。
-        behavior: ScrollConfiguration.of(context)
-            .copyWith(scrollbars: false, overscroll: false),
-        child: ExtendedNestedScrollView(
-          controller: _scrollController,
-          pinnedHeaderSliverHeightBuilder: () => pinnedHeaderHeight,
-          onlyOneScrollInBody: true,
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            _buildSliverAppBar(context, theme, currentUser),
-          ],
-          body: TabBarView(
-            controller: _tabController,
-            children: _buildTabViews(),
+      body: ReadableBody(
+        child: ScrollConfiguration(
+          // 禁用 overscroll indicator：Material 3 在 Android 上默认
+          // StretchingOverscrollIndicator，与 NestedScrollView/SliverAppBar
+          // 组合存在 framework bug（flutter/flutter #100967、#116522、#100538），
+          // 表现为上滑松手时 tab 区域回弹抖动（与 topics_page 同因同修）。
+          behavior: ScrollConfiguration.of(context)
+              .copyWith(scrollbars: false, overscroll: false),
+          child: ExtendedNestedScrollView(
+            controller: _scrollController,
+            pinnedHeaderSliverHeightBuilder: () => pinnedHeaderHeight,
+            onlyOneScrollInBody: true,
+            headerSliverBuilder: (context, innerBoxIsScrolled) => [
+              _buildSliverAppBar(context, theme, currentUser),
+            ],
+            body: TabBarView(
+              controller: _tabController,
+              children: _buildTabViews(),
+            ),
           ),
         ),
       ),
@@ -1312,54 +1323,56 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
         _user != null &&
         currentUser.username == _user!.username;
     return Scaffold(
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: UserProfileWideLayout.infoPanelWidth,
-            child: _buildWideInfoPanel(theme, currentUser, isOwnProfile),
-          ),
-          SizedBox(
-            width: 1,
-            child: ColoredBox(
-              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+      body: ReadableBody(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: UserProfileWideLayout.infoPanelWidth,
+              child: _buildWideInfoPanel(theme, currentUser, isOwnProfile),
             ),
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                // Tab 行与列表同一条限宽轴线,避免"标签顶在左上角、
-                // 内容居中"的错位感。
-                Material(
-                  color: theme.scaffoldBackgroundColor,
-                  child: SafeArea(
-                    bottom: false,
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          maxWidth: Breakpoints.maxContentWidth,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 8, bottom: 4),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: _buildTabBar(theme),
+            SizedBox(
+              width: 1,
+              child: ColoredBox(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+              ),
+            ),
+            Expanded(
+              child: Column(
+                children: [
+                  // Tab 行与列表同一条限宽轴线,避免"标签顶在左上角、
+                  // 内容居中"的错位感。
+                  Material(
+                    color: theme.scaffoldBackgroundColor,
+                    child: SafeArea(
+                      bottom: false,
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: Breakpoints.maxContentWidth,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 8, bottom: 4),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: _buildTabBar(theme),
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: _buildTabViews(),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: _buildTabViews(),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1436,7 +1449,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: theme.textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
@@ -1618,19 +1631,12 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
               ),
             ),
           ),
-          // 悬浮顶栏:返回 + 操作按钮,渐变黑纱保证压图可读。
+          // 悬浮顶栏:返回 + 操作按钮。v2 头部不压图，不再叠黑色渐变（M-4）
           Positioned(
             top: 0,
             left: 0,
             right: 0,
             child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [AppFixedColors.black45, Colors.transparent],
-                ),
-              ),
               child: SafeArea(
                 bottom: false,
                 child: Padding(
@@ -1836,7 +1842,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
         Text(
           value,
           style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 2),
@@ -1924,7 +1930,15 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
         kToolbarHeight + MediaQuery.of(context).padding.top;
     // 横屏时屏幕高度有限，限制 expandedHeight 不超过屏幕高度的 70%
     final screenHeight = MediaQuery.of(context).size.height;
-    final double expandedHeight = 410.0.clamp(0.0, screenHeight * 0.7);
+    // 大字号下内容更高：展开高度跟着字号放大（最多 1.6 倍），再受屏高 70% 限制（M-4）
+    final textScale = (MediaQuery.textScalerOf(context).scale(16) / 16).clamp(
+      1.0,
+      1.6,
+    );
+    final double expandedHeight = (410.0 * textScale).clamp(
+      0.0,
+      screenHeight * 0.7,
+    );
     // 头部完整内容(头像行+简介卡+双行统计+活跃胶囊)加底部间距约需 340px;
     // 横屏被上面限高后装不下,开精简模式(隐简介卡/活跃胶囊)——否则自底
     // 锚定的内容向上溢出,与 toolbar 返回键/操作按钮及状态栏叠印。
@@ -2936,7 +2950,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -2990,7 +3004,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -3051,7 +3065,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                         color: theme.colorScheme.primary,
                       ),
                     ),
@@ -3115,7 +3129,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                           ? user.name!
                           : user.username,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -3170,7 +3184,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
               child: Text(
                 cat.name,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -3225,7 +3239,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                 Text(
                   badge.name,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -3578,7 +3592,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
 
@@ -3654,7 +3668,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
 
@@ -3729,7 +3743,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
 
@@ -3819,7 +3833,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
 

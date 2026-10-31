@@ -20,6 +20,75 @@
       }
     }
   },
+  "topicDetail_menuAiSummary": "AI 总结",
+  "topicDetail_menuNotes": "笔记",
+  "topicDetail_tocWithCount": "目录（{n} 节）",
+  "@topicDetail_tocWithCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_addProvider": "去添加服务商",
+  "topic_aiCard_copied": "已复制",
+  "topic_aiCard_copy": "复制",
+  "topic_aiCard_doneTitle": "AI 总结 · {n} 层",
+  "@topic_aiCard_doneTitle": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_empty": "这一段没有可总结的内容。",
+  "topic_aiCard_failed": "总结失败。",
+  "topic_aiCard_failedHint": "总结失败，请检查网络和 API 配置后重试。",
+  "topic_aiCard_floorsMore": "等 {count} 楼",
+  "@topic_aiCard_floorsMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_generating": "正在生成",
+  "topic_aiCard_hide": "不再显示",
+  "topic_aiCard_jumpTo": "跳到第 {n} 楼",
+  "@topic_aiCard_jumpTo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_loaded": "已加载 {n} 层",
+  "@topic_aiCard_loaded": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_loading": "正在总结 {n} 层…",
+  "@topic_aiCard_loading": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_needsKey": "所选服务商还没有配置 API Key。",
+  "topic_aiCard_noContent": "模型没有返回内容，请重试。",
+  "topic_aiCard_notConfigured": "还没有配置 AI 模型，配置后可以总结这一段讨论。",
+  "topic_aiCard_openSettings": "查看服务商设置",
+  "topic_aiCard_regenerate": "重新总结",
+  "topic_aiCard_retry": "重试",
+  "topic_aiCard_start": "总结这一段",
+  "topic_aiCard_stop": "停止",
+  "topic_aiCard_title": "AI 总结",
+  "topic_aiCard_truncated": "内容较长，只总结了前面的部分楼层。",
+  "topic_aiCard_waiting": "还在等待模型响应…",
   "topic_backToBeforeJump": "回到跳转前",
   "topic_backToLastRead": "回到上次阅读位置",
   "topic_editCategoryBar": "编辑分类条",

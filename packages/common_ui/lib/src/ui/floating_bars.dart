@@ -136,6 +136,7 @@ class SearchCapsule extends StatelessWidget {
   const SearchCapsule({
     super.key,
     required this.placeholder,
+    this.compactPlaceholder,
     this.onTap,
     this.controller,
     this.focusNode,
@@ -146,6 +147,10 @@ class SearchCapsule extends StatelessWidget {
   });
 
   final String placeholder;
+
+  /// 放不下 [placeholder] 时（393 宽配 4 个标签，胶囊只剩 60 多）改显示这个
+  /// 短文案（设计 D38：「搜索」）；还放不下就只留放大镜。只对按钮形态生效。
+  final String? compactPlaceholder;
   final VoidCallback? onTap;
   final TextEditingController? controller;
   final FocusNode? focusNode;
@@ -193,18 +198,74 @@ class SearchCapsule extends StatelessWidget {
     Widget capsule = CapsuleSurface(
       child: SizedBox(
         height: AppSize.searchCapsule,
-        child: Padding(
-          padding: const EdgeInsets.only(left: AppSpace.l, right: AppSpace.l),
-          child: Row(
-            children: [
-              ExcludeSemantics(
-                child: Icon(AppIcons.search, size: 19, color: colors.textMeta),
+        child: _editable
+            ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpace.l),
+                child: Row(
+                  children: [
+                    ExcludeSemantics(
+                      child: Icon(
+                        AppIcons.search,
+                        size: 19,
+                        color: colors.textMeta,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpace.s),
+                    Expanded(child: field),
+                  ],
+                ),
+              )
+            : LayoutBuilder(
+                builder: (context, constraints) {
+                  final style = base.copyWith(color: colors.textMeta);
+                  final scaler = MediaQuery.textScalerOf(context);
+                  final room =
+                      constraints.maxWidth - 2 * AppSpace.l - 19 - AppSpace.s;
+                  bool fits(String text) {
+                    final painter = TextPainter(
+                      text: TextSpan(text: text, style: style),
+                      textDirection: Directionality.of(context),
+                      textScaler: scaler,
+                      maxLines: 1,
+                    )..layout();
+                    return painter.width <= room;
+                  }
+
+                  final label = fits(placeholder)
+                      ? placeholder
+                      : (compactPlaceholder != null &&
+                                fits(compactPlaceholder!)
+                            ? compactPlaceholder
+                            : null);
+                  final icon = ExcludeSemantics(
+                    child: Icon(
+                      AppIcons.search,
+                      size: 19,
+                      color: colors.textMeta,
+                    ),
+                  );
+                  if (label == null) return Center(child: icon);
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpace.l,
+                    ),
+                    child: Row(
+                      children: [
+                        icon,
+                        const SizedBox(width: AppSpace.s),
+                        Expanded(
+                          child: Text(
+                            label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: style,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
-              const SizedBox(width: AppSpace.s),
-              Expanded(child: field),
-            ],
-          ),
-        ),
       ),
     );
     if (!_editable) {

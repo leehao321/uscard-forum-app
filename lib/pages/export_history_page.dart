@@ -61,36 +61,38 @@ class _ExportHistoryPageState extends ConsumerState<ExportHistoryPage> {
           ],
         ],
       ),
-      body: entries.isEmpty
-          ? const _EmptyState()
-          : SwipeActionScope(
-              child: ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: entries.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 10),
-                itemBuilder: (context, index) {
-                  final entry = entries[index];
-                  return SwipeActionCell(
-                    key: ValueKey(entry.id),
-                    trailingActions: [
-                      SwipeAction(
-                        icon: AppIcons.delete,
-                        color: context.tokens.colors.textDestructive,
-                        label: context.l10n.exportHistory_deleteRecord,
-                        onPressed: () => ref
-                            .read(exportHistoryProvider.notifier)
-                            .remove(entry.id),
+      body: ReadableBody(
+        child: entries.isEmpty
+            ? const _EmptyState()
+            : SwipeActionScope(
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: entries.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    final entry = entries[index];
+                    return SwipeActionCell(
+                      key: ValueKey(entry.id),
+                      trailingActions: [
+                        SwipeAction(
+                          icon: AppIcons.delete,
+                          color: context.tokens.colors.textDestructive,
+                          label: context.l10n.exportHistory_deleteRecord,
+                          onPressed: () => ref
+                              .read(exportHistoryProvider.notifier)
+                              .remove(entry.id),
+                        ),
+                      ],
+                      child: _ExportEntryCard(
+                        entry: entry,
+                        onTap: () => _handleTap(entry),
+                        onLongPress: () => _showEntryActions(entry),
                       ),
-                    ],
-                    child: _ExportEntryCard(
-                      entry: entry,
-                      onTap: () => _handleTap(entry),
-                      onLongPress: () => _showEntryActions(entry),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
+      ),
     );
   }
 
@@ -523,7 +525,7 @@ class _FormatPill extends StatelessWidget {
         style: TextStyle(
           color: color,
           fontSize: AppFontSize.caption,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           letterSpacing: 0.3,
         ),
       ),

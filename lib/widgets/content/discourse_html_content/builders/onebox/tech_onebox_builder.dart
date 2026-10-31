@@ -117,7 +117,7 @@ class TechOneboxBuilder {
                         style: const TextStyle(
                           color: AppFixedColors.white,
                           fontSize: AppFontSize.caption,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ),
@@ -131,7 +131,7 @@ class TechOneboxBuilder {
                 Text(
                   title,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                     color: AppRawColors.cFF0077CC,
                   ),
                   maxLines: 2,
@@ -289,7 +289,7 @@ class TechOneboxBuilder {
           Text(
             title,
             style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -401,7 +401,7 @@ class TechOneboxBuilder {
                       title,
                       style: const TextStyle(
                         color: AppFixedColors.white,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -430,7 +430,7 @@ class TechOneboxBuilder {
                             style: const TextStyle(
                               color: AppFixedColors.white,
                               fontSize: AppFontSize.caption,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w400,
                             ),
                           ),
                         ],
@@ -453,7 +453,7 @@ class TechOneboxBuilder {
                         style: const TextStyle(
                           color: AppFixedColors.white,
                           fontSize: AppFontSize.caption,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ),

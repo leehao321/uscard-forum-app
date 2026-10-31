@@ -12,6 +12,8 @@ import '../../constants.dart';
 import '../../l10n/s.dart';
 import '../../models/category.dart';
 import '../../models/topic.dart';
+import '../../navigation/nav_action_bus.dart';
+import '../../providers/bookmark_sync_controller.dart';
 import '../../providers/discourse_providers.dart';
 import '../../providers/preferences_provider.dart';
 import '../../providers/selected_topic_provider.dart';
@@ -275,9 +277,26 @@ class _HomeTopicListState extends ConsumerState<HomeTopicList>
     );
   }
 
+  /// 把滚动距离告诉侧栏：宽屏的「首页」图标往下滚后变成回顶箭头（L-2）
+  void _publishScrollProgress(double pixels) {
+    final progress = pixels < 0 ? 0.0 : pixels;
+    final current = ref.read(navScrollProgressProvider(NavEntryIds.home));
+    final atZero = progress == 0 && current != 0;
+    final crossed =
+        (progress >= navScrollIconThreshold) !=
+        (current >= navScrollIconThreshold);
+    if (!atZero && !crossed && (progress - current).abs() < 4.0) return;
+    ref.read(navScrollProgressProvider(NavEntryIds.home).notifier).state =
+        progress;
+  }
+
   Future<void> _bookmark(Topic topic) async {
     try {
       await ref.read(discourseServiceProvider).bookmarkTopic(topic.id);
+      // 写穿透：静默拉书签列表第一页，「我的 → 书签」里立刻能看到（M-7）
+      unawaited(
+        ref.read(bookmarkSyncControllerProvider.notifier).pullFirstPage(),
+      );
       ToastService.showSuccess(S.current.common_bookmarkAdded);
     } catch (e) {
       ToastService.showError(S.current.common_operationFailed(e.toString()));
@@ -520,6 +539,7 @@ class _HomeTopicListState extends ConsumerState<HomeTopicList>
           child: NotificationListener<ScrollUpdateNotification>(
             onNotification: (notification) {
               if (notification.depth == 0) {
+                _publishScrollProgress(notification.metrics.pixels);
                 final distance =
                     notification.metrics.maxScrollExtent -
                     notification.metrics.pixels;

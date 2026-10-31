@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../l10n/s.dart';
+import '../../storage/topic_note_store.dart';
 import '../migration_service.dart';
 import '../storage/resilient_secure_storage.dart';
 import '../../utils/share_utils.dart';
@@ -202,6 +203,12 @@ class DataBackupService {
             (value as List<dynamic>).cast<String>(),
           );
       }
+    }
+
+    // 旧版（0.3.x）备份只带笔记 v1：本机已有 v2 时要并进去，否则会被忽略
+    if (data.containsKey('topic_notes_v1') &&
+        !data.containsKey('topic_notes_v2')) {
+      await TopicNoteStore.mergeLegacyFromPrefs(prefs);
     }
 
     // 导入 API Key 到 SecureStorage

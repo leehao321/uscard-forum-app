@@ -58,25 +58,26 @@ class _AiChatHistoryPageState extends ConsumerState<AiChatHistoryPage> {
             ),
         ],
       ),
-      body: _groups.isEmpty
-          ? _buildEmpty(theme)
-          : ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: _groups.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return _MaxSessionsRow(ref: ref);
-                }
-                final group = _groups[index - 1];
-                return _TopicGroupTile(
-                  group: group,
-                  onOpenSession: widget.onOpenSession,
-                  onDeleteSession: (sessionId) =>
-                      _deleteSession(group.topicId, sessionId),
-                  onDeleteTopic: () => _deleteTopic(group.topicId),
-                );
-              },
-            ),
+      body: ReadableBody(
+          child: _groups.isEmpty
+              ? _buildEmpty(theme)
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: _groups.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return _MaxSessionsRow(ref: ref);
+                    }
+                    final group = _groups[index - 1];
+                    return _TopicGroupTile(
+                      group: group,
+                      onOpenSession: widget.onOpenSession,
+                      onDeleteSession: (sessionId) =>
+                          _deleteSession(group.topicId, sessionId),
+                      onDeleteTopic: () => _deleteTopic(group.topicId),
+                    );
+                  },
+                )),
     );
   }
 

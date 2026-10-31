@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:html/parser.dart' show parseFragment;
 import 'package:app_icons/app_icons.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -84,6 +85,10 @@ class SearchPostCard extends StatelessWidget {
 final RegExp _highlightPattern = RegExp(r'<span class="search-highlight">(.*?)</span>');
 final RegExp _tagPattern = RegExp(r'<[^>]*>');
 
+/// 去标签并解码 HTML 实体：搜索接口返回的摘要里有 `&amp;`、`&quot;` 这类转义（M-5）
+String _plainText(String html) =>
+    parseFragment(html.replaceAll(_tagPattern, '')).text ?? '';
+
 /// 把带 `<span class="search-highlight">` 的片段拆成 TextSpan：命中词只变色
 List<InlineSpan> _highlightSpans(String html, Color highlight) {
   final spans = <InlineSpan>[];
@@ -92,13 +97,13 @@ List<InlineSpan> _highlightSpans(String html, Color highlight) {
     if (match.start > lastEnd) {
       spans.add(
         TextSpan(
-          text: html.substring(lastEnd, match.start).replaceAll(_tagPattern, ''),
+          text: _plainText(html.substring(lastEnd, match.start)),
         ),
       );
     }
     spans.add(
       TextSpan(
-        text: match.group(1) ?? '',
+        text: _plainText(match.group(1) ?? ''),
         style: TextStyle(color: highlight),
       ),
     );
@@ -106,7 +111,7 @@ List<InlineSpan> _highlightSpans(String html, Color highlight) {
   }
   if (lastEnd < html.length) {
     spans.add(
-      TextSpan(text: html.substring(lastEnd).replaceAll(_tagPattern, '')),
+      TextSpan(text: _plainText(html.substring(lastEnd))),
     );
   }
   return spans;

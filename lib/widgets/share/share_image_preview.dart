@@ -484,7 +484,7 @@ class _ShareImagePreviewState extends ConsumerState<ShareImagePreview> {
                                   ? context.tokens.colors.brandPrimary
                                   : context.tokens.colors.textMeta,
                               fontWeight: isSelected
-                                  ? FontWeight.w500
+                                  ? FontWeight.w400
                                   : FontWeight.normal,
                             ),
                           ),

@@ -81,7 +81,7 @@ void main() {
           ),
         );
 
-    testUi('未配置：提示 + 去设置 + 不再显示', (tester) async {
+    testUi('未配置：提示 + 去添加服务商 + 不再显示', (tester) async {
       var settings = 0;
       await pumpUi(
         tester,
@@ -92,7 +92,7 @@ void main() {
         ],
       );
       expect(find.textContaining('还没有配置 AI 模型'), findsOneWidget);
-      await tester.tap(find.text('去设置'));
+      await tester.tap(find.text('去添加服务商'));
       expect(settings, 1);
       await tester.tap(find.text('不再显示'));
       await tester.pumpAndSettle();

@@ -176,31 +176,33 @@ class _PrivateMessagesPageState extends ConsumerState<PrivateMessagesPage>
             ),
           ],
         ),
-        body: Column(
-          children: [
-            // 页内筛选：收件箱 · 已发送 · 归档
-            AnimatedBuilder(
-              animation: _tabController.animation!,
-              builder: (context, _) => FilterTabs(
-                labels: [
-                  context.l10n.privateMessages_inbox,
-                  context.l10n.privateMessages_sent,
-                  context.l10n.privateMessages_archive,
-                ],
-                selectedIndex: _tabController.animation!.value.round(),
-                onSelected: _tabController.animateTo,
+        body: ReadableBody(
+          child: Column(
+            children: [
+              // 页内筛选：收件箱 · 已发送 · 归档
+              AnimatedBuilder(
+                animation: _tabController.animation!,
+                builder: (context, _) => FilterTabs(
+                  labels: [
+                    context.l10n.privateMessages_inbox,
+                    context.l10n.privateMessages_sent,
+                    context.l10n.privateMessages_archive,
+                  ],
+                  selectedIndex: _tabController.animation!.value.round(),
+                  onSelected: _tabController.animateTo,
+                ),
               ),
-            ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  for (final filter in _filters)
-                    _PrivateMessageTabView(filter: filter),
-                ],
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    for (final filter in _filters)
+                      _PrivateMessageTabView(filter: filter),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -424,11 +426,10 @@ class _PrivateMessageTabViewState extends ConsumerState<_PrivateMessageTabView>
           return ListView.builder(
             controller: _scrollController,
             // 底部让出 extendBody 注入的底栏高度
-            padding: EdgeInsets.fromLTRB(
-              12,
-              12,
-              12,
-              12 + MediaQuery.paddingOf(context).bottom,
+            // 行自带左右 20 边距：外层不再叠加（M-6）
+            padding: EdgeInsets.only(
+              top: 8,
+              bottom: 12 + MediaQuery.paddingOf(context).bottom,
             ),
             itemCount: topics.length + 1,
             itemBuilder: (context, index) {

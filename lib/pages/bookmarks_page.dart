@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:m3e_ui/m3e_ui.dart';
@@ -34,12 +35,11 @@ import '../widgets/search/user_content_search_view.dart';
 import 'topics_page.dart';
 import 'topic_detail_page/topic_detail_page.dart';
 
-typedef BookmarksWorkspaceTopicPageBuilder =
-    Widget Function(
-      BuildContext context,
-      BookmarkWorkspaceTopicTab tab,
-      bool parentActive,
-    );
+typedef BookmarksWorkspaceTopicPageBuilder = Widget Function(
+  BuildContext context,
+  BookmarkWorkspaceTopicTab tab,
+  bool parentActive,
+);
 
 /// 我的书签页面
 class BookmarksPage extends ConsumerStatefulWidget {
@@ -115,7 +115,10 @@ class _BookmarksPageState extends ConsumerState<BookmarksPage> {
     _shortcutScopeBinding?.disposeDeferred();
     _setMobileBottomBarHidden(false);
     _scrollController.dispose();
-    Future.microtask(_searchNotifier.exitSearchMode);
+    // 整棵树一起卸载（退出登录、测试收尾）时 notifier 可能已经先被销毁，写 state 会抛
+    Future.microtask(() {
+      if (_searchNotifier.mounted) _searchNotifier.exitSearchMode();
+    });
     super.dispose();
   }
 
@@ -769,23 +772,25 @@ class _BookmarksPageState extends ConsumerState<BookmarksPage> {
           useWorkspace,
           useMobileWorkspace,
         ),
-        body: useWorkspace
-            ? _buildWorkspaceBody(
-                context,
-                bookmarksAsync,
-                bookmarksNotifier,
-                searchState,
-                preferences,
-                showDesktopTabBar: _useDesktopWorkspace(preferences),
-              )
-            : _buildBookmarksPane(
-                context,
-                bookmarksAsync,
-                bookmarksNotifier,
-                searchState,
-                preferences,
-                workspaceOpenEnabled: false,
-              ),
+        body: ReadableBody(
+          child: useWorkspace
+              ? _buildWorkspaceBody(
+                  context,
+                  bookmarksAsync,
+                  bookmarksNotifier,
+                  searchState,
+                  preferences,
+                  showDesktopTabBar: _useDesktopWorkspace(preferences),
+                )
+              : _buildBookmarksPane(
+                  context,
+                  bookmarksAsync,
+                  bookmarksNotifier,
+                  searchState,
+                  preferences,
+                  workspaceOpenEnabled: false,
+                ),
+        ),
       ),
     );
   }
@@ -911,9 +916,8 @@ class _BookmarksPageState extends ConsumerState<BookmarksPage> {
                   }) {
                     ref
                         .read(
-                          userContentSearchProvider(
-                            SearchInType.bookmarks,
-                          ).notifier,
+                          userContentSearchProvider(SearchInType.bookmarks)
+                              .notifier,
                         )
                         .exitSearchMode();
                     _openWorkspaceTab(

@@ -3,6 +3,7 @@ import 'package:app_icons/app_icons.dart';
 
 import '../../../l10n/s.dart';
 import '../../../services/network/vpn_auto_toggle_service.dart';
+
 import 'package:common_ui/common_ui.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 
@@ -100,7 +101,7 @@ class VpnAutoToggleCard extends StatelessWidget {
                         color: vpnActive
                             ? theme.colorScheme.tertiary
                             : theme.colorScheme.onSurfaceVariant,
-                        fontWeight: vpnActive ? FontWeight.w500 : null,
+                        fontWeight: vpnActive ? FontWeight.w400 : null,
                       ),
                     ),
                   ],

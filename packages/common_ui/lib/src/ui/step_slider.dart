@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -55,7 +57,8 @@ class StepSlider extends StatelessWidget {
     Widget track = LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final usable = width - _thumb;
+        // 父约束极窄时不能除以 0（M-11）
+        final usable = math.max(1.0, width - _thumb);
         int indexAt(double dx) =>
             (((dx - _thumb / 2) / usable) * (count - 1)).round();
         final x = _thumb / 2 + usable * value / (count - 1);
@@ -84,25 +87,12 @@ class StepSlider extends StatelessWidget {
       },
     );
 
-    if (showTextSizeEnds) {
-      final endStyle = meta.copyWith(color: tokens.colors.textMeta);
-      track = Row(
-        children: [
-          ExcludeSemantics(child: Text('A', style: endStyle)),
-          const SizedBox(width: AppSpace.m),
-          Expanded(child: track),
-          const SizedBox(width: AppSpace.m),
-          ExcludeSemantics(
-            child: Text('A', style: endStyle.merge(tokens.text.control)),
-          ),
-        ],
-      );
-    }
-
-    Widget slider = track;
+    // 档位文字和轨道放在同一列里，两端的大小 A 再放到这一列的两侧，
+    // 这样文字不会跟轨道错位（M-11）
+    Widget core = track;
     final labels = this.labels;
     if (labels != null) {
-      slider = Column(
+      core = Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -131,6 +121,30 @@ class StepSlider extends StatelessWidget {
               ],
             ),
           ),
+        ],
+      );
+    }
+
+    Widget slider = core;
+    if (showTextSizeEnds) {
+      // 两端的 A 是图形，不随系统字号放大
+      final endStyle = meta.copyWith(color: tokens.colors.textMeta);
+      Widget end(TextStyle style) => SizedBox(
+        height: AppSize.hit,
+        child: Center(
+          child: ExcludeSemantics(
+            child: Text('A', style: style, textScaler: TextScaler.noScaling),
+          ),
+        ),
+      );
+      slider = Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          end(endStyle),
+          const SizedBox(width: AppSpace.m),
+          Expanded(child: core),
+          const SizedBox(width: AppSpace.m),
+          end(endStyle.merge(tokens.text.control)),
         ],
       );
     }

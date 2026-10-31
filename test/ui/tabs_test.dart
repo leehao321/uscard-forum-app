@@ -194,6 +194,7 @@ void main() {
       testUi('不溢出（${variant.label}）', (tester) async {
         await _pump(tester, () async => fixtureNotifications(), variant: variant);
         expectNoUiException(tester);
+        expectReadableBody(tester, variant);
         await _unmount(tester);
       });
     }
@@ -294,6 +295,7 @@ void main() {
       testUi('不溢出（${variant.label}）', (tester) async {
         await pumpProfile(tester, variant: variant);
         expectNoUiException(tester);
+        expectReadableBody(tester, variant);
         await _unmount(tester);
       });
     }

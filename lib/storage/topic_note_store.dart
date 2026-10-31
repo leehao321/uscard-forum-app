@@ -168,6 +168,61 @@ class TopicNoteStore {
     changes.value++;
   }
 
+  /// 导入 0.3.x 备份后把 v1 笔记并进 v2（M-1）。
+  ///
+  /// [_readAll] 只在 v2 还没有时才迁 v1；本机已经写过 0.4.0 笔记再导入旧备份时，
+  /// 备份里的 v1 会被整个忽略。这里按话题合并：只在 v1 里有的话题直接加入；
+  /// 两边都有的话题保留 v2 的话题文字和楼层笔记，话题文字为空时用 v1 的，
+  /// 摘录取并集（文字相同的算同一条）。
+  static Future<void> mergeLegacyFromPrefs(SharedPreferences prefs) async {
+    final rawV1 = prefs.getString(_legacyKey);
+    if (rawV1 == null || rawV1.isEmpty) return;
+    final rawV2 = prefs.getString(_prefsKey);
+    if (rawV2 == null || rawV2.isEmpty) {
+      // 本机没有 v2：照常读一次，读取时会自动迁移
+      await _readAll();
+      changes.value++;
+      return;
+    }
+    try {
+      final legacy = {
+        for (final n in _decode(jsonDecode(rawV1)))
+          if (n.topicId != 0) n.topicId: n,
+      };
+      final all = await _readAll();
+      var changed = false;
+      for (final old in legacy.values) {
+        final cur = all[old.topicId];
+        if (cur == null) {
+          all[old.topicId] = old;
+          changed = true;
+          continue;
+        }
+        final seen = {for (final e in cur.excerpts) e.text};
+        final extra = [
+          for (final e in old.excerpts)
+            if (!seen.contains(e.text)) e,
+        ];
+        final useOldText = cur.text.trim().isEmpty && old.text.trim().isNotEmpty;
+        if (extra.isEmpty && !useOldText) continue;
+        all[old.topicId] = TopicNote(
+          topicId: cur.topicId,
+          title: cur.title,
+          text: useOldText ? old.text : cur.text,
+          excerpts: [...cur.excerpts, ...extra],
+          floorNotes: cur.floorNotes,
+          updatedAt: cur.updatedAt.isAfter(old.updatedAt)
+              ? cur.updatedAt
+              : old.updatedAt,
+        );
+        changed = true;
+      }
+      if (changed) await _writeAll(all);
+    } catch (e) {
+      debugPrint('[TopicNoteStore] 合并旧版笔记失败: $e');
+    }
+  }
+
   /// 全部笔记，最近修改的在前
   static Future<List<TopicNote>> list() async {
     final all = await _readAll();

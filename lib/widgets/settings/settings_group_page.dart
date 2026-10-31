@@ -100,9 +100,7 @@ class _SettingsGroupPageState extends ConsumerState<SettingsGroupPage> {
             if (group.title.isNotEmpty) _buildSectionHeader(context, group),
             _buildGroupItems(context, group),
             if (group.footer != null) _buildFooter(context, group.footer!),
-            SizedBox(
-              height: group.footer != null ? AppSpace.l : AppSpace.xxl,
-            ),
+            SizedBox(height: group.footer != null ? AppSpace.l : AppSpace.xxl),
           ],
       ],
     );
@@ -114,20 +112,22 @@ class _SettingsGroupPageState extends ConsumerState<SettingsGroupPage> {
         showDivider: false,
         trailing: widget.actions ?? const [],
       ),
-      body: Align(
-        alignment: Alignment.topCenter,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: widget.maxContentWidth ?? kReadableMaxWidth,
+      body: ReadableBody(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: widget.maxContentWidth ?? kReadableMaxWidth,
+            ),
+            child: widget.pinnedHeader == null
+                ? listView
+                : Column(
+                    children: [
+                      widget.pinnedHeader!,
+                      Expanded(child: listView),
+                    ],
+                  ),
           ),
-          child: widget.pinnedHeader == null
-              ? listView
-              : Column(
-                  children: [
-                    widget.pinnedHeader!,
-                    Expanded(child: listView),
-                  ],
-                ),
         ),
       ),
     );
@@ -152,9 +152,7 @@ class _SettingsGroupPageState extends ConsumerState<SettingsGroupPage> {
     }
 
     return SegmentedCardGroup(
-      children: [
-        for (final item in effectiveItems) _buildItem(context, item),
-      ],
+      children: [for (final item in effectiveItems) _buildItem(context, item)],
     );
   }
 
@@ -207,12 +205,7 @@ class _SettingsGroupPageState extends ConsumerState<SettingsGroupPage> {
   Widget _buildFooter(BuildContext context, String text) {
     final tokens = context.tokens;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpace.m,
-        AppSpace.s,
-        AppSpace.m,
-        0,
-      ),
+      padding: const EdgeInsets.fromLTRB(AppSpace.m, AppSpace.s, AppSpace.m, 0),
       child: Text(
         text,
         style: Theme.of(context).textTheme.bodySmall!

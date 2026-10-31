@@ -292,89 +292,92 @@ class _LoginPageState extends State<LoginPage> {
     // 分组输入；主按钮 48；「或」分隔；次按钮 48；文字按钮；页脚说明。无极光背景。
     return Scaffold(
       backgroundColor: colors.surfacePage,
-      body: SafeArea(
-        child: Column(
-          children: [
-            AppNavBar(
-              slotWidth: 100,
-              trailing: [
-                if (_credentialsLoaded && _savedUsername != null)
+      body: ReadableBody(
+        child: SafeArea(
+          child: Column(
+            children: [
+              AppNavBar(
+                slotWidth: 100,
+                trailing: [
+                  if (_credentialsLoaded && _savedUsername != null)
+                    AppIconButton(
+                      icon: AppIcons.delete,
+                      semanticLabel: '清除保存的账号',
+                      onPressed: _clearSavedCredentials,
+                    ),
                   AppIconButton(
-                    icon: AppIcons.delete,
-                    semanticLabel: '清除保存的账号',
-                    onPressed: _clearSavedCredentials,
-                  ),
-                AppIconButton(
-                  icon: AppIcons.globe,
-                  semanticLabel: '网络设置',
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const NetworkSettingsPage(),
+                    icon: AppIcons.globe,
+                    semanticLabel: '网络设置',
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const NetworkSettingsPage(),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpace.pageMargin,
-                  AppSpace.xxl,
-                  AppSpace.pageMargin,
-                  AppSpace.x32,
-                ),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 440),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Center(child: AppMark(size: 64)),
-                        const SizedBox(height: AppSpace.l),
-                        Semantics(
-                          header: true,
-                          child: Text(
-                            '登录美卡论坛',
+                ],
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpace.pageMargin,
+                    AppSpace.xxl,
+                    AppSpace.pageMargin,
+                    AppSpace.x32,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 440),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Center(child: AppMark(size: 64)),
+                          const SizedBox(height: AppSpace.l),
+                          Semantics(
+                            header: true,
+                            child: Text(
+                              '登录美卡论坛',
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.titleLarge
+                                  ?.merge(tokens.text.title)
+                                  .copyWith(color: colors.textPrimary),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpace.xs),
+                          Text(
+                            context.l10n.login_slogan,
                             textAlign: TextAlign.center,
-                            style: theme.textTheme.titleLarge
-                                ?.merge(tokens.text.title)
-                                .copyWith(color: colors.textPrimary),
+                            style: theme.textTheme.bodySmall
+                                ?.merge(tokens.text.meta)
+                                .copyWith(color: colors.textMeta),
                           ),
-                        ),
-                        const SizedBox(height: AppSpace.xs),
-                        Text(
-                          context.l10n.login_slogan,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodySmall
-                              ?.merge(tokens.text.meta)
-                              .copyWith(color: colors.textMeta),
-                        ),
-                        const SizedBox(height: AppSpace.xxl),
-                        if (!_credentialsLoaded)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 48),
-                            child: Center(
-                              child: CircularProgressIndicator.adaptive(),
+                          const SizedBox(height: AppSpace.xxl),
+                          if (!_credentialsLoaded)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 48),
+                              child: Center(
+                                child: CircularProgressIndicator.adaptive(),
+                              ),
+                            )
+                          else
+                            LoginForm(
+                              onSubmit:
+                                  widget.services?.submit ?? _handleSubmit,
+                              onForgotPassword: () => _loginWithWebView(
+                                '${AppConstants.baseUrl}/password-reset',
+                              ),
+                              savedUsername: _savedUsername,
+                              savedPassword: _savedPassword,
                             ),
-                          )
-                        else
-                          LoginForm(
-                            onSubmit: widget.services?.submit ?? _handleSubmit,
-                            onForgotPassword: () => _loginWithWebView(
-                              '${AppConstants.baseUrl}/password-reset',
-                            ),
-                            savedUsername: _savedUsername,
-                            savedPassword: _savedPassword,
-                          ),
-                        const SizedBox(height: AppSpace.l),
-                        _buildAltLogin(context),
-                      ],
+                          const SizedBox(height: AppSpace.l),
+                          _buildAltLogin(context),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

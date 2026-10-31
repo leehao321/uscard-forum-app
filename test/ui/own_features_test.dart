@@ -26,6 +26,7 @@ void main() {
         await pumpUi(tester, const ReadingStatsPage(), variant: variant);
         await tester.pump(const Duration(milliseconds: 300));
         expectNoUiException(tester);
+        expectReadableBody(tester, variant);
         expect(find.text('阅读统计'), findsOneWidget);
         expect(find.text('今天'), findsWidgets);
         await uiShot(tester, 'm9_stats_${variant.label}');
@@ -85,6 +86,7 @@ void main() {
         await tester.runAsync(seed);
         await tester.pump(const Duration(milliseconds: 500));
         expectNoUiException(tester);
+        expectReadableBody(tester, variant);
         expect(find.text('我的笔记'), findsOneWidget);
         await uiShot(tester, 'm9_notes_${variant.label}');
         await tester.pumpWidget(const SizedBox());

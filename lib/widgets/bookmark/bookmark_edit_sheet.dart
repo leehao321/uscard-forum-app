@@ -484,7 +484,7 @@ class _BookmarkEditSheetState extends State<BookmarkEditSheet> {
             Text(
               S.current.bookmark_setReminder,
               style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),

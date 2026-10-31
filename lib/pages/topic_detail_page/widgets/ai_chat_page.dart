@@ -969,7 +969,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                         title,
                         style: TextStyle(
                           fontSize: AppFontSize.meta,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w400,
                           letterSpacing: 0.5,
                           color: accent,
                         ),
@@ -980,7 +980,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                         style: theme.textTheme.bodyLarge?.copyWith(
                           color: theme.colorScheme.onSurface,
                           height: 1.5,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -1103,7 +1103,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
               context.l10n.ai_selectedCount(_selectedMessageIds.length),
               style: const TextStyle(
                 fontSize: AppFontSize.body,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -1239,7 +1239,7 @@ class _SessionHistorySheetState extends State<_SessionHistorySheet> {
               _formatSessionTitle(session, index),
               style: TextStyle(
                 fontSize: AppFontSize.meta,
-                fontWeight: isCurrent ? FontWeight.w500 : FontWeight.normal,
+                fontWeight: isCurrent ? FontWeight.w400 : FontWeight.normal,
                 color: isCurrent ? theme.colorScheme.primary : null,
               ),
             ),
@@ -1398,7 +1398,7 @@ class _ThinkingButton extends StatelessWidget {
         label,
         style: TextStyle(
           color: isSelected ? cs.primary : null,
-          fontWeight: isSelected ? FontWeight.w500 : null,
+          fontWeight: isSelected ? FontWeight.w600 : null,
         ),
       ),
       trailing: isSelected
@@ -1424,7 +1424,7 @@ class _ThinkingButton extends StatelessWidget {
         AiL10n.current.thinkingCustom,
         style: TextStyle(
           color: isSelected ? cs.primary : null,
-          fontWeight: isSelected ? FontWeight.w500 : null,
+          fontWeight: isSelected ? FontWeight.w600 : null,
         ),
       ),
       trailing: isSelected
@@ -1432,7 +1432,7 @@ class _ThinkingButton extends StatelessWidget {
               '${current.customBudget}',
               style: TextStyle(
                 fontSize: AppFontSize.meta,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w400,
                 color: cs.primary,
               ),
             )

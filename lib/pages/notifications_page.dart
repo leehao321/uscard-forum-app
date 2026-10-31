@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/notification.dart';
 import '../providers/discourse_providers.dart';
 import '../providers/preferences_provider.dart';
@@ -170,14 +171,15 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     if (!isLoggedIn) {
       return Scaffold(
         appBar: navBar,
-        body: AppStateView(
-          icon: AppIcons.notificationOff,
-          title: context.l10n.notification_loginRequired,
-          action: FilledButton(
-            onPressed: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const LoginPage())),
-            child: Text(context.l10n.common_login),
+        body: ReadableBody(
+          child: AppStateView(
+            icon: AppIcons.notificationOff,
+            title: context.l10n.notification_loginRequired,
+            action: FilledButton(
+              onPressed: () => Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (_) => const LoginPage())),
+              child: Text(context.l10n.common_login),
+            ),
           ),
         ),
       );
@@ -185,32 +187,34 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
 
     final list = Scaffold(
       appBar: navBar,
-      body: Column(
-        children: [
-          FilterTabs(
-            labels: [
-              for (final f in NotificationFilter.values) _filterLabel(f),
-            ],
-            selectedIndex: _filter.index,
-            onSelected: (i) =>
-                setState(() => _filter = NotificationFilter.values[i]),
-          ),
-          Expanded(
-            child: DesktopRefreshIndicator(
-              onRefresh: _onRefresh,
-              child: notificationsAsync.when(
-                data: (notifications) =>
-                    _buildList(context, notifications, systemAvatarTemplate),
-                loading: () => const NotificationListSkeleton(),
-                error: (error, stack) => ErrorView(
-                  error: error,
-                  stackTrace: stack,
-                  onRetry: _onRefresh,
+      body: ReadableBody(
+        child: Column(
+          children: [
+            FilterTabs(
+              labels: [
+                for (final f in NotificationFilter.values) _filterLabel(f),
+              ],
+              selectedIndex: _filter.index,
+              onSelected: (i) =>
+                  setState(() => _filter = NotificationFilter.values[i]),
+            ),
+            Expanded(
+              child: DesktopRefreshIndicator(
+                onRefresh: _onRefresh,
+                child: notificationsAsync.when(
+                  data: (notifications) =>
+                      _buildList(context, notifications, systemAvatarTemplate),
+                  loading: () => const NotificationListSkeleton(),
+                  error: (error, stack) => ErrorView(
+                    error: error,
+                    stackTrace: stack,
+                    onRetry: _onRefresh,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
 
@@ -307,12 +311,32 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
           : const AppHairline(indent: AvatarRow.separatorIndent),
       itemBuilder: (context, index) {
         if (index == visibleNotifications.length) {
-          return PagedListFooter(
+          final footer = PagedListFooter(
             hasMore: notifier.hasMore,
             isLoadingMore: notifier.isLoadingMore,
             isLoadMoreFailed: notifier.isLoadMoreFailed,
             onRetry: notifier.retryLoadMore,
           );
+          // 筛选后只剩一两条时列表不满一屏，滚动触发的翻页发生不了：
+          // 有筛掉的内容且还有下一页时，给用户手动点的「加载更早的通知」
+          final filteredOut =
+              visibleNotifications.length < notifications.length;
+          if (filteredOut &&
+              notifier.hasMore &&
+              !notifier.isLoadingMore &&
+              !notifier.isLoadMoreFailed) {
+            return Column(
+              children: [
+                TextButton(
+                  key: const ValueKey('notification-load-earlier-footer'),
+                  onPressed: _loadMore,
+                  child: Text(context.l10n.notification_loadEarlier),
+                ),
+                footer,
+              ],
+            );
+          }
+          return footer;
         }
         final notification = visibleNotifications[index];
         return NotificationItem(

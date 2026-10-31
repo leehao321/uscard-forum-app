@@ -68,23 +68,43 @@ class UserProfileSkeleton extends StatelessWidget {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SkeletonBox(width: 140, height: 26, borderRadius: 4),
-                          const SizedBox(height: 8),
-                          SkeletonBox(width: 100, height: 16, borderRadius: 4),
-                          const SizedBox(height: 20),
-                          SkeletonBox(
-                            width: double.infinity,
-                            height: 64,
-                            borderRadius: 12,
-                          ),
-                          const SizedBox(height: 24),
-                          SkeletonBox(width: 200, height: 40, borderRadius: 4),
-                          const SizedBox(height: 16),
-                          SkeletonBox(width: 260, height: 40, borderRadius: 4),
-                        ],
+                      // 横屏矮屏放不下整列骨架：不可滚动，只是裁掉而不是溢出
+                      child: SingleChildScrollView(
+                        physics: const NeverScrollableScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SkeletonBox(
+                              width: 140,
+                              height: 26,
+                              borderRadius: 4,
+                            ),
+                            const SizedBox(height: 8),
+                            SkeletonBox(
+                              width: 100,
+                              height: 16,
+                              borderRadius: 4,
+                            ),
+                            const SizedBox(height: 20),
+                            SkeletonBox(
+                              width: double.infinity,
+                              height: 64,
+                              borderRadius: 12,
+                            ),
+                            const SizedBox(height: 24),
+                            SkeletonBox(
+                              width: 200,
+                              height: 40,
+                              borderRadius: 4,
+                            ),
+                            const SizedBox(height: 16),
+                            SkeletonBox(
+                              width: 260,
+                              height: 40,
+                              borderRadius: 4,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

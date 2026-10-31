@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/s.dart';
 import '../../models/topic.dart';
 import '../../providers/ai_topic_summary_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -73,7 +74,7 @@ class AiSegmentSummaryCard extends ConsumerStatefulWidget {
   final void Function(int postNumber)? onJumpToPost;
 
   /// 「去设置」；空时不显示这个按钮
-  final VoidCallback? onOpenSettings;
+  final FutureOr<void> Function()? onOpenSettings;
 
   @override
   ConsumerState<AiSegmentSummaryCard> createState() =>
@@ -125,7 +126,7 @@ class _AiSegmentSummaryCardState extends ConsumerState<AiSegmentSummaryCard> {
     if (input.postCount == 0) {
       setState(() {
         _phase = _Phase.error;
-        _error = '这一段没有可总结的内容。';
+        _error = S.current.topic_aiCard_empty;
       });
       return;
     }
@@ -152,7 +153,7 @@ class _AiSegmentSummaryCardState extends ConsumerState<AiSegmentSummaryCard> {
             _phase = _Phase.idle;
           } else {
             _phase = _Phase.error;
-            _error = '总结失败，请检查网络和 API 配置后重试。';
+            _error = S.current.topic_aiCard_failedHint;
           }
         });
       },
@@ -161,7 +162,7 @@ class _AiSegmentSummaryCardState extends ConsumerState<AiSegmentSummaryCard> {
         setState(() {
           if (_result.toString().trim().isEmpty) {
             _phase = _Phase.error;
-            _error = '模型没有返回内容，请重试。';
+            _error = S.current.topic_aiCard_noContent;
           } else {
             _phase = _Phase.done;
           }
@@ -186,20 +187,30 @@ class _AiSegmentSummaryCardState extends ConsumerState<AiSegmentSummaryCard> {
     } catch (_) {}
   }
 
+  /// 去服务商设置页：回来后清掉「未配置」，由 provider 重新判定
+  Future<void> _openSettings() async {
+    final open = widget.onOpenSettings;
+    if (open == null) return;
+    await open();
+    if (mounted) setState(() => _needsSetup = false);
+  }
+
   Future<void> _copy() async {
     await Clipboard.setData(ClipboardData(text: _result.toString()));
-    if (mounted) ToastService.showSuccess('已复制');
+    if (mounted) ToastService.showSuccess(S.current.topic_aiCard_copied);
   }
 
   @override
   Widget build(BuildContext context) {
     if (_hidden) return const SizedBox.shrink();
+    final l10n = context.l10n;
     final tokens = context.tokens;
     final colors = tokens.colors;
     final base = Theme.of(context).textTheme.bodyMedium!;
     final meta = base.merge(tokens.text.meta).copyWith(color: colors.textMeta);
+    // 要点正文 13 Regular（设计说明 §3.2），不是正文的 17
     final body = base
-        .merge(tokens.text.body)
+        .merge(tokens.text.meta)
         .copyWith(color: colors.textPrimary);
     final control = base.merge(tokens.text.control);
 
@@ -246,19 +257,27 @@ class _AiSegmentSummaryCardState extends ConsumerState<AiSegmentSummaryCard> {
         key: const ValueKey('ai-card-unconfigured'),
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          header('AI 总结'),
+          header(l10n.topic_aiCard_title),
           const SizedBox(height: AppSpace.xs),
           Text(
-            _needsSetup ? '所选服务商还没有配置 API Key。' : '还没有配置 AI 模型，配置后可以总结这一段讨论。',
+            _needsSetup
+                ? l10n.topic_aiCard_needsKey
+                : l10n.topic_aiCard_notConfigured,
             style: meta,
           ),
-          Row(
+          const SizedBox(height: AppSpace.s),
+          // 大字号下一行放不下就换行，不能横向溢出
+          Wrap(
+            spacing: AppSpace.l,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              if (widget.onOpenSettings != null) ...[
-                link('去设置', widget.onOpenSettings!),
-                const SizedBox(width: AppSpace.l),
-              ],
-              link('不再显示', _hide, brand: false),
+              if (widget.onOpenSettings != null)
+                FilledButton(
+                  key: const ValueKey('ai-card-add-provider'),
+                  onPressed: _openSettings,
+                  child: Text(l10n.topic_aiCard_addProvider),
+                ),
+              link(l10n.topic_aiCard_hide, _hide, brand: false),
             ],
           ),
         ],
@@ -272,11 +291,11 @@ class _AiSegmentSummaryCardState extends ConsumerState<AiSegmentSummaryCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                header('AI 总结'),
+                header(l10n.topic_aiCard_title),
                 const SizedBox(height: AppSpace.xs),
                 Text(
                   [
-                    '已加载 $n 层',
+                    l10n.topic_aiCard_loaded(n),
                     if (selected != null)
                       selected.model.name ?? selected.model.id,
                   ].join(' · '),
@@ -289,7 +308,7 @@ class _AiSegmentSummaryCardState extends ConsumerState<AiSegmentSummaryCard> {
           FilledButton(
             style: AppButtonStyles.secondary(context),
             onPressed: n == 0 ? null : _start,
-            child: const Text('总结这一段'),
+            child: Text(l10n.topic_aiCard_start),
           ),
         ],
       );
@@ -302,17 +321,30 @@ class _AiSegmentSummaryCardState extends ConsumerState<AiSegmentSummaryCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           header(
-            '正在总结 $_count 层…',
+            l10n.topic_aiCard_loading(_count),
             trailing: Semantics(
-              label: '正在生成',
+              label: l10n.topic_aiCard_generating,
               child: const CupertinoActivityIndicator(radius: 8),
             ),
           ),
           if (points.isNotEmpty) ...[
             const SizedBox(height: AppSpace.s),
-            _Points(points: points, body: body, meta: meta, onJump: null),
+            _Points(
+              points: points,
+              body: body,
+              meta: meta,
+              onJump: null,
+              jumpLabel: l10n.topic_aiCard_jumpTo,
+              moreLabel: l10n.topic_aiCard_floorsMore,
+            ),
+          ] else ...[
+            const SizedBox(height: AppSpace.s),
+            DelayedLoading(
+              skeleton: const _SkeletonBars(),
+              waitingLabel: l10n.topic_aiCard_waiting,
+            ),
           ],
-          link('停止', _stop, brand: false),
+          link(l10n.topic_aiCard_stop, _stop, brand: false),
         ],
       );
     } else if (_phase == _Phase.error) {
@@ -320,7 +352,7 @@ class _AiSegmentSummaryCardState extends ConsumerState<AiSegmentSummaryCard> {
         key: const ValueKey('ai-card-error'),
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          header('AI 总结'),
+          header(l10n.topic_aiCard_title),
           const SizedBox(height: AppSpace.xs),
           Semantics(
             liveRegion: true,
@@ -331,14 +363,26 @@ class _AiSegmentSummaryCardState extends ConsumerState<AiSegmentSummaryCard> {
                 const SizedBox(width: AppSpace.s),
                 Expanded(
                   child: Text(
-                    _error ?? '总结失败。',
+                    _error ?? l10n.topic_aiCard_failed,
                     style: meta.copyWith(color: colors.textDestructive),
                   ),
                 ),
               ],
             ),
           ),
-          link('重试', _start),
+          Wrap(
+            spacing: AppSpace.l,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              link(l10n.topic_aiCard_retry, _start),
+              if (widget.onOpenSettings != null)
+                link(
+                  l10n.topic_aiCard_openSettings,
+                  _openSettings,
+                  brand: false,
+                ),
+            ],
+          ),
         ],
       );
     } else {
@@ -349,24 +393,27 @@ class _AiSegmentSummaryCardState extends ConsumerState<AiSegmentSummaryCard> {
         key: const ValueKey('ai-card-done'),
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          header('AI 总结 · $_count 层'),
+          header(l10n.topic_aiCard_doneTitle(_count)),
           const SizedBox(height: AppSpace.s),
           _Points(
             points: points,
             body: body,
             meta: meta,
             onJump: widget.onJumpToPost,
+            jumpLabel: l10n.topic_aiCard_jumpTo,
+            moreLabel: l10n.topic_aiCard_floorsMore,
           ),
           if (_truncated)
             Padding(
               padding: const EdgeInsets.only(top: AppSpace.xs),
-              child: Text('内容较长，只总结了前面的部分楼层。', style: meta),
+              child: Text(l10n.topic_aiCard_truncated, style: meta),
             ),
-          Row(
+          Wrap(
+            spacing: AppSpace.l,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              link('重新总结', _start),
-              const SizedBox(width: AppSpace.l),
-              link('复制', _copy, brand: false),
+              link(l10n.topic_aiCard_regenerate, _start),
+              link(l10n.topic_aiCard_copy, _copy, brand: false),
             ],
           ),
         ],
@@ -405,70 +452,131 @@ class _Points extends StatelessWidget {
     required this.body,
     required this.meta,
     required this.onJump,
+    required this.jumpLabel,
+    required this.moreLabel,
   });
 
   final List<SegmentPoint> points;
   final TextStyle body;
   final TextStyle meta;
   final void Function(int postNumber)? onJump;
+  final String Function(int n) jumpLabel;
+  final String Function(int count) moreLabel;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.tokens.colors;
+    final linkStyle = meta.copyWith(
+      color: onJump == null ? colors.textMeta : colors.brandPrimary,
+    );
+
+    // 楼层链接：点击区至少 44×44（视觉上仍是一小段文字）
+    Widget pill(String text, VoidCallback? onTap, String label) => Semantics(
+      button: onTap != null,
+      label: label,
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: AppSize.hit,
+            minHeight: AppSize.hit,
+          ),
+          child: Center(
+            widthFactor: 1,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpace.xs),
+              child: Text(text, style: linkStyle),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Widget floors(BuildContext context, List<int> list) {
+      if (list.isEmpty) return const SizedBox.shrink();
+      final first = list.first;
+      if (list.length == 1) {
+        return pill(
+          '#$first',
+          onJump == null ? null : () => onJump!(first),
+          jumpLabel(first),
+        );
+      }
+      // 多楼合并成「#760 等 3 楼」，点开列出全部楼层
+      return Builder(
+        builder: (ctx) => pill(
+          '#$first ${moreLabel(list.length)}',
+          onJump == null
+              ? null
+              : () async {
+                  final picked = await showAppMenu<int>(
+                    context: ctx,
+                    anchor: globalRectOf(ctx),
+                    sections: [
+                      [
+                        for (final f in list)
+                          AppMenuItem<int>(label: '#$f', value: f),
+                      ],
+                    ],
+                  );
+                  if (picked != null) onJump!(picked);
+                },
+          jumpLabel(first),
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         for (final p in points)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpace.s),
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: AppSize.hit),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 9, right: AppSpace.s),
-                  child: Container(
-                    width: 4,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: colors.textMeta,
-                      shape: BoxShape.circle,
-                    ),
+                Container(
+                  width: 4,
+                  height: 4,
+                  margin: const EdgeInsets.only(right: AppSpace.s),
+                  decoration: BoxDecoration(
+                    color: colors.textMeta,
+                    shape: BoxShape.circle,
                   ),
                 ),
-                Expanded(
-                  child: Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: AppSpace.s,
-                    children: [
-                      Text(p.text, style: body),
-                      for (final f in p.floors)
-                        Semantics(
-                          button: onJump != null,
-                          label: '跳到第 $f 楼',
-                          excludeSemantics: true,
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: onJump == null ? null : () => onJump!(f),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Text(
-                                '#$f',
-                                style: meta.copyWith(
-                                  color: onJump == null
-                                      ? colors.textMeta
-                                      : colors.brandPrimary,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
+                Expanded(child: Text(p.text, style: body)),
+                floors(context, p.floors),
               ],
             ),
           ),
       ],
+    );
+  }
+}
+
+/// 生成中、还没有要点时的 3 条骨架横条
+class _SkeletonBars extends StatelessWidget {
+  const _SkeletonBars();
+
+  @override
+  Widget build(BuildContext context) {
+    final fill = context.tokens.colors.avatarFill;
+    Widget bar(double factor) => FractionallySizedBox(
+      widthFactor: factor,
+      alignment: Alignment.centerLeft,
+      child: Container(
+        height: 12,
+        margin: const EdgeInsets.only(bottom: AppSpace.s),
+        decoration: BoxDecoration(
+          color: fill,
+          borderRadius: BorderRadius.circular(context.tokens.radius.tag),
+        ),
+      ),
+    );
+    return ExcludeSemantics(
+      child: Column(children: [bar(1), bar(0.86), bar(0.62)]),
     );
   }
 }

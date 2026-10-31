@@ -1,5 +1,6 @@
 import 'package:m3e_ui/m3e_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/ai_l10n.dart';
@@ -16,7 +17,7 @@ class AiAdvancedSettingsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(AiL10n.current.advancedSettings)),
-      body: ListView(
+      body: ReadableBody(child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           SegmentedCardGroup(
@@ -50,7 +51,7 @@ class AiAdvancedSettingsPage extends ConsumerWidget {
             ],
           ),
         ],
-      ),
+      )),
     );
   }
 }

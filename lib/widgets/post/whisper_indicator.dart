@@ -36,7 +36,7 @@ class WhisperIndicator extends StatelessWidget {
             context.l10n.post_whisperIndicator,
             style: theme.textTheme.labelSmall?.copyWith(
               color: theme.colorScheme.tertiary,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
               fontSize: AppFontSize.caption,
             ),
           ),

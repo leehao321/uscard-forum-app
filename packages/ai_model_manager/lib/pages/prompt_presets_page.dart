@@ -93,7 +93,8 @@ class _PromptPresetsPageState extends ConsumerState<PromptPresetsPage> {
           ),
         ],
       ),
-      body: Column(
+      body: ReadableBody(
+          child: Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -154,7 +155,7 @@ class _PromptPresetsPageState extends ConsumerState<PromptPresetsPage> {
             ),
           ),
         ],
-      ),
+      )),
     );
   }
 

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/pending_post.dart';
 import '../models/topic.dart';
 import '../providers/discourse_providers.dart';
 import '../widgets/desktop_refresh_indicator.dart';
-import '../services/discourse/discourse_service.dart';
 import '../widgets/common/skeleton.dart';
 import '../widgets/common/error_view.dart';
 import '../widgets/post/reply_sheet.dart';
@@ -21,8 +21,9 @@ import 'topic_detail_page/topic_detail_page.dart';
 import 'create_topic_page.dart';
 
 /// 待审核内容列表 Provider
-final pendingPostsProvider =
-    FutureProvider.autoDispose<List<PendingPost>>((ref) async {
+final pendingPostsProvider = FutureProvider.autoDispose<List<PendingPost>>((
+  ref,
+) async {
   final service = ref.watch(discourseServiceProvider);
   return service.getMyPendingPosts();
 });
@@ -46,57 +47,62 @@ class _PendingPostsPageState extends ConsumerState<PendingPostsPage> {
     final pendingAsync = ref.watch(pendingPostsProvider);
 
     final list = Scaffold(
-      appBar: AppNavBar(title: context.l10n.review_myPending, showDivider: true),
-      body: DesktopRefreshIndicator(
-        onRefresh: _onRefresh,
-        child: pendingAsync.when(
-          data: (pendingPosts) {
-            if (pendingPosts.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      AppIcons.clock,
-                      size: 64,
-                      color: context.tokens.colors.textMeta,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      context.l10n.review_empty,
-                      style: TextStyle(color: context.tokens.colors.textMeta),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return ListView.builder(
-              padding: EdgeInsets.fromLTRB(
-                0,
-                0,
-                0,
-                12 + MediaQuery.paddingOf(context).bottom,
-              ),
-              itemCount: pendingPosts.length,
-              itemBuilder: (context, index) {
-                final pending = pendingPosts[index];
-                return _PendingPostCard(
-                  pending: pending,
-                  onTap: pending.topicId != null
-                      ? () => _openTopic(pending)
-                      : null,
-                  onWithdraw: () => _onWithdraw(pending),
-                  onWithdrawAndEdit: () => _onWithdrawAndEdit(pending),
+      appBar: AppNavBar(
+        title: context.l10n.review_myPending,
+        showDivider: true,
+      ),
+      body: ReadableBody(
+        child: DesktopRefreshIndicator(
+          onRefresh: _onRefresh,
+          child: pendingAsync.when(
+            data: (pendingPosts) {
+              if (pendingPosts.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        AppIcons.clock,
+                        size: 64,
+                        color: context.tokens.colors.textMeta,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        context.l10n.review_empty,
+                        style: TextStyle(color: context.tokens.colors.textMeta),
+                      ),
+                    ],
+                  ),
                 );
-              },
-            );
-          },
-          loading: () => const _PendingListSkeleton(),
-          error: (error, stack) => ErrorView(
-            error: error,
-            stackTrace: stack,
-            onRetry: () => ref.invalidate(pendingPostsProvider),
+              }
+
+              return ListView.builder(
+                padding: EdgeInsets.fromLTRB(
+                  0,
+                  0,
+                  0,
+                  12 + MediaQuery.paddingOf(context).bottom,
+                ),
+                itemCount: pendingPosts.length,
+                itemBuilder: (context, index) {
+                  final pending = pendingPosts[index];
+                  return _PendingPostCard(
+                    pending: pending,
+                    onTap: pending.topicId != null
+                        ? () => _openTopic(pending)
+                        : null,
+                    onWithdraw: () => _onWithdraw(pending),
+                    onWithdrawAndEdit: () => _onWithdrawAndEdit(pending),
+                  );
+                },
+              );
+            },
+            loading: () => const _PendingListSkeleton(),
+            error: (error, stack) => ErrorView(
+              error: error,
+              stackTrace: stack,
+              onRetry: () => ref.invalidate(pendingPostsProvider),
+            ),
           ),
         ),
       ),
@@ -115,10 +121,9 @@ class _PendingPostsPageState extends ConsumerState<PendingPostsPage> {
   void _openTopic(PendingPost pending) {
     // 宽屏进右栏,窄屏全屏 push(平行视界宿主标准分流)。
     if (MasterDetailLayout.canShowBothPanesFor(context)) {
-      ref.read(selectedPendingPaneProvider.notifier).select(
-            topicId: pending.topicId!,
-            initialTitle: pending.title,
-          );
+      ref
+          .read(selectedPendingPaneProvider.notifier)
+          .select(topicId: pending.topicId!, initialTitle: pending.title);
       return;
     }
     Navigator.push(
@@ -161,7 +166,8 @@ class _PendingPostsPageState extends ConsumerState<PendingPostsPage> {
                     : () async {
                         setState(() => isDeleting = true);
                         try {
-                          await DiscourseService()
+                          await ref
+                              .read(discourseServiceProvider)
                               .deleteReviewable(pending.id);
                           if (dialogContext.mounted) {
                             Navigator.pop(dialogContext, true);
@@ -247,10 +253,9 @@ class _PendingPostsPageState extends ConsumerState<PendingPostsPage> {
       Post? replyToPost;
       if (replyToPostNumber != null) {
         try {
-          replyToPost = await DiscourseService().getPostByNumber(
-            pending.topicId!,
-            replyToPostNumber,
-          );
+          replyToPost = await ref
+              .read(discourseServiceProvider)
+              .getPostByNumber(pending.topicId!, replyToPostNumber);
         } catch (_) {
           // 目标楼层拉不到(已删除等):退化为直接回复话题
         }
@@ -290,9 +295,7 @@ class _PendingPostCard extends StatelessWidget {
     final typeLabel = pending.isNewTopic
         ? context.l10n.review_typeNewTopic
         : context.l10n.review_typeReply;
-    final typeIcon = pending.isNewTopic
-        ? AppIcons.addCircle
-        : AppIcons.reply;
+    final typeIcon = pending.isNewTopic ? AppIcons.addCircle : AppIcons.reply;
 
     final tokens = context.tokens;
     final colors = tokens.colors;
@@ -329,10 +332,7 @@ class _PendingPostCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surfacePage,
         border: Border(
-          bottom: BorderSide(
-            color: colors.separator,
-            width: AppSpace.hairline,
-          ),
+          bottom: BorderSide(color: colors.separator, width: AppSpace.hairline),
         ),
       ),
       child: AppPressable(

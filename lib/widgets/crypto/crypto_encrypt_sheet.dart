@@ -366,7 +366,7 @@ class _CryptoEncryptSheetState extends ConsumerState<CryptoEncryptSheet> {
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontWeight:
-                            selected ? FontWeight.w600 : FontWeight.w500,
+                            selected ? FontWeight.w600 : FontWeight.w600,
                         color: selected
                             ? theme.colorScheme.onPrimaryContainer
                             : theme.colorScheme.onSurface,

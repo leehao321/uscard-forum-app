@@ -897,7 +897,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
     return Scaffold(
       backgroundColor: context.tokens.colors.surfacePage,
       appBar: _buildAppBar(),
-      body: _buildBody(),
+      body: ReadableBody(child: _buildBody()),
     );
   }
 

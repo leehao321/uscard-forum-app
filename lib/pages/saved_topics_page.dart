@@ -118,165 +118,167 @@ class _SavedTopicsPageState extends State<SavedTopicsPage> {
             ),
         ],
       ),
-      body: Column(
-        children: [
-          // 开关行：标题 17 + 说明 13 meta
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpace.pageMargin,
-              vertical: AppSpace.s,
+      body: ReadableBody(
+        child: Column(
+          children: [
+            // 开关行：标题 17 + 说明 13 meta
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpace.pageMargin,
+                vertical: AppSpace.s,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '看过就存',
+                          style: base
+                              .merge(tokens.text.control)
+                              .copyWith(color: colors.textPrimary),
+                        ),
+                        Text(
+                          '打开并加载过的话题自动保存到本机，不额外联网',
+                          style: base
+                              .merge(tokens.text.meta)
+                              .copyWith(color: colors.textMeta),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: AppSpace.m),
+                  Switch.adaptive(value: _enabled, onChanged: _toggleEnabled),
+                ],
+              ),
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '看过就存',
-                        style: base
-                            .merge(tokens.text.control)
-                            .copyWith(color: colors.textPrimary),
-                      ),
-                      Text(
-                        '打开并加载过的话题自动保存到本机，不额外联网',
-                        style: base
-                            .merge(tokens.text.meta)
-                            .copyWith(color: colors.textMeta),
-                      ),
-                    ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpace.pageMargin,
+                0,
+                AppSpace.pageMargin,
+                AppSpace.s,
+              ),
+              child: TextField(
+                controller: _searchController,
+                style: base
+                    .merge(tokens.text.control)
+                    .copyWith(color: colors.textPrimary),
+                cursorColor: colors.brandPrimary,
+                decoration: InputDecoration(
+                  prefixIcon: Icon(
+                    AppIcons.search,
+                    size: AppSize.iconM,
+                    color: colors.textMeta,
+                  ),
+                  hintText: '搜索标题和正文',
+                  hintStyle: TextStyle(color: colors.textMeta),
+                  filled: true,
+                  fillColor: colors.surfaceGrouped,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppSpace.m,
+                    vertical: AppSpace.m,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(tokens.radius.field),
+                    borderSide: BorderSide.none,
                   ),
                 ),
-                const SizedBox(width: AppSpace.m),
-                Switch.adaptive(value: _enabled, onChanged: _toggleEnabled),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpace.pageMargin,
-              0,
-              AppSpace.pageMargin,
-              AppSpace.s,
-            ),
-            child: TextField(
-              controller: _searchController,
-              style: base
-                  .merge(tokens.text.control)
-                  .copyWith(color: colors.textPrimary),
-              cursorColor: colors.brandPrimary,
-              decoration: InputDecoration(
-                prefixIcon: Icon(
-                  AppIcons.search,
-                  size: AppSize.iconM,
-                  color: colors.textMeta,
-                ),
-                hintText: '搜索标题和正文',
-                hintStyle: TextStyle(color: colors.textMeta),
-                filled: true,
-                fillColor: colors.surfaceGrouped,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppSpace.m,
-                  vertical: AppSpace.m,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(tokens.radius.field),
-                  borderSide: BorderSide.none,
-                ),
+                onChanged: (v) => setState(() => _query = v),
               ),
-              onChanged: (v) => setState(() => _query = v),
             ),
-          ),
-          Expanded(
-            child: _loading
-                ? const Center(child: LoadingSpinner())
-                : items.isEmpty
-                ? AppStateView(
-                    icon: _all.isEmpty ? AppIcons.inbox : AppIcons.searchOff,
-                    title: _all.isEmpty ? '还没有保存的话题' : '没有匹配的话题',
-                  )
-                : ListView.builder(
-                    itemCount: items.length + 1,
-                    itemBuilder: (context, index) {
-                      // 页脚：共 N 个话题 · 占用 · 只保存在本机
-                      if (index == items.length) {
-                        return Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: AppSpace.pageMargin,
-                            vertical: tokens.rowPadV,
-                          ),
-                          child: Text(
-                            '共 ${items.length} 个话题 · 占用 ${_formatBytes(_bytes)} · 只保存在这台设备上',
-                            style: base
-                                .merge(tokens.text.meta)
-                                .copyWith(color: colors.textMeta),
-                          ),
-                        );
-                      }
-                      final meta = items[index];
-                      return SwipeActions(
-                        actions: [
-                          SwipeActionItem(
-                            label: '删除',
-                            icon: AppIcons.delete,
-                            background: colors.textDestructive,
-                            onTap: () => SavedTopicStore.delete(meta.topicId),
-                          ),
-                        ],
-                        child: AppPressable(
-                          highlight: true,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  SavedTopicViewPage(topicId: meta.topicId),
+            Expanded(
+              child: _loading
+                  ? const Center(child: LoadingSpinner())
+                  : items.isEmpty
+                  ? AppStateView(
+                      icon: _all.isEmpty ? AppIcons.inbox : AppIcons.searchOff,
+                      title: _all.isEmpty ? '还没有保存的话题' : '没有匹配的话题',
+                    )
+                  : ListView.builder(
+                      itemCount: items.length + 1,
+                      itemBuilder: (context, index) {
+                        // 页脚：共 N 个话题 · 占用 · 只保存在本机
+                        if (index == items.length) {
+                          return Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: AppSpace.pageMargin,
+                              vertical: tokens.rowPadV,
                             ),
-                          ),
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: colors.surfacePage,
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: colors.separator,
-                                  width: AppSpace.hairline,
+                            child: Text(
+                              '共 ${items.length} 个话题 · 占用 ${_formatBytes(_bytes)} · 只保存在这台设备上',
+                              style: base
+                                  .merge(tokens.text.meta)
+                                  .copyWith(color: colors.textMeta),
+                            ),
+                          );
+                        }
+                        final meta = items[index];
+                        return SwipeActions(
+                          actions: [
+                            SwipeActionItem(
+                              label: '删除',
+                              icon: AppIcons.delete,
+                              background: colors.textDestructive,
+                              onTap: () => SavedTopicStore.delete(meta.topicId),
+                            ),
+                          ],
+                          child: AppPressable(
+                            highlight: true,
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    SavedTopicViewPage(topicId: meta.topicId),
+                              ),
+                            ),
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: colors.surfacePage,
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: colors.separator,
+                                    width: AppSpace.hairline,
+                                  ),
+                                ),
+                              ),
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: AppSpace.pageMargin,
+                                  vertical: tokens.rowPadV,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      meta.title,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: base
+                                          .merge(tokens.text.headline)
+                                          .copyWith(color: colors.textPrimary),
+                                    ),
+                                    const SizedBox(height: AppSpace.s),
+                                    Text(
+                                      '${meta.postCount} 个楼层 · 保存于 '
+                                      '${TimeUtils.formatShortDate(meta.savedAt)}',
+                                      style: base
+                                          .merge(tokens.text.meta)
+                                          .copyWith(color: colors.textMeta),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: AppSpace.pageMargin,
-                                vertical: tokens.rowPadV,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    meta.title,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: base
-                                        .merge(tokens.text.headline)
-                                        .copyWith(color: colors.textPrimary),
-                                  ),
-                                  const SizedBox(height: AppSpace.s),
-                                  Text(
-                                    '${meta.postCount} 个楼层 · 保存于 '
-                                    '${TimeUtils.formatShortDate(meta.savedAt)}',
-                                    style: base
-                                        .merge(tokens.text.meta)
-                                        .copyWith(color: colors.textMeta),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -304,69 +306,71 @@ class SavedTopicViewPage extends StatelessWidget {
             showDivider: true,
             title: topic?.meta.title ?? '已存帖子',
           ),
-          body: snapshot.connectionState != ConnectionState.done
-              ? const Center(child: LoadingSpinner())
-              : topic == null
-              ? const AppStateView(
-                  icon: AppIcons.dataError,
-                  title: '读取失败或已被删除',
-                )
-              : ReadableColumn(
-                  child: ListView.builder(
-                    itemCount: topic.posts.length,
-                    itemBuilder: (context, index) {
-                      final post = topic.posts[index];
-                      final who = post.name?.isNotEmpty == true
-                          ? post.name!
-                          : post.username;
-                      final date = post.createdAt == null
-                          ? ''
-                          : '  ${TimeUtils.formatShortDate(post.createdAt!)}';
-                      return DecoratedBox(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: colors.separator,
-                              width: AppSpace.hairline,
+          body: ReadableBody(
+            child: snapshot.connectionState != ConnectionState.done
+                ? const Center(child: LoadingSpinner())
+                : topic == null
+                ? const AppStateView(
+                    icon: AppIcons.dataError,
+                    title: '读取失败或已被删除',
+                  )
+                : ReadableColumn(
+                    child: ListView.builder(
+                      itemCount: topic.posts.length,
+                      itemBuilder: (context, index) {
+                        final post = topic.posts[index];
+                        final who = post.name?.isNotEmpty == true
+                            ? post.name!
+                            : post.username;
+                        final date = post.createdAt == null
+                            ? ''
+                            : '  ${TimeUtils.formatShortDate(post.createdAt!)}';
+                        return DecoratedBox(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                color: colors.separator,
+                                width: AppSpace.hairline,
+                              ),
                             ),
                           ),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: AppSpace.pageMargin,
-                            vertical: tokens.rowPadV,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                who,
-                                style: base
-                                    .merge(tokens.text.metaStrong)
-                                    .copyWith(color: colors.textPrimary),
-                              ),
-                              Text(
-                                '#${post.postNumber}$date',
-                                style: base
-                                    .merge(tokens.text.meta)
-                                    .copyWith(color: colors.textMeta),
-                              ),
-                              const SizedBox(height: AppSpace.s),
-                              SelectableText(
-                                AiTranslationService.extractPlainText(
-                                  post.cooked,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: AppSpace.pageMargin,
+                              vertical: tokens.rowPadV,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  who,
+                                  style: base
+                                      .merge(tokens.text.metaStrong)
+                                      .copyWith(color: colors.textPrimary),
                                 ),
-                                style: base
-                                    .merge(tokens.text.body)
-                                    .copyWith(color: colors.textPrimary),
-                              ),
-                            ],
+                                Text(
+                                  '#${post.postNumber}$date',
+                                  style: base
+                                      .merge(tokens.text.meta)
+                                      .copyWith(color: colors.textMeta),
+                                ),
+                                const SizedBox(height: AppSpace.s),
+                                SelectableText(
+                                  AiTranslationService.extractPlainText(
+                                    post.cooked,
+                                  ),
+                                  style: base
+                                      .merge(tokens.text.body)
+                                      .copyWith(color: colors.textPrimary),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
-                ),
+          ),
         );
       },
     );

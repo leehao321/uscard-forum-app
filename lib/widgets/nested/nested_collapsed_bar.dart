@@ -43,7 +43,7 @@ class NestedCollapsedBar extends StatelessWidget {
               username,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w400,
               ),
             ),
             Padding(

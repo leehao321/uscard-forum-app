@@ -69,7 +69,7 @@ class _ExternalLinkConfirmSheet extends StatelessWidget {
           Text(
             config.title,
             style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),
@@ -107,7 +107,7 @@ class _ExternalLinkConfirmSheet extends StatelessWidget {
                       child: Text(
                         urlInfo.host,
                         style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -167,7 +167,7 @@ class _ExternalLinkConfirmSheet extends StatelessWidget {
                       config.warning!,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: config.color,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -327,7 +327,7 @@ class _LinkBlockedSheet extends StatelessWidget {
           Text(
             context.l10n.externalLink_blocked,
             style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),
@@ -366,7 +366,7 @@ class _LinkBlockedSheet extends StatelessWidget {
                     host,
                     style: theme.textTheme.titleSmall?.copyWith(
                       color: theme.colorScheme.error,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

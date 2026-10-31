@@ -230,7 +230,7 @@ class _NavigationRailItem extends StatelessWidget {
                           style: TextStyle(
                             color: iconColor,
                             fontWeight: selected
-                                ? FontWeight.w500
+                                ? FontWeight.w600
                                 : FontWeight.normal,
                           ),
                         ),

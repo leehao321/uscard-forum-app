@@ -19,6 +19,7 @@
       }
     }
   },
+  "search_capsuleCompact": "搜索",
   "search_capsulePlaceholder": "搜索话题",
   "search_category": "分类",
   "search_categoryLoadFailed": "加载分类失败: {error}",

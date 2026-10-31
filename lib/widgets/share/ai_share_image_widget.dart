@@ -198,7 +198,7 @@ class AiShareImageWidget extends StatelessWidget {
           isUser ? S.current.share_aiQuestion : S.current.share_aiReply,
           style: TextStyle(
             fontSize: AppFontSize.meta,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w400,
             color: secondaryTextColor,
           ),
         ),

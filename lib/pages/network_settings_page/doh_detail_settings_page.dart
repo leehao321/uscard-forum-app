@@ -54,97 +54,100 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
         return Scaffold(
           backgroundColor: context.tokens.colors.surfacePage,
           appBar: AppNavBar(title: context.l10n.dohDetail_title),
-          body: ListView(
-            padding: EdgeInsets.fromLTRB(
-              AppSpace.pageMargin,
-              AppSpace.s,
-              AppSpace.pageMargin,
-              MediaQuery.paddingOf(context).bottom + AppSpace.x32,
-            ),
-            children: [
-              // IPv6 开关
-              SegmentedCardGroup(
-                children: [
-                  SwitchListTile.adaptive(
-                    title: Text(context.l10n.dohDetail_gatewayMode),
-                    subtitle: Text(
-                      settings.gatewayEnabled
-                          ? context.l10n.dohDetail_gatewayEnabledDesc
-                          : context.l10n.dohDetail_gatewayDisabledDesc,
-                    ),
-                    secondary: const Icon(AppIcons.sync),
-                    value: settings.gatewayEnabled,
-                    onChanged: (value) => _service.setGatewayEnabled(value),
-                  ),
-                  SwitchListTile.adaptive(
-                    title: Text(context.l10n.dohDetail_h2Mitm),
-                    subtitle: Text(
-                      settings.h2Mitm
-                          ? context.l10n.dohDetail_h2MitmEnabledDesc
-                          : context.l10n.dohDetail_h2MitmDisabledDesc,
-                    ),
-                    secondary: const Icon(AppIcons.rocket),
-                    value: settings.h2Mitm,
-                    onChanged: (value) => _service.setH2Mitm(value),
-                  ),
-                  SwitchListTile.adaptive(
-                    title: Text(context.l10n.dohDetail_ipv6Prefer),
-                    subtitle: Text(context.l10n.dohDetail_ipv6PreferDesc),
-                    secondary: const Icon(AppIcons.language),
-                    value: settings.preferIPv6,
-                    onChanged: (value) => _service.setPreferIPv6(value),
-                  ),
-                  // Server IP
-                  ListTile(
-                    leading: const Icon(AppIcons.serverOff),
-                    title: Text(context.l10n.dohDetail_serverIp),
-                    subtitle: Text(
-                      settings.serverIp != null && settings.serverIp!.isNotEmpty
-                          ? settings.serverIp!
-                          : context.l10n.common_notSet,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+          body: ReadableBody(
+            child: ListView(
+              padding: EdgeInsets.fromLTRB(
+                AppSpace.pageMargin,
+                AppSpace.s,
+                AppSpace.pageMargin,
+                MediaQuery.paddingOf(context).bottom + AppSpace.x32,
+              ),
+              children: [
+                // IPv6 开关
+                SegmentedCardGroup(
+                  children: [
+                    SwitchListTile.adaptive(
+                      title: Text(context.l10n.dohDetail_gatewayMode),
+                      subtitle: Text(
+                        settings.gatewayEnabled
+                            ? context.l10n.dohDetail_gatewayEnabledDesc
+                            : context.l10n.dohDetail_gatewayDisabledDesc,
                       ),
+                      secondary: const Icon(AppIcons.sync),
+                      value: settings.gatewayEnabled,
+                      onChanged: (value) => _service.setGatewayEnabled(value),
                     ),
-                    trailing:
+                    SwitchListTile.adaptive(
+                      title: Text(context.l10n.dohDetail_h2Mitm),
+                      subtitle: Text(
+                        settings.h2Mitm
+                            ? context.l10n.dohDetail_h2MitmEnabledDesc
+                            : context.l10n.dohDetail_h2MitmDisabledDesc,
+                      ),
+                      secondary: const Icon(AppIcons.rocket),
+                      value: settings.h2Mitm,
+                      onChanged: (value) => _service.setH2Mitm(value),
+                    ),
+                    SwitchListTile.adaptive(
+                      title: Text(context.l10n.dohDetail_ipv6Prefer),
+                      subtitle: Text(context.l10n.dohDetail_ipv6PreferDesc),
+                      secondary: const Icon(AppIcons.language),
+                      value: settings.preferIPv6,
+                      onChanged: (value) => _service.setPreferIPv6(value),
+                    ),
+                    // Server IP
+                    ListTile(
+                      leading: const Icon(AppIcons.serverOff),
+                      title: Text(context.l10n.dohDetail_serverIp),
+                      subtitle: Text(
                         settings.serverIp != null &&
-                            settings.serverIp!.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(AppIcons.close, size: 20),
-                            tooltip: context.l10n.common_clear,
-                            onPressed: () => _service.setServerIp(null),
-                          )
-                        : null,
-                    onTap: () => _showServerIpDialog(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+                                settings.serverIp!.isNotEmpty
+                            ? settings.serverIp!
+                            : context.l10n.common_notSet,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      trailing:
+                          settings.serverIp != null &&
+                              settings.serverIp!.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(AppIcons.close, size: 20),
+                              tooltip: context.l10n.common_clear,
+                              onPressed: () => _service.setServerIp(null),
+                            )
+                          : null,
+                      onTap: () => _showServerIpDialog(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
 
-              // 服务器列表
-              _buildSectionHeader(theme, context.l10n.dohDetail_servers),
-              const SizedBox(height: 12),
-              _buildServerList(theme, settings),
-              const SizedBox(height: 24),
+                // 服务器列表
+                _buildSectionHeader(theme, context.l10n.dohDetail_servers),
+                const SizedBox(height: 12),
+                _buildServerList(theme, settings),
+                const SizedBox(height: 24),
 
-              // ECH 服务器选择
-              _buildSectionHeader(theme, 'ECH'),
-              const SizedBox(height: 12),
-              EchSettingsCard(
-                policy: settings.echDnsPolicy,
-                serverSelector: _buildEchServerSelector(theme, settings),
-                onChanged: _service.setEchDnsPolicy,
-              ),
-              const SizedBox(height: 24),
+                // ECH 服务器选择
+                _buildSectionHeader(theme, 'ECH'),
+                const SizedBox(height: 12),
+                EchSettingsCard(
+                  policy: settings.echDnsPolicy,
+                  serverSelector: _buildEchServerSelector(theme, settings),
+                  onChanged: _service.setEchDnsPolicy,
+                ),
+                const SizedBox(height: 24),
 
-              _buildSectionHeader(
-                theme,
-                context.l10n.dohDetail_dnsCacheSection,
-              ),
-              const SizedBox(height: 12),
-              _buildDnsCacheCard(theme),
-              const SizedBox(height: 32),
-            ],
+                _buildSectionHeader(
+                  theme,
+                  context.l10n.dohDetail_dnsCacheSection,
+                ),
+                const SizedBox(height: 12),
+                _buildDnsCacheCard(theme),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         );
       },
@@ -154,7 +157,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
   Widget _buildSectionHeader(ThemeData theme, String title) {
     return Text(
       title,
-      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
+      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
     );
   }
 
@@ -279,7 +282,7 @@ class _DohDetailSettingsPageState extends State<DohDetailSettingsPage> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: _getLatencyColor(latency),
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w400,
                   fontSize: AppFontSize.meta,
                 ),
               ),

@@ -86,6 +86,7 @@ import 'widgets/invite_private_message_dialog.dart';
 import 'widgets/reading_toolbar.dart';
 import 'widgets/floor_jump_sheet.dart';
 import 'widgets/topic_post_list.dart';
+import 'widgets/filter_active_dot.dart';
 import 'widgets/topic_toc_panel.dart';
 import 'widgets/topic_detail_header.dart';
 import '../../widgets/layout/master_detail_layout.dart';
@@ -1624,7 +1625,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
       child: Text.rich(
         TextSpan(
           style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
           children: [
             if (detail?.isPrivateMessage ?? false)
@@ -1666,7 +1667,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
             ...EmojiText.buildEmojiSpans(
               context,
               detail?.title ?? widget.initialTitle ?? '',
-              theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500),
+              theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -1983,7 +1984,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
         ),
     ];
 
-    return AppMenuButton<String>(
+    final moreButton = AppMenuButton<String>(
       key: _usesEmbeddedMobileWorkspaceChrome
           ? const ValueKey('bookmark-workspace-mobile-more')
           : null,
@@ -1994,7 +1995,11 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
         [
           // 窄屏的目录入口（P12）：宽屏仍是右侧常驻面板
           if (_tocController.hasToc && _tocInMenu(context))
-            item(context.l10n.topicDetail_toc, 'toc', AppIcons.menu),
+            item(
+              context.l10n.topicDetail_tocWithCount(_tocController.entryCount),
+              'toc',
+              AppIcons.menu,
+            ),
           AppMenuItem<String>(
             label: isInReadLater
                 ? context.l10n.topicDetail_removeFromReadLater
@@ -2003,8 +2008,12 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
             icon: AppIcons.readLater,
             checked: isInReadLater,
           ),
-          item('笔记', 'notes', AppIcons.note),
-          item('AI 总结', 'ai_summary', AppIcons.autoAwesome),
+          item(context.l10n.topicDetail_menuNotes, 'notes', AppIcons.note),
+          item(
+            context.l10n.topicDetail_menuAiSummary,
+            'ai_summary',
+            AppIcons.autoAwesome,
+          ),
           if (!detail.isPrivateMessage)
             item(
               context.l10n.topicDetail_generateShareImage,
@@ -2072,14 +2081,13 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
                 ],
               ],
             ),
-          item(
-            context.l10n.settings_reading,
-            'reading_settings',
-            AppIcons.book,
-          ),
         ],
       ],
     );
+
+    // 筛选激活时（只看楼主 / 热门回复 / 只看顶层 / 嵌套视图），⋮ 右上角亮一个点，
+    // 页面上看得出现在不是完整楼层（M-9）
+    return FilterActiveDot(active: hasFilter, child: moreButton);
   }
 
   /// 楼层跳转前所在的楼层（「回到跳转前」用）

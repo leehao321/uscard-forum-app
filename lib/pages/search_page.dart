@@ -882,28 +882,30 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // 已激活的过滤条件（始终显示，便于查看和取消）
-          if (_filter.isNotEmpty)
-            ActiveSearchFiltersBar(
-              filter: _filter,
-              onClearCategory: _clearCategory,
-              onRemoveTag: _removeTag,
-              onClearStatus: _clearStatus,
-              onClearDateRange: _clearDateRange,
-              onClearAll: _clearAllFilters,
+      body: ReadableBody(
+        child: Column(
+          children: [
+            // 已激活的过滤条件（始终显示，便于查看和取消）
+            if (_filter.isNotEmpty)
+              ActiveSearchFiltersBar(
+                filter: _filter,
+                onClearCategory: _clearCategory,
+                onRemoveTag: _removeTag,
+                onClearStatus: _clearStatus,
+                onClearDateRange: _clearDateRange,
+                onClearAll: _clearAllFilters,
+              ),
+            Expanded(
+              child: _currentQuery.isEmpty
+                  ? _buildEmptyState(theme)
+                  : _buildSearchResults(theme),
             ),
-          Expanded(
-            child: _currentQuery.isEmpty
-                ? _buildEmptyState(theme)
-                : _buildSearchResults(theme),
-          ),
-          ColoredBox(
-            color: tokens.colors.surfacePage,
-            child: SafeArea(top: false, child: searchBar),
-          ),
-        ],
+            ColoredBox(
+              color: tokens.colors.surfacePage,
+              child: SafeArea(top: false, child: searchBar),
+            ),
+          ],
+        ),
       ),
     );
   }

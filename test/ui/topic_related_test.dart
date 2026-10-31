@@ -107,6 +107,7 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 600));
         expectNoUiException(tester);
+        expectReadableBody(tester, v);
         expect(find.textContaining('热心人'), findsWidgets);
         // 卡片：金银铜只用文字，名称下一行是「类型 · ×次数」
         expect(find.textContaining('×3'), findsOneWidget);
@@ -156,6 +157,7 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 600));
         expectNoUiException(tester);
+        expectReadableBody(tester, v);
         expect(find.text('@user_0'), findsOneWidget);
         await uiShot(tester, 'm7_follow_${v.label}');
         await _unmount(tester);

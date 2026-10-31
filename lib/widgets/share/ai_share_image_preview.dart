@@ -389,7 +389,7 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                               ? context.tokens.colors.brandPrimary
                               : context.tokens.colors.textMeta,
                           fontWeight: isSelected
-                              ? FontWeight.w500
+                              ? FontWeight.w400
                               : FontWeight.normal,
                         ),
                       ),

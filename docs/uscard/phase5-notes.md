@@ -15,14 +15,14 @@
 - **朗读（TTS）**：用户决定先不做（不加 `flutter_tts`）。
 - **稍后读**：上游已有，未重复做。
 
-## 加密出包（镜像功能）
+## 加密出包（私有补丁）
 
-镜像相关代码只在本地分支 `uscard-mirror`，不以明文进 GitHub。`tool/mirror_patch.sh`：
+私有代码只在本地分支，不以明文进 GitHub。`tool/private_patch.sh`：
 
-1. `keygen`：生成密钥，存在仓库外的 `~/.uscard-mirror/patch.key`，再设成仓库 Secret `MIRROR_PATCH_KEY`。
-2. `export`：把 `uscard-mirror` 相对 `uscard` 的改动加密成 `private/mirror.patch.enc`（AES-256-CBC，PBKDF2 20 万次）。
+1. `keygen`：生成密钥，存在仓库外的 `~/.uscard-private/patch.key`，再设成仓库 Secret `PRIVATE_PATCH_KEY`。
+2. `export`：把本地私有分支（`PRIVATE_BRANCH` 指定）相对 `uscard` 的改动加密成 `private/extras.patch.enc`（AES-256-CBC，PBKDF2 20 万次）。
 3. `check`：在临时工作区解密并试合入。
-4. 手动触发 iOS 构建时勾选「带镜像功能」：构建机解密补丁合入，IPA 加密成 `.ipa.enc` 后才上传（公开仓库的产物其他 GitHub 用户也能下载）。
+4. 手动触发 iOS 构建时勾选「带私有补丁」：构建机解密补丁合入，IPA 加密成 `.ipa.enc` 后才上传（公开仓库的产物其他 GitHub 用户也能下载）。
 5. `decrypt-ipa <文件>`：本机解密下载的 IPA。
 
-每次出带镜像的包前，`uscard-mirror` 要先 `git rebase uscard`，再 `export`。
+每次出带私有补丁的包前，本地私有分支要先 `git rebase uscard`，再 `export`。

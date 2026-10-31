@@ -73,7 +73,31 @@ class _TopicNoteSheetBodyState extends State<TopicNoteSheetBody>
   /// 上次读入或保存的输入框文字
   String _savedText = '';
 
-  int? get _floor => widget.postNumber;
+  /// 概览里点了别的楼层 / 话题笔记后，编辑目标换成它（M-1）
+  bool _retargeted = false;
+  int? _retargetFloor;
+
+  int? get _floor => _retargeted ? _retargetFloor : widget.postNumber;
+
+  /// 换一个编辑目标：先把当前这一条存掉，再把输入框换成新目标的文字
+  void _retarget(int? floor) {
+    _saveNow();
+    _text.removeListener(_onTextChanged);
+    setState(() {
+      _retargeted = true;
+      _retargetFloor = floor;
+      _text.text = floor == null ? _topicText : (_floorNotes[floor] ?? '');
+      _savedText = _text.text;
+    });
+    _text.addListener(_onTextChanged);
+  }
+
+  /// 删掉某一楼的笔记（不是当前正在编辑的那一楼）
+  void _deleteFloorNote(int floor) {
+    setState(() => _floorNotes = {..._floorNotes}..remove(floor));
+    _dirty = true;
+    _saveNow();
+  }
 
   @override
   void initState() {
@@ -198,6 +222,8 @@ class _TopicNoteSheetBodyState extends State<TopicNoteSheetBody>
       for (final f in (_floorNotes.keys.toList()..sort()))
         if (f != _floor && (_floorNotes[f] ?? '').trim().isNotEmpty) f,
     ];
+    // 正在编辑某一楼、话题级笔记也有内容时，给一个回到话题笔记的入口
+    final showTopicRow = _floor != null && _topicText.trim().isNotEmpty;
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -356,23 +382,87 @@ class _TopicNoteSheetBodyState extends State<TopicNoteSheetBody>
                     ),
                   ),
                 ),
-              if (others.isNotEmpty) ...[
+              if (others.isNotEmpty || showTopicRow) ...[
                 const SizedBox(height: AppSpace.l),
                 Text(
-                  '其他楼层的笔记',
+                  '其他笔记',
                   style: base
                       .merge(tokens.text.metaStrong)
                       .copyWith(color: colors.textPrimary),
                 ),
+                if (showTopicRow)
+                  _OtherNoteRow(
+                    key: const ValueKey('note-row-topic'),
+                    label: '话题',
+                    text: _topicText,
+                    meta: meta,
+                    body: body,
+                    onTap: () => _retarget(null),
+                  ),
                 for (final f in others)
-                  Padding(
-                    padding: const EdgeInsets.only(top: AppSpace.s),
+                  _OtherNoteRow(
+                    key: ValueKey('note-row-$f'),
+                    label: '#$f',
+                    text: _floorNotes[f]!,
+                    meta: meta,
+                    body: body,
+                    onTap: () => _retarget(f),
+                    onDelete: () => _deleteFloorNote(f),
+                  ),
+              ],
+            ],
+            const SizedBox(height: AppSpace.l),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 「其他笔记」里的一行：点开改成编辑这一条，右侧可以删
+class _OtherNoteRow extends StatelessWidget {
+  const _OtherNoteRow({
+    super.key,
+    required this.label,
+    required this.text,
+    required this.meta,
+    required this.body,
+    required this.onTap,
+    this.onDelete,
+  });
+
+  final String label;
+  final String text;
+  final TextStyle meta;
+  final TextStyle body;
+  final VoidCallback onTap;
+  final VoidCallback? onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.tokens.colors;
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpace.xs),
+      child: Row(
+        children: [
+          Expanded(
+            child: Semantics(
+              button: true,
+              label: '编辑$label的笔记',
+              excludeSemantics: true,
+              onTap: onTap,
+              child: AppPressable(
+                onTap: onTap,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: AppSize.hit),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
                     child: Text.rich(
                       TextSpan(
                         children: [
-                          TextSpan(text: '#$f  ', style: meta),
+                          TextSpan(text: '$label  ', style: meta),
                           TextSpan(
-                            text: _floorNotes[f]!.replaceAll('\n', ' '),
+                            text: text.replaceAll('\n', ' '),
                             style: body.copyWith(color: colors.textMeta),
                           ),
                         ],
@@ -381,11 +471,17 @@ class _TopicNoteSheetBodyState extends State<TopicNoteSheetBody>
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-              ],
-            ],
-            const SizedBox(height: AppSpace.l),
-          ],
-        ),
+                ),
+              ),
+            ),
+          ),
+          if (onDelete != null)
+            AppIconButton(
+              icon: AppIcons.delete,
+              semanticLabel: '删除$label的笔记',
+              onPressed: onDelete,
+            ),
+        ],
       ),
     );
   }

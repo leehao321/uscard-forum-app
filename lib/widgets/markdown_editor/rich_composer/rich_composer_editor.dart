@@ -4889,7 +4889,7 @@ class _MentionRow extends StatelessWidget {
                           : user.username[0].toUpperCase(),
                       style: TextStyle(
                         fontSize: AppFontSize.caption,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w400,
                         color: scheme.onPrimaryContainer,
                       ),
                     ),
@@ -4904,7 +4904,7 @@ class _MentionRow extends StatelessWidget {
                         '@${user.username}',
                         style: const TextStyle(
                           fontSize: AppFontSize.meta,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w400,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -4973,7 +4973,7 @@ class _EmojiCandidateRow extends StatelessWidget {
                     ':${hit.name}:',
                     style: const TextStyle(
                       fontSize: AppFontSize.meta,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w400,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -5030,7 +5030,7 @@ class _EmojiMoreRow extends StatelessWidget {
                   S.current.emoji_more,
                   style: TextStyle(
                     fontSize: AppFontSize.meta,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w400,
                     color: scheme.primary,
                   ),
                 ),

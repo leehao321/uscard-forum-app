@@ -38,7 +38,7 @@ class AppIcon extends StatelessWidget {
     this.fill,
     this.size,
     this.color,
-    this.strokeWidth = 2.0,
+    this.strokeWidth = 1.75,
     this.semanticLabel,
   }) : assert(
           icon is IconData || icon is AppIconSpec,
@@ -64,7 +64,9 @@ class AppIcon extends StatelessWidget {
           fill: effectiveFill,
           semanticLabel: semanticLabel,
         ),
-      AppCustomIcon(:final painterBuilder, :final designSize) => SizedBox(
+      AppCustomIcon(:final painterBuilder, :final designSize) => _labelled(
+        semanticLabel,
+        SizedBox(
           width: effectiveSize,
           height: effectiveSize * designSize.height / designSize.width,
           child: CustomPaint(
@@ -79,6 +81,17 @@ class AppIcon extends StatelessWidget {
             ),
           ),
         ),
+      ),
     };
   }
+
+  /// 自绘图标没有 Icon 的 semanticLabel：有标签时包一层 Semantics，没有就原样（不改变
+  /// 父级合并语义的结果）
+  static Widget _labelled(String? label, Widget child) => label == null
+      ? child
+      : Semantics(
+          label: label,
+          image: true,
+          child: ExcludeSemantics(child: child),
+        );
 }

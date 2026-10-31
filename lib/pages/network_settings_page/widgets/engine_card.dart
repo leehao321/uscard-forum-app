@@ -494,6 +494,8 @@ class _EngineCardState extends State<EngineCard> {
         content: SingleChildScrollView(
           child: SelectableText(
             reason,
+            // 技术原因是多行等宽文字，左对齐才好读（说明文字默认居中）
+            textAlign: TextAlign.start,
             style: const TextStyle(
               fontFamily: 'monospace',
               fontSize: AppFontSize.meta,

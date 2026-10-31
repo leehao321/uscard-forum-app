@@ -1,5 +1,6 @@
 import '../services/app_lock_service.dart';
 import 'app_lock_settings_page.dart';
+
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:common_ui/common_ui.dart';
@@ -17,7 +18,9 @@ import '../settings/search/settings_search_index.dart';
 import '../utils/appearance_warmup.dart';
 import '../utils/platform_utils.dart';
 import '../utils/responsive.dart';
+
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../widgets/esc_fallback_observer.dart';
 import '../widgets/layout/master_detail_layout.dart';
 import 'about_page.dart';
@@ -90,9 +93,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_version.isEmpty) {
-      loadDisplayVersion().then((v) {
-        if (mounted) setState(() => _version = v);
-      }).catchError((_) {});
+      loadDisplayVersion()
+          .then((v) {
+            if (mounted) setState(() => _version = v);
+          })
+          .catchError((_) {});
     }
     // 趁界面静止把外观页首帧的一次性开销（MiSans 字体懒加载）提前做掉，
     // 否则首次进入外观页会明显顿一下。
@@ -172,26 +177,27 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         leading: widget.embeddedMode && widget.onEmbeddedBack != null
             ? AppIconButton(
                 icon: AppIcons.back,
-                semanticLabel: MaterialLocalizations.of(
-                  context,
-                ).backButtonTooltip,
+                semanticLabel: MaterialLocalizations.of(context)
+                    .backButtonTooltip,
                 onPressed: widget.onEmbeddedBack,
               )
             : null,
       ),
-      body: Align(
-        alignment: Alignment.topCenter,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: kReadableMaxWidth),
-          child: Column(
-            children: [
-              _buildSearchField(theme, l10n),
-              Expanded(
-                child: isSearching
-                    ? _buildSearchResults(theme)
-                    : _buildCategoryList(theme, l10n),
-              ),
-            ],
+      body: ReadableBody(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: kReadableMaxWidth),
+            child: Column(
+              children: [
+                _buildSearchField(theme, l10n),
+                Expanded(
+                  child: isSearching
+                      ? _buildSearchResults(theme)
+                      : _buildCategoryList(theme, l10n),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -266,19 +272,21 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final colors = context.tokens.colors;
     return Scaffold(
       backgroundColor: colors.surfacePage,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(AppIcons.settings, size: 56, color: colors.quoteRule),
-            const SizedBox(height: AppSpace.m),
-            Text(
-              context.l10n.settings_selectHint,
-              style: theme.textTheme.bodyLarge
-                  ?.merge(context.tokens.text.control)
-                  .copyWith(color: colors.textMeta),
-            ),
-          ],
+      body: ReadableBody(
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(AppIcons.settings, size: 56, color: colors.quoteRule),
+              const SizedBox(height: AppSpace.m),
+              Text(
+                context.l10n.settings_selectHint,
+                style: theme.textTheme.bodyLarge
+                    ?.merge(context.tokens.text.control)
+                    .copyWith(color: colors.textMeta),
+              ),
+            ],
+          ),
         ),
       ),
     );

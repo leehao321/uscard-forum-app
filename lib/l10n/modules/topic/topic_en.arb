@@ -6,6 +6,75 @@
   "leaderboard_great": "Great",
   "leaderboard_loginHint": "You may need to log in to see this list",
   "leaderboard_repliesCount": "{count} replies",
+  "topicDetail_menuAiSummary": "AI summary",
+  "topicDetail_menuNotes": "Notes",
+  "topicDetail_tocWithCount": "Contents ({n})",
+  "@topicDetail_tocWithCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_addProvider": "Add a provider",
+  "topic_aiCard_copied": "Copied",
+  "topic_aiCard_copy": "Copy",
+  "topic_aiCard_doneTitle": "AI summary · {n} posts",
+  "@topic_aiCard_doneTitle": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_empty": "Nothing to summarize in this part.",
+  "topic_aiCard_failed": "Summary failed.",
+  "topic_aiCard_failedHint": "Summary failed. Check your network and API settings, then retry.",
+  "topic_aiCard_floorsMore": "and {count} posts",
+  "@topic_aiCard_floorsMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_generating": "Generating",
+  "topic_aiCard_hide": "Hide",
+  "topic_aiCard_jumpTo": "Go to post {n}",
+  "@topic_aiCard_jumpTo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_loaded": "{n} posts loaded",
+  "@topic_aiCard_loaded": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_loading": "Summarizing {n} posts…",
+  "@topic_aiCard_loading": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_needsKey": "The selected provider has no API key yet.",
+  "topic_aiCard_noContent": "The model returned nothing. Please retry.",
+  "topic_aiCard_notConfigured": "No AI model is set up yet. Add one to summarize this part of the discussion.",
+  "topic_aiCard_openSettings": "Provider settings",
+  "topic_aiCard_regenerate": "Summarize again",
+  "topic_aiCard_retry": "Retry",
+  "topic_aiCard_start": "Summarize this part",
+  "topic_aiCard_stop": "Stop",
+  "topic_aiCard_title": "AI summary",
+  "topic_aiCard_truncated": "Long thread: only the first posts were summarized.",
+  "topic_aiCard_waiting": "Still waiting for the model…",
   "topic_backToBeforeJump": "Back to before the jump",
   "topic_backToLastRead": "Back to where I stopped",
   "topic_editCategoryBar": "Edit category bar",

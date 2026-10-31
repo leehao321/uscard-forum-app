@@ -134,7 +134,7 @@ class VideoOneboxBuilder {
                       style: const TextStyle(
                         color: AppFixedColors.white,
                         fontSize: AppFontSize.meta,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
@@ -152,7 +152,7 @@ class VideoOneboxBuilder {
                   Text(
                     title,
                     style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -316,7 +316,7 @@ class VideoOneboxBuilder {
                   Text(
                     title,
                     style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -487,7 +487,7 @@ class VideoOneboxBuilder {
                         style: TextStyle(
                           color: AppFixedColors.white,
                           fontSize: AppFontSize.caption,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ),
@@ -502,7 +502,7 @@ class VideoOneboxBuilder {
                   Text(
                     title,
                     style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,

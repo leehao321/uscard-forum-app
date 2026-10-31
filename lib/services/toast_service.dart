@@ -58,7 +58,10 @@ class _ToastSession {
 
   /// 来自下载/同步这类带进度的提示：长期占住主槽位，普通提示不顶掉它，
   /// 而是下移让位（见 ToastService._stacked）
-  final bool isProgress;
+  ///
+  /// 下载完成原位变成结果提示后，它就不再是进度提示了（M-15）：之后再来的普通
+  /// 提示应该接替它，而不是叠成两层。
+  bool isProgress;
 
   OverlayEntry? _entry;
   AnimationController? _controller;
@@ -175,6 +178,8 @@ class DownloadToastHandle {
     }
     final session = _session!;
     _detach();
+    session.isProgress = false;
+    ToastService._refreshProgressOnTop();
     session.data.value = _ToastData(
       kind: _kindOf(type),
       message: message,

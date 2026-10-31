@@ -63,6 +63,27 @@ class _PagedNotifications extends NotificationListNotifier {
   ];
 }
 
+/// 3 条回复 + 1 条徽章：切到「徽章」筛选后只剩 1 条，列表不满一屏
+class _MixedNotifications extends _PagedNotifications {
+  @override
+  Future<List<DiscourseNotification>> build() async {
+    resetPagingState();
+    final items = [
+      ..._PagedNotifications._repliesOnly(),
+      DiscourseNotification.fromJson({
+        'id': 99,
+        'user_id': 1,
+        'notification_type': NotificationType.grantedBadge.id,
+        'read': true,
+        'high_priority': false,
+        'created_at': fixtureTime(const Duration(hours: 9)),
+        'data': {'badge_name': '精彩的话题', 'badge_id': 20},
+      }),
+    ];
+    return completePagedRefresh(PagedPage(items: items, hasMore: true));
+  }
+}
+
 class _PagedHistory extends BrowsingHistoryNotifier {
   static int loadMoreCalls = 0;
 
@@ -121,6 +142,35 @@ void main() {
         findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('notification-load-earlier')));
+    await tester.pump();
+    expect(_PagedNotifications.loadMoreCalls, 1);
+    await _unmount(tester);
+  });
+
+  testUi('通知页：筛选后只剩一条、还有下一页时，列表尾部有手动「加载更早」按钮', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await pumpUi(
+      tester,
+      const NotificationsPage(),
+      overrides: <Override>[
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        currentUserProvider.overrideWith(_FakeUser.new),
+        systemUserAvatarTemplateProvider.overrideWith((ref) async => null),
+        notificationListProvider.overrideWith(_MixedNotifications.new),
+      ],
+      settle: false,
+    );
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.tap(find.text('徽章'));
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 300));
+    }
+    // 只剩 1 条匹配：不满一屏、滚动翻不了页；没有自动翻页，但有手动按钮
+    expect(_PagedNotifications.loadMoreCalls, 0);
+    final footer = find.byKey(const ValueKey('notification-load-earlier-footer'));
+    expect(footer, findsOneWidget);
+    await tester.tap(footer);
     await tester.pump();
     expect(_PagedNotifications.loadMoreCalls, 1);
     await _unmount(tester);

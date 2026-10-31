@@ -33,48 +33,52 @@ class MyBrowserPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.myBrowser_title)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // 地址栏
-          _AddressBar(onSubmit: (url) => _openUrl(context, url)),
-          const SizedBox(height: 24),
-          // 功能入口
-          SegmentedCardGroup(
-            children: [
-              _EntryTile(
-                icon: AppIcons.star,
-                iconColor: context.tokens.colors.brandPrimary,
-                title: context.l10n.myBrowser_bookmarks,
-                subtitle: context.l10n.myBrowser_bookmarkCount(bookmarkCount),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const _BookmarkListPage()),
+      body: ReadableBody(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // 地址栏
+            _AddressBar(onSubmit: (url) => _openUrl(context, url)),
+            const SizedBox(height: 24),
+            // 功能入口
+            SegmentedCardGroup(
+              children: [
+                _EntryTile(
+                  icon: AppIcons.star,
+                  iconColor: context.tokens.colors.brandPrimary,
+                  title: context.l10n.myBrowser_bookmarks,
+                  subtitle: context.l10n.myBrowser_bookmarkCount(bookmarkCount),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const _BookmarkListPage(),
+                    ),
+                  ),
                 ),
-              ),
-              _EntryTile(
-                icon: AppIcons.history,
-                iconColor: context.tokens.colors.brandPrimary,
-                title: context.l10n.myBrowser_history,
-                subtitle: context.l10n.myBrowser_historyDesc,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const _WebHistoryPage()),
+                _EntryTile(
+                  icon: AppIcons.history,
+                  iconColor: context.tokens.colors.brandPrimary,
+                  title: context.l10n.myBrowser_history,
+                  subtitle: context.l10n.myBrowser_historyDesc,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const _WebHistoryPage()),
+                  ),
                 ),
-              ),
-              _EntryTile(
-                icon: AppIcons.download,
-                iconColor: context.tokens.colors.brandPrimary,
-                title: context.l10n.myBrowser_downloads,
-                subtitle: context.l10n.myBrowser_downloadsDesc,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DownloadListPage()),
+                _EntryTile(
+                  icon: AppIcons.download,
+                  iconColor: context.tokens.colors.brandPrimary,
+                  title: context.l10n.myBrowser_downloads,
+                  subtitle: context.l10n.myBrowser_downloadsDesc,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const DownloadListPage()),
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -190,7 +194,7 @@ class _EntryTile extends StatelessWidget {
                     title,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontSize: AppFontSize.body,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -238,67 +242,70 @@ class _BookmarkListPage extends ConsumerWidget {
           ),
         ],
       ),
-      body: bookmarks.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    AppIcons.star,
-                    size: 64,
-                    color: theme.colorScheme.onSurfaceVariant.withValues(
-                      alpha: 0.4,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    context.l10n.myBrowser_empty,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : SwipeActionScope(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: bookmarks.length,
-                itemBuilder: (context, index) {
-                  final item = bookmarks[index];
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: index < bookmarks.length - 1 ? 12 : 0,
-                    ),
-                    child: SwipeActionCell(
-                      key: ValueKey(item.url),
-                      trailingActions: [
-                        SwipeAction(
-                          icon: AppIcons.edit,
-                          color: context.tokens.colors.brandButton,
-                          label: S.current.myBrowser_edit,
-                          onPressed: () => _showEditDialog(context, ref, item),
-                        ),
-                        SwipeAction(
-                          icon: AppIcons.delete,
-                          color: context.tokens.colors.textDestructive,
-                          label: S.current.myBrowser_delete,
-                          onPressed: () => _confirmDelete(context, ref, item),
-                        ),
-                      ],
-                      child: _BookmarkCard(
-                        item: item,
-                        onTap: () => WebViewPage.open(
-                          context,
-                          item.url,
-                          title: item.title,
-                        ),
+      body: ReadableBody(
+        child: bookmarks.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      AppIcons.star,
+                      size: 64,
+                      color: theme.colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.4,
                       ),
                     ),
-                  );
-                },
+                    const SizedBox(height: 16),
+                    Text(
+                      context.l10n.myBrowser_empty,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : SwipeActionScope(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: bookmarks.length,
+                  itemBuilder: (context, index) {
+                    final item = bookmarks[index];
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: index < bookmarks.length - 1 ? 12 : 0,
+                      ),
+                      child: SwipeActionCell(
+                        key: ValueKey(item.url),
+                        trailingActions: [
+                          SwipeAction(
+                            icon: AppIcons.edit,
+                            color: context.tokens.colors.brandButton,
+                            label: S.current.myBrowser_edit,
+                            onPressed: () =>
+                                _showEditDialog(context, ref, item),
+                          ),
+                          SwipeAction(
+                            icon: AppIcons.delete,
+                            color: context.tokens.colors.textDestructive,
+                            label: S.current.myBrowser_delete,
+                            onPressed: () => _confirmDelete(context, ref, item),
+                          ),
+                        ],
+                        child: _BookmarkCard(
+                          item: item,
+                          onTap: () => WebViewPage.open(
+                            context,
+                            item.url,
+                            title: item.title,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
+      ),
     );
   }
 
@@ -451,65 +458,67 @@ class _WebHistoryPage extends ConsumerWidget {
             ),
         ],
       ),
-      body: history.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    AppIcons.history,
-                    size: 64,
-                    color: theme.colorScheme.onSurfaceVariant.withValues(
-                      alpha: 0.4,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    context.l10n.myBrowser_historyEmpty,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : SwipeActionScope(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: history.length,
-                itemBuilder: (context, index) {
-                  final item = history[index];
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: index < history.length - 1 ? 12 : 0,
-                    ),
-                    child: SwipeActionCell(
-                      key: ValueKey(
-                        '${item.url}_${item.visitedAt.millisecondsSinceEpoch}',
-                      ),
-                      trailingActions: [
-                        SwipeAction(
-                          icon: AppIcons.delete,
-                          color: context.tokens.colors.textDestructive,
-                          label: S.current.myBrowser_delete,
-                          onPressed: () => ref
-                              .read(webHistoryProvider.notifier)
-                              .removeByUrl(item.url),
-                        ),
-                      ],
-                      child: _HistoryCard(
-                        item: item,
-                        onTap: () => WebViewPage.open(
-                          context,
-                          item.url,
-                          title: item.title,
-                        ),
+      body: ReadableBody(
+        child: history.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      AppIcons.history,
+                      size: 64,
+                      color: theme.colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.4,
                       ),
                     ),
-                  );
-                },
+                    const SizedBox(height: 16),
+                    Text(
+                      context.l10n.myBrowser_historyEmpty,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : SwipeActionScope(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: history.length,
+                  itemBuilder: (context, index) {
+                    final item = history[index];
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: index < history.length - 1 ? 12 : 0,
+                      ),
+                      child: SwipeActionCell(
+                        key: ValueKey(
+                          '${item.url}_${item.visitedAt.millisecondsSinceEpoch}',
+                        ),
+                        trailingActions: [
+                          SwipeAction(
+                            icon: AppIcons.delete,
+                            color: context.tokens.colors.textDestructive,
+                            label: S.current.myBrowser_delete,
+                            onPressed: () => ref
+                                .read(webHistoryProvider.notifier)
+                                .removeByUrl(item.url),
+                          ),
+                        ],
+                        child: _HistoryCard(
+                          item: item,
+                          onTap: () => WebViewPage.open(
+                            context,
+                            item.url,
+                            title: item.title,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
+      ),
     );
   }
 
@@ -579,7 +588,7 @@ class _HistoryCard extends StatelessWidget {
                   Text(
                     item.title.isNotEmpty ? item.title : item.url,
                     style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -661,7 +670,7 @@ class _BookmarkCard extends StatelessWidget {
                   Text(
                     item.title.isNotEmpty ? item.title : item.url,
                     style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

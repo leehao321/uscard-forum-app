@@ -36,354 +36,356 @@ class _UiGalleryPageState extends State<UiGalleryPage> {
     final tokens = context.tokens;
     return Scaffold(
       appBar: AppNavBar(title: context.l10n.about_uiGallery, showDivider: true),
-      body: ListView(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.paddingOf(context).bottom + AppSpace.x40,
-        ),
-        children: [
-          const _Header('颜色'),
-          _ColorSwatches(colors: tokens.colors),
-          const _Header('字号'),
-          const _TextSamples(),
-          const _Header('按钮'),
-          _Pad(
-            Wrap(
-              spacing: AppSpace.m,
-              runSpacing: AppSpace.m,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                FilledButton(onPressed: () {}, child: const Text('主要')),
-                FilledButton(
-                  style: AppButtonStyles.secondary(context),
-                  onPressed: () {},
-                  child: const Text('次要'),
-                ),
-                TextButton(onPressed: () {}, child: const Text('文字')),
-                FilledButton(
-                  style: AppButtonStyles.large,
-                  onPressed: () {},
-                  child: const Text('48 高'),
-                ),
-                const FilledButton(onPressed: null, child: Text('不可用')),
-              ],
-            ),
+      body: ReadableBody(
+        child: ListView(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.paddingOf(context).bottom + AppSpace.x40,
           ),
-          const _Header('开关 · 滑块 · 进度'),
-          SegmentedCardGroupPadding(
-            child: SegmentedCardGroup(
-              children: [
-                SwitchListTile.adaptive(
-                  title: const Text('开关'),
-                  value: _switch,
-                  onChanged: (v) => setState(() => _switch = v),
-                ),
-              ],
-            ),
-          ),
-          _Pad(
-            StepSlider(
-              value: _step,
-              count: 4,
-              labels: const ['小', '标准', '大', '特大'],
-              semanticLabel: '字号',
-              showTextSizeEnds: true,
-              onChanged: (v) => setState(() => _step = v),
-            ),
-          ),
-          const _Pad(LinearProgressIndicator(value: 0.4)),
-          const _Header('分类条 · 筛选胶囊'),
-          FilterTabs(
-            labels: const ['全部', '精彩', '难绷', '玩卡', '旅行', '理财', '败家', '生活'],
-            selectedIndex: _filter,
-            dividerAfter: 2,
-            onSelected: (i) => setState(() => _filter = i),
-          ),
-          _Pad(
-            Wrap(
-              spacing: AppSpace.s,
-              children: [
-                FilterPill(
-                  label: '相关度',
-                  selected: _pill,
-                  onTap: () => setState(() => _pill = !_pill),
-                ),
-                FilterPill(label: '不限时间', onTap: () {}),
-              ],
-            ),
-          ),
-          const _Header('头像 · 头像行'),
-          const _Pad(
-            Row(
-              children: [
-                LetterAvatar(name: 'bpllpb'),
-                SizedBox(width: AppSpace.m),
-                LetterAvatar(name: '陈一一', size: AppSize.avatarM),
-                SizedBox(width: AppSpace.m),
-                LetterAvatar(name: 'Lucasya', size: AppSize.avatarL),
-                SizedBox(width: AppSpace.m),
-                UnreadDot(),
-              ],
-            ),
-          ),
-          AvatarRow(
-            avatar: const LetterAvatar(name: 'Jason'),
-            title: const Text('Jason 回复了你：是不是只要手中有钱有时间就不会缺女生'),
-            meta: const Text('回复 · 9 小时前'),
-            unread: true,
-            readState: '未读',
-            onTap: () {},
-          ),
-          const AppHairline(indent: AvatarRow.separatorIndent),
-          AvatarRow(
-            avatar: const LetterAvatar(name: 'bossdao'),
-            title: const Text('bossdao 赞了你的帖子'),
-            meta: const Text('点赞 · 昨天'),
-            readState: '已读',
-            onTap: () {},
-          ),
-          const _Header('分组列表'),
-          SegmentedCardGroupPadding(
-            child: SegmentedCardGroup(
-              children: [
-                ListTile(
-                  leading: Icon(
-                    AppIcons.palette,
-                    color: tokens.colors.brandPrimary,
+          children: [
+            const _Header('颜色'),
+            _ColorSwatches(colors: tokens.colors),
+            const _Header('字号'),
+            const _TextSamples(),
+            const _Header('按钮'),
+            _Pad(
+              Wrap(
+                spacing: AppSpace.m,
+                runSpacing: AppSpace.m,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  FilledButton(onPressed: () {}, child: const Text('主要')),
+                  FilledButton(
+                    style: AppButtonStyles.secondary(context),
+                    onPressed: () {},
+                    child: const Text('次要'),
                   ),
-                  title: const Text('图标 + 值 + 箭头'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('默认'),
-                      const SizedBox(width: AppSpace.xs),
-                      Icon(
-                        AppIcons.chevronRight,
-                        size: AppSize.iconS,
-                        color: tokens.colors.textMeta,
-                      ),
-                    ],
+                  TextButton(onPressed: () {}, child: const Text('文字')),
+                  FilledButton(
+                    style: AppButtonStyles.large,
+                    onPressed: () {},
+                    child: const Text('48 高'),
                   ),
-                  onTap: () {},
-                ),
-                SwitchListTile.adaptive(
-                  title: const Text('无图标 + 副标题'),
-                  subtitle: const Text('副标题 13 meta'),
-                  value: _switch,
-                  onChanged: (v) => setState(() => _switch = v),
-                ),
-                for (var i = 0; i < 2; i++)
+                  const FilledButton(onPressed: null, child: Text('不可用')),
+                ],
+              ),
+            ),
+            const _Header('开关 · 滑块 · 进度'),
+            SegmentedCardGroupPadding(
+              child: SegmentedCardGroup(
+                children: [
+                  SwitchListTile.adaptive(
+                    title: const Text('开关'),
+                    value: _switch,
+                    onChanged: (v) => setState(() => _switch = v),
+                  ),
+                ],
+              ),
+            ),
+            _Pad(
+              StepSlider(
+                value: _step,
+                count: 4,
+                labels: const ['小', '标准', '大', '特大'],
+                semanticLabel: '字号',
+                showTextSizeEnds: true,
+                onChanged: (v) => setState(() => _step = v),
+              ),
+            ),
+            const _Pad(LinearProgressIndicator(value: 0.4)),
+            const _Header('分类条 · 筛选胶囊'),
+            FilterTabs(
+              labels: const ['全部', '精彩', '难绷', '玩卡', '旅行', '理财', '败家', '生活'],
+              selectedIndex: _filter,
+              dividerAfter: 2,
+              onSelected: (i) => setState(() => _filter = i),
+            ),
+            _Pad(
+              Wrap(
+                spacing: AppSpace.s,
+                children: [
+                  FilterPill(
+                    label: '相关度',
+                    selected: _pill,
+                    onTap: () => setState(() => _pill = !_pill),
+                  ),
+                  FilterPill(label: '不限时间', onTap: () {}),
+                ],
+              ),
+            ),
+            const _Header('头像 · 头像行'),
+            const _Pad(
+              Row(
+                children: [
+                  LetterAvatar(name: 'bpllpb'),
+                  SizedBox(width: AppSpace.m),
+                  LetterAvatar(name: '陈一一', size: AppSize.avatarM),
+                  SizedBox(width: AppSpace.m),
+                  LetterAvatar(name: 'Lucasya', size: AppSize.avatarL),
+                  SizedBox(width: AppSpace.m),
+                  UnreadDot(),
+                ],
+              ),
+            ),
+            AvatarRow(
+              avatar: const LetterAvatar(name: 'Jason'),
+              title: const Text('Jason 回复了你：是不是只要手中有钱有时间就不会缺女生'),
+              meta: const Text('回复 · 9 小时前'),
+              unread: true,
+              readState: '未读',
+              onTap: () {},
+            ),
+            const AppHairline(indent: AvatarRow.separatorIndent),
+            AvatarRow(
+              avatar: const LetterAvatar(name: 'bossdao'),
+              title: const Text('bossdao 赞了你的帖子'),
+              meta: const Text('点赞 · 昨天'),
+              readState: '已读',
+              onTap: () {},
+            ),
+            const _Header('分组列表'),
+            SegmentedCardGroupPadding(
+              child: SegmentedCardGroup(
+                children: [
                   ListTile(
-                    title: Text(i == 0 ? '单选 A' : '单选 B'),
-                    trailing: _radio == i
-                        ? Icon(
-                            AppIcons.check,
-                            size: AppSize.iconM,
-                            color: tokens.colors.brandPrimary,
-                          )
-                        : null,
-                    onTap: () => setState(() => _radio = i),
-                  ),
-                ListTile(
-                  title: Text(
-                    '危险操作',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: tokens.colors.textDestructive),
-                  ),
-                  onTap: () {},
-                ),
-              ],
-            ),
-          ),
-          const _Header('浮层'),
-          _Pad(
-            Wrap(
-              spacing: AppSpace.s,
-              runSpacing: AppSpace.s,
-              children: [
-                _GalleryButton('对话框', () => _showDialog(context)),
-                _GalleryButton('操作表', () => _showActionSheet(context)),
-                _GalleryButton(
-                  '本帖通知',
-                  () => showNotificationLevelSelectionSheet<int>(
-                    context: context,
-                    currentLevel: 2,
-                    options: [
-                      for (final (v, l, d) in const [
-                        (3, '关注', '每个新回复都通知'),
-                        (2, '跟踪', '显示未读数；被 @ 或被回复时通知'),
-                        (1, '常规', '只在被 @ 或被回复时通知'),
-                        (0, '静音', '不接收这个话题的任何通知'),
-                      ])
-                        NotificationLevelOption(
-                          value: v,
-                          icon: notificationLevelIcon(v),
-                          label: l,
-                          description: d,
-                        ),
-                    ],
-                    onSelected: (_) {},
-                  ),
-                ),
-                _GalleryButton(
-                  'Toast',
-                  () => ToastService.showSuccess('链接已复制'),
-                ),
-                _GalleryButton(
-                  '错误 Toast',
-                  () => ToastService.showError('没有连上论坛'),
-                ),
-                _GalleryButton('下载 Toast', _demoDownload),
-                AppMenuButton<int>(
-                  icon: AppIcons.moreHoriz,
-                  semanticLabel: '更多',
-                  sectionsBuilder: (_) => [
-                    const [
-                      AppMenuItem(
-                        label: '加入稍后阅读',
-                        value: 1,
-                        icon: AppIcons.bookmark,
-                      ),
-                      AppMenuItem(
-                        label: 'AI 总结',
-                        value: 2,
-                        icon: AppIcons.autoAwesome,
-                      ),
-                      AppMenuItem(
-                        label: '导出文章',
-                        icon: AppIcons.download,
-                        submenu: [
-                          [
-                            AppMenuItem(label: 'Markdown', value: 31),
-                            AppMenuItem(label: 'Notion', value: 32),
-                          ],
-                        ],
-                      ),
-                    ],
-                    const [
-                      AppMenuItem(label: '最新', value: 4, checked: true),
-                      AppMenuItem(
-                        label: '举报',
-                        value: 5,
-                        icon: AppIcons.flag,
-                        destructive: true,
-                      ),
-                    ],
-                  ],
-                  onSelected: (v) => ToastService.showInfo('选了 $v'),
-                ),
-              ],
-            ),
-          ),
-          _Pad(
-            LiftedContextMenu<int>(
-              sectionsBuilder: (_) => const [
-                [
-                  AppMenuItem(label: '回复这层', value: 1, icon: AppIcons.reply),
-                  AppMenuItem(label: '复制文字', value: 2, icon: AppIcons.copy),
-                ],
-                [
-                  AppMenuItem(
-                    label: '举报',
-                    value: 3,
-                    icon: AppIcons.flag,
-                    destructive: true,
-                  ),
-                ],
-              ],
-              onSelected: (v) => ToastService.showInfo('选了 $v'),
-              child: Container(
-                padding: const EdgeInsets.all(AppSpace.m),
-                decoration: BoxDecoration(
-                  color: tokens.colors.surfaceGrouped,
-                  borderRadius: BorderRadius.circular(tokens.radius.card),
-                ),
-                child: const Text('长按这里：浮起 + 上下文菜单'),
-              ),
-            ),
-          ),
-          const _Header('加载 · 空 / 错'),
-          WaitingHint(label: context.l10n.common_waitingForForum),
-          const SizedBox(height: 240, child: TopicListSkeleton()),
-          SizedBox(
-            height: 260,
-            child: ErrorView(
-              error: Exception('gallery'),
-              onRetry: () {},
-              showDetails: false,
-            ),
-          ),
-          const SizedBox(
-            height: 220,
-            child: AppStateView(
-              icon: AppIcons.bookmark,
-              title: '还没有书签',
-              message: '在帖子底部或工具栏点书签图标即可收藏',
-            ),
-          ),
-          PagedListFooter(
-            hasMore: true,
-            isLoadingMore: false,
-            isLoadMoreFailed: true,
-            onRetry: () {},
-          ),
-          PagedListFooter(
-            hasMore: false,
-            isLoadingMore: false,
-            isLoadMoreFailed: false,
-            onRetry: () {},
-          ),
-          const _Header('左滑操作'),
-          SwipeActions(
-            actions: [
-              SwipeActionItem(
-                label: '书签',
-                icon: AppIcons.bookmark,
-                background: tokens.colors.avatarFill,
-                foreground: tokens.colors.textPrimary,
-                onTap: () => ToastService.showInfo('书签'),
-              ),
-              SwipeActionItem(
-                label: '标为已读',
-                icon: AppIcons.checkAll,
-                onTap: () => ToastService.showInfo('标为已读'),
-              ),
-            ],
-            child: ColoredBox(
-              color: tokens.colors.surfacePage,
-              child: const Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppSpace.pageMargin,
-                  vertical: AppSpace.m,
-                ),
-                child: Text('向左滑这一行'),
-              ),
-            ),
-          ),
-          const _Header('Tab 胶囊 · 搜索胶囊'),
-          _Pad(
-            Row(
-              children: [
-                FloatingTabBar(
-                  items: const [
-                    FloatingTabItem(icon: AppIcons.home, label: '首页'),
-                    FloatingTabItem(
-                      icon: AppIcons.notification,
-                      label: '通知',
-                      showDot: true,
+                    leading: Icon(
+                      AppIcons.palette,
+                      color: tokens.colors.brandPrimary,
                     ),
-                    FloatingTabItem(icon: AppIcons.person, label: '我的'),
+                    title: const Text('图标 + 值 + 箭头'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('默认'),
+                        const SizedBox(width: AppSpace.xs),
+                        Icon(
+                          AppIcons.chevronRight,
+                          size: AppSize.iconS,
+                          color: tokens.colors.textMeta,
+                        ),
+                      ],
+                    ),
+                    onTap: () {},
+                  ),
+                  SwitchListTile.adaptive(
+                    title: const Text('无图标 + 副标题'),
+                    subtitle: const Text('副标题 13 meta'),
+                    value: _switch,
+                    onChanged: (v) => setState(() => _switch = v),
+                  ),
+                  for (var i = 0; i < 2; i++)
+                    ListTile(
+                      title: Text(i == 0 ? '单选 A' : '单选 B'),
+                      trailing: _radio == i
+                          ? Icon(
+                              AppIcons.check,
+                              size: AppSize.iconM,
+                              color: tokens.colors.brandPrimary,
+                            )
+                          : null,
+                      onTap: () => setState(() => _radio = i),
+                    ),
+                  ListTile(
+                    title: Text(
+                      '危险操作',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: tokens.colors.textDestructive),
+                    ),
+                    onTap: () {},
+                  ),
+                ],
+              ),
+            ),
+            const _Header('浮层'),
+            _Pad(
+              Wrap(
+                spacing: AppSpace.s,
+                runSpacing: AppSpace.s,
+                children: [
+                  _GalleryButton('对话框', () => _showDialog(context)),
+                  _GalleryButton('操作表', () => _showActionSheet(context)),
+                  _GalleryButton(
+                    '本帖通知',
+                    () => showNotificationLevelSelectionSheet<int>(
+                      context: context,
+                      currentLevel: 2,
+                      options: [
+                        for (final (v, l, d) in const [
+                          (3, '关注', '每个新回复都通知'),
+                          (2, '跟踪', '显示未读数；被 @ 或被回复时通知'),
+                          (1, '常规', '只在被 @ 或被回复时通知'),
+                          (0, '静音', '不接收这个话题的任何通知'),
+                        ])
+                          NotificationLevelOption(
+                            value: v,
+                            icon: notificationLevelIcon(v),
+                            label: l,
+                            description: d,
+                          ),
+                      ],
+                      onSelected: (_) {},
+                    ),
+                  ),
+                  _GalleryButton(
+                    'Toast',
+                    () => ToastService.showSuccess('链接已复制'),
+                  ),
+                  _GalleryButton(
+                    '错误 Toast',
+                    () => ToastService.showError('没有连上论坛'),
+                  ),
+                  _GalleryButton('下载 Toast', _demoDownload),
+                  AppMenuButton<int>(
+                    icon: AppIcons.moreHoriz,
+                    semanticLabel: '更多',
+                    sectionsBuilder: (_) => [
+                      const [
+                        AppMenuItem(
+                          label: '加入稍后阅读',
+                          value: 1,
+                          icon: AppIcons.bookmark,
+                        ),
+                        AppMenuItem(
+                          label: 'AI 总结',
+                          value: 2,
+                          icon: AppIcons.autoAwesome,
+                        ),
+                        AppMenuItem(
+                          label: '导出文章',
+                          icon: AppIcons.download,
+                          submenu: [
+                            [
+                              AppMenuItem(label: 'Markdown', value: 31),
+                              AppMenuItem(label: 'Notion', value: 32),
+                            ],
+                          ],
+                        ),
+                      ],
+                      const [
+                        AppMenuItem(label: '最新', value: 4, checked: true),
+                        AppMenuItem(
+                          label: '举报',
+                          value: 5,
+                          icon: AppIcons.flag,
+                          destructive: true,
+                        ),
+                      ],
+                    ],
+                    onSelected: (v) => ToastService.showInfo('选了 $v'),
+                  ),
+                ],
+              ),
+            ),
+            _Pad(
+              LiftedContextMenu<int>(
+                sectionsBuilder: (_) => const [
+                  [
+                    AppMenuItem(label: '回复这层', value: 1, icon: AppIcons.reply),
+                    AppMenuItem(label: '复制文字', value: 2, icon: AppIcons.copy),
                   ],
-                  currentIndex: _tab,
-                  onTap: (i) => setState(() => _tab = i),
+                  [
+                    AppMenuItem(
+                      label: '举报',
+                      value: 3,
+                      icon: AppIcons.flag,
+                      destructive: true,
+                    ),
+                  ],
+                ],
+                onSelected: (v) => ToastService.showInfo('选了 $v'),
+                child: Container(
+                  padding: const EdgeInsets.all(AppSpace.m),
+                  decoration: BoxDecoration(
+                    color: tokens.colors.surfaceGrouped,
+                    borderRadius: BorderRadius.circular(tokens.radius.card),
+                  ),
+                  child: const Text('长按这里：浮起 + 上下文菜单'),
                 ),
-                const SizedBox(width: AppSpace.m),
-                Expanded(
-                  child: SearchCapsule(placeholder: '搜索话题', onTap: () {}),
+              ),
+            ),
+            const _Header('加载 · 空 / 错'),
+            WaitingHint(label: context.l10n.common_waitingForForum),
+            const SizedBox(height: 240, child: TopicListSkeleton()),
+            SizedBox(
+              height: 260,
+              child: ErrorView(
+                error: Exception('gallery'),
+                onRetry: () {},
+                showDetails: false,
+              ),
+            ),
+            const SizedBox(
+              height: 220,
+              child: AppStateView(
+                icon: AppIcons.bookmark,
+                title: '还没有书签',
+                message: '在帖子底部或工具栏点书签图标即可收藏',
+              ),
+            ),
+            PagedListFooter(
+              hasMore: true,
+              isLoadingMore: false,
+              isLoadMoreFailed: true,
+              onRetry: () {},
+            ),
+            PagedListFooter(
+              hasMore: false,
+              isLoadingMore: false,
+              isLoadMoreFailed: false,
+              onRetry: () {},
+            ),
+            const _Header('左滑操作'),
+            SwipeActions(
+              actions: [
+                SwipeActionItem(
+                  label: '书签',
+                  icon: AppIcons.bookmark,
+                  background: tokens.colors.avatarFill,
+                  foreground: tokens.colors.textPrimary,
+                  onTap: () => ToastService.showInfo('书签'),
+                ),
+                SwipeActionItem(
+                  label: '标为已读',
+                  icon: AppIcons.checkAll,
+                  onTap: () => ToastService.showInfo('标为已读'),
                 ),
               ],
+              child: ColoredBox(
+                color: tokens.colors.surfacePage,
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSpace.pageMargin,
+                    vertical: AppSpace.m,
+                  ),
+                  child: Text('向左滑这一行'),
+                ),
+              ),
             ),
-          ),
-        ],
+            const _Header('Tab 胶囊 · 搜索胶囊'),
+            _Pad(
+              Row(
+                children: [
+                  FloatingTabBar(
+                    items: const [
+                      FloatingTabItem(icon: AppIcons.home, label: '首页'),
+                      FloatingTabItem(
+                        icon: AppIcons.notification,
+                        label: '通知',
+                        showDot: true,
+                      ),
+                      FloatingTabItem(icon: AppIcons.person, label: '我的'),
+                    ],
+                    currentIndex: _tab,
+                    onTap: (i) => setState(() => _tab = i),
+                  ),
+                  const SizedBox(width: AppSpace.m),
+                  Expanded(
+                    child: SearchCapsule(placeholder: '搜索话题', onTap: () {}),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

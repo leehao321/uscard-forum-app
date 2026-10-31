@@ -483,7 +483,7 @@ class _PolicyWidgetState extends ConsumerState<_PolicyWidget> {
             Text(
               '$count',
               style: theme.textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w400,
                 color: active ? color : theme.colorScheme.onSurfaceVariant,
               ),
             ),

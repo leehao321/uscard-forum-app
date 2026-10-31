@@ -97,7 +97,7 @@ class NavEntryRegistry {
         selectedIconData: AppIcons.notification,
         label: (ctx) => ctx.l10n.nav_notifications,
         pageBuilder: (ctx, isActive) => const NotificationsPage(),
-        requiresLogin: true,
+        requiresLogin: false,
         defaultInBottomNav: true,
       ),
     ];

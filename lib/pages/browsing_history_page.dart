@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/search_filter.dart';
 import '../models/topic.dart';
 import '../navigation/nav_action_bus.dart';
@@ -113,7 +114,9 @@ class _BrowsingHistoryPageState extends ConsumerState<BrowsingHistoryPage> {
         : topic.lastReadPostNumber;
     // 宽屏进右栏,窄屏全屏 push——与草稿页同一套形态
     if (_canShowBothPanes) {
-      ref.read(selectedHistoryPaneProvider.notifier).select(
+      ref
+          .read(selectedHistoryPaneProvider.notifier)
+          .select(
             topicId: topic.id,
             initialTitle: topic.title,
             scrollToPostNumber: scrollToPostNumber,
@@ -219,19 +222,21 @@ class _BrowsingHistoryPageState extends ConsumerState<BrowsingHistoryPage> {
               showSearchFilterPanel(context, ref, SearchInType.seen),
           searchHint: context.l10n.browsingHistory_searchHint,
         ),
-        body: Stack(
-          children: [
-            // 使用 Offstage 保持列表存在但在搜索模式下隐藏，保留滚动位置
-            Offstage(
-              offstage: searchState.isSearchMode,
-              child: _buildTopicList(historyAsync),
-            ),
-            if (searchState.isSearchMode)
-              UserContentSearchView(
-                inType: SearchInType.seen,
-                emptySearchHint: context.l10n.browsingHistory_emptySearchHint,
+        body: ReadableBody(
+          child: Stack(
+            children: [
+              // 使用 Offstage 保持列表存在但在搜索模式下隐藏，保留滚动位置
+              Offstage(
+                offstage: searchState.isSearchMode,
+                child: _buildTopicList(historyAsync),
               ),
-          ],
+              if (searchState.isSearchMode)
+                UserContentSearchView(
+                  inType: SearchInType.seen,
+                  emptySearchHint: context.l10n.browsingHistory_emptySearchHint,
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -266,7 +271,11 @@ class _BrowsingHistoryPageState extends ConsumerState<BrowsingHistoryPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(AppIcons.history, size: 64, color: context.tokens.colors.textMeta),
+                  Icon(
+                    AppIcons.history,
+                    size: 64,
+                    color: context.tokens.colors.textMeta,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     context.l10n.browsingHistory_empty,
@@ -301,12 +310,29 @@ class _BrowsingHistoryPageState extends ConsumerState<BrowsingHistoryPage> {
             itemBuilder: (context, index) {
               if (index == entries.length) {
                 final notifier = ref.watch(browsingHistoryProvider.notifier);
-                return PagedListFooter(
+                final footer = PagedListFooter(
                   hasMore: notifier.hasMore,
                   isLoadingMore: notifier.isLoadingMore,
                   isLoadMoreFailed: notifier.isLoadMoreFailed,
                   onRetry: notifier.retryLoadMore,
                 );
+                // 屏蔽后只剩一两条、列表不满一屏时滚动翻不了页：手动按钮
+                if (visibleTopics.length < topics.length &&
+                    notifier.hasMore &&
+                    !notifier.isLoadingMore &&
+                    !notifier.isLoadMoreFailed) {
+                  return Column(
+                    children: [
+                      TextButton(
+                        key: const ValueKey('history-load-earlier-footer'),
+                        onPressed: _loadMore,
+                        child: Text(context.l10n.browsingHistory_loadEarlier),
+                      ),
+                      footer,
+                    ],
+                  );
+                }
+                return footer;
               }
               final entry = entries[index];
               final header = entry.header;

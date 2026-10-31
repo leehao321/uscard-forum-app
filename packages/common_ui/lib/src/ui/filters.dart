@@ -42,6 +42,8 @@ class _FilterTabsState extends State<FilterTabs> {
   @override
   void didUpdateWidget(FilterTabs oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // 标签变少时丢掉越界的 key，不留着没人用的 GlobalKey（L-5）
+    _keys.removeWhere((index, _) => index >= widget.labels.length);
     if (oldWidget.selectedIndex != widget.selectedIndex && widget.scrollable) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final ctx = _keys[widget.selectedIndex]?.currentContext;

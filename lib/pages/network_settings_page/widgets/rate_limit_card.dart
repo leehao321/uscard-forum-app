@@ -222,11 +222,7 @@ class _Header extends StatelessWidget {
   final String subtitle;
   final VoidCallback? onReset;
 
-  const _Header({
-    required this.title,
-    required this.subtitle,
-    this.onReset,
-  });
+  const _Header({required this.title, required this.subtitle, this.onReset});
 
   @override
   Widget build(BuildContext context) {
@@ -363,7 +359,11 @@ class _SliderTile extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 14),
-            child: Icon(icon, size: 22, color: theme.colorScheme.onSurfaceVariant),
+            child: Icon(
+              icon,
+              size: 22,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -400,7 +400,7 @@ class _SliderTile extends StatelessWidget {
               child: Text(
                 suffix != null ? '$value$suffix' : '$value',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                   color: theme.colorScheme.primary,
                 ),
                 textAlign: TextAlign.end,
@@ -419,7 +419,11 @@ class _RateLimitTriple {
   final int maxConcurrent;
   final int maxPerWindow;
   final int windowSeconds;
-  const _RateLimitTriple(this.maxConcurrent, this.maxPerWindow, this.windowSeconds);
+  const _RateLimitTriple(
+    this.maxConcurrent,
+    this.maxPerWindow,
+    this.windowSeconds,
+  );
 
   @override
   bool operator ==(Object other) =>

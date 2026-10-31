@@ -175,7 +175,7 @@ class _SpotlightWidgetState extends State<_SpotlightWidget>
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onInverseSurface,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                         height: 1.4,
                       ),
                     ),

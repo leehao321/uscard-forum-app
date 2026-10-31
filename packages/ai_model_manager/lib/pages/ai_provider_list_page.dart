@@ -44,7 +44,7 @@ class _AiProviderListPageState extends ConsumerState<AiProviderListPage> {
         ),
         actions: _buildAppBarActions(context, providers),
       ),
-      body: providers.isEmpty
+      body: ReadableBody(child: providers.isEmpty
           ? _buildEmpty(context)
           : _manageMode
               ? _ManageProviderList(
@@ -88,7 +88,7 @@ class _AiProviderListPageState extends ConsumerState<AiProviderListPage> {
                       ],
                     ],
                   ),
-                ),
+                )),
     );
   }
 

@@ -2840,7 +2840,7 @@ class _ChallengeFallbackOverlayState extends State<_ChallengeFallbackOverlay>
             l10n.cf_noChallengeTitle,
             textAlign: TextAlign.center,
             style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
               color: colorScheme.onSurface,
             ),
           ),
@@ -2899,7 +2899,7 @@ class _ChallengeFallbackOverlayState extends State<_ChallengeFallbackOverlay>
           title,
           textAlign: TextAlign.center,
           style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
             color: colorScheme.onSurface,
             letterSpacing: 0.1,
           ),

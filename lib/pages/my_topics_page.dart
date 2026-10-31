@@ -51,7 +51,14 @@ class _MyTopicsPageState extends ConsumerState<MyTopicsPage> {
   void dispose() {
     _scrollController.dispose();
     // 延迟清理搜索状态，避免在 widget tree finalizing 期间修改 provider
-    Future(_searchNotifier.exitSearchMode);
+    Future(() {
+      // 页面退出后 autoDispose 的搜索状态可能已经先销毁，再写 state 会抛 StateError
+      try {
+        _searchNotifier.exitSearchMode();
+      } on StateError {
+        // 已销毁，不用再清
+      }
+    });
     super.dispose();
   }
 
@@ -143,19 +150,21 @@ class _MyTopicsPageState extends ConsumerState<MyTopicsPage> {
               showSearchFilterPanel(context, ref, SearchInType.created),
           searchHint: context.l10n.myTopics_searchHint,
         ),
-        body: Stack(
-          children: [
-            // 使用 Offstage 保持列表存在但在搜索模式下隐藏，保留滚动位置
-            Offstage(
-              offstage: searchState.isSearchMode,
-              child: _buildTopicList(myTopicsAsync),
-            ),
-            if (searchState.isSearchMode)
-              UserContentSearchView(
-                inType: SearchInType.created,
-                emptySearchHint: context.l10n.myTopics_emptySearchHint,
+        body: ReadableBody(
+          child: Stack(
+            children: [
+              // 使用 Offstage 保持列表存在但在搜索模式下隐藏，保留滚动位置
+              Offstage(
+                offstage: searchState.isSearchMode,
+                child: _buildTopicList(myTopicsAsync),
               ),
-          ],
+              if (searchState.isSearchMode)
+                UserContentSearchView(
+                  inType: SearchInType.created,
+                  emptySearchHint: context.l10n.myTopics_emptySearchHint,
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -196,7 +205,8 @@ class _MyTopicsPageState extends ConsumerState<MyTopicsPage> {
 
           return ListView.builder(
             controller: _scrollController,
-            padding: const EdgeInsets.all(12),
+            // 行自带左右 20 边距：外层不再叠加（M-6）
+            padding: const EdgeInsets.only(top: 8, bottom: 24),
             itemCount: topics.length + 1,
             itemBuilder: (context, index) {
               if (index == topics.length) {

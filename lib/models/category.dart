@@ -21,6 +21,9 @@ class Category {
   final int? permission; // 0 = full, 1 = create/reply, 2 = reply only, 3 = see
   final int? notificationLevel; // 0=muted, 1=regular, 2=tracking, 3=watching
 
+  /// 话题数（site.json 的分类里自带 `topic_count`；站点没下发就是 null，界面不显示）
+  final int? topicCount;
+
   /// post-voting(问答)插件分类字段:新话题默认勾选问答模式
   final bool createAsPostVotingDefault;
 
@@ -58,6 +61,7 @@ class Category {
     this.allowGlobalTags = true,
     this.permission,
     this.notificationLevel,
+    this.topicCount,
     this.createAsPostVotingDefault = false,
     this.onlyPostVotingInThisCategory = false,
     this.hasPostVotingFields = false,
@@ -96,6 +100,9 @@ class Category {
       allowGlobalTags: json['allow_global_tags'] as bool? ?? true,
       permission: json['permission'] as int?,
       notificationLevel: json['notification_level'] as int?,
+      topicCount: json['topic_count'] is num
+          ? (json['topic_count'] as num).toInt()
+          : null,
       createAsPostVotingDefault:
           json['create_as_post_voting_default'] as bool? ?? false,
       onlyPostVotingInThisCategory:

@@ -23,6 +23,7 @@ import 'quote_selection_helper.dart';
 import 'render_parse_cache.dart';
 import 'widgets/post_footer_section/post_footer_section.dart';
 import 'widgets/post_header_section.dart';
+import 'post_menu_controller.dart';
 import 'widgets/post_segment_frame.dart';
 
 /// 新引擎长帖分段数据(chunk 切分 eager,单 chunk 解析 lazy)。
@@ -346,9 +347,13 @@ class NewEngineChunkSegment extends ConsumerWidget {
         selected: selected,
         highlight: highlight,
         showBottomBorder: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: content,
+        // 长按空白处浮起整层并弹出楼层菜单（正文里长按仍是选字）
+        child: PostLongPressMenu(
+          controller: PostMenuRegistry.of(post.id),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: content,
+          ),
         ),
       ),
     );
@@ -389,8 +394,12 @@ class LongPostHeaderSegment extends ConsumerWidget {
   /// 头像长按菜单「@用户」回调（null = 不可回复，菜单不显示该项）
   final void Function(String username)? onMentionUser;
 
+  /// 登记楼层长按菜单的隐形页脚（`LongPostFooterSegment(menuOnly: true)`）
+  final Widget? menuHost;
+
   const LongPostHeaderSegment({
     super.key,
+    this.menuHost,
     required this.post,
     required this.topicId,
     required this.selected,
@@ -439,16 +448,25 @@ class LongPostHeaderSegment extends ConsumerWidget {
       topDateSeparatorLabel: dateSeparatorLabel,
       showDivider: showDivider,
       showBottomBorder: false,
-      child: PostHeaderSection(
-        post: post,
-        topicId: topicId,
-        isTopicOwner: isTopicOwner,
-        showStamp: post.acceptedAnswer,
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-        onJumpToPost: onJumpToPost,
-        onMentionUser: onMentionUser,
-        danmakuActive: danmakuActive,
-        onToggleDanmaku: onToggleDanmaku,
+      child: PostLongPressMenu(
+        controller: PostMenuRegistry.of(post.id),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            PostHeaderSection(
+              post: post,
+              topicId: topicId,
+              isTopicOwner: isTopicOwner,
+              showStamp: post.acceptedAnswer,
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+              onJumpToPost: onJumpToPost,
+              onMentionUser: onMentionUser,
+              danmakuActive: danmakuActive,
+              onToggleDanmaku: onToggleDanmaku,
+            ),
+            ?menuHost,
+          ],
+        ),
       ),
     );
   }
@@ -488,8 +506,12 @@ class LongPostFooterSegment extends ConsumerWidget {
   /// 话题 closed/archived(问答投票禁投判定)
   final bool topicClosed;
 
+  /// 只登记楼层长按菜单、不画页脚：放在头部段里，页脚还没滚进来时也有菜单
+  final bool menuOnly;
+
   const LongPostFooterSegment({
     super.key,
+    this.menuOnly = false,
     required this.post,
     required this.topicId,
     this.categoryId,
@@ -519,6 +541,32 @@ class LongPostFooterSegment extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     FrameJankMonitor.noteBuild('ftr#${post.postNumber}');
+    if (menuOnly) {
+      return PostFooterSection(
+        post: post,
+        topicId: topicId,
+        topicHasAcceptedAnswer: topicHasAcceptedAnswer,
+        acceptedAnswers: acceptedAnswers,
+        padding: EdgeInsets.zero,
+        onReply: onReply,
+        onEdit: onEdit,
+        onShareAsImage: onShareAsImage,
+        onQuotePost: onQuotePost,
+        onRefreshPost: onRefreshPost,
+        onJumpToPost: onJumpToPost,
+        onSolutionChanged: onSolutionChanged,
+        useReplyDialog: useReplyDialog,
+        topicTitle: topicTitle,
+        isPrivateMessageTopic: isPrivateMessageTopic,
+        isPmWithNonHumanUser: isPmWithNonHumanUser,
+        onShowPostDetail: onShowPostDetail,
+        isPostVotingTopic: isPostVotingTopic,
+        topicClosed: topicClosed,
+        menuController: PostMenuRegistry.of(post.id),
+        menuOnly: true,
+        shared: PostMenuRegistry.sharedOf(post.id),
+      );
+    }
     // 与首 chunk 弹幕层同判定:弹幕实际在显示时才隐藏 footer 的 boost
     // 气泡列表(danmakuActive 传给 PostFooterSection/_buildBoostArea)。
     final danmakuPref = ref.watch(
@@ -581,6 +629,7 @@ class LongPostFooterSegment extends ConsumerWidget {
             opTopSlot: opTopSlot,
             isPostVotingTopic: isPostVotingTopic,
             topicClosed: topicClosed,
+            shared: PostMenuRegistry.sharedOf(post.id),
           ),
         ],
       ),

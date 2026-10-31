@@ -101,7 +101,7 @@ class _CategoryShortcutItem extends ConsumerWidget {
                                 ? colorScheme.onSecondaryContainer
                                 : colorScheme.onSurfaceVariant,
                             fontWeight: isSelected
-                                ? FontWeight.w500
+                                ? FontWeight.w400
                                 : FontWeight.normal,
                           ),
                         ),

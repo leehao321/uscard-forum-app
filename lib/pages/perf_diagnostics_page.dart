@@ -47,9 +47,7 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
   }
 
   Future<void> _copy() async {
-    await Clipboard.setData(
-      ClipboardData(text: FrameJankMonitor.exportText()),
-    );
+    await Clipboard.setData(ClipboardData(text: FrameJankMonitor.exportText()));
     ToastService.showSuccess('诊断报告已复制');
   }
 
@@ -132,43 +130,43 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
           ),
         ],
       ),
-      body: ValueListenableBuilder<int>(
-        valueListenable: FrameJankMonitor.revision,
-        builder: (context, _, _) {
-          final janks = FrameJankMonitor.jankRecords;
-          final events = FrameJankMonitor.events;
-          // 合并时间轴,最新在前
-          final entries = <(_EntryKind, DateTime, Widget)>[
-            for (final j in janks)
-              (_EntryKind.jank, j.time, _jankTile(theme, j)),
-            for (final e in events)
-              (_EntryKind.event, e.time, _eventTile(theme, e)),
-          ]..sort((a, b) => b.$2.compareTo(a.$2));
+      body: ReadableBody(
+        child: ValueListenableBuilder<int>(
+          valueListenable: FrameJankMonitor.revision,
+          builder: (context, _, _) {
+            final janks = FrameJankMonitor.jankRecords;
+            final events = FrameJankMonitor.events;
+            // 合并时间轴,最新在前
+            final entries = <(_EntryKind, DateTime, Widget)>[
+              for (final j in janks)
+                (_EntryKind.jank, j.time, _jankTile(theme, j)),
+              for (final e in events)
+                (_EntryKind.event, e.time, _eventTile(theme, e)),
+            ]..sort((a, b) => b.$2.compareTo(a.$2));
 
-          return ListView(
-            padding: const EdgeInsets.all(AppSpace.pageMargin),
-            children: [
-              _summaryCard(theme),
-              const SizedBox(height: AppSpace.m),
-              if (entries.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 48),
-                  child: Center(
-                    child: Text(
-                      FrameJankMonitor.isRunning
-                          ? '暂无掉帧记录,去滚动几屏试试'
-                          : '监控未启用',
-                      style: theme.textTheme.bodyMedium
-                          ?.merge(tokens.text.control)
-                          .copyWith(color: tokens.colors.textMeta),
+            return ListView(
+              padding: const EdgeInsets.all(AppSpace.pageMargin),
+              children: [
+                _summaryCard(theme),
+                const SizedBox(height: AppSpace.m),
+                if (entries.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 48),
+                    child: Center(
+                      child: Text(
+                        FrameJankMonitor.isRunning ? '暂无掉帧记录,去滚动几屏试试' : '监控未启用',
+                        style: theme.textTheme.bodyMedium
+                            ?.merge(tokens.text.control)
+                            .copyWith(color: tokens.colors.textMeta),
+                      ),
                     ),
-                  ),
-                )
-              else
-                ...entries.map((e) => e.$3),
-            ],
-          );
-        },
+                  )
+                else
+                  ...entries.map((e) => e.$3),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -183,11 +181,11 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
     final metaStyle = theme.textTheme.bodySmall
         ?.merge(tokens.text.meta)
         .copyWith(color: tokens.colors.textMeta);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: tokens.colors.surfaceGrouped,
-        borderRadius: BorderRadius.circular(tokens.radius.card),
-      ),
+    // 用 Material 而不是 DecoratedBox：里面的 ListTile 在最近的 Material 上画底色和水波，
+    // 被带底色的 DecoratedBox 挡住会触发断言
+    return Material(
+      color: tokens.colors.surfaceGrouped,
+      borderRadius: BorderRadius.circular(tokens.radius.card),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
@@ -197,9 +195,7 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
               contentPadding: EdgeInsets.zero,
               title: const Text('启用监控'),
               subtitle: Text(
-                kReleaseMode
-                    ? '记录掉帧与场景事件(重启后保持)'
-                    : 'debug/profile 构建自动启用',
+                kReleaseMode ? '记录掉帧与场景事件(重启后保持)' : 'debug/profile 构建自动启用',
               ),
               value: FrameJankMonitor.isRunning,
               onChanged: _toggle,
@@ -237,10 +233,7 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
               style: metaStyle,
             ),
             const SizedBox(height: 4),
-            Text(
-              '现场抓取 ${JankProfiler.status}',
-              style: metaStyle,
-            ),
+            Text('现场抓取 ${JankProfiler.status}', style: metaStyle),
             if (_snapshotFile != null) ...[
               const SizedBox(height: 4),
               Row(
@@ -278,8 +271,7 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
       '${t.minute.toString().padLeft(2, '0')}:'
       '${t.second.toString().padLeft(2, '0')}';
 
-  String _fmtSnapshotTime(DateTime t) =>
-      '${t.month}/${t.day} ${_fmtTime(t)}';
+  String _fmtSnapshotTime(DateTime t) => '${t.month}/${t.day} ${_fmtTime(t)}';
 
   Widget _jankTile(ThemeData theme, JankRecord j) {
     final heavy = j.total.inMilliseconds >= 20;

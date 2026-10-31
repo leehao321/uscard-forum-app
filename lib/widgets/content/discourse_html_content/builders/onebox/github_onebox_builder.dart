@@ -79,7 +79,7 @@ class GithubOneboxBuilder {
                       child: Text(
                         repoName,
                         style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                           color: theme.colorScheme.primary,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -233,7 +233,7 @@ class GithubOneboxBuilder {
                           Text(
                             fileName,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
                               color: theme.colorScheme.primary,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -382,7 +382,7 @@ class GithubOneboxBuilder {
                 child: Text(
                   title,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                     color: theme.colorScheme.primary,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -554,7 +554,7 @@ class GithubOneboxBuilder {
           Text(
             title,
             style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -701,7 +701,7 @@ class GithubOneboxBuilder {
                         '+$additions',
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: AppRawColors.cFF238636,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -711,7 +711,7 @@ class GithubOneboxBuilder {
                         '-$deletions',
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: AppRawColors.cFFDA3633,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                   ],
@@ -723,7 +723,7 @@ class GithubOneboxBuilder {
           Text(
             title,
             style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -836,7 +836,7 @@ class GithubOneboxBuilder {
                       TextSpan(
                         text: authorName,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       TextSpan(
@@ -861,7 +861,7 @@ class GithubOneboxBuilder {
             Text(
               prTitle,
               style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
                 color: theme.colorScheme.primary,
               ),
               maxLines: 2,
@@ -964,7 +964,7 @@ class GithubOneboxBuilder {
                 Text(
                   message,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -1088,7 +1088,7 @@ class GithubOneboxBuilder {
                         Text(
                           title,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                             color: theme.colorScheme.primary,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -1187,7 +1187,7 @@ class GithubOneboxBuilder {
                 child: Text(
                   folderName,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                     color: theme.colorScheme.primary,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -1334,7 +1334,7 @@ class GithubOneboxBuilder {
                     Text(
                       workflowName,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),

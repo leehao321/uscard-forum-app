@@ -197,12 +197,17 @@ class _LiftedMenuBody<T> extends StatelessWidget {
       sourceRect: sourceRect,
       top: top,
       bottom: bottom,
+      left: padding.left,
+      right: padding.right,
       gap: gap,
       animation: animation,
       card: SizedBox(
         width: cardWidth,
         child: Material(
-          color: tokens.colors.surfacePage,
+          // 深色页面底是纯黑，卡片同色会和遮罩融在一起：深色下用分组底
+          color: tokens.brightness == Brightness.dark
+              ? tokens.colors.surfaceGrouped
+              : tokens.colors.surfacePage,
           borderRadius: BorderRadius.circular(tokens.radius.card),
           clipBehavior: Clip.antiAlias,
           // 卡片可能被截短：内容按原高度排版，多出的部分裁掉
@@ -225,6 +230,8 @@ class _LiftedLayout extends StatelessWidget {
     required this.sourceRect,
     required this.top,
     required this.bottom,
+    required this.left,
+    required this.right,
     required this.gap,
     required this.animation,
     required this.card,
@@ -234,6 +241,10 @@ class _LiftedLayout extends StatelessWidget {
   final Rect sourceRect;
   final double top;
   final double bottom;
+
+  /// 左右安全区（横屏刘海 / 灵动岛一侧）
+  final double left;
+  final double right;
   final double gap;
   final Animation<double> animation;
   final Widget card;
@@ -253,6 +264,8 @@ class _LiftedLayout extends StatelessWidget {
           sourceRect: sourceRect,
           top: top,
           bottom: bottom,
+          left: left,
+          right: right,
           gap: gap,
           t: curved.value,
           pageMargin: AppSpace.pageMargin,
@@ -288,6 +301,8 @@ class _LiftedLayoutDelegate extends MultiChildLayoutDelegate {
     required this.sourceRect,
     required this.top,
     required this.bottom,
+    required this.left,
+    required this.right,
     required this.gap,
     required this.t,
     required this.pageMargin,
@@ -296,14 +311,22 @@ class _LiftedLayoutDelegate extends MultiChildLayoutDelegate {
   final Rect sourceRect;
   final double top;
   final double bottom;
+  final double left;
+  final double right;
   final double gap;
   final double t;
   final double pageMargin;
 
   @override
   void performLayout(Size size) {
-    final menuSize = layoutChild(1, BoxConstraints.loose(size));
     final available = bottom - top;
+    // 卡片至少留 88；菜单最高只到「可用高 − 88 − 间距」，再高就在菜单里滚动，
+    // 不会掉出屏幕底部（横屏 440 高、2.0 倍字号都会遇到）
+    final maxMenu = math.max(0.0, available - 88.0 - gap);
+    final menuSize = layoutChild(
+      1,
+      BoxConstraints(maxWidth: size.width, maxHeight: maxMenu),
+    );
     // 卡片最多占到「可用高 − 菜单 − 间距」，至少留 88（两行正文）
     final maxCard = math.max(88.0, available - menuSize.height - gap);
     final cardSize = layoutChild(
@@ -326,11 +349,11 @@ class _LiftedLayoutDelegate extends MultiChildLayoutDelegate {
     );
     final menuTop = cardTop + cardSize.height + gap;
 
+    // 左右都让开安全区（横屏时一侧是刘海 / 灵动岛）
+    final minX = left + pageMargin;
+    final maxX = size.width - right - pageMargin;
     final cardLeft = sourceRect.left
-        .clamp(
-          pageMargin,
-          math.max(pageMargin, size.width - pageMargin - cardSize.width),
-        )
+        .clamp(minX, math.max(minX, maxX - cardSize.width))
         .toDouble();
     final animatedTop = sourceRect.top + (cardTop - sourceRect.top) * t;
     final animatedLeft = sourceRect.left + (cardLeft - sourceRect.left) * t;
@@ -338,10 +361,7 @@ class _LiftedLayoutDelegate extends MultiChildLayoutDelegate {
 
     // 菜单左缘对齐卡片左缘，超出右边距就往左收
     final menuLeft = cardLeft
-        .clamp(
-          pageMargin,
-          math.max(pageMargin, size.width - pageMargin - menuSize.width),
-        )
+        .clamp(minX, math.max(minX, maxX - menuSize.width))
         .toDouble();
     positionChild(1, Offset(menuLeft, menuTop));
   }
@@ -351,5 +371,7 @@ class _LiftedLayoutDelegate extends MultiChildLayoutDelegate {
       oldDelegate.t != t ||
       oldDelegate.sourceRect != sourceRect ||
       oldDelegate.top != top ||
-      oldDelegate.bottom != bottom;
+      oldDelegate.bottom != bottom ||
+      oldDelegate.left != left ||
+      oldDelegate.right != right;
 }

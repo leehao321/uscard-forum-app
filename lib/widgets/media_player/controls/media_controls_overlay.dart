@@ -1211,7 +1211,7 @@ class _FastForwardBadge extends StatelessWidget {
                       style: TextStyle(
                         color: MediaOverlayStyle.foreground,
                         fontSize: AppFontSize.meta,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     Icon(

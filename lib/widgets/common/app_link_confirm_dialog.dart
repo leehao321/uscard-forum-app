@@ -296,7 +296,7 @@ class _AppLinkBannerState extends State<_AppLinkBanner>
                                   widget.displayName,
                                 ),
                                 style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w600,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,

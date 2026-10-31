@@ -329,7 +329,7 @@ class _PostReactionUsersSheetState extends State<PostReactionUsersSheet> {
                     Text(
                       displayName,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

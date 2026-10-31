@@ -47,7 +47,7 @@ class CategoryTagsLine extends StatelessWidget {
       spans.add(
         TextSpan(
           text: category.name,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
       );
     }

@@ -97,175 +97,182 @@ class _NotesPageState extends State<NotesPage> {
     // 左滑删除（需确认）
     return Scaffold(
       backgroundColor: colors.surfacePage,
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            const AppNavBar(title: '我的笔记'),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpace.pageMargin,
-                AppSpace.xs,
-                AppSpace.pageMargin,
-                AppSpace.s,
-              ),
-              child: TextField(
-                onChanged: (v) => setState(() => _query = v),
-                style: theme.textTheme.bodyLarge
-                    ?.merge(tokens.text.control)
-                    .copyWith(color: colors.textPrimary),
-                cursorColor: colors.brandPrimary,
-                textInputAction: TextInputAction.search,
-                decoration: InputDecoration(
-                  hintText: '搜索标题、笔记和摘录',
-                  hintStyle: theme.textTheme.bodyLarge
+      body: ReadableBody(
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              const AppNavBar(title: '我的笔记'),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpace.pageMargin,
+                  AppSpace.xs,
+                  AppSpace.pageMargin,
+                  AppSpace.s,
+                ),
+                child: TextField(
+                  onChanged: (v) => setState(() => _query = v),
+                  style: theme.textTheme.bodyLarge
                       ?.merge(tokens.text.control)
-                      .copyWith(color: colors.textMeta),
-                  prefixIcon: Icon(
-                    AppIcons.search,
-                    size: AppSize.iconM,
-                    color: colors.textMeta,
-                  ),
-                  isDense: true,
-                  filled: true,
-                  fillColor: colors.surfaceGrouped,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: AppSpace.m,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(tokens.radius.field),
-                    borderSide: BorderSide.none,
+                      .copyWith(color: colors.textPrimary),
+                  cursorColor: colors.brandPrimary,
+                  textInputAction: TextInputAction.search,
+                  decoration: InputDecoration(
+                    hintText: '搜索标题、笔记和摘录',
+                    hintStyle: theme.textTheme.bodyLarge
+                        ?.merge(tokens.text.control)
+                        .copyWith(color: colors.textMeta),
+                    prefixIcon: Icon(
+                      AppIcons.search,
+                      size: AppSize.iconM,
+                      color: colors.textMeta,
+                    ),
+                    isDense: true,
+                    filled: true,
+                    fillColor: colors.surfaceGrouped,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: AppSpace.m,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(tokens.radius.field),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
               ),
-            ),
-            Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator.adaptive())
-                  : items.isEmpty
-                  ? AppStateView(
-                      icon: AppIcons.note,
-                      title: _all.isEmpty ? '还没有笔记' : '没有匹配的笔记',
-                      message: _all.isEmpty
-                          ? '在话题页右上角「更多」里选「笔记」，或长按楼层选「添加笔记」就能记录。'
-                          : null,
-                    )
-                  : ListView.builder(
-                      padding: EdgeInsets.only(
-                        bottom: MediaQuery.paddingOf(context).bottom,
-                      ),
-                      itemCount: items.length,
-                      itemBuilder: (context, i) {
-                        final n = items[i];
-                        final preview = n.text.trim().isNotEmpty
-                            ? n.text.trim()
-                            : n.floors.isNotEmpty
-                            ? n.floorNotes[n.floors.first]!.trim()
-                            : n.excerpts.first.text;
-                        final noteCount =
-                            n.floors.length + (n.text.trim().isEmpty ? 0 : 1);
-                        return Column(
-                          children: [
-                            SwipeActions(
-                              actions: [
-                                SwipeActionItem(
-                                  label: '删除',
-                                  icon: AppIcons.delete,
-                                  background: colors.textDestructive,
-                                  onTap: () => _confirmDelete(n),
-                                ),
-                              ],
-                              child: AppPressable(
-                                highlight: true,
-                                onTap: () => showTopicNoteSheet(
-                                  context,
-                                  topicId: n.topicId,
-                                  title: n.title,
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppSpace.pageMargin,
-                                    vertical: AppSpace.m,
+              Expanded(
+                child: _loading
+                    ? const Center(child: CircularProgressIndicator.adaptive())
+                    : items.isEmpty
+                    ? AppStateView(
+                        icon: AppIcons.note,
+                        title: _all.isEmpty ? '还没有笔记' : '没有匹配的笔记',
+                        message: _all.isEmpty
+                            ? '在话题页右上角「更多」里选「笔记」，或长按楼层选「添加笔记」就能记录。'
+                            : null,
+                      )
+                    : ListView.builder(
+                        padding: EdgeInsets.only(
+                          bottom: MediaQuery.paddingOf(context).bottom,
+                        ),
+                        itemCount: items.length,
+                        itemBuilder: (context, i) {
+                          final n = items[i];
+                          final preview = n.text.trim().isNotEmpty
+                              ? n.text.trim()
+                              : n.floors.isNotEmpty
+                              ? n.floorNotes[n.floors.first]!.trim()
+                              : n.excerpts.first.text;
+                          final noteCount =
+                              n.floors.length + (n.text.trim().isEmpty ? 0 : 1);
+                          return Column(
+                            children: [
+                              SwipeActions(
+                                actions: [
+                                  SwipeActionItem(
+                                    label: '删除',
+                                    icon: AppIcons.delete,
+                                    background: colors.textDestructive,
+                                    onTap: () => _confirmDelete(n),
                                   ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              n.title,
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: theme.textTheme.bodyLarge
-                                                  ?.merge(tokens.text.control)
-                                                  .copyWith(
-                                                    color: colors.textPrimary,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                            ),
-                                            const SizedBox(height: AppSpace.xs),
-                                            Text(
-                                              preview.replaceAll('\n', ' '),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: meta,
-                                            ),
-                                            const SizedBox(height: AppSpace.s),
-                                            Wrap(
-                                              spacing: AppSpace.s,
-                                              crossAxisAlignment:
-                                                  WrapCrossAlignment.center,
-                                              children: [
-                                                if (n.floors.isEmpty)
-                                                  Text('话题笔记', style: meta)
-                                                else
-                                                  for (final f in n.floors.take(
-                                                    3,
-                                                  ))
-                                                    GestureDetector(
-                                                      behavior: HitTestBehavior
-                                                          .opaque,
-                                                      onTap: () =>
-                                                          _openTopic(n, f),
-                                                      child: Text(
-                                                        '#$f',
-                                                        style: meta.copyWith(
-                                                          color: colors
-                                                              .brandPrimary,
+                                ],
+                                child: AppPressable(
+                                  highlight: true,
+                                  onTap: () => showTopicNoteSheet(
+                                    context,
+                                    topicId: n.topicId,
+                                    title: n.title,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: AppSpace.pageMargin,
+                                      vertical: AppSpace.m,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                n.title,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: theme.textTheme.bodyLarge
+                                                    ?.merge(tokens.text.control)
+                                                    .copyWith(
+                                                      color: colors.textPrimary,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                              ),
+                                              const SizedBox(
+                                                height: AppSpace.xs,
+                                              ),
+                                              Text(
+                                                preview.replaceAll('\n', ' '),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: meta,
+                                              ),
+                                              const SizedBox(
+                                                height: AppSpace.s,
+                                              ),
+                                              Wrap(
+                                                spacing: AppSpace.s,
+                                                crossAxisAlignment:
+                                                    WrapCrossAlignment.center,
+                                                children: [
+                                                  if (n.floors.isEmpty)
+                                                    Text('话题笔记', style: meta)
+                                                  else
+                                                    for (final f
+                                                        in n.floors.take(3))
+                                                      GestureDetector(
+                                                        behavior:
+                                                            HitTestBehavior
+                                                                .opaque,
+                                                        onTap: () =>
+                                                            _openTopic(n, f),
+                                                        child: Text(
+                                                          '#$f',
+                                                          style: meta.copyWith(
+                                                            color: colors
+                                                                .brandPrimary,
+                                                          ),
                                                         ),
                                                       ),
-                                                    ),
-                                                Text(
-                                                  '· $noteCount 条笔记'
-                                                  '${n.excerpts.isEmpty ? '' : ' · ${n.excerpts.length} 条摘录'}'
-                                                  ' · ${TimeUtils.formatRelativeTime(n.updatedAt)}',
-                                                  style: meta,
-                                                ),
-                                              ],
-                                            ),
-                                          ],
+                                                  Text(
+                                                    '· $noteCount 条笔记'
+                                                    '${n.excerpts.isEmpty ? '' : ' · ${n.excerpts.length} 条摘录'}'
+                                                    ' · ${TimeUtils.formatRelativeTime(n.updatedAt)}',
+                                                    style: meta,
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(width: AppSpace.s),
-                                      Icon(
-                                        AppIcons.chevronRight,
-                                        size: AppSize.iconM,
-                                        color: colors.textMeta,
-                                      ),
-                                    ],
+                                        const SizedBox(width: AppSpace.s),
+                                        Icon(
+                                          AppIcons.chevronRight,
+                                          size: AppSize.iconM,
+                                          color: colors.textMeta,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            const AppHairline(indent: AppSpace.pageMargin),
-                          ],
-                        );
-                      },
-                    ),
-            ),
-          ],
+                              const AppHairline(indent: AppSpace.pageMargin),
+                            ],
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );

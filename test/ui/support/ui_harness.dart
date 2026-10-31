@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:common_ui/common_ui.dart' show ReadableBody;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -218,6 +219,52 @@ Future<void> pumpUi(
     ),
   );
   if (settle) await tester.pumpAndSettle();
+}
+
+/// 手机横屏（短边 < 600、去掉左右安全区后宽 ≥ 640）：页面里最宽的竖向滚动区不超过
+/// 阅读列 640（计划 §7，`ReadableBody`）；竖屏和平板不做要求。
+void expectReadableBody(WidgetTester tester, UiVariant variant) {
+  final size = variant.device.size;
+  final padding = variant.device.padding;
+  if (size.shortestSide >= 600) return;
+  if (size.width - padding.left - padding.right < 640) return;
+  var widest = 0.0;
+  for (final element in find.byType(Scrollable).evaluate()) {
+    final scrollable = element.widget as Scrollable;
+    if (scrollable.axis != Axis.vertical) continue;
+    final box = element.renderObject as RenderBox?;
+    if (box == null || !box.hasSize) continue;
+    if (box.size.width > widest) widest = box.size.width;
+  }
+  // 没有竖向滚动区（空状态、错误态居中显示）：量 ReadableBody 本身的宽度
+  if (widest == 0) {
+    for (final element in find.byType(ReadableBody).evaluate()) {
+      final box = element.renderObject as RenderBox?;
+      if (box == null || !box.hasSize) continue;
+      // ReadableBody 是 Align + ConstrainedBox：量里面那层限宽盒
+      final inner = find
+          .descendant(
+            of: find.byWidget(element.widget),
+            matching: find.byType(ConstrainedBox),
+          )
+          .evaluate()
+          .map((e) => e.renderObject)
+          .whereType<RenderBox>()
+          .where((b) => b.hasSize)
+          .map((b) => b.size.width)
+          .fold<double>(0, (a, b) => b > a ? b : a);
+      // 里面最宽的限宽盒不超过 640，且确实有 ReadableBody 在（没套的页面此处为 0）
+      expect(inner, lessThanOrEqualTo(640), reason: '横屏正文列应限宽 640');
+      expect(box.size.width, greaterThan(0));
+    }
+    expect(
+      find.byType(ReadableBody),
+      findsWidgets,
+      reason: '没有竖向滚动区时，页面主体必须套 ReadableBody',
+    );
+    return;
+  }
+  expect(widest, lessThanOrEqualTo(640), reason: '横屏正文列应限宽 640');
 }
 
 /// 渲染过程中没有异常（RenderFlex 溢出等都会在这里暴露）

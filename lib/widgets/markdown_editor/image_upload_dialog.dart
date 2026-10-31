@@ -352,7 +352,7 @@ class _ImageUploadDialogState extends State<ImageUploadDialog> {
                           ),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -722,7 +722,7 @@ class _MultiImageUploadDialogState extends State<MultiImageUploadDialog> {
                             ),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],

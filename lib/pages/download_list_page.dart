@@ -102,83 +102,85 @@ class _DownloadListPageState extends ConsumerState<DownloadListPage> {
             ),
         ],
       ),
-      body: downloads.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    AppIcons.download,
-                    size: 64,
-                    color: theme.colorScheme.onSurfaceVariant.withValues(
-                      alpha: 0.4,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    context.l10n.myBrowser_downloadEmpty,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : SwipeActionScope(
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(16),
-                itemCount: downloads.length,
-                itemBuilder: (context, index) {
-                  final item = downloads[index];
-                  final isHighlighted = item.id == _highlightingId;
-
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: index < downloads.length - 1 ? 12 : 0,
-                    ),
-                    child: SwipeActionCell(
-                      key: ValueKey(item.id),
-                      trailingActions: [
-                        // Linux 上 share_plus 不支持分享文件,隐藏该动作
-                        if (item.status == DownloadItemStatus.completed &&
-                            ShareUtils.canShareFiles)
-                          SwipeAction(
-                            icon: AppIcons.share,
-                            color: context.tokens.colors.brandButton,
-                            label: S.current.common_share,
-                            onPressed: () => _shareFile(item),
-                          ),
-                        SwipeAction(
-                          icon: AppIcons.delete,
-                          color: context.tokens.colors.textDestructive,
-                          label: S.current.myBrowser_delete,
-                          onPressed: () => ref
-                              .read(downloadProvider.notifier)
-                              .removeById(item.id),
-                        ),
-                      ],
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 800),
-                        decoration: BoxDecoration(
-                          color: isHighlighted
-                              ? theme.colorScheme.primary.withValues(
-                                  alpha: 0.12,
-                                )
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: _DownloadCard(
-                          item: item,
-                          onTap: () => _handleTap(item),
-                          onLongPress: () => _showItemActions(item),
-                        ),
+      body: ReadableBody(
+        child: downloads.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      AppIcons.download,
+                      size: 64,
+                      color: theme.colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.4,
                       ),
                     ),
-                  );
-                },
+                    const SizedBox(height: 16),
+                    Text(
+                      context.l10n.myBrowser_downloadEmpty,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : SwipeActionScope(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: downloads.length,
+                  itemBuilder: (context, index) {
+                    final item = downloads[index];
+                    final isHighlighted = item.id == _highlightingId;
+
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: index < downloads.length - 1 ? 12 : 0,
+                      ),
+                      child: SwipeActionCell(
+                        key: ValueKey(item.id),
+                        trailingActions: [
+                          // Linux 上 share_plus 不支持分享文件,隐藏该动作
+                          if (item.status == DownloadItemStatus.completed &&
+                              ShareUtils.canShareFiles)
+                            SwipeAction(
+                              icon: AppIcons.share,
+                              color: context.tokens.colors.brandButton,
+                              label: S.current.common_share,
+                              onPressed: () => _shareFile(item),
+                            ),
+                          SwipeAction(
+                            icon: AppIcons.delete,
+                            color: context.tokens.colors.textDestructive,
+                            label: S.current.myBrowser_delete,
+                            onPressed: () => ref
+                                .read(downloadProvider.notifier)
+                                .removeById(item.id),
+                          ),
+                        ],
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 800),
+                          decoration: BoxDecoration(
+                            color: isHighlighted
+                                ? theme.colorScheme.primary.withValues(
+                                    alpha: 0.12,
+                                  )
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: _DownloadCard(
+                            item: item,
+                            onTap: () => _handleTap(item),
+                            onLongPress: () => _showItemActions(item),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
+      ),
     );
   }
 
@@ -371,7 +373,7 @@ class _DownloadCard extends StatelessWidget {
                   Text(
                     item.fileName,
                     style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

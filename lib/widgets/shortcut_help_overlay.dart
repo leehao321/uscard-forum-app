@@ -275,7 +275,7 @@ class _ShortcutEmptyState extends StatelessWidget {
           Text(
             title,
             style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
           ),
           if (query.trim().isNotEmpty) ...[

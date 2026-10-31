@@ -183,7 +183,7 @@ class TopicSummaryWidget extends ConsumerWidget {
               Text(
                 S.current.topic_aiSummary,
                 style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                   color: _c(theme).brandPrimary,
                 ),
               ),
@@ -570,7 +570,7 @@ class _CollapsibleTopicSummaryState
                           : S.current.topic_generateAiSummary,
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: _c(theme).brandPrimary,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(width: 4),

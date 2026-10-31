@@ -960,11 +960,16 @@ class _NestedPostCardState extends ConsumerState<NestedPostCard> {
         children: [
           Icon(AppIcons.addCircle, size: 14, color: theme.colorScheme.primary),
           const SizedBox(width: 4),
-          Text(
-            context.l10n.nested_repliesCount(_replyCount),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.w500,
+          // 大字号 + Semibold 时放不下就省略，不撑破 Row
+          Flexible(
+            child: Text(
+              context.l10n.nested_repliesCount(_replyCount),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -1164,11 +1169,16 @@ class _NestedPostCardState extends ConsumerState<NestedPostCard> {
             color: theme.colorScheme.primary,
           ),
           const SizedBox(width: 4),
-          Text(
-            context.l10n.nested_continueThread,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.w500,
+          // 大字号 + Semibold 时放不下就省略，不撑破 Row
+          Flexible(
+            child: Text(
+              context.l10n.nested_continueThread,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

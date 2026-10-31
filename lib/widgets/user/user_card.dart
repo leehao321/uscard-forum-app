@@ -798,7 +798,7 @@ class _UserCardContentState extends ConsumerState<_UserCardContent> {
             child: Text(
               displayName,
               style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 shadows: shadows,
               ),
               maxLines: 1,
@@ -911,7 +911,7 @@ class _UserCardContentState extends ConsumerState<_UserCardContent> {
               label,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: color,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -1064,7 +1064,7 @@ class _UserCardContentState extends ConsumerState<_UserCardContent> {
             text: value,
             style: theme.textTheme.bodySmall?.copyWith(
               color: valueColor ?? theme.colorScheme.onSurface,
-              fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+              fontWeight: bold ? FontWeight.w600 : FontWeight.w600,
             ),
           ),
         ],

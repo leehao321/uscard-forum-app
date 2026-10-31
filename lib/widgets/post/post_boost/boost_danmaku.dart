@@ -519,7 +519,7 @@ class _DanmakuItemState extends State<_DanmakuItem> {
                       '×${group.count}',
                       style: baseStyle.copyWith(
                         fontSize: AppFontSize.meta,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         color: widget.item.isHighlighted
                             ? highlightColor
                             : context.tokens.colors.brandPrimary,

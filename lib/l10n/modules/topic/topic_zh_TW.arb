@@ -6,6 +6,75 @@
   "leaderboard_great": "精彩",
   "leaderboard_loginHint": "登入後可能才能查看榜單",
   "leaderboard_repliesCount": "{count} 回覆",
+  "topicDetail_menuAiSummary": "AI 總結",
+  "topicDetail_menuNotes": "筆記",
+  "topicDetail_tocWithCount": "目錄（{n} 節）",
+  "@topicDetail_tocWithCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_addProvider": "去添加服務商",
+  "topic_aiCard_copied": "已複製",
+  "topic_aiCard_copy": "複製",
+  "topic_aiCard_doneTitle": "AI 總結 · {n} 層",
+  "@topic_aiCard_doneTitle": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_empty": "這一段沒有可總結的內容。",
+  "topic_aiCard_failed": "總結失敗。",
+  "topic_aiCard_failedHint": "總結失敗，請檢查網路和 API 配置後重試。",
+  "topic_aiCard_floorsMore": "等 {count} 樓",
+  "@topic_aiCard_floorsMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_generating": "正在生成",
+  "topic_aiCard_hide": "不再顯示",
+  "topic_aiCard_jumpTo": "跳到第 {n} 樓",
+  "@topic_aiCard_jumpTo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_loaded": "已載入 {n} 層",
+  "@topic_aiCard_loaded": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_loading": "正在總結 {n} 層…",
+  "@topic_aiCard_loading": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "topic_aiCard_needsKey": "所選服務商還沒有配置 API Key。",
+  "topic_aiCard_noContent": "模型沒有回傳內容，請重試。",
+  "topic_aiCard_notConfigured": "還沒有配置 AI 模型，配置後可以總結這一段討論。",
+  "topic_aiCard_openSettings": "查看服務商設定",
+  "topic_aiCard_regenerate": "重新總結",
+  "topic_aiCard_retry": "重試",
+  "topic_aiCard_start": "總結這一段",
+  "topic_aiCard_stop": "停止",
+  "topic_aiCard_title": "AI 總結",
+  "topic_aiCard_truncated": "內容較長，只總結了前面的部分樓層。",
+  "topic_aiCard_waiting": "還在等待模型回應…",
   "topic_backToBeforeJump": "回到跳轉前",
   "topic_backToLastRead": "回到上次閱讀位置",
   "topic_editCategoryBar": "編輯分類條",

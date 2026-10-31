@@ -202,7 +202,7 @@ class _BrowseContent extends ConsumerWidget {
             Text(
               S.current.category_myCategories,
               style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w400,
                 color: colorScheme.outline,
                 letterSpacing: 0.5,
               ),
@@ -258,7 +258,7 @@ class _BrowseContent extends ConsumerWidget {
         Text(
           S.current.category_allCategories,
           style: theme.textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w400,
             color: colorScheme.outline,
             letterSpacing: 0.5,
           ),
@@ -342,7 +342,7 @@ class _BrowseContent extends ConsumerWidget {
               category.name,
               style: const TextStyle(
                 fontSize: AppFontSize.meta,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ],
@@ -507,7 +507,7 @@ class _EditContent extends ConsumerWidget {
         Text(
           S.current.common_added,
           style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w400,
             color: colorScheme.onSurfaceVariant,
           ),
         ),
@@ -577,7 +577,7 @@ class _EditContent extends ConsumerWidget {
         Text(
           S.current.category_available,
           style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w400,
             color: colorScheme.onSurfaceVariant,
           ),
         ),
@@ -713,7 +713,7 @@ class _PinnedCategoryTile extends StatelessWidget {
                     category.name,
                     style: const TextStyle(
                       fontSize: AppFontSize.meta,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                   if (parentName != null)

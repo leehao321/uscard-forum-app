@@ -149,7 +149,7 @@ class SettingsRenderer extends ConsumerWidget {
             child: Text(
               '$value$suffix',
               style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
                 color: context.tokens.colors.brandPrimary,
               ),
               textAlign: TextAlign.end,

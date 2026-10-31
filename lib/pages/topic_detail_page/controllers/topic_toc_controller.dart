@@ -60,6 +60,9 @@ class TopicTocController extends ChangeNotifier {
 
   TocData? get tocData => _tocData;
   bool get hasToc => _tocData != null && _tocData!.flat.isNotEmpty;
+
+  /// 目录节数（⋮ 菜单「目录（N 节）」用）
+  int get entryCount => _tocData?.flat.length ?? 0;
   String? get activeHeadingId => _activeHeadingId;
   Set<String> get activeAncestorIds => _activeAncestorIds;
 
@@ -140,6 +143,7 @@ class TopicTocController extends ChangeNotifier {
     // 初次激活:不滚动不触发 spy,等帧后标题挂载先算一次
     WidgetsBinding.instance.addPostFrameCallback((_) => updateActiveHeading());
   }
+
   /// 测试入口:直接注入提取产物(绕过帖子解析)。
   @visibleForTesting
   void debugSetTocData(TocData data) => _apply(data);
@@ -187,12 +191,10 @@ class TopicTocController extends ChangeNotifier {
     if (viewport == null) return;
     final sc = detailController.scrollController;
     if (!sc.hasClients) return;
-    final target =
-        viewport.getOffsetToReveal(box, 0.0).offset - _topBuffer;
-    sc.jumpTo(target.clamp(
-      sc.position.minScrollExtent,
-      sc.position.maxScrollExtent,
-    ));
+    final target = viewport.getOffsetToReveal(box, 0.0).offset - _topBuffer;
+    sc.jumpTo(
+      target.clamp(sc.position.minScrollExtent, sc.position.maxScrollExtent),
+    );
   }
 
   /// 页面滚动回调里调用(内部 80ms 节流)。

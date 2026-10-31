@@ -320,7 +320,7 @@ class _CryptoAlgorithmPickerSheetState
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w600,
                   color: selected
                       ? theme.colorScheme.onPrimaryContainer
                       : theme.colorScheme.onSurface,
@@ -342,7 +342,7 @@ class _CryptoAlgorithmPickerSheetState
         label,
         style: theme.textTheme.labelSmall?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w400,
           letterSpacing: 0.5,
         ),
       ),
@@ -374,7 +374,7 @@ class _CryptoAlgorithmPickerSheetState
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight:
-                          selected ? FontWeight.w600 : FontWeight.w500,
+                          selected ? FontWeight.w600 : FontWeight.w600,
                       color: selected
                           ? theme.colorScheme.onPrimaryContainer
                           : theme.colorScheme.onSurface,

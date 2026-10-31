@@ -61,112 +61,114 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
     return Scaffold(
       backgroundColor: colors.surfacePage,
-      body: SafeArea(
-        child: Column(
-          children: [
-            AppNavBar(
-              automaticallyImplyLeading: false,
-              trailing: [
-                AppIconButton(
-                  icon: AppIcons.globe,
-                  semanticLabel: context.l10n.onboarding_networkSettings,
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const NetworkSettingsPage(),
+      body: ReadableBody(
+        child: SafeArea(
+          child: Column(
+            children: [
+              AppNavBar(
+                automaticallyImplyLeading: false,
+                trailing: [
+                  AppIconButton(
+                    icon: AppIcons.globe,
+                    semanticLabel: context.l10n.onboarding_networkSettings,
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const NetworkSettingsPage(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpace.pageMargin,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 440),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: AppSpace.xxl),
+                          const AppMark(size: 96),
+                          const SizedBox(height: AppSpace.xl),
+                          Semantics(
+                            header: true,
+                            child: Text(
+                              '美卡论坛',
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.headlineSmall
+                                  ?.merge(tokens.text.title)
+                                  .copyWith(color: colors.textPrimary),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpace.s),
+                          Text(
+                            context.l10n.onboarding_slogan,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodySmall
+                                ?.merge(tokens.text.meta)
+                                .copyWith(color: colors.textMeta),
+                          ),
+                          const SizedBox(height: AppSpace.x32),
+                          const _Point(
+                            icon: AppIcons.visibility,
+                            title: '不登录也能浏览',
+                            body: '公开话题可直接阅读，登录后才能回复和收藏。',
+                          ),
+                          const _Point(
+                            icon: AppIcons.globe,
+                            title: '连不上就先设置网络',
+                            body: '右上角可以配置代理或 DNS。',
+                          ),
+                          const _Point(
+                            icon: AppIcons.lock,
+                            title: '笔记和统计只在本机',
+                            body: '不会上传到论坛。',
+                          ),
+                          const SizedBox(height: AppSpace.l),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ],
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpace.pageMargin,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpace.pageMargin,
+                  AppSpace.s,
+                  AppSpace.pageMargin,
+                  AppSpace.l,
                 ),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 440),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: AppSpace.xxl),
-                        const AppMark(size: 96),
-                        const SizedBox(height: AppSpace.xl),
-                        Semantics(
-                          header: true,
-                          child: Text(
-                            '美卡论坛',
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.headlineSmall
-                                ?.merge(tokens.text.title)
-                                .copyWith(color: colors.textPrimary),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 440),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      FilledButton(
+                        onPressed: () => _navigateToLogin(context),
+                        style: large,
+                        child: Text(context.l10n.common_login),
+                      ),
+                      const SizedBox(height: AppSpace.xs),
+                      TextButton(
+                        onPressed: () => _continueAsGuest(context),
+                        style: TextButton.styleFrom(
+                          minimumSize: const Size(
+                            double.infinity,
+                            AppSize.replyButton,
                           ),
                         ),
-                        const SizedBox(height: AppSpace.s),
-                        Text(
-                          context.l10n.onboarding_slogan,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodySmall
-                              ?.merge(tokens.text.meta)
-                              .copyWith(color: colors.textMeta),
-                        ),
-                        const SizedBox(height: AppSpace.x32),
-                        const _Point(
-                          icon: AppIcons.visibility,
-                          title: '不登录也能浏览',
-                          body: '公开话题可直接阅读，登录后才能回复和收藏。',
-                        ),
-                        const _Point(
-                          icon: AppIcons.globe,
-                          title: '连不上就先设置网络',
-                          body: '右上角可以配置代理或 DNS。',
-                        ),
-                        const _Point(
-                          icon: AppIcons.lock,
-                          title: '笔记和统计只在本机',
-                          body: '不会上传到论坛。',
-                        ),
-                        const SizedBox(height: AppSpace.l),
-                      ],
-                    ),
+                        child: Text(context.l10n.onboarding_guestAccess),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpace.pageMargin,
-                AppSpace.s,
-                AppSpace.pageMargin,
-                AppSpace.l,
-              ),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 440),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    FilledButton(
-                      onPressed: () => _navigateToLogin(context),
-                      style: large,
-                      child: Text(context.l10n.common_login),
-                    ),
-                    const SizedBox(height: AppSpace.xs),
-                    TextButton(
-                      onPressed: () => _continueAsGuest(context),
-                      style: TextButton.styleFrom(
-                        minimumSize: const Size(
-                          double.infinity,
-                          AppSize.replyButton,
-                        ),
-                      ),
-                      child: Text(context.l10n.onboarding_guestAccess),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

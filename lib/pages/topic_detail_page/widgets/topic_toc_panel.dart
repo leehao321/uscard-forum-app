@@ -384,7 +384,7 @@ class _TocTile extends StatelessWidget {
       weight = FontWeight.w600;
     } else if (isAncestorActive) {
       textColor = scheme.primary.withValues(alpha: 0.75);
-      weight = FontWeight.w500;
+      weight = FontWeight.w400;
     } else {
       textColor = scheme.onSurfaceVariant;
       weight = FontWeight.w400;

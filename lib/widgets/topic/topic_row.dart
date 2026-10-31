@@ -247,12 +247,16 @@ class PinnedTopicRow extends StatelessWidget {
     required this.topic,
     required this.onTap,
     this.onLongPress,
+    this.onMiddleClick,
     this.isSelected = false,
   });
 
   final Topic topic;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
+
+  /// 桌面鼠标中键：新标签打开（和 [TopicRow] 一致）
+  final VoidCallback? onMiddleClick;
   final bool isSelected;
 
   @override
@@ -263,35 +267,49 @@ class PinnedTopicRow extends StatelessWidget {
         .merge(tokens.text.meta)
         .copyWith(color: colors.textMeta);
     final label = '${context.l10n.topic_pinnedLabel} · ${topic.title}';
+    Widget child = ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: AppSize.hit),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpace.pageMargin),
+        child: Row(
+          children: [
+            Icon(AppIcons.pushPin, size: 13, color: colors.textMeta),
+            const SizedBox(width: AppSpace.xs),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: style,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    // 双栏里当前打开的话题：和 TopicRow 一样的选中底色（L-2）
+    if (isSelected) {
+      child = ColoredBox(color: colors.surfaceGrouped, child: child);
+    }
     return Semantics(
       button: true,
+      selected: isSelected ? true : null,
       label: label,
       excludeSemantics: true,
-      child: AppPressable(
-        highlight: true,
-        onTap: onTap,
-        onLongPress: onLongPress,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: AppSize.hit),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpace.pageMargin,
-            ),
-            child: Row(
-              children: [
-                Icon(AppIcons.pushPin, size: 13, color: colors.textMeta),
-                const SizedBox(width: AppSpace.xs),
-                Expanded(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: style,
-                  ),
-                ),
-              ],
-            ),
-          ),
+      child: Listener(
+        onPointerDown: onMiddleClick == null
+            ? null
+            : (event) {
+                if (event.kind == PointerDeviceKind.mouse &&
+                    event.buttons == kMiddleMouseButton) {
+                  onMiddleClick!();
+                }
+              },
+        child: AppPressable(
+          highlight: true,
+          onTap: onTap,
+          onLongPress: onLongPress,
+          child: child,
         ),
       ),
     );

@@ -6,6 +6,8 @@ import 'package:app_icons/app_icons.dart';
 import 'package:chat_bottom_container/constants.dart';
 import 'package:chat_bottom_container/listener_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:fluxdo/models/user.dart';
+import 'package:fluxdo/providers/core_providers.dart';
 import 'package:dio/dio.dart';
 import 'package:fluxdo/services/discourse/discourse_service.dart';
 import 'package:fluxdo/widgets/common/tag_selection_sheet.dart';
@@ -46,6 +48,11 @@ import 'package:fluxdo_render/src/editor/widget/editor_caret.dart';
 import 'package:fluxdo_render/src/editor/widget/editor_table_grid.dart';
 import 'package:fluxdo_render/fluxdo_render.dart'
     show ImageRun, ImageGridNode, LinkRun, TextRun;
+
+class _NoCurrentUser extends CurrentUserNotifier {
+  @override
+  FutureOr<User?> build() => null;
+}
 
 Future<void> _pump(
   WidgetTester tester,
@@ -103,6 +110,10 @@ Future<void> _pump(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
+        // 不让编辑器去取 /u/tester.json：flutter test 里任何 HTTP 都返回 400，请求调度器
+        // 会带随机抖动地重试，重试定时器留在用例结尾，五个上传卡用例里每次随机有一个
+        // 撞上「卸载后仍有 Timer」
+        currentUserProvider.overrideWith(_NoCurrentUser.new),
         emojiGroupsProvider.overrideWith(
           (ref) => Stream.value(<String, List<Emoji>>{}),
         ),

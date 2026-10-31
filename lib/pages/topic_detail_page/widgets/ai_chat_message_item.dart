@@ -763,7 +763,7 @@ class _PartialBadge extends StatelessWidget {
             style: const TextStyle(
               color: AppFixedColors.white,
               fontSize: AppFontSize.caption,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ],

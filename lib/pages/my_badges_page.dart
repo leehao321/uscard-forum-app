@@ -98,68 +98,70 @@ class _MyBadgesPageState extends ConsumerState<MyBadgesPage> {
     return Scaffold(
       backgroundColor: colors.surfacePage,
       appBar: AppNavBar(title: context.l10n.myBadges_title),
-      body: _isLoading
-          ? const MyBadgesSkeleton()
-          : _error != null
-          ? ErrorView(
-              error: _error!,
-              stackTrace: _errorStack,
-              onRetry: _loadBadges,
-            )
-          : M3eRefreshIndicator(
-              onRefresh: _loadBadges,
-              child: CustomScrollView(
-                slivers: [
-                  if (all.isEmpty)
-                    SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: AppStateView(
-                        icon: AppIcons.medal,
-                        title: context.l10n.myBadges_empty,
+      body: ReadableBody(
+        child: _isLoading
+            ? const MyBadgesSkeleton()
+            : _error != null
+            ? ErrorView(
+                error: _error!,
+                stackTrace: _errorStack,
+                onRetry: _loadBadges,
+              )
+            : M3eRefreshIndicator(
+                onRefresh: _loadBadges,
+                child: CustomScrollView(
+                  slivers: [
+                    if (all.isEmpty)
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: AppStateView(
+                          icon: AppIcons.medal,
+                          title: context.l10n.myBadges_empty,
+                        ),
+                      )
+                    else ...[
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpace.pageMargin,
+                            AppSpace.l,
+                            AppSpace.pageMargin,
+                            AppSpace.s,
+                          ),
+                          child: Text(
+                            '${context.l10n.myBadges_totalEarned} · ${all.length}',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.merge(context.tokens.text.meta)
+                                .copyWith(color: colors.textMeta),
+                          ),
+                        ),
                       ),
-                    )
-                  else ...[
-                    SliverToBoxAdapter(
-                      child: Padding(
+                      SliverPadding(
                         padding: const EdgeInsets.fromLTRB(
                           AppSpace.pageMargin,
-                          AppSpace.l,
+                          0,
                           AppSpace.pageMargin,
-                          AppSpace.s,
+                          AppSpace.xxl,
                         ),
-                        child: Text(
-                          '${context.l10n.myBadges_totalEarned} · ${all.length}',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.merge(context.tokens.text.meta)
-                              .copyWith(color: colors.textMeta),
-                        ),
-                      ),
-                    ),
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpace.pageMargin,
-                        0,
-                        AppSpace.pageMargin,
-                        AppSpace.xxl,
-                      ),
-                      sliver: SliverGrid(
-                        gridDelegate:
-                            SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              mainAxisSpacing: AppSpace.s,
-                              crossAxisSpacing: AppSpace.s,
-                              mainAxisExtent: cardExtent,
-                            ),
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) => _buildBadgeItem(all[index]),
-                          childCount: all.length,
+                        sliver: SliverGrid(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                mainAxisSpacing: AppSpace.s,
+                                crossAxisSpacing: AppSpace.s,
+                                mainAxisExtent: cardExtent,
+                              ),
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) => _buildBadgeItem(all[index]),
+                            childCount: all.length,
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
+      ),
     );
   }
 

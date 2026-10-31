@@ -175,7 +175,7 @@ Widget buildPollStaticPreview({
                   child: Text(
                     title,
                     style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -496,7 +496,7 @@ class _PollWidgetState extends State<_PollWidget> {
               child: Text(
                 widget.title!,
                 style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -653,7 +653,7 @@ class _PollWidgetState extends State<_PollWidget> {
                   child: Text(
                     option.html.replaceAll(RegExp(r'<[^>]*>'), ''),
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: isUserVoted ? FontWeight.w500 : null,
+                      fontWeight: isUserVoted ? FontWeight.w600 : null,
                     ),
                   ),
                 ),
@@ -853,7 +853,7 @@ class _PollWidgetState extends State<_PollWidget> {
                           child: Text(
                             option.html.replaceAll(RegExp(r'<[^>]*>'), ''),
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: isUserVoted ? FontWeight.w500 : null,
+                              fontWeight: isUserVoted ? FontWeight.w600 : null,
                             ),
                           ),
                         ),
@@ -867,7 +867,7 @@ class _PollWidgetState extends State<_PollWidget> {
                         : '${option.votes}',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -999,7 +999,7 @@ class _PieChartInteractiveState extends State<_PieChartInteractive> {
             style: const TextStyle(
               color: AppFixedColors.white,
               fontSize: AppFontSize.meta,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 3),

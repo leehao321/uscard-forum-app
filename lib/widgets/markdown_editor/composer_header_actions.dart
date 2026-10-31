@@ -71,7 +71,8 @@ class ComposerHeaderActions extends StatelessWidget {
       if (showDiscard && draftStatus == null) _HeaderAction.discard,
     ];
     // 保留导航和默认标题间距，标题至少容纳常规页面名称。
-    final titleWidth = minimumTitleWidth ?? 120 * scaler.scale(22) / 22;
+    // 标题最少 88（「新话题」「回复」够用）：393 宽也要让「预览」留在头部（§5.3）
+    final titleWidth = minimumTitleWidth ?? 88 * scaler.scale(22) / 22;
     final slots = math.max(
       1,
       ((availableWidth -

@@ -385,9 +385,21 @@ class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
     );
   }
 
+  /// 当前日期范围正好是「最近 N 天、截止今天」的快捷档位时返回 N，否则 null（M-5）
+  int? _activePresetDays() {
+    final after = _localFilter.afterDate;
+    final before = _localFilter.beforeDate;
+    if (after == null || before == null) return null;
+    final today = DateUtils.dateOnly(DateTime.now());
+    if (DateUtils.dateOnly(before) != today) return null;
+    final days = today.difference(DateUtils.dateOnly(after)).inDays;
+    return const {7, 30, 365}.contains(days) ? days : null;
+  }
+
   Widget _buildDateRangeSection(ThemeData theme) {
     final hasDateRange =
         _localFilter.afterDate != null || _localFilter.beforeDate != null;
+    final presetDays = _activePresetDays();
 
     return Wrap(
       spacing: 8,
@@ -402,7 +414,7 @@ class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
         // 快捷选项
         _FilterChip(
           label: context.l10n.search_lastWeek,
-          isSelected: false,
+          isSelected: presetDays == 7,
           onTap: () {
             final now = DateTime.now();
             _setDateRange(
@@ -413,7 +425,7 @@ class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
         ),
         _FilterChip(
           label: context.l10n.search_lastMonth,
-          isSelected: false,
+          isSelected: presetDays == 30,
           onTap: () {
             final now = DateTime.now();
             _setDateRange(
@@ -424,7 +436,7 @@ class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
         ),
         _FilterChip(
           label: context.l10n.search_lastYear,
-          isSelected: false,
+          isSelected: presetDays == 365,
           onTap: () {
             final now = DateTime.now();
             _setDateRange(
@@ -436,7 +448,7 @@ class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
         // 自定义
         _FilterChip(
           label: hasDateRange ? _formatDateRange() : context.l10n.search_custom,
-          isSelected: hasDateRange,
+          isSelected: hasDateRange && presetDays == null,
           onTap: _selectDateRange,
           icon: AppIcons.history,
         ),
@@ -794,7 +806,7 @@ class _CategoryFilterItem extends StatelessWidget {
               Text(
                 name,
                 style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w600,
                   color: theme.colorScheme.onSurface,
                   fontSize: isSubcategory ? 12 : null,
                 ),

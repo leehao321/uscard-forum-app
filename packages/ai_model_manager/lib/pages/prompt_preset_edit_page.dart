@@ -81,7 +81,8 @@ class _PromptPresetEditPageState extends ConsumerState<PromptPresetEditPage> {
           ),
         ],
       ),
-      body: Form(
+      body: ReadableBody(
+          child: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
@@ -235,7 +236,7 @@ class _PromptPresetEditPageState extends ConsumerState<PromptPresetEditPage> {
             ),
           ],
         ),
-      ),
+      )),
     );
   }
 

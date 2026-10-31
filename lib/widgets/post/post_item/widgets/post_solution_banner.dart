@@ -108,7 +108,7 @@ class _BannerHeader extends StatelessWidget {
             context.l10n.post_topicSolved,
             style: theme.textTheme.titleSmall?.copyWith(
               color: AppFixedColors.white,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               letterSpacing: 0.3,
             ),
           ),
@@ -118,7 +118,7 @@ class _BannerHeader extends StatelessWidget {
               context.l10n.post_solutionsCount(count),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: AppFixedColors.white.withValues(alpha: 0.85),
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],

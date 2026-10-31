@@ -566,10 +566,10 @@ class _CategoryTopicsPageState extends ConsumerState<CategoryTopicsPage>
     final isLoggedIn = ref.watch(currentUserProvider).value != null;
 
     final list = Scaffold(
-      appBar: AppBar(
-        title: Text(widget.category.name),
-        centerTitle: false,
-        actions: [
+      appBar: AppNavBar(
+        title: widget.category.name,
+        showDivider: true,
+        trailing: [
           if (isLoggedIn)
             CategoryNotificationButton(
               level: CategoryNotificationLevel.fromValue(
@@ -601,29 +601,31 @@ class _CategoryTopicsPageState extends ConsumerState<CategoryTopicsPage>
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // 筛选 + 排序 + 标签栏
-          SortAndTagsBar(
-            currentFilter: _currentFilter,
-            isLoggedIn: isLoggedIn,
-            onFilterChanged: _setFilter,
-            currentSubset: _currentSubset,
-            onSubsetChanged: _setSubset,
-            currentOrder: _currentOrder,
-            ascending: _ascending,
-            onOrderChanged: _setOrder,
-            onToggleAscending: _toggleAscending,
-            selectedTags: _selectedTags,
-            onTagRemoved: _removeTag,
-            onAddTag: _openTagSelection,
-            trailing: isLoggedIn
-                ? _CreateTopicButton(onPressed: _createTopic)
-                : null,
-          ),
-          // 列表
-          Expanded(child: _buildBody(selectedTopicId)),
-        ],
+      body: ReadableBody(
+        child: Column(
+          children: [
+            // 筛选 + 排序 + 标签栏
+            SortAndTagsBar(
+              currentFilter: _currentFilter,
+              isLoggedIn: isLoggedIn,
+              onFilterChanged: _setFilter,
+              currentSubset: _currentSubset,
+              onSubsetChanged: _setSubset,
+              currentOrder: _currentOrder,
+              ascending: _ascending,
+              onOrderChanged: _setOrder,
+              onToggleAscending: _toggleAscending,
+              selectedTags: _selectedTags,
+              onTagRemoved: _removeTag,
+              onAddTag: _openTagSelection,
+              trailing: isLoggedIn
+                  ? _CreateTopicButton(onPressed: _createTopic)
+                  : null,
+            ),
+            // 列表
+            Expanded(child: _buildBody(selectedTopicId)),
+          ],
+        ),
       ),
     );
 
@@ -635,7 +637,7 @@ class _CategoryTopicsPageState extends ConsumerState<CategoryTopicsPage>
     final updateCount = topicUpdateSnapshot.length;
     final updateOffset = updateCount > 0 || isLoadingTopicUpdates ? 1 : 0;
     if (_isLoading) {
-      return const TopicListSkeleton(padding: EdgeInsets.all(12));
+      return const TopicListSkeleton(padding: EdgeInsets.only(top: 8));
     }
 
     if (_error != null) {
@@ -668,7 +670,8 @@ class _CategoryTopicsPageState extends ConsumerState<CategoryTopicsPage>
       child: ListView.builder(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(12),
+        // 行自带左右 20 边距：外层不再叠加（M-6）
+        padding: const EdgeInsets.only(top: 8, bottom: 24),
         itemCount: visible.length + updateOffset + hintOffset + 1,
         itemBuilder: (context, index) {
           if (updateOffset > 0 && index == 0) {
@@ -768,7 +771,7 @@ class _CreateTopicButton extends StatelessWidget {
                 context.l10n.categoryTopics_createPost,
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: fgColor,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],

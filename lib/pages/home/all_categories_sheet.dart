@@ -49,7 +49,6 @@ class _AllCategoriesSheetState extends ConsumerState<_AllCategoriesSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final tokens = context.tokens;
     return AppSheetScaffold(
       title: l10n.category_allCategories,
       contentPadding: EdgeInsets.zero,
@@ -67,36 +66,11 @@ class _AllCategoriesSheetState extends ConsumerState<_AllCategoriesSheet> {
             _BrowseModeGroup(onDone: () => Navigator.of(context).pop()),
           Flexible(
             child: _page == 0
-                ? _CategoryList(onOpen: _open)
+                ? _CategoryList(
+                    onOpen: _open,
+                    onEditBar: () => _open(const PinnedCategoryEditPage()),
+                  )
                 : _TagList(onOpen: _open),
-          ),
-          AppPressable(
-            highlight: true,
-            onTap: () => _open(const PinnedCategoryEditPage()),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: AppSize.row48),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpace.pageMargin,
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      AppIcons.edit,
-                      size: AppSize.iconM,
-                      color: tokens.colors.brandPrimary,
-                    ),
-                    const SizedBox(width: AppSpace.m),
-                    Text(
-                      l10n.topic_editCategoryBar,
-                      style: Theme.of(context).textTheme.bodyLarge!
-                          .merge(tokens.text.control)
-                          .copyWith(color: tokens.colors.brandPrimary),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ),
         ],
       ),
@@ -134,7 +108,7 @@ class _BrowseModeGroup extends ConsumerWidget {
           constraints: const BoxConstraints(minHeight: AppSize.row48),
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: AppSpace.pageMargin,
+              horizontal: AppSpace.pageMargin + AppSpace.m,
             ),
             child: Row(
               children: [
@@ -157,9 +131,9 @@ class _BrowseModeGroup extends ConsumerWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
-            AppSpace.pageMargin,
+            AppSpace.pageMargin + AppSpace.m,
             AppSpace.m,
-            AppSpace.pageMargin,
+            AppSpace.pageMargin + AppSpace.m,
             AppSpace.xs,
           ),
           child: Text(
@@ -176,7 +150,7 @@ class _BrowseModeGroup extends ConsumerWidget {
         ),
         for (final kind in kinds) ...[
           const AppHairline(
-            indent: AppSpace.pageMargin,
+            indent: AppSpace.pageMargin + AppSpace.m,
             endIndent: AppSpace.pageMargin,
           ),
           row(
@@ -191,13 +165,25 @@ class _BrowseModeGroup extends ConsumerWidget {
   }
 }
 
-class _CategoryList extends ConsumerWidget {
-  const _CategoryList({required this.onOpen});
+/// 分类分组（补充页「全部分类」44:1951）：分组页眉「分类」+ 右侧「编辑分类条」；
+/// 父分类行 = 名字 + 话题数（13 meta）+ 展开 chevron（展开 chevron-down、收起
+/// chevron-right，没有子分类就没有 chevron），子分类缩进 32，行间发丝线按层级缩进
+/// （父层 12、子层 32）。话题数取站点分类数据里的 `topic_count`，没有就不显示。
+class _CategoryList extends ConsumerStatefulWidget {
+  const _CategoryList({required this.onOpen, required this.onEditBar});
 
   final void Function(Widget page) onOpen;
+  final VoidCallback onEditBar;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_CategoryList> createState() => _CategoryListState();
+}
+
+class _CategoryListState extends ConsumerState<_CategoryList> {
+  final Set<int> _expanded = {};
+
+  @override
+  Widget build(BuildContext context) {
     final tokens = context.tokens;
     final categories = ref.watch(categoriesProvider);
     final visible = ref.watch(visibleCategoryIdsProvider);
@@ -212,61 +198,189 @@ class _CategoryList extends ConsumerWidget {
           for (final c in all)
             if (visible == null || visible.contains(c.id)) c,
         ];
-        final top = shown.where((c) => c.parentCategoryId == null);
-        final rows = <(Category, int)>[];
-        for (final parent in top) {
-          rows.add((parent, 0));
-          for (final child in shown) {
-            if (child.parentCategoryId == parent.id) rows.add((child, 1));
-          }
-        }
-        final style = Theme.of(context).textTheme.bodyLarge!
-            .merge(tokens.text.control)
-            .copyWith(color: tokens.colors.textPrimary);
-        return ListView.separated(
-          shrinkWrap: true,
-          itemCount: rows.length,
-          separatorBuilder: (_, _) => const AppHairline(
-            indent: AppSpace.pageMargin,
-            endIndent: AppSpace.pageMargin,
-          ),
-          itemBuilder: (context, i) {
-            final (category, depth) = rows[i];
-            return AppPressable(
-              highlight: true,
-              onTap: () => onOpen(CategoryTopicsPage(category: category)),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: AppSize.row48),
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: AppSpace.pageMargin + depth * AppSpace.xl,
-                    right: AppSpace.pageMargin,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          category.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: style,
-                        ),
-                      ),
-                      Icon(
-                        AppIcons.chevronRight,
-                        size: AppSize.iconS,
-                        color: tokens.colors.textMeta,
-                      ),
-                    ],
-                  ),
-                ),
+        final top = shown.where((c) => c.parentCategoryId == null).toList();
+        final children = <int, List<Category>>{
+          for (final p in top)
+            p.id: [
+              for (final c in shown)
+                if (c.parentCategoryId == p.id) c,
+            ],
+        };
+        final meta = Theme.of(context).textTheme.bodySmall!
+            .merge(tokens.text.meta)
+            .copyWith(color: tokens.colors.textMeta);
+
+        final rows = <Widget>[];
+        void addRow(Category c, int depth, {bool? expanded}) {
+          if (rows.isNotEmpty) {
+            rows.add(
+              AppHairline(
+                indent:
+                    AppSpace.pageMargin +
+                    (depth == 0 ? AppSpace.m : AppSpace.x32),
+                endIndent: 0,
               ),
             );
-          },
+          }
+          rows.add(
+            _CategoryRow(
+              category: c,
+              depth: depth,
+              expanded: expanded,
+              meta: meta,
+              onTap: () {
+                if (expanded != null) {
+                  setState(() {
+                    if (!_expanded.remove(c.id)) _expanded.add(c.id);
+                  });
+                } else {
+                  widget.onOpen(CategoryTopicsPage(category: c));
+                }
+              },
+            ),
+          );
+        }
+
+        for (final parent in top) {
+          final kids = children[parent.id]!;
+          final open = _expanded.contains(parent.id);
+          addRow(parent, 0, expanded: kids.isEmpty ? null : open);
+          if (open) {
+            for (final kid in kids) {
+              addRow(kid, 1);
+            }
+          }
+        }
+
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpace.pageMargin + AppSpace.m,
+                  AppSpace.m,
+                  AppSpace.pageMargin + AppSpace.m,
+                  AppSpace.xs,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        context.l10n.category_categories,
+                        style: meta,
+                      ),
+                    ),
+                    AppPressable(
+                      onTap: widget.onEditBar,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          minHeight: AppSize.hit,
+                        ),
+                        child: Center(
+                          widthFactor: 1,
+                          child: Text(
+                            context.l10n.topic_editCategoryBar,
+                            style: meta.copyWith(
+                              color: tokens.colors.brandPrimary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ...rows,
+            ],
+          ),
         );
       },
     );
   }
+}
+
+class _CategoryRow extends StatelessWidget {
+  const _CategoryRow({
+    required this.category,
+    required this.depth,
+    required this.expanded,
+    required this.meta,
+    required this.onTap,
+  });
+
+  final Category category;
+  final int depth;
+
+  /// null = 没有子分类（行尾没有 chevron）；true / false = 已展开 / 已收起
+  final bool? expanded;
+  final TextStyle meta;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final style = Theme.of(context).textTheme.bodyLarge!
+        .merge(tokens.text.control)
+        .copyWith(color: tokens.colors.textPrimary);
+    final count = category.topicCount;
+    return Semantics(
+      expanded: expanded,
+      child: AppPressable(
+        highlight: true,
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: AppSize.row48),
+          child: Padding(
+            padding: EdgeInsets.only(
+              left:
+                  AppSpace.pageMargin +
+                  (depth == 0 ? AppSpace.m : AppSpace.x32),
+              right: AppSpace.pageMargin + AppSpace.m,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    category.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: style,
+                  ),
+                ),
+                if (count != null)
+                  Text(_formatCount(context, count), style: meta),
+                if (expanded != null) ...[
+                  const SizedBox(width: AppSpace.s),
+                  Icon(
+                    expanded! ? AppIcons.chevronDown : AppIcons.chevronRight,
+                    size: AppSize.iconS,
+                    color: tokens.colors.textMeta,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 话题数：中文 ≥ 1 万写成「2.1 万」，其余加千分位（「3,120」）
+String _formatCount(BuildContext context, int n) {
+  final zh = Localizations.localeOf(context).languageCode == 'zh';
+  if (zh && n >= 10000) {
+    final v = (n / 10000).toStringAsFixed(1);
+    return '${v.endsWith('.0') ? v.substring(0, v.length - 2) : v} 万';
+  }
+  final digits = n.toString();
+  final out = StringBuffer();
+  for (var i = 0; i < digits.length; i++) {
+    if (i > 0 && (digits.length - i) % 3 == 0) out.write(',');
+    out.write(digits[i]);
+  }
+  return out.toString();
 }
 
 class _TagList extends ConsumerWidget {

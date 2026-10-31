@@ -367,7 +367,7 @@ class _TopicsScreenState extends ConsumerState<TopicsScreen> {
     );
     if (topicId != null && context.mounted) {
       // 刷新当前 tab 的列表
-      ref.invalidate(topicListProvider(null));
+      invalidateTopicListsAfterCreate(ref, categoryId);
 
       final canShowDetailPane = MasterDetailLayout.canShowBothPanesFor(context);
       if (canShowDetailPane) {
@@ -634,4 +634,11 @@ class PaneContentWidget extends StatelessWidget {
         );
     }
   }
+}
+
+/// 发帖成功后刷新列表：全部 tab 一定刷新；停在某个分类 tab 发帖时，那个分类
+/// 的列表也要刷新（M-7）。单独拿出来是为了能直接测。
+void invalidateTopicListsAfterCreate(WidgetRef ref, int? categoryId) {
+  ref.invalidate(topicListProvider(null));
+  if (categoryId != null) ref.invalidate(topicListProvider(categoryId));
 }

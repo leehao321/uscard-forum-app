@@ -1449,6 +1449,45 @@ class _TopicPostListState extends State<TopicPostList> {
             segment.type == _PostRenderSegmentType.longHeader);
     final Widget child;
 
+    // 分段长帖的页脚段；`menuOnly` 时只登记楼层长按菜单（放在头部段里）
+    LongPostFooterSegment longFooter({bool menuOnly = false}) =>
+        LongPostFooterSegment(
+          menuOnly: menuOnly,
+          post: post,
+          topicId: detail.id,
+          categoryId: detail.categoryId,
+          selected: isSelectedPost,
+          highlight: highlight,
+          highlightBoostUsername: boostUsername,
+          topicHasAcceptedAnswer: detail.hasAcceptedAnswer,
+          acceptedAnswers: detail.acceptedAnswers,
+          bottomDateSeparatorLabel: bottomDateSeparatorLabel,
+          onReply: isLoggedIn
+              ? ({initialContent}) =>
+                    onReply(replyTarget, initialContent: initialContent)
+              : null,
+          onEdit: isLoggedIn && post.canEdit ? () => onEdit(post) : null,
+          onShareAsImage: onShareAsImage != null
+              ? () => onShareAsImage!(post)
+              : null,
+          onQuotePost: isLoggedIn && onQuotePost != null
+              ? () => onQuotePost!(post)
+              : null,
+          onRefreshPost: onRefreshPost,
+          onJumpToPost: onJumpToPost,
+          onSolutionChanged: onSolutionChanged,
+          useReplyDialog: useReplyDialog,
+          topicTitle: detail.title,
+          isPrivateMessageTopic: detail.isPrivateMessage,
+          isPmWithNonHumanUser: detail.pmWithNonHumanUser,
+          onShowPostDetail: widget.onShowPostDetail != null
+              ? () => widget.onShowPostDetail!(post)
+              : null,
+          opTopSlot: opSlot,
+          isPostVotingTopic: detail.isPostVoting,
+          topicClosed: detail.closed || detail.archived,
+        );
+
     switch (segment.type) {
       case _PostRenderSegmentType.shortPost:
         Widget buildShortPost() => PostItem(
@@ -1538,6 +1577,8 @@ class _TopicPostListState extends State<TopicPostList> {
         break;
       case _PostRenderSegmentType.longHeader:
         child = LongPostHeaderSegment(
+          // 楼层长按菜单：页脚段很可能还没滚到，菜单由头部段里的隐形页脚登记
+          menuHost: longFooter(menuOnly: true),
           post: post,
           topicId: detail.id,
           selected: isSelectedPost,
@@ -1598,41 +1639,7 @@ class _TopicPostListState extends State<TopicPostList> {
         );
         break;
       case _PostRenderSegmentType.longFooter:
-        child = LongPostFooterSegment(
-          post: post,
-          topicId: detail.id,
-          categoryId: detail.categoryId,
-          selected: isSelectedPost,
-          highlight: highlight,
-          highlightBoostUsername: boostUsername,
-          topicHasAcceptedAnswer: detail.hasAcceptedAnswer,
-          acceptedAnswers: detail.acceptedAnswers,
-          bottomDateSeparatorLabel: bottomDateSeparatorLabel,
-          onReply: isLoggedIn
-              ? ({initialContent}) =>
-                    onReply(replyTarget, initialContent: initialContent)
-              : null,
-          onEdit: isLoggedIn && post.canEdit ? () => onEdit(post) : null,
-          onShareAsImage: onShareAsImage != null
-              ? () => onShareAsImage!(post)
-              : null,
-          onQuotePost: isLoggedIn && onQuotePost != null
-              ? () => onQuotePost!(post)
-              : null,
-          onRefreshPost: onRefreshPost,
-          onJumpToPost: onJumpToPost,
-          onSolutionChanged: onSolutionChanged,
-          useReplyDialog: useReplyDialog,
-          topicTitle: detail.title,
-          isPrivateMessageTopic: detail.isPrivateMessage,
-          isPmWithNonHumanUser: detail.pmWithNonHumanUser,
-          onShowPostDetail: widget.onShowPostDetail != null
-              ? () => widget.onShowPostDetail!(post)
-              : null,
-          opTopSlot: opSlot,
-          isPostVotingTopic: detail.isPostVoting,
-          topicClosed: detail.closed || detail.archived,
-        );
+        child = longFooter();
         break;
       case _PostRenderSegmentType.gapBefore:
         child = _GapIndicator(

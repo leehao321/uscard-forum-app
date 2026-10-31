@@ -137,7 +137,7 @@ class _SectionHeader extends StatelessWidget {
         text,
         style: theme.textTheme.labelSmall?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w400,
           letterSpacing: 0.5,
         ),
       ),
@@ -184,7 +184,7 @@ class _PresetTile extends ConsumerWidget {
                   Text(
                     preset.name,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   if (preset.tags.isNotEmpty || preset.aspectRatio != null) ...[

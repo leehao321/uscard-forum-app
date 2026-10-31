@@ -246,7 +246,7 @@ class _BoostFlagSheetState extends State<BoostFlagSheet> {
           Text(
             context.l10n.boost_flagTitle,
             style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -343,7 +343,7 @@ class _BoostFlagSheetState extends State<BoostFlagSheet> {
       child: Text(
         title,
         style: theme.textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

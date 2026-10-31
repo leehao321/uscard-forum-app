@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -71,6 +73,13 @@ class AppNavBar extends StatelessWidget implements PreferredSizeWidget {
     // 的视觉边，44 热区向外多出 10，所以内边距减 10、槽宽加 10
     final insets = readableInsets(context, gutter: 0);
     const hitOverhang = (AppSize.hit - AppSize.iconL) / 2;
+    // 右槽放得下全部按钮：每个 44 热区一个；放 2 个以上时两侧槽一起加宽，
+    // 标题仍然居中
+    // 相邻图标的视觉间距 24（图标 24、热区 44，并排只有 20），每两个之间补 4
+    final trailingWidth = trailing.isEmpty
+        ? 0.0
+        : trailing.length * AppSize.hit + (trailing.length - 1) * 4.0;
+    final slot = math.max(slotWidth + hitOverhang, trailingWidth);
 
     final titleText =
         titleWidget ??
@@ -99,15 +108,23 @@ class AppNavBar extends StatelessWidget implements PreferredSizeWidget {
         child: NavigationToolbar(
           middleSpacing: 0,
           leading: SizedBox(
-            width: slotWidth + hitOverhang,
+            width: slot,
             child: Align(alignment: Alignment.centerLeft, child: leading),
           ),
           middle: titleText,
           trailing: SizedBox(
-            width: slotWidth + hitOverhang,
+            width: slot,
             child: Align(
               alignment: Alignment.centerRight,
-              child: Row(mainAxisSize: MainAxisSize.min, children: trailing),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var i = 0; i < trailing.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 4),
+                    trailing[i],
+                  ],
+                ],
+              ),
             ),
           ),
         ),

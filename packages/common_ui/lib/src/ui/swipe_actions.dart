@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 
 import '../tokens/tokens.dart';
+import 'app_nav_bar.dart' show kChromeMaxTextScale;
 import 'app_pressable.dart';
 
 /// 左滑露出的一个按钮
@@ -173,7 +174,7 @@ class SwipeActionsState extends State<SwipeActions>
       container: true,
       customSemanticsActions: {
         for (final action in widget.actions)
-          CustomSemanticsAction(label: action.label): action.onTap,
+          CustomSemanticsAction(label: action.label): () => _run(action),
       },
       child: RawGestureDetector(
         gestures: {
@@ -197,7 +198,11 @@ class SwipeActionsState extends State<SwipeActions>
                       builder: (context, child) => _controller.value == 0
                           ? const SizedBox.shrink()
                           : child!,
-                      child: buttons,
+                      // 72 宽的按钮是框架类控件：字号封顶 1.3，2.0 倍时文字也不被截成一个字
+                      child: MediaQuery.withClampedTextScaling(
+                        maxScaleFactor: kChromeMaxTextScale,
+                        child: buttons,
+                      ),
                     ),
                   ),
                 ),

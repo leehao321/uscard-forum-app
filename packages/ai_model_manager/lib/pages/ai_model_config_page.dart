@@ -26,7 +26,8 @@ class AiModelConfigPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(AiL10n.current.modelConfig)),
-      body: ListView(
+      body: ReadableBody(
+          child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
           _ModelCard(
@@ -109,7 +110,7 @@ class AiModelConfigPage extends ConsumerWidget {
                 : null,
           ),
         ],
-      ),
+      )),
     );
   }
 

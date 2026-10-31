@@ -247,7 +247,7 @@ class OneboxStatusIndicator extends StatelessWidget {
             status,
             style: TextStyle(
               fontSize: AppFontSize.meta,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
               color: color,
             ),
           ),

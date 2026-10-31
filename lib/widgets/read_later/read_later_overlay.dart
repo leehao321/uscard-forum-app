@@ -180,7 +180,7 @@ class _ReadLaterOverlayState extends ConsumerState<ReadLaterOverlay> {
                     Text(
                       context.l10n.readLater_title,
                       style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 2),

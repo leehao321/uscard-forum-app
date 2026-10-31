@@ -169,6 +169,7 @@ class _PhoneChromeState extends ConsumerState<PhoneChrome> {
                 Expanded(
                   child: SearchCapsule(
                     placeholder: context.l10n.search_capsulePlaceholder,
+                    compactPlaceholder: context.l10n.search_capsuleCompact,
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => const SearchPage(),

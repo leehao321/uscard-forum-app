@@ -399,16 +399,18 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       // 新页面,不做右栏平行视界(曾接过 panes 宿主,用户拍板退役:
       // 本页不存在"切换别的页面"的语义)。宽屏纯静态双栏(左资料卡
       // 右功能卡),窄屏单列。
-      body: showWideLayout
-          ? MasterDetailLayout(
-              // 左栏是定宽资料卡,保持固定 360:不可拖拽、不随窗口
-              // 比例放宽。
-              masterWidth: 360,
-              resizableMaster: false,
-              master: _buildLeftPanel(theme),
-              emptyDetail: _buildRightPanel(theme),
-            )
-          : _buildMobileBody(theme),
+      body: ReadableBody(
+        child: showWideLayout
+            ? MasterDetailLayout(
+                // 左栏是定宽资料卡,保持固定 360:不可拖拽、不随窗口
+                // 比例放宽。
+                masterWidth: 360,
+                resizableMaster: false,
+                master: _buildLeftPanel(theme),
+                emptyDetail: _buildRightPanel(theme),
+              )
+            : _buildMobileBody(theme),
+      ),
     );
     return scaffold;
   }

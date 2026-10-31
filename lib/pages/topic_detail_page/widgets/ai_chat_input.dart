@@ -396,7 +396,7 @@ class _ToolCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: AppFontSize.meta,
                     color: fg,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w400,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

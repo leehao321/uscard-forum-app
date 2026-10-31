@@ -112,6 +112,13 @@ class PostFooterSection extends ConsumerStatefulWidget {
   /// 长按菜单桥：把 [_menuSections] 登记给楼层外层
   final PostMenuController? menuController;
 
+  /// 只登记长按菜单、不画任何东西：分段长帖在头部段里放一个，
+  /// 这样页脚还没滚进来时长按头部 / 正文也有菜单
+  final bool menuOnly;
+
+  /// 菜单里会变的状态（书签 / 采纳 / 删除中）；分段长帖的两份页脚共用一份
+  final PostFooterShared? shared;
+
   const PostFooterSection({
     super.key,
     required this.post,
@@ -143,6 +150,8 @@ class PostFooterSection extends ConsumerStatefulWidget {
     this.topicClosed = false,
     this.showVotingControl = true,
     this.menuController,
+    this.menuOnly = false,
+    this.shared,
   });
 
   @override
@@ -150,14 +159,20 @@ class PostFooterSection extends ConsumerStatefulWidget {
 }
 
 class _PostFooterSectionState extends ConsumerState<PostFooterSection> {
-  final DiscourseService _service = DiscourseService();
+  // 走 provider（线上还是同一个单例），测试里才能换成假服务
+  DiscourseService get _service => ref.read(discourseServiceProvider);
   final GlobalKey _likeButtonKey = GlobalKey();
   bool _isLiking = false;
-  bool _isBookmarked = false;
-  int? _bookmarkId;
-  String? _bookmarkName;
-  DateTime? _bookmarkReminderAt;
-  bool _isBookmarking = false;
+  bool get _isBookmarked => _sharedState.isBookmarked;
+  set _isBookmarked(bool v) => _sharedState.isBookmarked = v;
+  int? get _bookmarkId => _sharedState.bookmarkId;
+  set _bookmarkId(int? v) => _sharedState.bookmarkId = v;
+  String? get _bookmarkName => _sharedState.bookmarkName;
+  set _bookmarkName(String? v) => _sharedState.bookmarkName = v;
+  DateTime? get _bookmarkReminderAt => _sharedState.bookmarkReminderAt;
+  set _bookmarkReminderAt(DateTime? v) => _sharedState.bookmarkReminderAt = v;
+  bool get _isBookmarking => _sharedState.isBookmarking;
+  set _isBookmarking(bool v) => _sharedState.isBookmarking = v;
   late List<PostReaction> _reactions;
   PostReaction? _currentUserReaction;
   late List<Boost> _boosts;
@@ -167,9 +182,29 @@ class _PostFooterSectionState extends ConsumerState<PostFooterSection> {
     false,
   );
   final ValueNotifier<bool> _showRepliesNotifier = ValueNotifier<bool>(false);
-  bool _isAcceptedAnswer = false;
-  bool _isTogglingAnswer = false;
-  bool _isDeleting = false;
+  bool get _isAcceptedAnswer => _sharedState.isAcceptedAnswer;
+  set _isAcceptedAnswer(bool v) => _sharedState.isAcceptedAnswer = v;
+  bool get _isTogglingAnswer => _sharedState.isTogglingAnswer;
+  set _isTogglingAnswer(bool v) => _sharedState.isTogglingAnswer = v;
+  bool get _isDeleting => _sharedState.isDeleting;
+  set _isDeleting(bool v) => _sharedState.isDeleting = v;
+
+  PostFooterShared? _ownShared;
+
+  PostFooterShared get _sharedState =>
+      widget.shared ?? (_ownShared ??= PostFooterShared());
+
+  /// 别的页脚改了共享状态：自己也重建一次
+  void _onSharedChanged() {
+    if (mounted) super.setState(() {});
+  }
+
+  @override
+  void setState(VoidCallback fn) {
+    super.setState(fn);
+    // 分段长帖的另一份页脚（隐形的 / 真的）跟着重建，菜单里的状态马上一致
+    _sharedState.changed(this);
+  }
 
   bool get _canLoadMoreReplies => _replies.length < widget.post.replyCount;
 
@@ -177,6 +212,7 @@ class _PostFooterSectionState extends ConsumerState<PostFooterSection> {
   void initState() {
     super.initState();
     _syncState();
+    _sharedState.addListener(this, _onSharedChanged);
     widget.menuController?.builder = _menuSections;
   }
 
@@ -194,6 +230,7 @@ class _PostFooterSectionState extends ConsumerState<PostFooterSection> {
 
   @override
   void dispose() {
+    _sharedState.removeListener(this);
     if (widget.menuController?.builder == _menuSections) {
       widget.menuController?.builder = null;
     }
@@ -336,6 +373,7 @@ class _PostFooterSectionState extends ConsumerState<PostFooterSection> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.menuOnly) return const SizedBox.shrink();
     // 帖内构成归因:与 pHdr 配对,点名单帖固定成本的大头(操作栏/boost
     // 列表在 footer;监控关闭零开销)
     FrameJankMonitor.noteBuild('pFtr#${widget.post.postNumber}');

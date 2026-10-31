@@ -1,3 +1,4 @@
+import 'package:app_icons/app_icons.dart' show AppIcon;
 import 'package:flutter/material.dart';
 
 import '../tokens/tokens.dart';
@@ -20,7 +21,8 @@ class AppIconButton extends StatelessWidget {
     this.onLongPress,
   });
 
-  final IconData icon;
+  /// [IconData]，或自绘图标（AppIcons.openBook 等，M-L1）
+  final Object icon;
   final String semanticLabel;
   final VoidCallback? onPressed;
   final VoidCallback? onLongPress;
@@ -39,7 +41,7 @@ class AppIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.tokens.colors;
     final enabled = onPressed != null || onLongPress != null;
-    Widget glyph = Icon(
+    Widget glyph = AppIcon(
       icon,
       size: size,
       color: enabled ? (color ?? colors.textPrimary) : colors.textMeta,

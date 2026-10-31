@@ -122,7 +122,7 @@ class FilterDropdown extends ConsumerWidget {
             label,
             style: TextStyle(
               fontSize: AppFontSize.meta,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
               color: colorScheme.onSurface,
             ),
           ),
@@ -226,7 +226,7 @@ class OrderDropdown extends StatelessWidget {
             currentOrder.label,
             style: TextStyle(
               fontSize: AppFontSize.meta,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
               color: isActive ? colorScheme.primary : colorScheme.onSurface,
             ),
           ),
@@ -346,7 +346,7 @@ class NewSubsetDropdown extends StatelessWidget {
             _shortLabel(currentSubset),
             style: TextStyle(
               fontSize: AppFontSize.meta,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
               color: isActive ? colorScheme.primary : colorScheme.onSurface,
             ),
           ),

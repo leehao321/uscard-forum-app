@@ -84,8 +84,16 @@ class AppAlertDialog extends StatelessWidget {
   /// 覆盖宽度；默认纯文字 320、复杂内容 360
   final double? width;
 
-  static bool _isPlainText(Widget? w) =>
-      w == null || w is Text || w is RichText || w is SelectableText;
+  /// 纯文字内容：外面包一层限宽 / 滚动的也算（现场有 `ConstrainedBox(Text)`、
+  /// `SingleChildScrollView(SelectableText)` 这样的写法，M-12）
+  static bool _isPlainText(Widget? w) {
+    if (w == null || w is Text || w is RichText || w is SelectableText) {
+      return true;
+    }
+    if (w is ConstrainedBox) return _isPlainText(w.child);
+    if (w is SingleChildScrollView) return _isPlainText(w.child);
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +151,7 @@ class AppAlertDialog extends StatelessWidget {
     // 纯文字：标题和说明在同一个可滚动区（pad 20 16 16、间距 4）；
     // 复杂内容：标题固定在上面，内容自己决定滚不滚（同 AlertDialog）
     final textArea = <Widget>[];
-    if (plain || scrollable) {
+    if (plain) {
       textArea.add(
         Flexible(
           child: SingleChildScrollView(
@@ -199,7 +207,8 @@ class AppAlertDialog extends StatelessWidget {
                   AppSpace.l,
                   AppSpace.l,
                 ),
-            child: body!,
+            // scrollable：标题固定在上面，只有内容自己滚（M-12）
+            child: scrollable ? SingleChildScrollView(child: body!) : body!,
           ),
         ),
       );
@@ -212,8 +221,10 @@ class AppAlertDialog extends StatelessWidget {
       elevation: 0,
       insetPadding:
           insetPadding ??
-          const EdgeInsets.symmetric(
-            horizontal: AppSpace.l,
+          // 纯文字确认左右 60（宽 320）、带输入 / 复杂内容左右 40（设计 §4 / §6）；
+          // 393 宽的屏幕上复杂对话框是 313，不会贴到屏边只剩 16
+          EdgeInsets.symmetric(
+            horizontal: dialogWidth <= 320 ? 60 : 40,
             vertical: AppSpace.xxl,
           ),
       clipBehavior: Clip.antiAlias,
@@ -325,7 +336,9 @@ class _DialogActions extends StatelessWidget {
         // 保留原按钮的 key（测试和读屏定位用）
         key: action.key,
         onPressed: action.onPressed,
-        destructive: _isDestructive(context, action.style),
+        destructive:
+            _isDestructive(context, action.style) ||
+            _childLooksDestructive(context, action.child),
         child: action.child ?? const SizedBox.shrink(),
       );
     }
@@ -335,6 +348,18 @@ class _DialogActions extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: AppSize.hit),
       child: action,
     );
+  }
+
+  /// 按钮文字自己写成红色（`Text(style: TextStyle(color: error))`）也算破坏性（M-12）
+  static bool _childLooksDestructive(BuildContext context, Widget? child) {
+    if (child is! Text) return false;
+    final c = child.style?.color;
+    if (c == null || c.a == 0) return false;
+    final error = Theme.of(context).colorScheme.error;
+    final destructive = context.tokens.colors.textDestructive;
+    return c == error ||
+        c == destructive ||
+        (c.r > 0.7 && c.g < 0.4 && c.b < 0.4);
   }
 
   static bool _isDestructive(BuildContext context, ButtonStyle? style) {

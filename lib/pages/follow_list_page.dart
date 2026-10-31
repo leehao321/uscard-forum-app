@@ -88,7 +88,9 @@ class _FollowListPageState extends ConsumerState<FollowListPage> {
       }
       if (!mounted) return;
       setState(() {
-        wasUnfollowed ? _unfollowed.remove(username) : _unfollowed.add(username);
+        wasUnfollowed
+            ? _unfollowed.remove(username)
+            : _unfollowed.add(username);
       });
     } catch (_) {
       // 失败保持原状，不打扰
@@ -114,115 +116,131 @@ class _FollowListPageState extends ConsumerState<FollowListPage> {
             : context.l10n.followList_followers,
         showDivider: true,
       ),
-      body: _isLoading
-          ? const Center(child: LoadingSpinner())
-          : _error != null
-          ? ErrorView(
-              error: _error!,
-              stackTrace: _errorStack,
-              onRetry: _loadUsers,
-            )
-          : _users == null || _users!.isEmpty
-          ? AppStateView(
-              icon: AppIcons.people,
-              title: context.l10n.common_noData,
-            )
-          : M3eRefreshIndicator(
-              onRefresh: _loadUsers,
-              child: ListView.builder(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.paddingOf(context).bottom,
+      body: ReadableBody(
+        child: _isLoading
+            ? const Center(child: LoadingSpinner())
+            : _error != null
+            ? ErrorView(
+                error: _error!,
+                stackTrace: _errorStack,
+                onRetry: _loadUsers,
+              )
+            : _users == null || _users!.isEmpty
+            // 空状态也要能下拉刷新：放进一个总能滚动的列表里（L-4）
+            ? M3eRefreshIndicator(
+                onRefresh: _loadUsers,
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: AppStateView(
+                        icon: AppIcons.people,
+                        title: context.l10n.common_noData,
+                      ),
+                    ),
+                  ],
                 ),
-                itemCount: _users!.length,
-                itemBuilder: (context, index) {
-                  final user = _users![index];
-                  final name = user.name?.isNotEmpty == true
-                      ? user.name!
-                      : user.username;
-                  // v2 行：34 头像 + 名字 17 + @handle 11，发丝线缩进 20
-                  return AppPressable(
-                    highlight: true,
-                    onTap: () {
-                      // 宽屏进右栏,窄屏全屏 push。
-                      if (MasterDetailLayout.canShowBothPanesFor(context)) {
-                        ref
-                            .read(selectedFollowPaneProvider.notifier)
-                            .selectProfile(user.username);
-                        return;
-                      }
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              UserProfilePage(username: user.username),
+              )
+            : M3eRefreshIndicator(
+                onRefresh: _loadUsers,
+                child: ListView.builder(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.paddingOf(context).bottom,
+                  ),
+                  itemCount: _users!.length,
+                  itemBuilder: (context, index) {
+                    final user = _users![index];
+                    final name = user.name?.isNotEmpty == true
+                        ? user.name!
+                        : user.username;
+                    // v2 行：34 头像 + 名字 17 + @handle 11，发丝线缩进 20
+                    return AppPressable(
+                      highlight: true,
+                      onTap: () {
+                        // 宽屏进右栏,窄屏全屏 push。
+                        if (MasterDetailLayout.canShowBothPanesFor(context)) {
+                          ref
+                              .read(selectedFollowPaneProvider.notifier)
+                              .selectProfile(user.username);
+                          return;
+                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                UserProfilePage(username: user.username),
+                          ),
+                        );
+                      },
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: colors.separator,
+                              width: AppSpace.hairline,
+                            ),
+                          ),
                         ),
-                      );
-                    },
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: colors.separator,
-                            width: AppSpace.hairline,
+                        child: Container(
+                          constraints: const BoxConstraints(
+                            minHeight: AppSize.row48,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpace.pageMargin,
+                            vertical: AppSpace.s,
+                          ),
+                          child: Row(
+                            children: [
+                              SmartAvatar(
+                                imageUrl: user.avatarTemplate != null
+                                    ? user.getAvatarUrl(size: 96)
+                                    : null,
+                                radius: 17,
+                                fallbackText: user.username,
+                              ),
+                              const SizedBox(width: AppSpace.m),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: base
+                                          .merge(tokens.text.control)
+                                          .copyWith(color: colors.textPrimary),
+                                    ),
+                                    const SizedBox(height: AppSpace.xxs),
+                                    Text(
+                                      '@${user.username}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: base
+                                          .merge(tokens.text.caption)
+                                          .copyWith(color: colors.textMeta),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (canToggle)
+                                _FollowPill(
+                                  followed: !_unfollowed.contains(
+                                    user.username,
+                                  ),
+                                  busy: _busy.contains(user.username),
+                                  onTap: () => _toggleFollow(user.username),
+                                ),
+                            ],
                           ),
                         ),
                       ),
-                      child: Container(
-                        constraints: const BoxConstraints(
-                          minHeight: AppSize.row48,
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpace.pageMargin,
-                          vertical: AppSpace.s,
-                        ),
-                        child: Row(
-                          children: [
-                            SmartAvatar(
-                              imageUrl: user.avatarTemplate != null
-                                  ? user.getAvatarUrl(size: 96)
-                                  : null,
-                              radius: 17,
-                              fallbackText: user.username,
-                            ),
-                            const SizedBox(width: AppSpace.m),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: base
-                                        .merge(tokens.text.control)
-                                        .copyWith(color: colors.textPrimary),
-                                  ),
-                                  const SizedBox(height: AppSpace.xxs),
-                                  Text(
-                                    '@${user.username}',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: base
-                                        .merge(tokens.text.caption)
-                                        .copyWith(color: colors.textMeta),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (canToggle)
-                              _FollowPill(
-                                followed: !_unfollowed.contains(user.username),
-                                busy: _busy.contains(user.username),
-                                onTap: () => _toggleFollow(user.username),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
+      ),
     );
 
     return MasterDetailPaneHost(
@@ -279,7 +297,9 @@ class _FollowPill extends StatelessWidget {
                 style: base
                     .merge(tokens.text.meta)
                     .copyWith(
-                      color: followed ? colors.textPrimary : colors.brandPrimary,
+                      color: followed
+                          ? colors.textPrimary
+                          : colors.brandPrimary,
                     ),
               ),
             ),

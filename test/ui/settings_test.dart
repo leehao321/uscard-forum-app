@@ -76,6 +76,7 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 500));
         expectNoUiException(tester);
+        expectReadableBody(tester, variant);
         expect(find.text('显示与阅读'), findsOneWidget);
         expect(find.text('外观'), findsOneWidget);
         // 外观行右侧显示当前预设
@@ -134,6 +135,7 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 500));
         expectNoUiException(tester);
+        expectReadableBody(tester, variant);
         expect(find.text('实时预览'), findsOneWidget);
         // 滚到底，预览仍在
         final list = find.byType(Scrollable).first;
@@ -368,6 +370,7 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 500));
         expectNoUiException(tester);
+        expectReadableBody(tester, variant);
         expect(find.textContaining('按住拖动排序', skipOffstage: false), findsOneWidget);
         expect(find.textContaining('最多 4 个标签', skipOffstage: false), findsOneWidget);
         await tester.pumpWidget(const SizedBox());
@@ -384,6 +387,7 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 500));
         expectNoUiException(tester);
+        expectReadableBody(tester, variant);
         expect(find.text('发给开发者', skipOffstage: false), findsOneWidget);
         await tester.pumpWidget(const SizedBox());
         await tester.pump(const Duration(seconds: 1));

@@ -74,7 +74,7 @@ class PostSegmentFrame extends StatelessWidget {
                         context.l10n.post_lastReadHere,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: AppTokens.of(context).colors.brandPrimary,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),

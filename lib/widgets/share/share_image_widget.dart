@@ -209,7 +209,7 @@ class ShareImageWidget extends ConsumerWidget {
                 post.name?.isNotEmpty == true ? post.name! : post.username,
                 style: TextStyle(
                   fontSize: AppFontSize.meta,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w400,
                   color: textColor.withValues(alpha: 0.85),
                 ),
               ),

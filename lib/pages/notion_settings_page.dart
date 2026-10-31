@@ -228,254 +228,256 @@ class _NotionSettingsPageState extends ConsumerState<NotionSettingsPage> {
             ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpace.pageMargin,
-          AppSpace.s,
-          AppSpace.pageMargin,
-          AppSpace.x32,
-        ),
-        children: [
-          // 顶部说明
-          _Header(),
-          const SizedBox(height: 20),
+      body: ReadableBody(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpace.pageMargin,
+            AppSpace.s,
+            AppSpace.pageMargin,
+            AppSpace.x32,
+          ),
+          children: [
+            // 顶部说明
+            _Header(),
+            const SizedBox(height: 20),
 
-          if (cfg.isComplete && _needsUpgrade == true) ...[
-            _UpgradeBanner(
-              upgrading: _upgrading,
-              onUpgrade: () => _doUpgrade(cfg),
-            ),
-            const SizedBox(height: 16),
-          ],
+            if (cfg.isComplete && _needsUpgrade == true) ...[
+              _UpgradeBanner(
+                upgrading: _upgrading,
+                onUpgrade: () => _doUpgrade(cfg),
+              ),
+              const SizedBox(height: 16),
+            ],
 
-          if (!showSteps) ...[
-            _ConfiguredBanner(onEdit: () => setState(() => _editing = true)),
-          ] else ...[
-            // Step 1: Token
-            _StepCard(
-              index: 1,
-              title: context.l10n.notion_step1Title,
-              body: context.l10n.notion_step1Body,
-              done:
-                  cfg.integrationToken != null &&
-                  cfg.integrationToken!.isNotEmpty,
-              children: [
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  icon: const Icon(AppIcons.openInNew, size: 16),
-                  onPressed: _openIntegrationsPage,
-                  label: Text(context.l10n.notion_openIntegrationsPage),
-                  style: OutlinedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _tokenController,
-                  obscureText: _obscureToken,
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.notion_tokenSection,
-                    hintText: 'secret_xxxxxxxxxxxxxxxx',
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+            if (!showSteps) ...[
+              _ConfiguredBanner(onEdit: () => setState(() => _editing = true)),
+            ] else ...[
+              // Step 1: Token
+              _StepCard(
+                index: 1,
+                title: context.l10n.notion_step1Title,
+                body: context.l10n.notion_step1Body,
+                done:
+                    cfg.integrationToken != null &&
+                    cfg.integrationToken!.isNotEmpty,
+                children: [
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    icon: const Icon(AppIcons.openInNew, size: 16),
+                    onPressed: _openIntegrationsPage,
+                    label: Text(context.l10n.notion_openIntegrationsPage),
+                    style: OutlinedButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
                     ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureToken
-                            ? AppIcons.visibilityOff
-                            : AppIcons.visibility,
-                        size: 18,
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _tokenController,
+                    obscureText: _obscureToken,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    decoration: InputDecoration(
+                      labelText: context.l10n.notion_tokenSection,
+                      hintText: 'secret_xxxxxxxxxxxxxxxx',
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      onPressed: () =>
-                          setState(() => _obscureToken = !_obscureToken),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Step 2: Database
-            _StepCard(
-              index: 2,
-              title: context.l10n.notion_step2Title,
-              body: context.l10n.notion_step2Body,
-              done: cfg.databaseId != null && cfg.databaseId!.isNotEmpty,
-              children: [
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _databaseIdController,
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  decoration: InputDecoration(
-                    labelText: context.l10n.notion_databaseSection,
-                    hintText: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    suffixIcon: IconButton(
-                      tooltip: context.l10n.common_paste,
-                      icon: const Icon(AppIcons.paste, size: 18),
-                      onPressed: () async {
-                        final data = await Clipboard.getData('text/plain');
-                        final text = data?.text?.trim();
-                        if (text != null && text.isNotEmpty) {
-                          _databaseIdController.text = text;
-                        }
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  icon: const Icon(AppIcons.autoAwesome, size: 16),
-                  onPressed: _testing ? null : _createTemplateDatabase,
-                  label: Text(context.l10n.notion_createTemplateDb),
-                  style: OutlinedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Step 3: Save + test
-            _StepCard(
-              index: 3,
-              title: context.l10n.notion_step3Title,
-              body: context.l10n.notion_step3Body,
-              done: cfg.isComplete && !_editing,
-              children: [
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    icon: _testing
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppFixedColors.white,
-                            ),
-                          )
-                        : const Icon(AppIcons.checkCircle, size: 18),
-                    onPressed: _testing
-                        ? null
-                        : () async {
-                            await _saveAndTest();
-                            if (mounted &&
-                                ref.read(notionConfigProvider).isComplete) {
-                              setState(() => _editing = false);
-                            }
-                          },
-                    label: Text(context.l10n.notion_saveAndTest),
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-
-          // Sync options
-          if (cfg.isComplete) ...[
-            const SizedBox(height: 24),
-            _SectionTitle(context.l10n.notion_syncOptions),
-            const SizedBox(height: 8),
-            SegmentedCardGroup(
-              children: [
-                SwitchListTile.adaptive(
-                  title: Text(
-                    context.l10n.notion_autoSyncOnBookmark,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  subtitle: Text(
-                    context.l10n.notion_autoSyncDesc,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  value: cfg.autoSyncOnBookmark,
-                  onChanged: (v) {
-                    ref
-                        .read(notionConfigProvider.notifier)
-                        .update(cfg.copyWith(autoSyncOnBookmark: v));
-                  },
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.l10n.notion_syncScope,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureToken
+                              ? AppIcons.visibilityOff
+                              : AppIcons.visibility,
+                          size: 18,
                         ),
+                        onPressed: () =>
+                            setState(() => _obscureToken = !_obscureToken),
                       ),
-                      const SizedBox(height: 8),
-                      M3eButtonGroup<NotionSyncScope>(
-                        items: [
-                          M3eButtonGroupItem(
-                            value: NotionSyncScope.firstPostOnly,
-                            label: Text(context.l10n.export_firstPostOnly),
-                          ),
-                          M3eButtonGroupItem(
-                            value: NotionSyncScope.allPosts,
-                            label: Text(context.l10n.common_all),
-                          ),
-                        ],
-                        selected: cfg.syncScope,
-                        onSelected: (scope) {
-                          ref
-                              .read(notionConfigProvider.notifier)
-                              .update(cfg.copyWith(syncScope: scope));
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Step 2: Database
+              _StepCard(
+                index: 2,
+                title: context.l10n.notion_step2Title,
+                body: context.l10n.notion_step2Body,
+                done: cfg.databaseId != null && cfg.databaseId!.isNotEmpty,
+                children: [
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _databaseIdController,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    decoration: InputDecoration(
+                      labelText: context.l10n.notion_databaseSection,
+                      hintText: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      suffixIcon: IconButton(
+                        tooltip: context.l10n.common_paste,
+                        icon: const Icon(AppIcons.paste, size: 18),
+                        onPressed: () async {
+                          final data = await Clipboard.getData('text/plain');
+                          final text = data?.text?.trim();
+                          if (text != null && text.isNotEmpty) {
+                            _databaseIdController.text = text;
+                          }
                         },
                       ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  AppIcons.lock,
-                  size: 14,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    context.l10n.notion_tokenSecurityNote,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontSize: AppFontSize.caption,
-                      height: 1.5,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    icon: const Icon(AppIcons.autoAwesome, size: 16),
+                    onPressed: _testing ? null : _createTemplateDatabase,
+                    label: Text(context.l10n.notion_createTemplateDb),
+                    style: OutlinedButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Step 3: Save + test
+              _StepCard(
+                index: 3,
+                title: context.l10n.notion_step3Title,
+                body: context.l10n.notion_step3Body,
+                done: cfg.isComplete && !_editing,
+                children: [
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      icon: _testing
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppFixedColors.white,
+                              ),
+                            )
+                          : const Icon(AppIcons.checkCircle, size: 18),
+                      onPressed: _testing
+                          ? null
+                          : () async {
+                              await _saveAndTest();
+                              if (mounted &&
+                                  ref.read(notionConfigProvider).isComplete) {
+                                setState(() => _editing = false);
+                              }
+                            },
+                      label: Text(context.l10n.notion_saveAndTest),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            // Sync options
+            if (cfg.isComplete) ...[
+              const SizedBox(height: 24),
+              _SectionTitle(context.l10n.notion_syncOptions),
+              const SizedBox(height: 8),
+              SegmentedCardGroup(
+                children: [
+                  SwitchListTile.adaptive(
+                    title: Text(
+                      context.l10n.notion_autoSyncOnBookmark,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    subtitle: Text(
+                      context.l10n.notion_autoSyncDesc,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    value: cfg.autoSyncOnBookmark,
+                    onChanged: (v) {
+                      ref
+                          .read(notionConfigProvider.notifier)
+                          .update(cfg.copyWith(autoSyncOnBookmark: v));
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          context.l10n.notion_syncScope,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        M3eButtonGroup<NotionSyncScope>(
+                          items: [
+                            M3eButtonGroupItem(
+                              value: NotionSyncScope.firstPostOnly,
+                              label: Text(context.l10n.export_firstPostOnly),
+                            ),
+                            M3eButtonGroupItem(
+                              value: NotionSyncScope.allPosts,
+                              label: Text(context.l10n.common_all),
+                            ),
+                          ],
+                          selected: cfg.syncScope,
+                          onSelected: (scope) {
+                            ref
+                                .read(notionConfigProvider.notifier)
+                                .update(cfg.copyWith(syncScope: scope));
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    AppIcons.lock,
+                    size: 14,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      context.l10n.notion_tokenSecurityNote,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontSize: AppFontSize.caption,
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -717,7 +719,7 @@ class _StepCard extends StatelessWidget {
                     : Text(
                         '$index',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),

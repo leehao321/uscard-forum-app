@@ -173,7 +173,7 @@ class _MoreTopicsTab extends StatelessWidget {
                 label,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: fg,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w600,
                 ),
               ),
             ],
@@ -263,7 +263,7 @@ class _MoreTopicTile extends StatelessWidget {
         Text(
           topic.title,
           style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
             height: 1.35,
           ),
           maxLines: 2,

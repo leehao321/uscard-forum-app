@@ -13,7 +13,9 @@ import '../services/update_service.dart';
 import '../l10n/s.dart';
 import '../utils/app_version.dart';
 import '../utils/dialog_utils.dart';
+
 import 'package:m3e_ui/m3e_ui.dart';
+
 import '../widgets/update_dialog.dart';
 import 'dev/ui_gallery_page.dart';
 
@@ -77,7 +79,11 @@ class _AboutPageState extends State<AboutPage> {
       setState(() => _developerMode = enabled);
     }
     if (!mounted) return;
-    ToastService.showSuccess(enabled ? S.current.about_developerModeEnabled : S.current.about_developerModeClosed);
+    ToastService.showSuccess(
+      enabled
+          ? S.current.about_developerModeEnabled
+          : S.current.about_developerModeClosed,
+    );
   }
 
   Future<void> _loadVersion() async {
@@ -174,17 +180,18 @@ class _AboutPageState extends State<AboutPage> {
 
   /// 在浏览器中打开
   void _openInBrowser(String url) {
-    launchUrl(
-      Uri.parse(url),
-      mode: LaunchMode.externalApplication,
-    );
+    launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
   }
 
   void _showNoUpdateDialog(String currentVersion) {
     showAppDialog(
       context: context,
       builder: (context) => AppAlertDialog(
-        icon: Icon(AppIcons.checkCircle, size: 48, color: context.tokens.colors.brandPrimary),
+        icon: Icon(
+          AppIcons.checkCircle,
+          size: 48,
+          color: context.tokens.colors.brandPrimary,
+        ),
         title: Text(context.l10n.about_latestVersion),
         content: Text(context.l10n.about_noUpdateContent(currentVersion)),
         actions: [
@@ -201,7 +208,11 @@ class _AboutPageState extends State<AboutPage> {
     showAppDialog(
       context: context,
       builder: (context) => AppAlertDialog(
-        icon: Icon(AppIcons.error, size: 48, color: context.tokens.colors.textDestructive),
+        icon: Icon(
+          AppIcons.error,
+          size: 48,
+          color: context.tokens.colors.textDestructive,
+        ),
         title: Text(context.l10n.about_checkUpdateFailed),
         content: Text(context.l10n.about_checkUpdateError(error)),
         actions: [
@@ -225,160 +236,165 @@ class _AboutPageState extends State<AboutPage> {
     return Scaffold(
       backgroundColor: colors.surfacePage,
       appBar: AppNavBar(title: l10n.about_title),
-      body: Align(
-        alignment: Alignment.topCenter,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: kReadableMaxWidth),
-          child: ListView(
-            padding: EdgeInsets.fromLTRB(
-              AppSpace.pageMargin,
-              AppSpace.x32,
-              AppSpace.pageMargin,
-              MediaQuery.paddingOf(context).bottom + AppSpace.x32,
-            ),
-            children: [
-              // App 图标 96 + 名称 + 版本 + 非官方说明
-              Center(
-                child: SizedBox(
-                  width: 96,
-                  height: 96,
-                  child: ExcludeSemantics(
-                    child: ScalableImageWidget.fromSISource(
-                      si: ScalableImageSource.fromSvg(
-                        DefaultAssetBundle.of(context),
-                        'assets/logo.svg',
-                        warnF: (_) {},
+      body: ReadableBody(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: kReadableMaxWidth),
+            child: ListView(
+              padding: EdgeInsets.fromLTRB(
+                AppSpace.pageMargin,
+                AppSpace.x32,
+                AppSpace.pageMargin,
+                MediaQuery.paddingOf(context).bottom + AppSpace.x32,
+              ),
+              children: [
+                // App 图标 96 + 名称 + 版本 + 非官方说明
+                Center(
+                  child: SizedBox(
+                    width: 96,
+                    height: 96,
+                    child: ExcludeSemantics(
+                      child: ScalableImageWidget.fromSISource(
+                        si: ScalableImageSource.fromSvg(
+                          DefaultAssetBundle.of(context),
+                          'assets/logo.svg',
+                          warnF: (_) {},
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: AppSpace.l),
-              Center(
-                child: Text(
-                  l10n.about_appName,
-                  style: base
-                      .merge(tokens.text.title)
-                      .copyWith(color: colors.textPrimary),
+                const SizedBox(height: AppSpace.l),
+                Center(
+                  child: Text(
+                    l10n.about_appName,
+                    style: base
+                        .merge(tokens.text.title)
+                        .copyWith(color: colors.textPrimary),
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppSpace.xs),
-              // 连点 7 次开开发者模式（行为不变）
-              Center(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: _onVersionTap,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: AppSize.hit),
-                    child: Center(
-                      widthFactor: 1,
-                      child: Text(_version, style: meta),
+                const SizedBox(height: AppSpace.xs),
+                // 连点 7 次开开发者模式（行为不变）
+                Center(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _onVersionTap,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: AppSize.hit),
+                      child: Center(
+                        widthFactor: 1,
+                        child: Text(_version, style: meta),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Center(child: Text(l10n.about_unofficial, style: meta)),
-              const SizedBox(height: AppSpace.x32),
+                Center(child: Text(l10n.about_unofficial, style: meta)),
+                const SizedBox(height: AppSpace.x32),
 
-              SegmentedCardGroup(
-                children: [
-                  _buildListTile(
-                    context,
-                    icon: AppIcons.refresh,
-                    title: l10n.about_checkUpdate,
-                    onTap: _checkForUpdate,
-                  ),
-                  _buildListTile(
-                    context,
-                    icon: AppIcons.download,
-                    title: l10n.update_githubProxy,
-                    value: _githubProxy.isEmpty
-                        ? l10n.update_githubProxyDirect
-                        : _githubProxy,
-                    onTap: _showGithubProxyDialog,
-                  ),
-                  _buildListTile(
-                    context,
-                    icon: AppIcons.description,
-                    title: l10n.about_openSourceLicense,
-                    onTap: () => showLicensePage(
-                      context: context,
-                      applicationName: l10n.about_appName,
-                      applicationVersion: _version,
-                      applicationLegalese: l10n.about_legalese,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpace.xl),
-              SegmentedCardGroup(
-                children: [
-                  _buildListTile(
-                    context,
-                    icon: AppIcons.code,
-                    title: l10n.about_sourceCode,
-                    external: true,
-                    onTap: () => launchUrl(
-                      Uri.parse(
-                        'https://github.com/leehao321/uscard-forum-app',
-                      ),
-                      mode: LaunchMode.externalApplication,
-                    ),
-                  ),
-                  _buildListTile(
-                    context,
-                    icon: AppIcons.message,
-                    title: l10n.about_feedback,
-                    external: true,
-                    onTap: () => launchUrl(
-                      Uri.parse(
-                        'https://github.com/leehao321/uscard-forum-app/issues',
-                      ),
-                      mode: LaunchMode.externalApplication,
-                    ),
-                  ),
-                ],
-              ),
-              if (_developerMode) ...[
-                const SizedBox(height: AppSpace.xl),
                 SegmentedCardGroup(
                   children: [
-                    SwitchListTile.adaptive(
-                      secondary: Icon(
-                        AppIcons.code,
-                        color: colors.brandPrimary,
-                      ),
-                      title: Text(l10n.about_developerMode),
-                      value: true,
-                      onChanged: (value) {
-                        if (!value) _setDeveloperMode(false);
-                      },
-                    ),
-                    // 组件样本(0.4.0 v2 组件对照,只在开发者模式出现)
                     _buildListTile(
                       context,
-                      icon: AppIcons.category,
-                      title: l10n.about_uiGallery,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const UiGalleryPage(),
-                        ),
+                      icon: AppIcons.refresh,
+                      title: l10n.about_checkUpdate,
+                      onTap: _checkForUpdate,
+                    ),
+                    _buildListTile(
+                      context,
+                      icon: AppIcons.download,
+                      title: l10n.update_githubProxy,
+                      value: _githubProxy.isEmpty
+                          ? l10n.update_githubProxyDirect
+                          : _githubProxy,
+                      onTap: _showGithubProxyDialog,
+                    ),
+                    _buildListTile(
+                      context,
+                      icon: AppIcons.description,
+                      title: l10n.about_openSourceLicense,
+                      onTap: () => showLicensePage(
+                        context: context,
+                        applicationName: l10n.about_appName,
+                        applicationVersion: _version,
+                        applicationLegalese: l10n.about_legalese,
                       ),
                     ),
                   ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpace.m,
-                    AppSpace.s,
-                    AppSpace.m,
-                    0,
-                  ),
-                  child: Text(l10n.about_tapToDisableDeveloperMode, style: meta),
+                const SizedBox(height: AppSpace.xl),
+                SegmentedCardGroup(
+                  children: [
+                    _buildListTile(
+                      context,
+                      icon: AppIcons.code,
+                      title: l10n.about_sourceCode,
+                      external: true,
+                      onTap: () => launchUrl(
+                        Uri.parse(
+                          'https://github.com/leehao321/uscard-forum-app',
+                        ),
+                        mode: LaunchMode.externalApplication,
+                      ),
+                    ),
+                    _buildListTile(
+                      context,
+                      icon: AppIcons.message,
+                      title: l10n.about_feedback,
+                      external: true,
+                      onTap: () => launchUrl(
+                        Uri.parse(
+                          'https://github.com/leehao321/uscard-forum-app/issues',
+                        ),
+                        mode: LaunchMode.externalApplication,
+                      ),
+                    ),
+                  ],
                 ),
+                if (_developerMode) ...[
+                  const SizedBox(height: AppSpace.xl),
+                  SegmentedCardGroup(
+                    children: [
+                      SwitchListTile.adaptive(
+                        secondary: Icon(
+                          AppIcons.code,
+                          color: colors.brandPrimary,
+                        ),
+                        title: Text(l10n.about_developerMode),
+                        value: true,
+                        onChanged: (value) {
+                          if (!value) _setDeveloperMode(false);
+                        },
+                      ),
+                      // 组件样本(0.4.0 v2 组件对照,只在开发者模式出现)
+                      _buildListTile(
+                        context,
+                        icon: AppIcons.category,
+                        title: l10n.about_uiGallery,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const UiGalleryPage(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpace.m,
+                      AppSpace.s,
+                      AppSpace.m,
+                      0,
+                    ),
+                    child: Text(
+                      l10n.about_tapToDisableDeveloperMode,
+                      style: meta,
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

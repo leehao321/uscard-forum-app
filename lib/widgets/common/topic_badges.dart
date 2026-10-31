@@ -241,7 +241,7 @@ class CategoryBadge extends StatelessWidget {
         textStyle ??
         theme.textTheme.labelSmall?.copyWith(
           fontSize: size.fontSize,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
           color: theme.colorScheme.onSurface,
         );
 
