@@ -11,7 +11,11 @@ import '../../utils/dialog_utils.dart';
 
 /// 并发与限流的三个数（同时请求数 / 限流阈值 / 时间窗口秒数）
 class RateLimitValues {
-  const RateLimitValues(this.maxConcurrent, this.maxPerWindow, this.windowSeconds);
+  const RateLimitValues(
+    this.maxConcurrent,
+    this.maxPerWindow,
+    this.windowSeconds,
+  );
 
   final int maxConcurrent;
   final int maxPerWindow;
@@ -28,7 +32,8 @@ class RateLimitValues {
   int get hashCode => Object.hash(maxConcurrent, maxPerWindow, windowSeconds);
 
   @override
-  String toString() => 'RateLimitValues($maxConcurrent, $maxPerWindow, $windowSeconds)';
+  String toString() =>
+      'RateLimitValues($maxConcurrent, $maxPerWindow, $windowSeconds)';
 }
 
 /// 预设档位：省心 / 均衡 / 极速；自定义没有固定数值
