@@ -133,6 +133,14 @@ void main() {
       ),
     );
     expect(title.left, closeTo(field.left, 0.5));
+    // 标题文字块是撑满整行的，位置量不出对齐方式：再看标题实际用的对齐
+    final titleElement = tester.element(
+      find.descendant(
+        of: find.byType(AppAlertDialog),
+        matching: find.text('表情包数据源'),
+      ),
+    );
+    expect(DefaultTextStyle.of(titleElement).textAlign, TextAlign.start);
     expectNoUiException(tester);
   });
 
