@@ -5,6 +5,7 @@
   "myBrowser_historyEmptyHint": "用內置瀏覽器打開過的網頁會顯示在這裡",
   "myBrowser_titleHint": "留空時使用網頁標題",
   "myBrowser_urlLabel": "網址",
+  "myBrowser_footer": "這裏只記錄應用內置瀏覽器的網頁；論壇的書籤和瀏覽歷史在「我的」裏。",
   "webviewLogin_clearSaved": "清除已保存的密碼",
   "webviewLogin_clearSavedContent": "確定要清除已保存的登錄憑證嗎？下次登錄時需要手動輸入。",
   "webviewLogin_clearSavedTitle": "清除已保存的密碼",

@@ -38,6 +38,7 @@
   "myBrowser_empty": "No bookmarked pages yet",
   "myBrowser_emptyHint": "Tap Bookmark in the built-in browser, or tap + at the top right to add a URL",
   "myBrowser_fileNotFound": "File not found",
+  "myBrowser_footer": "Only pages opened in the in-app browser are recorded here. Forum bookmarks and browsing history are under Me.",
   "myBrowser_history": "Browsing History",
   "myBrowser_historyCleared": "Browsing history cleared",
   "myBrowser_historyDesc": "View browsed pages",

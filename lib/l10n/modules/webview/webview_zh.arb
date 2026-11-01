@@ -38,6 +38,7 @@
   "myBrowser_empty": "还没有收藏的网页",
   "myBrowser_emptyHint": "在内置浏览器里点「收藏」，或点右上角 + 手动添加网址",
   "myBrowser_fileNotFound": "文件不存在",
+  "myBrowser_footer": "这里只记录应用内置浏览器的网页；论坛的书签和浏览历史在「我的」里。",
   "myBrowser_history": "浏览历史",
   "myBrowser_historyCleared": "浏览历史已清空",
   "myBrowser_historyDesc": "查看浏览过的网页",

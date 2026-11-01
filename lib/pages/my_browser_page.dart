@@ -19,35 +19,55 @@ import 'webview_page.dart';
 import 'download_list_page.dart';
 
 // ---------------------------------------------------------------------------
-// 内置浏览器主页 — 地址栏 + 功能入口
+// 内置浏览器主页 — 地址栏 + 功能入口（补充稿 38）
 // ---------------------------------------------------------------------------
 
+/// 地址栏里输入的文字补成可打开的网址：去掉首尾空白，没写协议的补 https://；
+/// 空输入返回 null（不打开）
+String? normalizeBrowserInput(String input) {
+  final url = input.trim();
+  if (url.isEmpty) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return 'https://$url';
+}
+
 class MyBrowserPage extends ConsumerWidget {
-  const MyBrowserPage({super.key});
+  const MyBrowserPage({super.key, this.onOpenUrl});
+
+  /// 地址栏提交后怎么打开；默认用内置浏览器页（测试里换成记录用的假回调）
+  final void Function(BuildContext context, String url)? onOpenUrl;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bookmarkCount = ref.watch(
       webBookmarkProvider.select((list) => list.length),
     );
+    final tokens = context.tokens;
+    final l10n = context.l10n;
 
     return Scaffold(
-      appBar: ReadableAppBar(child: AppBar(title: Text(context.l10n.myBrowser_title))),
+      backgroundColor: tokens.colors.surfacePage,
+      appBar: ReadableAppBar(child: AppNavBar(title: l10n.myBrowser_title)),
       body: ReadableBody(
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpace.pageMargin,
+            AppSpace.s,
+            AppSpace.pageMargin,
+            AppSpace.x32,
+          ),
           children: [
             // 地址栏
             _AddressBar(onSubmit: (url) => _openUrl(context, url)),
-            const SizedBox(height: 24),
-            // 功能入口
+            const SizedBox(height: AppSpace.l),
+            // 功能入口：收藏、浏览历史、下载管理（和论坛书签、论坛浏览历史分开）
             SegmentedCardGroup(
+              separatorIndent: AppSpace.m + AppSize.iconM + AppSpace.m,
               children: [
                 _EntryTile(
                   icon: AppIcons.star,
-                  iconColor: context.tokens.colors.brandPrimary,
-                  title: context.l10n.myBrowser_bookmarks,
-                  subtitle: context.l10n.myBrowser_bookmarkCount(bookmarkCount),
+                  title: l10n.myBrowser_bookmarks,
+                  subtitle: l10n.myBrowser_bookmarkCount(bookmarkCount),
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -57,9 +77,8 @@ class MyBrowserPage extends ConsumerWidget {
                 ),
                 _EntryTile(
                   icon: AppIcons.history,
-                  iconColor: context.tokens.colors.brandPrimary,
-                  title: context.l10n.myBrowser_history,
-                  subtitle: context.l10n.myBrowser_historyDesc,
+                  title: l10n.myBrowser_history,
+                  subtitle: l10n.myBrowser_historyDesc,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const _WebHistoryPage()),
@@ -67,15 +86,28 @@ class MyBrowserPage extends ConsumerWidget {
                 ),
                 _EntryTile(
                   icon: AppIcons.download,
-                  iconColor: context.tokens.colors.brandPrimary,
-                  title: context.l10n.myBrowser_downloads,
-                  subtitle: context.l10n.myBrowser_downloadsDesc,
+                  title: l10n.myBrowser_downloads,
+                  subtitle: l10n.myBrowser_downloadsDesc,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const DownloadListPage()),
                   ),
                 ),
               ],
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpace.m,
+                AppSpace.s,
+                AppSpace.m,
+                0,
+              ),
+              child: Text(
+                l10n.myBrowser_footer,
+                style: Theme.of(context).textTheme.bodySmall!
+                    .merge(tokens.text.meta)
+                    .copyWith(color: tokens.colors.textMeta),
+              ),
             ),
           ],
         ),
@@ -84,16 +116,18 @@ class MyBrowserPage extends ConsumerWidget {
   }
 
   void _openUrl(BuildContext context, String input) {
-    var url = input.trim();
-    if (url.isEmpty) return;
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = 'https://$url';
+    final url = normalizeBrowserInput(input);
+    if (url == null) return;
+    final open = onOpenUrl;
+    if (open != null) {
+      open(context, url);
+    } else {
+      WebViewPage.open(context, url);
     }
-    WebViewPage.open(context, url);
   }
 }
 
-/// 地址输入栏
+/// 地址输入栏：44 高 r10 surface/grouped，左 globe 20、输入 17、右 arrow-right 20
 class _AddressBar extends StatefulWidget {
   final ValueChanged<String> onSubmit;
 
@@ -114,33 +148,47 @@ class _AddressBarState extends State<_AddressBar> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final base = Theme.of(context).textTheme.bodyMedium!;
 
-    return TextField(
-      controller: _controller,
-      keyboardType: TextInputType.url,
-      textInputAction: TextInputAction.go,
-      decoration: InputDecoration(
-        hintText: context.l10n.myBrowser_inputUrl,
-        prefixIcon: const Icon(AppIcons.language),
-        suffixIcon: IconButton(
-          icon: const Icon(AppIcons.forward),
-          onPressed: () => _submit(),
+    return SizedBox(
+      height: AppSize.hit,
+      child: TextField(
+        controller: _controller,
+        keyboardType: TextInputType.url,
+        textInputAction: TextInputAction.go,
+        cursorColor: tokens.colors.brandPrimary,
+        style: base
+            .merge(tokens.text.control)
+            .copyWith(color: tokens.colors.textPrimary),
+        decoration: InputDecoration(
+          hintText: context.l10n.myBrowser_inputUrl,
+          hintStyle: base
+              .merge(tokens.text.control)
+              .copyWith(color: tokens.colors.textMeta),
+          prefixIcon: Icon(
+            AppIcons.globe,
+            size: AppSize.iconM,
+            color: tokens.colors.textMeta,
+          ),
+          suffixIcon: AppIconButton(
+            icon: AppIcons.forward,
+            size: AppSize.iconM,
+            color: tokens.colors.textMeta,
+            semanticLabel: context.l10n.myBrowser_open,
+            onPressed: _submit,
+          ),
+          filled: true,
+          fillColor: tokens.colors.surfaceGrouped,
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(horizontal: AppSpace.m),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(tokens.radius.field),
+            borderSide: BorderSide.none,
+          ),
         ),
-        filled: true,
-        fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
-          alpha: 0.5,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(28),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 14,
-        ),
+        onSubmitted: (_) => _submit(),
       ),
-      onSubmitted: (_) => _submit(),
     );
   }
 
@@ -151,17 +199,15 @@ class _AddressBarState extends State<_AddressBar> {
   }
 }
 
-/// 功能入口行
+/// 功能入口行：前导图标 20 brand、标题 17、说明 13 meta、右侧 chevron-right 16
 class _EntryTile extends StatelessWidget {
   final IconData icon;
-  final Color iconColor;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
 
   const _EntryTile({
     required this.icon,
-    required this.iconColor,
     required this.title,
     required this.subtitle,
     required this.onTap,
@@ -169,50 +215,49 @@ class _EntryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return InkWell(
+    final tokens = context.tokens;
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    return AppPressable(
+      highlight: true,
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: iconColor, size: 20),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontSize: AppFontSize.body,
-                      fontWeight: FontWeight.w600,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: AppSize.row48),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpace.m,
+            vertical: AppSpace.s,
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: AppSize.iconM, color: tokens.colors.brandPrimary),
+              const SizedBox(width: AppSpace.m),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: base
+                          .merge(tokens.text.control)
+                          .copyWith(color: tokens.colors.textPrimary),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                    Text(
+                      subtitle,
+                      style: base
+                          .merge(tokens.text.meta)
+                          .copyWith(color: tokens.colors.textMeta),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Icon(
-              AppIcons.chevronRight,
-              color: theme.colorScheme.outline.withValues(alpha: 0.4),
-              size: 20,
-            ),
-          ],
+              const SizedBox(width: AppSpace.s),
+              Icon(
+                AppIcons.chevronRight,
+                size: AppSize.iconS,
+                color: tokens.colors.textMeta,
+              ),
+            ],
+          ),
         ),
       ),
     );
