@@ -1,6 +1,7 @@
 import 'dart:async' show Timer;
 
-import 'package:flutter/foundation.dart' show ValueListenable;
+import 'package:flutter/cupertino.dart' show CupertinoActivityIndicator;
+import 'package:flutter/foundation.dart' show ValueListenable, visibleForTesting;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
@@ -1642,7 +1643,7 @@ class _TopicPostListState extends State<TopicPostList> {
         child = longFooter();
         break;
       case _PostRenderSegmentType.gapBefore:
-        child = _GapIndicator(
+        child = GapIndicator(
           count: segment.gapCount,
           onTap: onFillGapBefore != null
               ? () => onFillGapBefore!(post.id)
@@ -1650,7 +1651,7 @@ class _TopicPostListState extends State<TopicPostList> {
         );
         break;
       case _PostRenderSegmentType.gapAfter:
-        child = _GapIndicator(
+        child = GapIndicator(
           count: segment.gapCount,
           onTap: onFillGapAfter != null ? () => onFillGapAfter!(post.id) : null,
         );
@@ -1877,75 +1878,85 @@ class _PostRenderSegment {
 }
 
 /// Gap 指示器 - 显示被隐藏的帖子数量，点击后加载
-class _GapIndicator extends StatefulWidget {
+///
+/// 补充稿 17：整宽胶囊（44 高、surface/grouped），chevrons-up-down 16 +
+/// 「显示隐藏的回复」13 Semibold brand；加载中换成菊花 + 「加载中」。
+@visibleForTesting
+class GapIndicator extends StatefulWidget {
   final int count;
   final VoidCallback? onTap;
 
-  const _GapIndicator({required this.count, this.onTap});
+  const GapIndicator({required this.count, this.onTap});
 
   @override
-  State<_GapIndicator> createState() => _GapIndicatorState();
+  State<GapIndicator> createState() => GapIndicatorState();
 }
 
-class _GapIndicatorState extends State<_GapIndicator> {
+class GapIndicatorState extends State<GapIndicator> {
   bool _loading = false;
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     final theme = Theme.of(context);
-    return InkWell(
-      onTap: _loading
-          ? null
-          : () {
-              setState(() => _loading = true);
-              widget.onTap?.call();
-            },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withValues(
-            alpha: 0.3,
-          ),
-          border: Border(
-            bottom: BorderSide(
-              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-              width: 0.5,
-            ),
-          ),
+    final labelStyle = theme.textTheme.bodySmall!
+        .merge(tokens.text.metaStrong)
+        .copyWith(color: colors.brandPrimary);
+    final pillHeight = AppSize.hit;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpace.pageMargin,
+        vertical: AppSpace.m,
+      ),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: colors.separator, width: AppSpace.hairline),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (_loading)
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: SizedBox(
-                  width: 14,
-                  height: 14,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: theme.colorScheme.primary,
-                  ),
+      ),
+      child: Semantics(
+        button: true,
+        label: S.current.topicDetail_showHiddenReplies(widget.count),
+        child: ExcludeSemantics(
+          child: Material(
+            color: colors.surfaceGrouped,
+            borderRadius: BorderRadius.circular(AppRadius.pill(pillHeight)),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              key: const ValueKey('hidden_replies_toggle'),
+              onTap: _loading
+                  ? null
+                  : () {
+                      setState(() => _loading = true);
+                      widget.onTap?.call();
+                    },
+              child: SizedBox(
+                height: pillHeight,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (_loading)
+                      const CupertinoActivityIndicator(
+                        radius: AppSize.iconS / 2,
+                      )
+                    else
+                      Icon(
+                        AppIcons.chevronsUpDown,
+                        size: AppSize.iconS,
+                        color: colors.brandPrimary,
+                      ),
+                    const SizedBox(width: AppSpace.s),
+                    Text(
+                      _loading
+                          ? S.current.common_loadingLabel
+                          : S.current.topicDetail_showHiddenRepliesLabel,
+                      style: labelStyle,
+                    ),
+                  ],
                 ),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: Icon(
-                  AppIcons.chevronsUpDown,
-                  size: 16,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            Text(
-              _loading
-                  ? S.current.topicDetail_loading
-                  : S.current.topicDetail_showHiddenReplies(widget.count),
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.primary,
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

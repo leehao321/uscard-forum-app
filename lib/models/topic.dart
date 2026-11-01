@@ -1628,7 +1628,7 @@ class BoostUser {
 /// 回复链上溯、staff 视角未展开的已删帖。
 ///
 /// 所以不能把 gaps 当成「拉黑用户的帖子位置」处理——被跳过的楼层并不在
-/// 本地，`_GapIndicator` 是它们唯一的加载入口（点击走 `fillGapBefore` /
+/// 本地，`GapIndicator` 是它们唯一的加载入口（点击走 `fillGapBefore` /
 /// `fillGapAfter` 去请求）。抹掉 gaps 等于让这些楼层永久不可达。
 class PostStreamGaps {
   final Map<int, List<int>> before; // {postId: [gapPostIds]}

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,7 +13,6 @@ import '../../../utils/number_utils.dart';
 import '../../../utils/time_utils.dart';
 import '../../../widgets/common/category_tags_line.dart';
 import '../../../widgets/common/icon_glyph_span.dart';
-import '../../../widgets/common/smart_avatar.dart';
 import '../../category_topics_page.dart';
 import '../topic_detail_page.dart';
 
@@ -53,6 +53,7 @@ class _MoreTopicsSectionState extends ConsumerState<MoreTopicsSection> {
     if (related.isEmpty && suggested.isEmpty) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
+    final tokens = context.tokens;
     final l10n = context.l10n;
     final hasTabs = related.isNotEmpty && suggested.isNotEmpty;
     final showRelated = related.isNotEmpty && (_preferRelated ?? true);
@@ -63,7 +64,12 @@ class _MoreTopicsSectionState extends ConsumerState<MoreTopicsSection> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpace.pageMargin,
+            AppSpace.l,
+            AppSpace.pageMargin,
+            AppSpace.s,
+          ),
           child: hasTabs
               ? Row(
                   children: [
@@ -81,25 +87,14 @@ class _MoreTopicsSectionState extends ConsumerState<MoreTopicsSection> {
                     ),
                   ],
                 )
-              : Row(
-                  children: [
-                    if (showRelated) ...[
-                      Icon(
-                        AppIcons.autoAwesome,
-                        size: 16,
-                        color: theme.colorScheme.primary,
-                      ),
-                      const SizedBox(width: 6),
-                    ],
-                    Text(
-                      showRelated
-                          ? l10n.topicDetail_relatedTopics
-                          : l10n.topicDetail_suggestedTopics,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+              // 只有一组时：13 meta 的小标题（补充稿 17「建议话题」）
+              : Text(
+                  showRelated
+                      ? l10n.topicDetail_relatedTopics
+                      : l10n.topicDetail_suggestedTopics,
+                  style: theme.textTheme.bodySmall!
+                      .merge(tokens.text.meta)
+                      .copyWith(color: tokens.colors.textMeta),
                 ),
         ),
         for (final topic in topics)
@@ -149,34 +144,34 @@ class _MoreTopicsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final fg = selected
-        ? theme.colorScheme.onSecondaryContainer
-        : theme.colorScheme.onSurfaceVariant;
+    final tokens = context.tokens;
+    // 筛选胶囊（设计说明 §4）：32 高 r16 surface/grouped，选中换 brand 文字
+    final fg = selected ? tokens.colors.brandPrimary : tokens.colors.textMeta;
     return Material(
-      color: selected
-          ? theme.colorScheme.secondaryContainer
-          : Colors.transparent,
-      borderRadius: BorderRadius.circular(16),
+      color: selected ? tokens.colors.surfaceGrouped : Colors.transparent,
+      borderRadius: BorderRadius.circular(AppRadius.pill(AppSize.floorPill)),
       child: InkWell(
         onTap: selected ? null : onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: 14, color: fg),
-                const SizedBox(width: 4),
-              ],
-              Text(
-                label,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: fg,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w600,
+        borderRadius: BorderRadius.circular(AppRadius.pill(AppSize.floorPill)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: AppSize.floorPill),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpace.m),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (icon != null) ...[
+                  Icon(icon, size: AppSize.iconS, color: fg),
+                  const SizedBox(width: AppSpace.xs),
+                ],
+                Text(
+                  label,
+                  style: theme.textTheme.bodySmall!
+                      .merge(tokens.text.metaStrong)
+                      .copyWith(color: fg),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -254,64 +249,49 @@ class _MoreTopicTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final tokens = context.tokens;
     final density = resolveMoreTopicTileDensity(topic, category: category);
-    final metaColor = theme.colorScheme.onSurfaceVariant;
+    final metaColor = tokens.colors.textMeta;
 
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          topic.title,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            height: 1.35,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        if (density.showExcerpt)
-          Padding(
-            padding: const EdgeInsets.only(top: 3),
-            child: Text(
-              topic.excerpt!.trim(),
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: metaColor.withValues(alpha: 0.85),
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        if (density.hasMetaLine)
-          Padding(
-            padding: const EdgeInsets.only(top: 5),
-            child: _buildMetaLine(context, density, metaColor),
-          ),
-      ],
-    );
-
+    // 补充稿 17：标题 17 Semibold（最多 2 行）→ 摘要 13 meta → meta 行 13，
+    // 左右页边距 20、上下 12，没有头像
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-        child: density.creator == null
-            ? content
-            : Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 顶对齐标题首行:标题 bodyMedium 首行高约 19px,
-                  // 32px 头像下沉会显得飘,略加 1px 视觉对齐
-                  Padding(
-                    padding: const EdgeInsets.only(top: 1),
-                    child: SmartAvatar(
-                      imageUrl: density.creator!.getAvatarUrl(size: 64),
-                      radius: 16,
-                      fallbackText: density.creator!.displayName,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(child: content),
-                ],
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpace.pageMargin,
+          vertical: AppSpace.m,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              topic.title,
+              style: theme.textTheme.titleMedium!
+                  .merge(tokens.text.headline)
+                  .copyWith(color: tokens.colors.textPrimary),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (density.showExcerpt)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpace.xs),
+                child: Text(
+                  topic.excerpt!.trim(),
+                  style: theme.textTheme.bodySmall!
+                      .merge(tokens.text.meta)
+                      .copyWith(color: metaColor),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+            if (density.hasMetaLine)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpace.s),
+                child: _buildMetaLine(context, density, metaColor),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -324,7 +304,9 @@ class _MoreTopicTile extends StatelessWidget {
     Color metaColor,
   ) {
     final theme = Theme.of(context);
-    final rightStyle = theme.textTheme.labelSmall?.copyWith(color: metaColor);
+    final rightStyle = theme.textTheme.bodySmall!
+        .merge(context.tokens.text.meta)
+        .copyWith(color: metaColor);
 
     final rightSpans = <InlineSpan>[];
     if (density.replyCount > 0) {
@@ -332,9 +314,9 @@ class _MoreTopicTile extends StatelessWidget {
         iconGlyphSpan(
           context,
           AppIcons.chatBubble,
-          size: 12,
+          size: 14,
           color: metaColor,
-          gap: 3,
+          gap: 4,
           textStyle: rightStyle,
         ),
       );
@@ -393,8 +375,14 @@ class _BrowseMoreLine extends StatelessWidget {
     final category = this.category;
     if (category == null) return const SizedBox.shrink();
     final theme = Theme.of(context);
+    final tokens = context.tokens;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpace.pageMargin,
+        AppSpace.xs,
+        AppSpace.pageMargin,
+        AppSpace.s,
+      ),
       child: Align(
         alignment: AlignmentDirectional.centerStart,
         child: InkWell(
@@ -408,9 +396,9 @@ class _BrowseMoreLine extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
             child: Text(
               context.l10n.topicDetail_browseMoreInCategory(category.name),
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.primary,
-              ),
+              style: theme.textTheme.bodySmall!
+                  .merge(tokens.text.meta)
+                  .copyWith(color: tokens.colors.brandPrimary),
             ),
           ),
         ),
