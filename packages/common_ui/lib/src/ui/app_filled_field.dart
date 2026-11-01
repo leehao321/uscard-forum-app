@@ -20,6 +20,7 @@ class AppFilledField extends StatefulWidget {
     this.keyboardType,
     this.textInputAction,
     this.floatingLabel = false,
+    this.focusRing = true,
     this.autofocus = false,
     this.obscureText = false,
     this.enabled = true,
@@ -42,6 +43,9 @@ class AppFilledField extends StatefulWidget {
 
   /// true：标签平时不显示（占位文字当标签用），聚焦或有内容时才出现在框上方
   final bool floatingLabel;
+
+  /// 聚焦时是否画 1.5pt 品牌色描边、标签变品牌色（搜索框、对话框里的框不需要）
+  final bool focusRing;
   final TextEditingController? controller;
   final String? hintText;
   final TextInputType? keyboardType;
@@ -132,9 +136,7 @@ class _AppFilledFieldState extends State<AppFilledField> {
         .merge(tokens.text.control)
         .copyWith(color: widget.enabled ? colors.textPrimary : colors.textMeta)
         .merge(widget.textStyle);
-    final meta = base
-        .merge(tokens.text.meta)
-        .copyWith(color: colors.textMeta);
+    final meta = base.merge(tokens.text.meta).copyWith(color: colors.textMeta);
     final multiline = (widget.maxLines ?? 2) != 1;
 
     return FormField<String>(
@@ -156,7 +158,9 @@ class _AppFilledFieldState extends State<AppFilledField> {
                 child: Text(
                   widget.label!,
                   style: meta.copyWith(
-                    color: _focused ? colors.brandPrimary : colors.textMeta,
+                    color: _focused && widget.focusRing
+                        ? colors.brandPrimary
+                        : colors.textMeta,
                   ),
                 ),
               ),
@@ -164,7 +168,7 @@ class _AppFilledFieldState extends State<AppFilledField> {
               decoration: BoxDecoration(
                 color: widget.fillColor ?? colors.surfaceGrouped,
                 borderRadius: BorderRadius.circular(tokens.radius.field),
-                border: _focused
+                border: _focused && widget.focusRing
                     ? Border.all(color: colors.brandPrimary, width: 1.5)
                     : null,
               ),

@@ -234,16 +234,17 @@ class _BookmarkListPage extends ConsumerWidget {
     final bookmarks = ref.watch(webBookmarkProvider);
 
     return Scaffold(
-      appBar: ReadableAppBar(child: AppBar(
-        title: Text(context.l10n.myBrowser_bookmarks),
-        actions: [
+      // 补充稿 46：返回 + 标题 + 右上「+」
+      appBar: AppNavBar(
+        title: context.l10n.myBrowser_bookmarks,
+        trailing: [
           AppIconButton(
             icon: AppIcons.add,
             semanticLabel: context.l10n.myBrowser_addManually,
             onPressed: () => _showAddDialog(context, ref),
           ),
         ],
-      )),
+      ),
       body: ReadableBody(
         child: bookmarks.isEmpty
             ? AppStateView(
@@ -325,6 +326,7 @@ class _BookmarkListPage extends ConsumerWidget {
               label: S.current.myBrowser_urlLabel,
               controller: urlController,
               autofocus: true,
+              focusRing: false,
               keyboardType: TextInputType.url,
               autocorrect: false,
               enableSuggestions: false,
@@ -335,6 +337,7 @@ class _BookmarkListPage extends ConsumerWidget {
               label: S.current.myBrowser_inputTitle,
               controller: titleController,
               hintText: S.current.myBrowser_titleHint,
+              focusRing: false,
               fillColor: ctx.tokens.colors.surfaceElevated,
             ),
           ],
@@ -448,17 +451,17 @@ class _WebHistoryPage extends ConsumerWidget {
     final history = ref.watch(webHistoryProvider);
 
     return Scaffold(
-      appBar: ReadableAppBar(child: AppBar(
-        title: Text(context.l10n.myBrowser_history),
-        actions: [
+      appBar: AppNavBar(
+        title: context.l10n.myBrowser_history,
+        trailing: [
           if (history.isNotEmpty)
-            IconButton(
-              icon: const Icon(AppIcons.delete),
-              tooltip: context.l10n.myBrowser_clearHistory,
+            AppIconButton(
+              icon: AppIcons.delete,
+              semanticLabel: context.l10n.myBrowser_clearHistory,
               onPressed: () => _confirmClear(context, ref),
             ),
         ],
-      )),
+      ),
       body: ReadableBody(
         child: history.isEmpty
             ? AppStateView(

@@ -934,6 +934,7 @@ class _StickerBaseUrlDialogState extends State<_StickerBaseUrlDialog> {
             hintText: context.l10n.preferences_enterUrl,
             keyboardType: TextInputType.url,
             autofocus: true,
+            focusRing: false,
             autocorrect: false,
             enableSuggestions: false,
             fillColor: tokens.colors.surfaceElevated,

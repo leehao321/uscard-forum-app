@@ -95,6 +95,7 @@ class _PresetIconPickerState extends State<PresetIconPicker> {
             controller: _controller,
             hintText: l10n.quickPromptsIconSearchHint,
             autofocus: true,
+            focusRing: false,
             autocorrect: false,
             enableSuggestions: false,
             textInputAction: TextInputAction.search,
