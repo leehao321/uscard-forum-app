@@ -36,9 +36,6 @@ const double _kScreenMargin = 12.0;
 /// 桌面端浮层宽度（比移动端更宽，对齐网页版桌面卡片）
 const double _kFloatingWidth = 420.0;
 
-/// 移动端停靠卡最大宽度
-const double _kDockedMaxWidth = 480.0;
-
 /// 头像半径（戳出卡片顶边的大头像）
 const double _kAvatarRadius = 38.0;
 
@@ -88,7 +85,8 @@ void showUserCard({
       ? GlobalKey<NavigatorState>()
       : null;
 
-  Widget buildCard(VoidCallback onClose) => _UserCardContent(
+  Widget buildCard(VoidCallback onClose, {bool sheet = false}) => _UserCardContent(
+    sheet: sheet,
     username: username,
     topicId: topicId,
     topicTitle: topicTitle,
@@ -186,13 +184,20 @@ void showUserCard({
     );
     overlay.insert(entry);
   } else {
-    // 移动端（v2）：底部半屏，遮罩 32%，下滑或点遮罩关闭
+    // 移动端（v2）：底部半屏（补充稿 27），遮罩 32%，下滑或点遮罩关闭；
+    // 读者不离开当前楼，「查看主页」才进用户主页。头行只放右上角的 x。
     showAppBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetContext) => _DockedLayer(
-        child: buildCard(() => Navigator.of(sheetContext).pop()),
+      builder: (sheetContext) => AppSheetScaffold(
+        titleWidget: const SizedBox.shrink(),
+        child: SingleChildScrollView(
+          child: buildCard(
+            () => Navigator.of(sheetContext).pop(),
+            sheet: true,
+          ),
+        ),
       ),
     );
   }
@@ -344,40 +349,6 @@ class _CardEntryAnimationState extends State<_CardEntryAnimation>
   }
 }
 
-/// 移动端：顶部全宽停靠卡
-class _DockedLayer extends StatelessWidget {
-  final Widget child;
-  const _DockedLayer({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-    final maxHeight = media.size.height * 0.82;
-    return SafeArea(
-      top: false,
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: Padding(
-          // 顶部多留出头像戳出的高度，避免被裁剪
-          padding: const EdgeInsets.fromLTRB(
-            _kScreenMargin,
-            _kAvatarOverflow + 6,
-            _kScreenMargin,
-            _kScreenMargin,
-          ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: _kDockedMaxWidth,
-              maxHeight: maxHeight,
-            ),
-            child: child,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// 桌面端：锚定头像旁的浮层
 class _FloatingLayer extends StatelessWidget {
   final Rect anchorRect;
@@ -460,6 +431,8 @@ class _FloatingLayoutDelegate extends SingleChildLayoutDelegate {
 
 /// 用户卡片内容
 class _UserCardContent extends ConsumerStatefulWidget {
+  /// 移动端半屏形态（补充稿 27 / 28）；false = 桌面端浮层卡片
+  final bool sheet;
   final String username;
   final int? topicId;
   final String? topicTitle;
@@ -475,6 +448,7 @@ class _UserCardContent extends ConsumerStatefulWidget {
   final VoidCallback onClose;
 
   const _UserCardContent({
+    required this.sheet,
     required this.username,
     required this.topicId,
     required this.topicTitle,
@@ -640,6 +614,7 @@ class _UserCardContentState extends ConsumerState<_UserCardContent> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.sheet) return _buildSheet(context);
     final theme = Theme.of(context);
     final user = _user;
     final bg = user?.backgroundUrl;
@@ -740,6 +715,281 @@ class _UserCardContentState extends ConsumerState<_UserCardContent> {
           ),
         ],
       ),
+    );
+  }
+
+  // ───────────────────────── 移动端半屏（补充稿 27 / 28）─────────────────────────
+
+  /// 半屏：头像 40 + 名字 17 Semibold；@handle · 信任等级 13 meta；简介；
+  /// 「查看主页」（主按钮）+「私信」（次按钮）。加载中是同结构的骨架（200ms 后才出现）。
+  Widget _buildSheet(BuildContext context) {
+    final user = _user;
+    if (user == null && _loading) {
+      return DelayedLoading.builder(
+        builder: (context, phase) => switch (phase) {
+          // 200ms 内不出骨架，但占住位置，出现时半屏不跳高度
+          LoadingPhase.quiet => Opacity(
+            opacity: 0,
+            child: _buildSheetSkeleton(),
+          ),
+          LoadingPhase.skeleton => _buildSheetSkeleton(),
+          LoadingPhase.waiting => Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              WaitingHint(label: S.current.common_waitingForForum),
+              _buildSheetSkeleton(),
+            ],
+          ),
+        },
+      );
+    }
+
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildSheetHeader(theme, user),
+        const SizedBox(height: AppSpace.l),
+        _buildSheetHandleLine(theme, user),
+        if (user != null) ...[
+          if (user.isSuspended || user.isSilenced)
+            _buildRestrictionBanner(theme, user),
+          if (_hasBio(user)) _buildSheetBio(theme, user),
+          _buildLocationWebsite(theme, user),
+          _buildFacts(theme, user),
+          _buildStatsRow(theme, user),
+        ],
+        const SizedBox(height: AppSpace.xxl),
+        _buildSheetActions(theme, user),
+      ],
+    );
+  }
+
+  /// 头像 40 + 名字（点了进主页）
+  Widget _buildSheetHeader(ThemeData theme, User? user) {
+    final tokens = context.tokens;
+    final displayName = (user?.name?.isNotEmpty ?? false)
+        ? user!.name!
+        : (widget.nameFallback?.isNotEmpty ?? false)
+        ? widget.nameFallback!
+        : widget.username;
+    final avatarUrl = user?.getAvatarUrl(size: 144) ?? widget.avatarFallbackUrl;
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: _openProfile,
+          child: AvatarWithFlair(
+            flairSize: 14,
+            flairRight: -2,
+            flairBottom: -2,
+            flairUrl: user?.flairUrl ?? widget.flairUrl,
+            flairName: user?.flairName ?? widget.flairName,
+            flairBgColor: user?.flairBgColor ?? widget.flairBgColor,
+            flairColor: user?.flairColor ?? widget.flairColor,
+            avatar: SmartAvatar(
+              imageUrl: (avatarUrl?.isNotEmpty ?? false) ? avatarUrl : null,
+              radius: AppSize.avatarM / 2,
+              fallbackText: widget.username,
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSpace.m),
+        Expanded(
+          child: GestureDetector(
+            onTap: _openProfile,
+            child: Text(
+              displayName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleMedium
+                  ?.merge(tokens.text.headline)
+                  .copyWith(color: tokens.colors.textPrimary),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// @handle · 信任等级（点 @handle 复制用户名）
+  Widget _buildSheetHandleLine(ThemeData theme, User? user) {
+    final tokens = context.tokens;
+    final meta = theme.textTheme.bodySmall
+        ?.merge(tokens.text.meta)
+        .copyWith(color: tokens.colors.textMeta);
+    return Row(
+      children: [
+        Flexible(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => copyUsernameToClipboard(widget.username),
+            child: Text(
+              '@${widget.username}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: meta,
+            ),
+          ),
+        ),
+        if (user != null) ...[
+          Text(' · ', style: meta),
+          Text(user.trustLevelString, style: meta),
+        ],
+      ],
+    );
+  }
+
+  /// 简介（17 meta，封顶高度 + 底部渐隐）
+  Widget _buildSheetBio(ThemeData theme, User user) {
+    final tokens = context.tokens;
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpace.s),
+      child: _ClampedFadeBox(
+        maxHeight: 66,
+        child:
+            FluxdoRenderCallbacks.generic(
+              heroTagNamespace: 'user_card_bio_${user.username}',
+            ).render(
+              cookedHtml: user.bio!,
+              baseTextStyle: theme.textTheme.bodyMedium?.copyWith(
+                height: 1.4,
+                color: tokens.colors.textMeta,
+              ),
+              compact: true,
+              selectionEnabled: false,
+            ),
+      ),
+    );
+  }
+
+  /// 加载骨架：结构和卡片一致——头像圆 + 名字条；两条文字条；一个按钮块。
+  /// 共享骨架规范：avatar/fill 灰条、没有闪光（见 [Skeleton]）。
+  Widget _buildSheetSkeleton() {
+    final tokens = context.tokens;
+    return Skeleton(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Row(
+            children: [
+              SkeletonCircle(size: AppSize.avatarM),
+              SizedBox(width: AppSpace.m),
+              SkeletonBox(width: 120, height: 14),
+            ],
+          ),
+          const SizedBox(height: AppSpace.l),
+          const SkeletonBox(width: 160, height: 12),
+          const SizedBox(height: AppSpace.m),
+          const SkeletonBox(width: 320, height: 12),
+          const SizedBox(height: AppSpace.x32),
+          Container(
+            key: const ValueKey('user_card_skeleton_button'),
+            height: AppSize.replyButton,
+            decoration: BoxDecoration(
+              color: tokens.colors.surfaceElevated,
+              borderRadius: BorderRadius.circular(tokens.radius.card),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 第一行：查看主页（主）+ 私信（次，有权限才有）；
+  /// 其余（关注、只看 TA、免打扰 / 忽略）在下面一行，沿用原有显示条件。
+  Widget _buildSheetActions(ThemeData theme, User? user) {
+    final isLoggedIn = ref.watch(
+      currentUserProvider.select((value) => value.value != null),
+    );
+    final canMessage = isLoggedIn && user?.canSendPrivateMessageToUser == true;
+    final canFollow = isLoggedIn && user?.canFollow == true;
+    final canMute = isLoggedIn && user?.canMuteUser == true;
+    final canIgnore = isLoggedIn && user?.canIgnoreUser == true;
+    final isFiltering = _isFilteringThisUser;
+    final canFilter =
+        widget.topicId != null && (_topicPostCount >= 2 || isFiltering);
+
+    final large = FilledButton.styleFrom(
+      minimumSize: const Size.fromHeight(AppSize.replyButton),
+    );
+
+    final extra = <Widget>[
+      if (canFollow)
+        _isFollowed
+            ? OutlinedButton.icon(
+                onPressed: _followLoading ? null : _toggleFollow,
+                icon: const Icon(AppIcons.assign, size: AppSize.iconM),
+                label: Text(S.current.userProfile_followed),
+              )
+            : FilledButton.icon(
+                style: AppButtonStyles.secondary(context),
+                onPressed: _followLoading ? null : _toggleFollow,
+                icon: const Icon(AppIcons.follow, size: AppSize.iconM),
+                label: Text(S.current.userProfile_follow),
+              ),
+      if (canFilter)
+        OutlinedButton.icon(
+          onPressed: _toggleFilterPosts,
+          icon: Icon(
+            isFiltering ? AppIcons.filterOff : AppIcons.filter,
+            size: AppSize.iconM,
+          ),
+          label: Text(
+            isFiltering
+                ? S.current.userCard_cancelFilterPosts
+                : S.current.userCard_filterPosts(_topicPostCount),
+          ),
+        ),
+    ];
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: FilledButton.icon(
+                key: const ValueKey('user_card_view_profile'),
+                style: large,
+                onPressed: _openProfile,
+                icon: const Icon(AppIcons.account, size: AppSize.iconM),
+                label: Text(S.current.userCard_viewProfile),
+              ),
+            ),
+            if (canMessage) ...[
+              const SizedBox(width: AppSpace.m),
+              Expanded(
+                child: FilledButton.icon(
+                  key: const ValueKey('user_card_message'),
+                  style: large.merge(AppButtonStyles.secondary(context)),
+                  onPressed: _composeMessage,
+                  icon: const Icon(AppIcons.mail, size: AppSize.iconM),
+                  label: Text(S.current.userProfile_message),
+                ),
+              ),
+            ],
+          ],
+        ),
+        if (extra.isNotEmpty || canMute || canIgnore) ...[
+          const SizedBox(height: AppSpace.m),
+          Row(
+            children: [
+              for (var i = 0; i < extra.length; i++) ...[
+                if (i > 0) const SizedBox(width: AppSpace.s),
+                Expanded(child: extra[i]),
+              ],
+              if (canMute || canIgnore) ...[
+                if (extra.isNotEmpty) const SizedBox(width: AppSpace.s),
+                _buildMoreMenu(theme, canMute, canIgnore),
+              ],
+            ],
+          ),
+        ],
+      ],
     );
   }
 

@@ -1,8 +1,14 @@
+import 'dart:async';
+
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxdo/models/topic.dart';
+import 'package:fluxdo/models/user.dart';
+import 'package:fluxdo/providers/core_providers.dart';
+import 'package:fluxdo/services/discourse/discourse_service.dart';
+import 'package:fluxdo/widgets/user/user_card.dart';
 import 'package:fluxdo/providers/theme_provider.dart'
     show sharedPreferencesProvider;
 import 'package:fluxdo/providers/user_content_providers.dart';
@@ -140,6 +146,27 @@ void main() {
       await uiShot(tester, '26_导出文章_半屏_${_name(v)}');
     });
   }
+
+  // 27 用户卡片半屏 / 28 加载骨架
+  for (final v in [_light, _dark]) {
+    testUi('27_用户卡片_半屏（${_name(v)}）', (tester) async {
+      final service = _CardService();
+      await _openUserCard(tester, service, v);
+      service.pending.complete(_cardUser());
+      await tester.pumpAndSettle();
+      expectNoUiException(tester);
+      await uiShot(tester, '27_用户卡片_半屏_${_name(v)}');
+    });
+
+    testUi('28_用户卡片_加载骨架（${_name(v)}）', (tester) async {
+      final service = _CardService();
+      await _openUserCard(tester, service, v);
+      // 200ms 后骨架才出现
+      await tester.pump(const Duration(milliseconds: 300));
+      expectNoUiException(tester);
+      await uiShot(tester, '28_用户卡片_加载骨架_${_name(v)}');
+    });
+  }
 }
 
 /// 导出半屏只用帖子 id 列表
@@ -164,3 +191,64 @@ TopicDetail _exportDetail() => TopicDetail.fromJson({
     'last_poster': {'id': 1, 'username': 'example', 'avatar_template': ''},
   },
 });
+
+class _CardMe extends CurrentUserNotifier {
+  @override
+  FutureOr<User?> build() => User.fromJson({
+    'id': 99,
+    'username': 'me',
+    'avatar_template': '',
+    'trust_level': 1,
+  });
+}
+
+class _CardService extends Fake implements DiscourseService {
+  final pending = Completer<User>();
+
+  @override
+  Future<User> getUserCard(String username, {int? includePostCountFor}) =>
+      pending.future;
+}
+
+User _cardUser() => User.fromJson({
+  'id': 7,
+  'username': 'example',
+  'name': '示例用户',
+  'avatar_template': '',
+  'trust_level': 2,
+  'bio_cooked': '<p>示例数据：个人简介一行。</p>',
+  'can_send_private_message_to_user': true,
+});
+
+Future<void> _openUserCard(
+  WidgetTester tester,
+  _CardService service,
+  UiVariant v,
+) async {
+  await pumpUi(
+    tester,
+    Builder(
+      builder: (context) => _sheetHostPage(
+        TextButton(
+          onPressed: () => showUserCard(
+            context: context,
+            anchorRect: Rect.zero,
+            username: 'example',
+            nameFallback: '示例用户',
+          ),
+          child: const Text('打开'),
+        ),
+      ),
+    ),
+    variant: v,
+    overrides: [
+      discourseServiceProvider.overrideWithValue(service),
+      currentUserProvider.overrideWith(_CardMe.new),
+    ],
+  );
+  await tester.tap(find.text('打开'));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
+}
+
+Widget _sheetHostPage(Widget child) => Scaffold(body: Center(child: child));
