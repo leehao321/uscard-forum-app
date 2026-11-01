@@ -99,7 +99,7 @@ class AiL10nZhHK extends AiL10n {
   @override
   String get quickPromptsValidateTemplateRequired => '請輸入 prompt 模板';
   @override
-  String get quickPromptsEmpty => '還沒有自定義快捷詞';
+  String get quickPromptsEmpty => '還沒有自定義快捷詞，點右上角 + 添加';
   @override
   String get quickPromptsEmptyHint => '點右上角 + 新增，或從剪貼簿匯入';
   @override
@@ -220,7 +220,7 @@ class AiL10nZhHK extends AiL10n {
   @override
   String get useAppNetwork => '跟隨應用網絡配置';
   @override
-  String get useAppNetworkSubtitle => '開啟後 AI 請求將使用應用的代理等網絡設置';
+  String get useAppNetworkSubtitle => 'AI 請求使用應用的代理等網絡設置';
 
   // ---- 供應商編輯頁 ----
   @override
@@ -304,6 +304,8 @@ class AiL10nZhHK extends AiL10n {
   @override
   String get noSessionHistory => '暫無會話記錄';
   @override
+  String get noSessionHistoryHint => '和 AI 助手的對話會保存在這裏';
+  @override
   String confirmDeleteAllSessions(int count) =>
       '確定要刪除全部 $count 條會話記錄嗎？此操作不可恢復。';
   @override
@@ -386,9 +388,9 @@ class AiL10nZhHK extends AiL10n {
   @override
   String get partialImagesTitle => '圖像生成漸進幀';
   @override
-  String get partialImagesSubtitle =>
-      '開啟後 gpt-image 系列會先返回模糊草圖再返回終態圖；'
-      '需要 OpenAI 已驗證 organization，未驗證賬號開啟會失敗';
+  String get partialImagesSubtitle => '先返回模糊預覽圖，再返回最終圖';
+  @override
+  String get partialImagesFootnote => '圖像生成漸進幀僅支持 gpt-image 系列，需要 OpenAI 已驗證 organization；未驗證的賬號開啟後會生成失敗。';
   @override
   String get imagePromptOptimizerModel => '圖像 Prompt 優化模型';
   @override

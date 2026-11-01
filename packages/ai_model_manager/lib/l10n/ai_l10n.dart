@@ -151,7 +151,7 @@ class AiL10n {
 
   // ---- 网络设置 ----
   String get useAppNetwork => '跟随应用网络配置';
-  String get useAppNetworkSubtitle => '开启后 AI 请求将使用应用的代理等网络设置';
+  String get useAppNetworkSubtitle => 'AI 请求使用应用的代理等网络设置';
 
   // ---- 供应商编辑页 ----
   String get pleaseEnterBaseUrlAndApiKey => '请填写 Base URL 和 API Key';
@@ -196,6 +196,7 @@ class AiL10n {
   String get sessionHistory => '会话记录';
   String get clearAllConversations => '清除所有对话';
   String get noSessionHistory => '暂无会话记录';
+  String get noSessionHistoryHint => '和 AI 助手的对话会保存在这里';
   String confirmDeleteAllSessions(int count) =>
       '确定要删除全部 $count 条会话记录吗？此操作不可恢复。';
   String get clearAll => '清除全部';
@@ -242,9 +243,8 @@ class AiL10n {
 
   // ---- 图像生成设置 ----
   String get partialImagesTitle => '图像生成渐进帧';
-  String get partialImagesSubtitle =>
-      '开启后 gpt-image 系列会先返回模糊草图再返回终态图；'
-      '需要 OpenAI 已验证 organization，未验证账号开启会失败';
+  String get partialImagesSubtitle => '先返回模糊预览图，再返回最终图';
+  String get partialImagesFootnote => '图像生成渐进帧仅支持 gpt-image 系列，需要 OpenAI 已验证 organization；未验证的账号开启后会生成失败。';
   String get imagePromptOptimizerModel => '图像 Prompt 优化模型';
   String get imagePromptOptimizerSubtitle =>
       '画图前用聊天模型把话题上下文翻译成视觉化 prompt，显著提升出图质量；'

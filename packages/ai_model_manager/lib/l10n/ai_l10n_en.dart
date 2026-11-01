@@ -101,7 +101,7 @@ class AiL10nEn extends AiL10n {
   String get quickPromptsValidateTemplateRequired =>
       'Please enter a prompt template';
   @override
-  String get quickPromptsEmpty => 'No custom quick prompts yet';
+  String get quickPromptsEmpty => 'No custom quick prompts yet. Tap + at the top right to add one.';
   @override
   String get quickPromptsEmptyHint => 'Tap + at the top right to create one, or import from the clipboard';
   @override
@@ -227,8 +227,7 @@ class AiL10nEn extends AiL10n {
   @override
   String get useAppNetwork => 'Follow App Network Config';
   @override
-  String get useAppNetworkSubtitle =>
-      'AI requests will use the app\'s proxy and network settings when enabled';
+  String get useAppNetworkSubtitle => "AI requests use the app's proxy and network settings";
 
   // ---- 供应商编辑页 ----
   @override
@@ -316,6 +315,8 @@ class AiL10nEn extends AiL10n {
   String get clearAllConversations => 'Clear all conversations';
   @override
   String get noSessionHistory => 'No session history';
+  @override
+  String get noSessionHistoryHint => 'Your conversations with the AI assistant are saved here';
   @override
   String confirmDeleteAllSessions(int count) =>
       'Are you sure you want to delete all $count sessions? This action cannot be undone.';
@@ -407,9 +408,9 @@ class AiL10nEn extends AiL10n {
   @override
   String get partialImagesTitle => 'Image generation: progressive frames';
   @override
-  String get partialImagesSubtitle =>
-      'When enabled, gpt-image models stream blurry drafts before the final image. '
-      'Requires a verified OpenAI organization; unverified accounts will fail.';
+  String get partialImagesSubtitle => 'Returns a blurry preview first, then the final image';
+  @override
+  String get partialImagesFootnote => 'Progressive frames only work with gpt-image models and require a verified OpenAI organization; unverified accounts will fail when this is on.';
   @override
   String get imagePromptOptimizerModel => 'Image prompt optimizer model';
   @override

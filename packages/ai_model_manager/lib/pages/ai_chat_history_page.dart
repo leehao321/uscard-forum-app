@@ -44,12 +44,13 @@ class _AiChatHistoryPageState extends ConsumerState<AiChatHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final tokens = context.tokens;
 
     return Scaffold(
-      appBar: ReadableAppBar(child: AppBar(
-        title: Text(AiL10n.current.sessionHistory),
-        actions: [
+      backgroundColor: tokens.colors.surfacePage,
+      appBar: AppNavBar(
+        title: AiL10n.current.sessionHistory,
+        trailing: [
           if (_groups.isNotEmpty)
             AppIconButton(
               icon: AppIcons.delete,
@@ -57,10 +58,10 @@ class _AiChatHistoryPageState extends ConsumerState<AiChatHistoryPage> {
               onPressed: () => _confirmDeleteAll(context),
             ),
         ],
-      )),
+      ),
       body: ReadableBody(
           child: _groups.isEmpty
-              ? _buildEmpty(theme)
+              ? _buildEmpty(context)
               : ListView.builder(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   itemCount: _groups.length + 1,
@@ -81,27 +82,47 @@ class _AiChatHistoryPageState extends ConsumerState<AiChatHistoryPage> {
     );
   }
 
-  Widget _buildEmpty(ThemeData theme) {
+  /// 空态（补充稿 39）：居中列，48 的聊天图标 meta + 标题 17 + 说明 13 meta
+  Widget _buildEmpty(BuildContext context) {
+    final tokens = context.tokens;
+    final base = Theme.of(context).textTheme.bodyMedium!;
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            AppIcons.chatBubble,
-            size: 48,
-            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            AiL10n.current.noSessionHistory,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpace.x40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ExcludeSemantics(
+              child: Icon(
+                AppIcons.chatBubble,
+                size: _emptyIconSize,
+                color: tokens.colors.textMeta,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: AppSpace.s),
+            Text(
+              AiL10n.current.noSessionHistory,
+              textAlign: TextAlign.center,
+              style: base
+                  .merge(tokens.text.control)
+                  .copyWith(color: tokens.colors.textPrimary),
+            ),
+            const SizedBox(height: AppSpace.xs),
+            Text(
+              AiL10n.current.noSessionHistoryHint,
+              textAlign: TextAlign.center,
+              style: base
+                  .merge(tokens.text.meta)
+                  .copyWith(color: tokens.colors.textMeta),
+            ),
+          ],
+        ),
       ),
     );
   }
+
+  /// 空态图标的视觉尺寸
+  static const double _emptyIconSize = 48;
 
   Future<void> _deleteSession(int topicId, String sessionId) async {
     final storageService = ref.read(aiChatStorageServiceProvider);
