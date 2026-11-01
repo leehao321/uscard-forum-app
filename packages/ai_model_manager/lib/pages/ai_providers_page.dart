@@ -52,7 +52,7 @@ class AiProvidersPage extends ConsumerWidget {
       _EntryRow(
         icon: AppIcons.wrench,
         title: 'MCP 服务',
-        subtitle: '连接外部工具，让 AI 对话和问论坛可以调用',
+        subtitle: '连接外部工具，让 AI 功能可以调用',
         value: mcpCount > 0 ? '$mcpCount 个' : null,
         onTap: () => open(const McpServersPage()),
       ),

@@ -134,10 +134,10 @@ class McpToolBridge {
 
   /// 丢掉缓存（设置改过后）
   void invalidate([String? serverId]) {
-    serverId == null ? _lists.clear() : _lists.remove(serverId);
     if (serverId == null) {
-      service.forget('');
+      _lists.clear();
     } else {
+      _lists.remove(serverId);
       service.forget(serverId);
     }
   }

@@ -48,6 +48,9 @@ class AiChatMessage {
   /// 优化器使用的模型 display name（持久化，用于 UI 显示「Optimized by xxx」）。
   final String? optimizerModelName;
 
+  /// 这条回答调用过的外部工具（MCP），每项一行小字，例如「文档 · search → 1234 字」（持久化）
+  final List<String>? toolNotes;
+
   const AiChatMessage({
     required this.id,
     required this.role,
@@ -64,6 +67,7 @@ class AiChatMessage {
     this.loadingStage,
     this.optimizedPrompt,
     this.optimizerModelName,
+    this.toolNotes,
   });
 
   AiChatMessage copyWith({
@@ -82,6 +86,7 @@ class AiChatMessage {
     String? loadingStage,
     String? optimizedPrompt,
     String? optimizerModelName,
+    List<String>? toolNotes,
   }) {
     return AiChatMessage(
       id: id ?? this.id,
@@ -99,6 +104,7 @@ class AiChatMessage {
       loadingStage: loadingStage ?? this.loadingStage,
       optimizedPrompt: optimizedPrompt ?? this.optimizedPrompt,
       optimizerModelName: optimizerModelName ?? this.optimizerModelName,
+      toolNotes: toolNotes ?? this.toolNotes,
     );
   }
 
@@ -119,6 +125,7 @@ class AiChatMessage {
       if (optimizedPrompt != null) 'optimizedPrompt': optimizedPrompt,
       if (optimizerModelName != null)
         'optimizerModelName': optimizerModelName,
+      if (toolNotes != null && toolNotes!.isNotEmpty) 'toolNotes': toolNotes,
     };
   }
 
@@ -138,6 +145,7 @@ class AiChatMessage {
       responseTokens: json['responseTokens'] as int?,
       cachedTokens: json['cachedTokens'] as int?,
       optimizedPrompt: json['optimizedPrompt'] as String?,
+      toolNotes: (json['toolNotes'] as List<dynamic>?)?.map((e) => '$e').toList(),
       optimizerModelName: json['optimizerModelName'] as String?,
     );
   }

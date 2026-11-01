@@ -79,7 +79,7 @@ class McpServersPage extends ConsumerWidget {
                   AppSpace.xl,
                 ),
                 child: Text(
-                  '连接外部的 MCP 服务（Streamable HTTP），让 AI 对话和「问论坛」可以调用它的工具。'
+                  '连接外部的 MCP 服务（Streamable HTTP），让 AI 功能可以调用它的工具。'
                   '默认只启用标了「只读」的工具；工具返回的内容会发给你配置的 AI 服务商。',
                   style: meta,
                 ),

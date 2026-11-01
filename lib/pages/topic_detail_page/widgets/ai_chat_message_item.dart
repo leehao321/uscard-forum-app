@@ -241,6 +241,11 @@ class AiChatMessageItem extends StatelessWidget {
                 _buildErrorWidget(context),
               ],
             ],
+            // 调用过的外部工具（MCP）：每个一行小字
+            if (message.toolNotes != null && message.toolNotes!.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              _buildToolNotes(context, message.toolNotes!),
+            ],
             // Token 用量行
             if (isCompleted &&
                 (message.promptTokens != null ||
@@ -256,6 +261,20 @@ class AiChatMessageItem extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  /// 「调用过的工具」：回答下面的小字，一个工具一行
+  Widget _buildToolNotes(BuildContext context, List<String> notes) {
+    final style = Theme.of(context).textTheme.bodySmall?.copyWith(
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    );
+    return Column(
+      key: const ValueKey('ai-tool-notes'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final n in notes) Text(n, style: style, maxLines: 2, overflow: TextOverflow.ellipsis),
+      ],
     );
   }
 
