@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/mcp_server_config.dart';
 import '../providers/mcp_server_providers.dart';
 import '../services/mcp_client_service.dart';
+import '../services/mcp_secret_read_exception.dart';
+import '../services/mcp_tool_bridge.dart';
 
 /// 添加 / 编辑一个 MCP 服务：名称、地址、Token、请求头；「测试连接」拉取工具列表，
 /// 每个工具一个开关（默认只开标了只读的）。
@@ -31,6 +33,14 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
   bool _obscure = true;
   bool _testing = false;
   bool _loaded = false;
+  bool _saving = false;
+
+  /// 读不到已保存的 Token / 请求头：用户没改这两个字段就不写入，更不删除
+  bool _secretsFailed = false;
+  bool _secretsTouched = false;
+
+  /// 请求头默认遮住（和 Token 一样），点眼睛才显示
+  bool _headersShown = false;
   String? _testError;
   String? _saveError;
 
@@ -66,13 +76,25 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
   }
 
   Future<void> _loadSecrets(String id) async {
-    final s = await ref.read(mcpServerListProvider.notifier).secretsOf(id);
+    McpSecrets? loaded;
+    try {
+      loaded = await ref.read(mcpServerListProvider.notifier).secretsOf(id);
+    } on McpSecretReadException {
+      loaded = null;
+    }
     if (!mounted) return;
     setState(() {
-      _token.text = s.bearerToken;
-      _headers.text = [for (final e in s.headers.entries) '${e.key}: ${e.value}'].join('\n');
+      if (loaded == null) {
+        _secretsFailed = true;
+      } else {
+        _token.text = loaded.bearerToken;
+        _headers.text = [for (final e in loaded.headers.entries) '${e.key}: ${e.value}'].join('\n');
+      }
       _loaded = true;
     });
+    // 之后用户改了这两个字段才算「动过」
+    _token.addListener(() => _secretsTouched = true);
+    _headers.addListener(() => _secretsTouched = true);
   }
 
   @override
@@ -114,9 +136,9 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
       _testError = null;
     });
     final service = ref.read(mcpClientServiceProvider);
-    final probe = McpServerConfig(id: widget.serverId ?? '_probe', name: _name.text, url: _url.text.trim());
+    // 一次性的探测 id：测完就忘掉，不污染这个服务真实的会话
+    final probe = McpServerConfig(id: '_probe_${DateTime.now().microsecondsSinceEpoch}', name: _name.text, url: _url.text.trim());
     try {
-      service.forget(probe.id);
       final tools = await service.listTools(probe, _secrets());
       if (!mounted) return;
       setState(() => _tools = tools);
@@ -127,6 +149,7 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
         _testError = e.message;
       });
     } finally {
+      service.forget(probe.id);
       if (mounted) setState(() => _testing = false);
     }
   }
@@ -134,29 +157,45 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
   bool _isOn(McpToolInfo t) => _states[t.name] ?? t.defaultEnabled;
 
   Future<void> _save() async {
+    if (_saving) return;
     if (!_urlOk) {
       setState(() => _saveError = '服务地址不是有效的 http(s) 地址');
       return;
     }
+    // await 之前把要用的都取到局部变量
     final notifier = ref.read(mcpServerListProvider.notifier);
+    final service = ref.read(mcpClientServiceProvider);
+    final navigator = Navigator.of(context);
     final name = _name.text.trim().isEmpty ? (Uri.tryParse(_url.text.trim())?.host ?? 'MCP') : _name.text.trim();
-    // 测过的话，把每个工具当前的开关都存下来；没测过就保留原来的
+    // 测过的话，把每个工具当前的开关都存下来（只有存了记录的工具才会启用）；没测过就保留原来的
     final states = _tools == null ? Map<String, bool>.from(_states) : {for (final t in _tools!) t.name: _isOn(t)};
+    // 读不到已保存的凭据、而且用户没改这两个字段：不写入，也不删除
+    final secrets = (_secretsFailed && !_secretsTouched) ? null : _secrets();
+    final url = _url.text;
+    final enabled = _enabled;
+    setState(() {
+      _saving = true;
+      _saveError = null;
+    });
     try {
       final id = widget.serverId;
       if (id == null) {
-        final newId = await notifier.add(name: name, url: _url.text, secrets: _secrets(), enabled: _enabled);
+        final newId = await notifier.add(name: name, url: url, secrets: secrets ?? const McpSecrets(), enabled: enabled);
         if (states.isNotEmpty) await notifier.update(newId, toolStates: states);
       } else {
-        await notifier.update(id, name: name, url: _url.text, enabled: _enabled, toolStates: states, secrets: _secrets());
-        ref.read(mcpClientServiceProvider).forget(id);
+        await notifier.update(id, name: name, url: url, enabled: enabled, toolStates: states, secrets: secrets);
+        service.forget(id);
       }
     } on McpSecretStoreException catch (e) {
       if (!mounted) return;
-      setState(() => _saveError = '$e，没有保存');
+      setState(() {
+        _saving = false;
+        _saveError = '$e，没有保存';
+      });
       return;
     }
-    if (mounted) Navigator.pop(context);
+    if (!mounted) return;
+    navigator.pop();
   }
 
   Future<void> _delete() async {
@@ -225,7 +264,7 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
       appBar: AppNavBar(
         title: widget.serverId == null ? '添加 MCP 服务' : '编辑 MCP 服务',
         slotWidth: 70,
-        trailing: [TextButton(key: const ValueKey('mcp-save'), onPressed: _loaded ? _save : null, child: const Text('保存'))],
+        trailing: [TextButton(key: const ValueKey('mcp-save'), onPressed: (_loaded && !_saving) ? _save : null, child: const Text('保存'))],
       ),
       body: ReadableBody(
         child: ListView(
@@ -261,7 +300,64 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
                 onPressed: () => setState(() => _obscure = !_obscure),
               ),
             ),
-            field('自定义请求头（可选，每行「名称: 值」）', _headers, maxLines: 4),
+            if (_secretsFailed)
+              Padding(
+                key: const ValueKey('mcp-secret-warning'),
+                padding: const EdgeInsets.only(bottom: AppSpace.m),
+                child: Text(
+                  '读不到已保存的 Token 和请求头。不改这两项的话，保存时会保持原样，不会清掉。',
+                  style: meta.copyWith(color: colors.textDestructive),
+                ),
+              ),
+            _headersShown
+                ? field(
+                    '自定义请求头（可选，每行「名称: 值」）',
+                    _headers,
+                    maxLines: 4,
+                    key: const ValueKey('mcp-headers'),
+                    suffix: IconButton(
+                      tooltip: '隐藏',
+                      icon: const Icon(AppIcons.visibilityOff, size: AppSize.iconM),
+                      onPressed: () => setState(() => _headersShown = false),
+                    ),
+                  )
+                : Padding(
+                    key: const ValueKey('mcp-headers-hidden'),
+                    padding: const EdgeInsets.only(bottom: AppSpace.m),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpace.xs),
+                          child: Text('自定义请求头（可选，每行「名称: 值」）', style: meta),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpace.m),
+                          constraints: const BoxConstraints(minHeight: AppSize.hit),
+                          decoration: BoxDecoration(
+                            color: colors.surfaceElevated,
+                            borderRadius: BorderRadius.circular(tokens.radius.field),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _headers.text.trim().isEmpty ? '未设置' : '已设置 ${_secrets().headers.length} 个请求头（内容已遮住）',
+                                  style: label.copyWith(color: colors.textMeta),
+                                ),
+                              ),
+                              IconButton(
+                                key: const ValueKey('mcp-headers-show'),
+                                tooltip: '显示',
+                                icon: const Icon(AppIcons.visibility, size: AppSize.iconM),
+                                onPressed: () => setState(() => _headersShown = true),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
             Text('Token 和请求头只保存在系统的安全存储里，不会进入数据备份。', style: meta),
             const SizedBox(height: AppSpace.l),
             Row(
@@ -291,6 +387,15 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
                 ),
               ),
               Text('默认只开启标了「只读」的工具；其余默认关闭。', style: meta),
+              if (_tools!.where(_isOn).length > McpToolBridge.maxTools)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpace.xs),
+                  child: Text(
+                    '启用的工具超过 ${McpToolBridge.maxTools} 个，只会给 AI 用前 ${McpToolBridge.maxTools} 个。',
+                    key: const ValueKey('mcp-too-many'),
+                    style: meta.copyWith(color: colors.textDestructive),
+                  ),
+                ),
               const SizedBox(height: AppSpace.s),
               for (final t in _tools!) _toolRow(context, t),
             ],

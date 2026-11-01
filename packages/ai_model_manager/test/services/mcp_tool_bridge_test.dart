@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:ai_model_manager/models/ai_provider.dart';
@@ -48,8 +49,22 @@ class _Mcp {
   );
 }
 
-McpServerConfig _srv(String id, {String name = '服务', Map<String, bool> states = const {}, bool enabled = true}) =>
-    McpServerConfig(id: id, name: name, url: 'https://x.example/mcp', enabled: enabled, toolStates: states);
+/// 对任何工具名都说「已启用」的记录表（测试里省得逐个写）
+class _AllOn extends MapBase<String, bool> {
+  @override
+  bool? operator [](Object? key) => true;
+  @override
+  void operator []=(String key, bool value) {}
+  @override
+  void clear() {}
+  @override
+  Iterable<String> get keys => const [];
+  @override
+  bool? remove(Object? key) => null;
+}
+
+McpServerConfig _srv(String id, {String name = '服务', Map<String, bool>? states, bool enabled = true}) =>
+    McpServerConfig(id: id, name: name, url: 'https://x.example/mcp', enabled: enabled, toolStates: states ?? _AllOn());
 
 Map<String, dynamic> _tool(String name, {bool? readOnly, bool? destructive}) => {
   'name': name,
@@ -115,15 +130,20 @@ void main() {
   });
 
   group('启用规则', () {
-    test('默认只开 readOnlyHint=true 的；没标、标了 destructive 的默认关', () async {
-      final b = _bridge(_Mcp([
+    test('只启用记录里标了开的工具：没有记录的（包括标了只读的）一律关；defaultEnabled 只用来给设置页做初始开关', () async {
+      final tools = [
         _tool('ro', readOnly: true),
         _tool('plain'),
         _tool('rw', readOnly: false),
         _tool('boom', readOnly: true, destructive: true),
-      ]));
-      await b.load([_srv('abcdef')]);
-      expect(b.tools.map((t) => t.tool.name), ['ro']);
+      ];
+      final b = _bridge(_Mcp(tools));
+      await b.load([_srv('abcdef', states: const {})]);
+      expect(b.tools, isEmpty, reason: '从没测试过的服务，工具一律关闭');
+      await b.load([_srv('abcdef', states: const {'ro': true})]);
+      expect(b.tools.map((t) => t.tool.name), ['ro'], reason: '服务后来新增的工具（没有记录）不启用');
+      final infos = [for (final t in tools) McpToolInfo.fromJson(t)];
+      expect(infos.map((t) => t.defaultEnabled), [true, false, false, false]);
     });
 
     test('用户手动设置覆盖默认：打开 plain、关掉 ro', () async {
@@ -161,8 +181,8 @@ void main() {
         secretsOf: (_) async => const McpSecrets(),
       );
       await bad.load([
-        const McpServerConfig(id: 'badbad', name: '坏的', url: 'https://bad.example/mcp'),
-        const McpServerConfig(id: 'goodgo', name: '好的', url: 'https://good.example/mcp'),
+        const McpServerConfig(id: 'badbad', name: '坏的', url: 'https://bad.example/mcp', toolStates: {'ro': true}),
+        const McpServerConfig(id: 'goodgo', name: '好的', url: 'https://good.example/mcp', toolStates: {'ro': true}),
       ]);
       expect(bad.failures.keys, ['坏的']);
       expect(bad.tools.map((t) => t.server.name), ['好的']);

@@ -709,6 +709,8 @@ class AiToolChatService {
               'name': s.name,
               'description': s.description,
               'parameters': ToolSchema.clean(s.parameters, AiProviderType.openaiResponse),
+              // 不要求严格模式：外部来源的 schema 不一定满足严格模式的全部约束
+              'strict': false,
             },
         ],
         if (choice != AiToolChoice.unspecified)

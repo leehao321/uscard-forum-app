@@ -15,6 +15,8 @@ export 'services/mcp_tool_bridge.dart';
 export 'models/mcp_server_config.dart';
 export 'providers/mcp_server_providers.dart';
 export 'utils/tool_schema.dart';
+export 'utils/external_content.dart';
+export 'services/mcp_secret_read_exception.dart';
 export 'services/ai_chat_storage_service.dart';
 export 'services/ai_package_logger.dart';
 export 'services/prompt_preset_storage.dart';

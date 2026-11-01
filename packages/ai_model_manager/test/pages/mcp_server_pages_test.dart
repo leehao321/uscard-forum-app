@@ -134,7 +134,10 @@ void main() {
     await pump(tester, const McpServerEditPage(), service: _service());
     await tester.enterText(find.byKey(const ValueKey('mcp-url')), 'https://mcp.example.com/mcp');
     await tester.enterText(find.byType(TextField).at(2), 'TOKEN-ABC');
-    await tester.enterText(find.byType(TextField).at(3), 'X-Key: HEADER-XYZ');
+    await tester.ensureVisible(find.byKey(const ValueKey('mcp-headers-show')));
+    await tester.tap(find.byKey(const ValueKey('mcp-headers-show')));
+    await tester.pump();
+    await tester.enterText(find.byKey(const ValueKey('mcp-headers')), 'X-Key: HEADER-XYZ');
     await tester.tap(find.byKey(const ValueKey('mcp-test')));
     await _settle(tester);
     await tester.ensureVisible(find.byKey(const ValueKey('mcp-tool-plain')));

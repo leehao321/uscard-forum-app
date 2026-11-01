@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data' show BytesBuilder;
 
 import 'package:http/http.dart' as http;
 
@@ -7,7 +8,7 @@ import '../models/mcp_server_config.dart';
 
 /// 远程 MCP 请求出错：[message] 是给用户看的可读原因。
 class McpException implements Exception {
-  const McpException(this.message, {this.statusCode, this.rpcCode, this.cancelled = false});
+  const McpException(this.message, {this.statusCode, this.rpcCode, this.cancelled = false, this.timedOut = false});
 
   final String message;
   final int? statusCode;
@@ -17,6 +18,9 @@ class McpException implements Exception {
 
   /// 是被取消的（不是真的失败）
   final bool cancelled;
+
+  /// 是超时
+  final bool timedOut;
 
   @override
   String toString() => message;
@@ -61,7 +65,12 @@ class McpClientService {
 
   /// 服务 id → 会话（`Mcp-Session-Id` 和协商好的协议版本）
   final Map<String, _Session> _sessions = {};
+  /// 服务 id → 正在进行的初始化（合并并发的初始化）
+  final Map<String, Future<_Session>> _initializing = {};
   int _nextId = 1;
+
+  /// 响应体最大字节数（超出报错，不继续读）
+  static const maxBodyBytes = 2 * 1024 * 1024;
 
   /// 忘掉某个服务的会话（配置改过后调用）
   void forget(String serverId) => _sessions.remove(serverId);
@@ -164,7 +173,8 @@ class McpClientService {
         final session = await _ensureSession(server, secrets, abort);
         return await _rpc(server, secrets, session, method, params, timeout: timeout, abort: abort);
       } on McpException catch (e) {
-        if (e.statusCode == 404 && attempt == 0 && _sessions[server.id]?.id != null) {
+        // 带着会话 id 的请求被 400 / 404 拒绝：会话失效了，丢掉重新初始化一次
+        if ((e.statusCode == 404 || e.statusCode == 400) && attempt == 0 && _sessions[server.id]?.id != null) {
           _sessions.remove(server.id);
           continue;
         }
@@ -181,6 +191,23 @@ class McpClientService {
   ) async {
     final known = _sessions[server.id];
     if (known != null) return known;
+    // 同一个服务并发要会话时只初始化一次
+    final pending = _initializing[server.id];
+    if (pending != null) return pending;
+    final future = _initialize(server, secrets, abort);
+    _initializing[server.id] = future;
+    try {
+      return await future;
+    } finally {
+      if (identical(_initializing[server.id], future)) _initializing.remove(server.id);
+    }
+  }
+
+  Future<_Session> _initialize(
+    McpServerConfig server,
+    McpSecrets secrets,
+    Future<void>? abort,
+  ) async {
     final session = _Session();
     final result = await _rpc(
       server,
@@ -276,8 +303,10 @@ class McpClientService {
     required Duration timeout,
     required bool isInit,
     Future<void>? abort,
+    int redirects = 0,
+    Uri? at,
   }) async {
-    final uri = Uri.tryParse(server.url.trim());
+    final uri = at ?? Uri.tryParse(server.url.trim());
     if (uri == null || !(uri.scheme == 'https' || uri.scheme == 'http') || uri.host.isEmpty) {
       throw const McpException('服务地址不是有效的 http(s) 地址');
     }
@@ -307,30 +336,56 @@ class McpClientService {
       final resp = await guard(client.send(req));
       final sid = resp.headers['mcp-session-id'];
       if (sid != null && sid.isNotEmpty) session.id = sid;
+      // POST 的 307 / 308 不会被传输层自动跟随：同源时手动跟随一次（保持 POST 和请求体）
+      if ((resp.statusCode == 307 || resp.statusCode == 308) && redirects == 0) {
+        final loc = resp.headers['location'];
+        await resp.stream.listen(null).cancel();
+        final target = loc == null ? null : uri.resolve(loc);
+        if (target != null && target.scheme == uri.scheme && target.host == uri.host && target.port == uri.port) {
+          timer.cancel();
+          client.close();
+          return await _post(server, secrets, session, body,
+              expectId: expectId, timeout: timeout, isInit: isInit, abort: abort, redirects: 1, at: target);
+        }
+        throw McpException('服务把请求重定向到了别处（${resp.statusCode}），已拒绝', statusCode: resp.statusCode);
+      }
       if (resp.statusCode < 200 || resp.statusCode >= 300) {
-        final text = await guard(resp.stream.bytesToString());
+        final text = await guard(_readText(resp.stream));
         throw _httpError(resp.statusCode, text);
       }
       if (expectId == null) {
-        await guard(resp.stream.drain<void>());
+        // 通知的响应用不上：直接取消，不读
+        await resp.stream.listen(null).cancel();
         return null;
       }
       final type = (resp.headers['content-type'] ?? '').toLowerCase();
       if (type.contains('text/event-stream')) {
         return await guard(_readSse(resp.stream, expectId));
       }
-      final text = await guard(resp.stream.bytesToString());
+      final text = await guard(_readText(resp.stream));
       return _pick(text, expectId);
     } on http.RequestAbortedException {
-      if (timedOut) throw McpException('请求超时（${timeout.inSeconds} 秒）');
+      if (timedOut) throw McpException('请求超时（${timeout.inSeconds} 秒）', timedOut: true);
       throw const McpException('已取消', cancelled: true);
     } on http.ClientException catch (e) {
-      if (timedOut) throw McpException('请求超时（${timeout.inSeconds} 秒）');
+      if (timedOut) throw McpException('请求超时（${timeout.inSeconds} 秒）', timedOut: true);
       throw McpException('连不上 MCP 服务：${e.message}');
     } finally {
       timer.cancel();
       client.close();
     }
+  }
+
+  /// 读响应体文字，超过 [maxBodyBytes] 就报错
+  static Future<String> _readText(Stream<List<int>> bytes) async {
+    final out = BytesBuilder(copy: false);
+    await for (final chunk in bytes) {
+      out.add(chunk);
+      if (out.length > maxBodyBytes) {
+        throw const McpException('服务的响应太大（超过 2 MB），已停止读取');
+      }
+    }
+    return utf8.decode(out.takeBytes(), allowMalformed: true);
   }
 
   /// 从 JSON 响应体里取 id 匹配的那条（可能是单个对象，也可能是批量数组）
@@ -369,7 +424,13 @@ class McpClientService {
       return null;
     }
 
-    await for (final line in bytes.cast<List<int>>().transform(utf8.decoder).transform(const LineSplitter())) {
+    var total = 0;
+    final limited = bytes.map((chunk) {
+      total += chunk.length;
+      if (total > maxBodyBytes) throw const McpException('服务的响应太大（超过 2 MB），已停止读取');
+      return chunk;
+    });
+    await for (final line in limited.cast<List<int>>().transform(utf8.decoder).transform(const LineSplitter())) {
       if (line.isEmpty) {
         found = flush();
         if (found != null) return found;

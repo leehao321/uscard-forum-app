@@ -1,3 +1,5 @@
+import '../utils/tool_schema.dart';
+
 /// 远程 MCP 服务的敏感部分：Bearer Token 和自定义请求头。
 /// 只存在系统安全存储里，不进 SharedPreferences，也不进数据备份。
 class McpSecrets {
@@ -107,17 +109,28 @@ class McpToolInfo {
   /// 这个工具可能会修改数据（不是明确只读）：手动打开时要提示
   bool get mayModify => !defaultEnabled;
 
+  /// 工具名、说明都来自外部服务，不是可信内容：说明截到这么多字
+  static const maxDescriptionChars = 1000;
+
+  static String? _str(Object? v) => v is String ? v : null;
+  static bool? _bool(Object? v) => v is bool ? v : null;
+
+  /// 外部服务给的字段类型不对时不抛错：当成没有
   factory McpToolInfo.fromJson(Map<String, dynamic> j) {
     final ann = j['annotations'];
+    final description = _str(j['description']) ?? '';
+    final title = _str(j['title']) ?? (ann is Map ? _str(ann['title']) : null);
     return McpToolInfo(
-      name: j['name'] as String,
-      title: j['title'] as String? ?? (ann is Map ? ann['title'] as String? : null),
-      description: j['description'] as String? ?? '',
+      name: _str(j['name']) ?? '',
+      title: title == null ? null : _cut(title, 100),
+      description: _cut(description, maxDescriptionChars),
       inputSchema: j['inputSchema'] is Map
-          ? Map<String, Object?>.from(j['inputSchema'] as Map)
+          ? ToolSchema.capDescriptions(Map<String, Object?>.from(j['inputSchema'] as Map), maxDescriptionChars)
           : const {'type': 'object', 'properties': {}},
-      readOnlyHint: ann is Map ? ann['readOnlyHint'] as bool? : null,
-      destructiveHint: ann is Map ? ann['destructiveHint'] as bool? : null,
+      readOnlyHint: ann is Map ? _bool(ann['readOnlyHint']) : null,
+      destructiveHint: ann is Map ? _bool(ann['destructiveHint']) : null,
     );
   }
+
+  static String _cut(String s, int n) => s.length <= n ? s : '${s.substring(0, n)}…';
 }

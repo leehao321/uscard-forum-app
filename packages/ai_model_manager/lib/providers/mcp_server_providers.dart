@@ -10,6 +10,7 @@ import 'package:uuid/uuid.dart';
 
 import '../models/mcp_server_config.dart';
 import '../services/mcp_client_service.dart';
+import '../services/mcp_secret_read_exception.dart';
 import '../services/mcp_tool_bridge.dart';
 import 'ai_chat_providers.dart' show aiRequestClientFactoryProvider;
 import 'ai_provider_providers.dart' show aiSharedPreferencesProvider;
@@ -25,6 +26,7 @@ class McpSecretStoreException implements Exception {
 /// 存 MCP 服务的 Token 和请求头。默认实现用系统安全存储；
 /// 写不进去就报错，不降级成明文。
 abstract class McpSecretStore {
+  /// 读不到时抛 [McpSecretReadException]（没有保存过则返回空凭据）
   Future<McpSecrets> read(String serverId);
   Future<void> write(String serverId, McpSecrets secrets);
   Future<void> delete(String serverId);
@@ -42,13 +44,20 @@ class SecureMcpSecretStore implements McpSecretStore {
 
   @override
   Future<McpSecrets> read(String serverId) async {
+    // 读失败不能当成「没有凭据」：调用方会拿空凭据去请求、甚至把空的写回去
+    final String? raw;
     try {
-      final raw = await _storage.read(key: keyOf(serverId));
-      if (raw == null || raw.isEmpty) return const McpSecrets();
-      return McpSecrets.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+      raw = await _storage.read(key: keyOf(serverId));
     } catch (e) {
       debugPrint('[Mcp] 读取凭据失败: $e');
-      return const McpSecrets();
+      throw const McpSecretReadException();
+    }
+    if (raw == null || raw.isEmpty) return const McpSecrets();
+    try {
+      return McpSecrets.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (e) {
+      debugPrint('[Mcp] 凭据内容读不懂: $e');
+      throw const McpSecretReadException();
     }
   }
 
@@ -90,19 +99,48 @@ class McpServerListNotifier extends StateNotifier<List<McpServerConfig>> {
   final SharedPreferences _prefs;
   final McpSecretStore _secrets;
 
+  /// 读不懂的条目原样留着：以后保存时一起写回去，不会因为一条坏数据把别的覆盖掉
+  List<Object?> _unreadable = const [];
+
+  /// 整份数据读不出来时，原文备份在这个键下（之后的保存会覆盖主键，但原文还在）
+  static const corruptBackupKey = 'mcp_servers_v1_unreadable';
+
   void _load() {
     final raw = _prefs.getString(storageKey);
     if (raw == null || raw.isEmpty) return;
+    final Object? decoded;
     try {
-      state = [
-        for (final e in jsonDecode(raw) as List) McpServerConfig.fromJson(Map<String, dynamic>.from(e as Map)),
-      ];
+      decoded = jsonDecode(raw);
     } catch (_) {
-      // 数据损坏时忽略
+      _backupUnreadable(raw);
+      return;
     }
+    if (decoded is! List) {
+      _backupUnreadable(raw);
+      return;
+    }
+    final good = <McpServerConfig>[];
+    final bad = <Object?>[];
+    for (final e in decoded) {
+      try {
+        good.add(McpServerConfig.fromJson(Map<String, dynamic>.from(e as Map)));
+      } catch (_) {
+        bad.add(e);
+      }
+    }
+    _unreadable = bad;
+    state = good;
   }
 
-  Future<void> _save() => _prefs.setString(storageKey, jsonEncode([for (final s in state) s.toJson()]));
+  void _backupUnreadable(String raw) {
+    // 不 await：构造函数里不能等；失败也不影响使用
+    _prefs.setString(corruptBackupKey, raw);
+  }
+
+  Future<void> _save() => _prefs.setString(
+    storageKey,
+    jsonEncode([for (final s in state) s.toJson(), ..._unreadable]),
+  );
 
   Future<McpSecrets> secretsOf(String id) => _secrets.read(id);
 

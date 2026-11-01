@@ -15,7 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 const _provider = AiProvider(id: 'p1', name: 'p', type: AiProviderType.openai, baseUrl: 'https://llm.example.com/v1');
 const _toolModel = AiModel(id: 'm', abilities: [ModelAbility.tool]);
 const _plainModel = AiModel(id: 'm');
-const _server = McpServerConfig(id: 'srvabc123', name: '文档', url: 'https://mcp.example.com/mcp');
+const _server = McpServerConfig(id: 'srvabc123', name: '文档', url: 'https://mcp.example.com/mcp', toolStates: {'search': true});
 
 String _sse(List<Object> events) => events.map((e) => 'data: ${e is String ? e : jsonEncode(e)}\n\n').join();
 

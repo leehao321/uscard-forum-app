@@ -205,7 +205,8 @@ class AiChatMessageItem extends StatelessWidget {
               ],
               if (message.content.isNotEmpty)
                 MarkdownBody(
-                  data: '${message.content}${isStreaming ? ' ▊' : ''}',
+                  // 用过外部工具的回答：渲染时不自动加载外站图片、不出网址预览卡片
+                  data: '${(message.toolNotes?.isNotEmpty ?? false) ? ExternalContent.defang(message.content) : message.content}${isStreaming ? ' ▊' : ''}',
                 ),
               // 纯文本流式开始时的小光标占位（图像生成走下面的 placeholder）
               if (message.content.isEmpty &&
