@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart' show CupertinoActivityIndicator;
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
@@ -5,9 +6,14 @@ import 'package:app_icons/app_icons.dart';
 import '../../../../l10n/s.dart';
 import '../../../../models/topic.dart';
 import '../../../../utils/fluxdo_render_callbacks.dart';
+import '../../../../utils/time_utils.dart';
 import '../../../common/smart_avatar.dart';
 
-/// 回复列表组件
+/// 回复列表组件（补充稿 12）
+///
+/// 点楼层的回复入口后在楼下展开：surface/grouped 圆角卡片，每条回复
+/// 「头像 34 + 名字 13 Semibold / @handle · 时间 11 meta」加 17 正文，
+/// 条间 0.5 发丝线；卡片下方左侧「收起回复」，有更多时右侧「加载更多」。
 class PostRepliesList extends StatelessWidget {
   final List<Post> replies;
   final int replyCount;
@@ -32,179 +38,199 @@ class PostRepliesList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     if (replies.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    return Container(
-      margin: const EdgeInsets.only(top: 16),
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final theme = Theme.of(context);
+    final actionStyle = theme.textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.brandPrimary);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpace.m),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 顶部小标题
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
+          // 已加载的回复列表：一张分组卡片，条间发丝线
+          Container(
+            decoration: BoxDecoration(
+              color: colors.surfaceGrouped,
+              borderRadius: BorderRadius.circular(tokens.radius.card),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Container(
-                  width: 3,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary,
-                    borderRadius: BorderRadius.circular(1.5),
+                for (var i = 0; i < replies.length; i++) ...[
+                  if (i > 0)
+                    const AppHairline(indent: AppSpace.m, endIndent: AppSpace.m),
+                  _ReplyRow(
+                    reply: replies[i],
+                    contentFontScale: contentFontScale,
+                    onTap: () => onJumpToPost?.call(replies[i].postNumber),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.post_replyCount(replyCount),
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                ],
               ],
             ),
           ),
 
-          // 已加载的回复列表
-          ...replies.map((reply) {
-            final avatarUrl = reply.getAvatarUrl(size: 60);
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainer.withValues(
-                  alpha: 0.4,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: theme.colorScheme.outlineVariant.withValues(
-                    alpha: 0.2,
-                  ),
-                ),
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => onJumpToPost?.call(reply.postNumber),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SmartAvatar(
-                          imageUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
-                          radius: 14,
-                          backgroundColor: theme.colorScheme.primaryContainer,
-                          fallbackText: reply.username,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      (reply.name != null &&
-                                              reply.name!.isNotEmpty)
-                                          ? reply.name!
-                                          : reply.username,
-                                      style: theme.textTheme.labelMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  Text(
-                                    '#${reply.postNumber}',
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              IgnorePointer(
-                                // 回复预览:改用自研 FluxdoRender 只读渲染(关闭选区)
-                                child:
-                                    FluxdoRenderCallbacks.generic(
-                                      heroTagNamespace:
-                                          'reply_preview_${reply.postNumber}',
-                                    ).render(
-                                      cookedHtml: reply.cooked,
-                                      baseTextStyle: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            fontSize:
-                                                AppFontSize.meta *
-                                                contentFontScale,
-                                            height: 1.4,
-                                          ),
-                                      compact: true,
-                                      selectionEnabled: false,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }),
-
-          // 底部操作栏
+          // 底部操作栏：左「收起回复」，右「加载更多」
           ValueListenableBuilder<bool>(
             valueListenable: isLoadingRepliesNotifier,
             builder: (context, isLoadingReplies, _) {
               return Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (canLoadMore)
-                    TextButton.icon(
-                      onPressed: isLoadingReplies ? null : onLoadMore,
-                      icon: isLoadingReplies
-                          ? const SizedBox(
-                              width: 12,
-                              height: 12,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(AppIcons.refresh, size: 16),
-                      label: Text(context.l10n.post_loadMoreReplies),
-                      style: TextButton.styleFrom(
-                        visualDensity: VisualDensity.compact,
+                  InkWell(
+                    key: const ValueKey('replies_collapse'),
+                    onTap: () => showRepliesNotifier.value = false,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: AppSize.hit),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            AppIcons.expandLess,
+                            size: AppSize.iconS,
+                            color: colors.brandPrimary,
+                          ),
+                          const SizedBox(width: AppSpace.xs),
+                          Text(
+                            context.l10n.post_collapseReplies,
+                            style: actionStyle,
+                          ),
+                        ],
                       ),
-                    ),
-                  const SizedBox(width: 8),
-                  TextButton.icon(
-                    onPressed: () {
-                      showRepliesNotifier.value = false;
-                    },
-                    icon: Icon(
-                      AppIcons.expandLess,
-                      size: 16,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    label: Text(
-                      context.l10n.post_collapseReplies,
-                      style: TextStyle(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    style: TextButton.styleFrom(
-                      visualDensity: VisualDensity.compact,
                     ),
                   ),
+                  const Spacer(),
+                  if (canLoadMore)
+                    InkWell(
+                      key: const ValueKey('replies_load_more'),
+                      onTap: isLoadingReplies ? null : onLoadMore,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          minHeight: AppSize.hit,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (isLoadingReplies) ...[
+                              const CupertinoActivityIndicator(
+                                radius: AppSize.iconS / 2,
+                              ),
+                              const SizedBox(width: AppSpace.xs),
+                            ],
+                            Text(
+                              context.l10n.post_loadMoreReplies,
+                              style: actionStyle,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                 ],
               );
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 回复列表里的一行：头像 + 名字 / @handle · 时间 + 正文
+class _ReplyRow extends StatelessWidget {
+  const _ReplyRow({
+    required this.reply,
+    required this.contentFontScale,
+    required this.onTap,
+  });
+
+  final Post reply;
+  final double contentFontScale;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final theme = Theme.of(context);
+    final avatarUrl = reply.getAvatarUrl(size: 60);
+    final displayName = (reply.name != null && reply.name!.isNotEmpty)
+        ? reply.name!
+        : reply.username;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpace.m),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                SmartAvatar(
+                  imageUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
+                  radius: AppSize.avatarS / 2,
+                  backgroundColor: colors.avatarFill,
+                  fallbackText: reply.username,
+                ),
+                const SizedBox(width: AppSpace.s),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        displayName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall!
+                            .merge(tokens.text.metaStrong)
+                            .copyWith(color: colors.textPrimary),
+                      ),
+                      const SizedBox(height: AppSpace.xxs),
+                      Text(
+                        '@${reply.username} · '
+                        '${TimeUtils.formatRelativeTime(reply.createdAt)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall!
+                            .merge(tokens.text.caption)
+                            .copyWith(color: colors.textMeta),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  '#${reply.postNumber}',
+                  style: theme.textTheme.bodySmall!
+                      .merge(tokens.text.meta)
+                      .copyWith(color: colors.textMeta),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpace.s),
+            IgnorePointer(
+              // 回复预览:改用自研 FluxdoRender 只读渲染(关闭选区)
+              child:
+                  FluxdoRenderCallbacks.generic(
+                    heroTagNamespace: 'reply_preview_${reply.postNumber}',
+                  ).render(
+                    cookedHtml: reply.cooked,
+                    baseTextStyle: theme.textTheme.bodyMedium!
+                        .merge(tokens.text.body)
+                        .copyWith(
+                          fontSize: AppFontSize.body * contentFontScale,
+                          color: colors.textPrimary,
+                        ),
+                    compact: true,
+                    selectionEnabled: false,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }
