@@ -68,47 +68,58 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  group('iOS 展示层', () {
-    Widget host(ThemeData theme, Future<void> Function() onRefresh) =>
-        MaterialApp(
-          theme: theme,
-          home: Scaffold(
-            body: M3eRefreshIndicator(
-              onRefresh: onRefresh,
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  for (var i = 0; i < 20; i++)
-                    SizedBox(height: 40, child: Text('$i')),
-                ],
-              ),
-            ),
+  group('展示层（Figma 下拉刷新态：24pt 圆环，列表下移一条 48 高悬停带）', () {
+    Widget host(
+      ThemeData theme,
+      Future<void> Function() onRefresh, {
+      GlobalKey<M3eRefreshIndicatorState>? refreshKey,
+    }) => MaterialApp(
+      theme: theme,
+      home: Scaffold(
+        body: M3eRefreshIndicator(
+          key: refreshKey,
+          onRefresh: onRefresh,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              for (var i = 0; i < 20; i++)
+                SizedBox(height: 40, child: Text('row$i')),
+            ],
           ),
-        );
+        ),
+      ),
+    );
 
-    testWidgets('iOS 下拉显示 CupertinoActivityIndicator,不出现 M3E 圆片', (
-      tester,
-    ) async {
+    // 圆环指示器（排除 Material 自己可能带的其他进度条）
+    final ring = find.byWidgetPredicate(
+      (w) => w is CircularProgressIndicator && w.strokeWidth == 2,
+    );
+
+    testWidgets('下拉显示 24pt 圆环，不再是系统菊花也不是 M3E 圆片', (tester) async {
       await tester.pumpWidget(
         host(ThemeData(platform: TargetPlatform.iOS), () async {}),
       );
-      expect(find.byType(CupertinoActivityIndicator), findsNothing);
+      expect(ring, findsNothing);
 
       final g = await tester.startGesture(
         tester.getCenter(find.byType(ListView)),
       );
       await g.moveBy(const Offset(0, 120));
       await tester.pump();
-      expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
+      expect(ring, findsOneWidget);
+      expect(tester.getSize(ring), const Size(24, 24));
+      expect(find.byType(CupertinoActivityIndicator), findsNothing);
       expect(find.byType(LoadingSpinner), findsNothing);
 
       await g.up();
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      expect(find.byType(CupertinoActivityIndicator), findsNothing);
+      expect(ring, findsNothing);
     });
 
-    testWidgets('iOS 刷新回调只触发一次,刷新中显示转圈,完成后收起', (tester) async {
+    testWidgets('刷新回调只触发一次；刷新中圆环居中在 48 高悬停带里、列表下移 48，完成后回位', (
+      tester,
+    ) async {
       final completer = Completer<void>();
       var refreshed = 0;
       await tester.pumpWidget(
@@ -117,20 +128,29 @@ void main() {
           return completer.future;
         }),
       );
+      final rowTop = tester.getTopLeft(find.text('row0')).dy;
       await tester.fling(find.byType(ListView), const Offset(0, 400), 1000);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200)); // snap
-      await tester.pump(const Duration(milliseconds: 200));
+      // 等松手后的回弹走完（刷新还没结束，转圈动画不会静止，不能 pumpAndSettle）
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
       expect(refreshed, 1);
-      expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
+      expect(ring, findsOneWidget);
+      // 圆环 24 直径，居中在顶部 48 高的悬停带里
+      expect(tester.getSize(ring), const Size(24, 24));
+      expect(tester.getCenter(ring).dy, closeTo(24, 0.5));
+      // 列表内容整体下移一条悬停带，指示器不压在行上
+      expect(tester.getTopLeft(find.text('row0')).dy, closeTo(rowTop + 48, 0.5));
 
       completer.complete();
       await tester.pumpAndSettle();
-      expect(find.byType(CupertinoActivityIndicator), findsNothing);
+      expect(ring, findsNothing);
+      expect(tester.getTopLeft(find.text('row0')).dy, closeTo(rowTop, 0.5));
       expect(refreshed, 1);
     });
 
-    testWidgets('iOS 下关闭 M3E 开关也走 Cupertino 展示层', (tester) async {
+    testWidgets('关闭 M3E 开关也是同一个圆环', (tester) async {
       await tester.pumpWidget(
         host(
           ThemeData(
@@ -145,66 +165,54 @@ void main() {
       );
       await g.moveBy(const Offset(0, 120));
       await tester.pump();
-      expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
+      expect(ring, findsOneWidget);
       expect(find.byType(RefreshIndicator), findsNothing);
       await g.up();
       await tester.pumpAndSettle();
     });
 
-    testWidgets('Android 仍是 M3E 圆片(LoadingSpinner),无 Cupertino', (
+    testWidgets('Android 与 iOS 一样：同一个圆环，没有 M3E 圆片、没有原生 RefreshIndicator', (
       tester,
     ) async {
       await tester.pumpWidget(
         host(ThemeData(platform: TargetPlatform.android), () async {}),
       );
+      expect(find.byType(RefreshIndicator), findsNothing);
       final g = await tester.startGesture(
         tester.getCenter(find.byType(ListView)),
       );
       await g.moveBy(const Offset(0, 120));
       await tester.pump();
-      expect(find.byType(LoadingSpinner), findsOneWidget);
+      expect(ring, findsOneWidget);
+      expect(tester.getSize(ring), const Size(24, 24));
+      expect(find.byType(LoadingSpinner), findsNothing);
       expect(find.byType(CupertinoActivityIndicator), findsNothing);
       await g.up();
       await tester.pumpAndSettle();
     });
 
-    testWidgets('Android 关闭 M3E 开关仍回退原生 RefreshIndicator', (tester) async {
-      await tester.pumpWidget(
-        host(
-          ThemeData(
-            platform: TargetPlatform.android,
-            extensions: const [M3eFlags(enabled: false)],
-          ),
-          () async {},
-        ),
-      );
-      expect(find.byType(RefreshIndicator), findsOneWidget);
-    });
-
-    testWidgets('iOS 上 GlobalKey.show() 可编程触发', (tester) async {
+    testWidgets('GlobalKey.show() 可编程触发，刷新期间同样下移并显示圆环', (tester) async {
       final key = GlobalKey<M3eRefreshIndicatorState>();
+      final completer = Completer<void>();
       var refreshed = 0;
       await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(platform: TargetPlatform.iOS),
-          home: Scaffold(
-            body: M3eRefreshIndicator(
-              key: key,
-              onRefresh: () async => refreshed++,
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [for (var i = 0; i < 20; i++) Text('$i')],
-              ),
-            ),
-          ),
-        ),
+        host(ThemeData(platform: TargetPlatform.iOS), () {
+          refreshed++;
+          return completer.future;
+        }, refreshKey: key),
       );
+      final rowTop = tester.getTopLeft(find.text('row0')).dy;
       final future = key.currentState!.show();
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
-      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(refreshed, 1);
+      expect(ring, findsOneWidget);
+      expect(tester.getTopLeft(find.text('row0')).dy, closeTo(rowTop + 48, 0.5));
+      completer.complete();
       await future;
       await tester.pumpAndSettle();
+      expect(tester.getTopLeft(find.text('row0')).dy, closeTo(rowTop, 0.5));
       expect(refreshed, 1);
     });
   });

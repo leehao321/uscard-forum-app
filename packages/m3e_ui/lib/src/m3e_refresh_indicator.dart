@@ -1,12 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart' show CupertinoActivityIndicator;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'loading_spinner.dart';
-
-/// Material 3 Expressive 风格下拉刷新。
+/// 下拉刷新。
 ///
 /// 架构:状态机整体移植自 Flutter SDK 的 refresh_indicator.dart
 /// (与 pub 上 expressive_refresh 的做法相同,MIT),只替换展示层 ——
@@ -16,22 +13,16 @@ import 'loading_spinner.dart';
 /// 均翻车:SDK 的 onStatusChange 不通知 snap→refresh 与收尾→null
 /// 两个转移,外挂层必然漏状态(卡半截/闪现),该路线已废弃。
 ///
-/// 展示层:LoadingSpinner 圆片托底,随下拉从顶缘裁剪滑出(与原生
-/// RefreshIndicator 同款揭示式入场,轻拉只露一条边,不会凭空出现
-/// 完整小圆片),刷新中形状 morph 即加载状态,完成后缩放收没。
-///
-/// v2(0.4.0)起全平台的展示层都是 [CupertinoActivityIndicator](下拉时随
-/// 进度渐显,刷新中转动),无圆片托底;拖拽/armed/snap/refresh 状态机与
-/// 回调沿用同一套。
+/// 展示层(Figma「首页 · 下拉刷新中」,全平台同一个):24pt 直径、线宽 2 的
+/// 圆环,放在内容区顶部一条 48 高的悬停带里居中;下拉时随进度画出圆弧,
+/// 松手刷新后转动,完成后缩放收没。刷新期间列表内容整体下移一条悬停带的高度,
+/// 刷新完成后回位,指示器不压在列表行上。
 class M3eRefreshIndicator extends StatefulWidget {
   final Widget child;
   final RefreshCallback onRefresh;
 
   /// 指示器顶部偏移(overlay 悬浮头部下方的列表用)。
   final double edgeOffset;
-
-  /// 指示器悬停位(圆片顶边到 [edgeOffset] 的距离)。
-  final double displacement;
 
   final ScrollNotificationPredicate notificationPredicate;
 
@@ -40,7 +31,6 @@ class M3eRefreshIndicator extends StatefulWidget {
     required this.child,
     required this.onRefresh,
     this.edgeOffset = 0.0,
-    this.displacement = 40.0,
     this.notificationPredicate = defaultScrollNotificationPredicate,
   });
 
@@ -48,8 +38,7 @@ class M3eRefreshIndicator extends StatefulWidget {
   State<M3eRefreshIndicator> createState() => M3eRefreshIndicatorState();
 }
 
-/// 对外状态:`GlobalKey<M3eRefreshIndicatorState>` + [show] 编程式触发,
-/// 开关开/关两个分支都可用。
+/// 对外状态:`GlobalKey<M3eRefreshIndicatorState>` + [show] 编程式触发。
 class M3eRefreshIndicatorState extends State<M3eRefreshIndicator> {
   final GlobalKey<_M3eRefreshCoreState> _coreKey =
       GlobalKey<_M3eRefreshCoreState>();
@@ -63,14 +52,11 @@ class M3eRefreshIndicatorState extends State<M3eRefreshIndicator> {
 
   @override
   Widget build(BuildContext context) {
-    // v2(0.4.0):全平台走自绘状态机 + Cupertino 展示层(计划 §4「下拉
-    // 刷新」),不再随平台或 M3E 开关切换。
+    // 全平台走同一套自绘状态机和展示层,不随平台或 M3E 开关切换。
     return _M3eRefreshCore(
       key: _coreKey,
-      cupertino: true,
       onRefresh: widget.onRefresh,
       edgeOffset: widget.edgeOffset,
-      displacement: widget.displacement,
       notificationPredicate: widget.notificationPredicate,
       child: widget.child,
     );
@@ -82,39 +68,37 @@ class M3eRefreshIndicatorState extends State<M3eRefreshIndicator> {
 /// 拖满(positionController=1)所需下拉距离占视口比例,同 SDK。
 const double _kDragContainerExtentPercentage = 0.25;
 
-/// 位移因子上限:滑出行程 = (displacement+圆片) × position × 1.5,同 SDK。
+/// 位移因子上限:拖到 1/1.5 即达到 armed 阈值、悬停带完全露出,同 SDK。
 const double _kDragSizeFactorLimit = 1.5;
 
 const Duration _kIndicatorSnapDuration = Duration(milliseconds: 150);
 const Duration _kIndicatorScaleDuration = Duration(milliseconds: 200);
 
-/// 指示器圆片直径。
-const double _kBadgeSize = 44;
+/// 指示器直径（Figma「首页 · 下拉刷新中」：24pt 圆环）。
+const double _kSpinnerSize = 24;
 
-/// 圆片四周的阴影留白。elevation 阴影画在布局边界之外,而入场用的
-/// SizeTransition 内部是 ClipRect,按布局尺寸硬裁——悬停态 sizeFactor
-/// 恰好为 1.0,裁剪框底边压在圆片底边上,不留白阴影会被切出一条直线。
-/// 同原生 RefreshProgressIndicator.indicatorMargin(4dp)的用途,
-/// 这里 elevation 3 阴影更重,留 6dp。
-const double _kBadgeShadowMargin = 6;
+/// 刷新中指示器所在的悬停带高度：列表内容整体下移这么多，指示器居中放在带里
+/// （设计稿里指示器在分类条下方一条 48 高的带中，列表从带下面开始）。
+const double _kHoverExtent = 48;
+
+/// 圆环线宽
+const double _kSpinnerStroke = 2;
+
+/// 悬停位出现 / 收起时列表内容下移的动画时长
+const Duration _kShiftInDuration = Duration(milliseconds: 150);
+const Duration _kShiftOutDuration = Duration(milliseconds: 200);
 
 class _M3eRefreshCore extends StatefulWidget {
   final Widget child;
-
-  /// 展示层用 iOS 风格转圈(CupertinoActivityIndicator)。
-  final bool cupertino;
   final RefreshCallback onRefresh;
   final double edgeOffset;
-  final double displacement;
   final ScrollNotificationPredicate notificationPredicate;
 
   const _M3eRefreshCore({
     super.key,
-    required this.cupertino,
     required this.child,
     required this.onRefresh,
     required this.edgeOffset,
-    required this.displacement,
     required this.notificationPredicate,
   });
 
@@ -126,9 +110,13 @@ class _M3eRefreshCoreState extends State<_M3eRefreshCore>
     with TickerProviderStateMixin {
   late final AnimationController _positionController;
   late final AnimationController _scaleController;
-  late final Animation<double> _positionFactor;
+
+  /// 刷新期间列表内容下移的进度(0 = 原位,1 = 下移一条悬停带)
+  late final AnimationController _shiftController;
   late final Animation<double> _scaleFactor;
-  late final Animation<double> _opacity;
+
+  /// 悬停带的揭示进度:拖到 armed 阈值(1/1.5)时完全露出并不透明
+  late final Animation<double> _reveal;
 
   RefreshIndicatorStatus? _status;
   late Future<void> _pendingRefreshFuture;
@@ -139,14 +127,12 @@ class _M3eRefreshCoreState extends State<_M3eRefreshCore>
   void initState() {
     super.initState();
     _positionController = AnimationController(vsync: this);
-    _positionFactor = _positionController.drive(
-      Tween<double>(begin: 0.0, end: _kDragSizeFactorLimit),
-    );
-    // 入场淡入:position 到达 armed 阈值(1/1.5)时不透明度拉满,
-    // 对应 SDK 的 valueColor alpha 渐变。
-    _opacity = _positionController.drive(
+    // 入场揭示 + 淡入:position 到达 armed 阈值(1/1.5)时拉满,
+    // 对应 SDK 的 sizeFactor 与 valueColor alpha 渐变。
+    _reveal = _positionController.drive(
       CurveTween(curve: const Interval(0.0, 1.0 / _kDragSizeFactorLimit)),
     );
+    _shiftController = AnimationController(vsync: this);
     _scaleController = AnimationController(vsync: this);
     _scaleFactor = _scaleController.drive(
       Tween<double>(begin: 1.0, end: 0.0),
@@ -156,6 +142,7 @@ class _M3eRefreshCoreState extends State<_M3eRefreshCore>
   @override
   void dispose() {
     _positionController.dispose();
+    _shiftController.dispose();
     _scaleController.dispose();
     super.dispose();
   }
@@ -288,6 +275,10 @@ class _M3eRefreshCoreState extends State<_M3eRefreshCore>
     setState(() => _status = newMode);
     switch (_status!) {
       case RefreshIndicatorStatus.done:
+        // 圆环缩没和列表回位同时进行
+        unawaited(
+          _shiftController.animateTo(0.0, duration: _kShiftOutDuration),
+        );
         await _scaleController.animateTo(
           1.0,
           duration: _kIndicatorScaleDuration,
@@ -316,6 +307,8 @@ class _M3eRefreshCoreState extends State<_M3eRefreshCore>
     final completer = Completer<void>();
     _pendingRefreshFuture = completer.future;
     _status = RefreshIndicatorStatus.snap;
+    // 列表内容下移一条悬停带，给指示器让出位置
+    unawaited(_shiftController.animateTo(1.0, duration: _kShiftInDuration));
     _positionController
         .animateTo(
       1.0 / _kDragSizeFactorLimit,
@@ -370,52 +363,46 @@ class _M3eRefreshCoreState extends State<_M3eRefreshCore>
     // child。绝不能在 _status==null 时裸返回 child —— drag 状态在
     // "列表在顶+手指拖动"就会翻转,树根形状随之改变会把整个列表
     // 子树拆掉重建(滚动位置归零、KeepAlive/GlobalKey 重挂报错)。
+    // 列表内容的下移同理:Transform 永远在树里,只是位移为 0。
+    final atTop = _isIndicatorAtTop ?? true;
     return Stack(
       children: <Widget>[
-        child,
+        AnimatedBuilder(
+          animation: _shiftController,
+          child: child,
+          builder: (context, child) => Transform.translate(
+            offset: Offset(
+              0,
+              (atTop ? 1 : -1) * _kHoverExtent * _shiftController.value,
+            ),
+            child: child,
+          ),
+        ),
         if (_status != null)
           Positioned(
-            top: _isIndicatorAtTop! ? widget.edgeOffset : null,
-            bottom: !_isIndicatorAtTop! ? widget.edgeOffset : null,
+            top: atTop ? widget.edgeOffset : null,
+            bottom: !atTop ? widget.edgeOffset : null,
             left: 0.0,
             right: 0.0,
-            // SizeTransition 裁剪式揭示:轻拉只露圆片一条边,与原生同款。
+            // SizeTransition 裁剪式揭示:轻拉只露悬停带的一条边,与原生同款。
             child: SizeTransition(
-              alignment: AlignmentDirectional(
-                -1.0,
-                _isIndicatorAtTop! ? 1.0 : -1.0,
-              ),
-              sizeFactor: _positionFactor,
-              child: Padding(
-                // 扣掉圆片自带的阴影留白,保持"圆片顶边距 edgeOffset 为
-                // displacement"的语义不变。
-                padding: _isIndicatorAtTop!
-                    ? EdgeInsets.only(
-                        top: (widget.displacement - _kBadgeShadowMargin)
-                            .clamp(0.0, double.infinity),
-                      )
-                    : EdgeInsets.only(
-                        bottom: (widget.displacement - _kBadgeShadowMargin)
-                            .clamp(0.0, double.infinity),
-                      ),
-                child: Align(
-                  alignment: _isIndicatorAtTop!
-                      ? Alignment.topCenter
-                      : Alignment.bottomCenter,
+              alignment: AlignmentDirectional(-1.0, atTop ? 1.0 : -1.0),
+              sizeFactor: _reveal,
+              child: SizedBox(
+                height: _kHoverExtent,
+                child: Center(
                   child: ScaleTransition(
                     scale: _scaleFactor,
                     child: FadeTransition(
-                      opacity: _opacity,
-                      child: widget.cupertino
-                          ? _CupertinoSpinner(
-                              position: _positionController,
-                              // 拖拽/取消回缩中随位移渐显;松手进入 snap/refresh 后转动
-                              revealing:
-                                  _status == RefreshIndicatorStatus.drag ||
-                                  _status == RefreshIndicatorStatus.armed ||
-                                  _status == RefreshIndicatorStatus.canceled,
-                            )
-                          : const _SpinnerBadge(size: _kBadgeSize),
+                      opacity: _reveal,
+                      child: _RefreshSpinner(
+                        position: _positionController,
+                        // 拖拽/取消回缩中随位移画出圆弧;松手进入 snap/refresh 后转动
+                        revealing:
+                            _status == RefreshIndicatorStatus.drag ||
+                            _status == RefreshIndicatorStatus.armed ||
+                            _status == RefreshIndicatorStatus.canceled,
+                      ),
                     ),
                   ),
                 ),
@@ -427,72 +414,41 @@ class _M3eRefreshCoreState extends State<_M3eRefreshCore>
   }
 }
 
-/// 加载器托底容器:surfaceContainerHigh 圆片 + 阴影,任意内容上可读。
-/// 四周留 [_kBadgeShadowMargin] 吸收阴影,布局尺寸为
-/// size + 2 × [_kBadgeShadowMargin]。
-class _SpinnerBadge extends StatelessWidget {
-  final double size;
-
-  const _SpinnerBadge({required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.all(_kBadgeShadowMargin),
-      child: Material(
-        elevation: 3,
-        shape: const CircleBorder(),
-        color: scheme.surfaceContainerHigh,
-        shadowColor: scheme.shadow.withValues(alpha: 0.6),
-        child: SizedBox(
-          width: size,
-          height: size,
-          child: Center(child: LoadingSpinner(size: size - 18)),
-        ),
-      ),
-    );
-  }
-}
-
-/// iOS 风格转圈:无托底,占位高度与 [_SpinnerBadge] 一致(保持悬停位几何不变)。
+/// 24pt 圆环指示器(无托底)。
 ///
-/// 下拉中([revealing])按位移进度渐显(同 CupertinoSliverRefreshControl 的
-/// partiallyRevealed),拉到 armed 阈值时刚好满格;松手进入刷新后转动。
-class _CupertinoSpinner extends StatelessWidget {
+/// 下拉中([revealing])按位移进度画出圆弧,拉到 armed 阈值时画满;
+/// 松手进入刷新后转动。
+class _RefreshSpinner extends StatelessWidget {
   final Animation<double> position;
   final bool revealing;
 
-  const _CupertinoSpinner({required this.position, required this.revealing});
-
-  static const double _radius = 11;
+  const _RefreshSpinner({required this.position, required this.revealing});
 
   @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.onSurfaceVariant;
     return SizedBox(
-      height: _kBadgeSize + 2 * _kBadgeShadowMargin,
-      child: Center(
-        child: revealing
-            ? AnimatedBuilder(
-                animation: position,
-                builder: (context, _) =>
-                    CupertinoActivityIndicator.partiallyRevealed(
-                      key: const ValueKey('revealing'),
-                      radius: _radius,
-                      color: color,
-                      progress: (position.value * _kDragSizeFactorLimit).clamp(
-                        0.0,
-                        1.0,
-                      ),
-                    ),
-              )
-            : CupertinoActivityIndicator(
-                key: const ValueKey('spinning'),
-                radius: _radius,
+      width: _kSpinnerSize,
+      height: _kSpinnerSize,
+      child: revealing
+          ? AnimatedBuilder(
+              animation: position,
+              builder: (context, _) => CircularProgressIndicator(
+                key: const ValueKey('refresh-spinner-revealing'),
+                // 至少留一小段弧，轻拉时也能看到
+                value: (position.value * _kDragSizeFactorLimit).clamp(
+                  0.05,
+                  1.0,
+                ),
+                strokeWidth: _kSpinnerStroke,
                 color: color,
               ),
-      ),
+            )
+          : CircularProgressIndicator(
+              key: const ValueKey('refresh-spinner-spinning'),
+              strokeWidth: _kSpinnerStroke,
+              color: color,
+            ),
     );
   }
 }

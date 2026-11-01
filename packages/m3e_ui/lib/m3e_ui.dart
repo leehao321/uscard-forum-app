@@ -6,7 +6,7 @@
 /// - [LoadingSpinner]:LoadingIndicator(不定态)的 1:1 复刻;
 /// - [M3eLinearProgress]:wavy 线性进度条(确定态 + 不定态);
 /// - [M3eCircularProgress]:wavy 圆形进度环(确定态);
-/// - [M3eRefreshIndicator]:M3E 下拉刷新(LoadingSpinner 表现层);
+/// - [M3eRefreshIndicator]:下拉刷新(24pt 圆环指示器,刷新时列表下移一条悬停带);
 /// - [M3eButtonGroup]:联排按钮组(按压展宽/邻项挤压);
 /// - [SegmentedCardGroup]:M3E 分段卡片列表(主题注册
 ///   [SegmentedCardGroupStyle] 后可切 iOS inset-grouped 形态)。
