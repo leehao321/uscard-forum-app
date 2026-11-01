@@ -59,7 +59,9 @@ void main() {
     await tester.tap(find.textContaining('加载失败').first);
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.byType(AppSheetScaffold), findsOneWidget);
-    expect(find.text('[Demo]'), findsWidgets);
+    // 补充稿 37：错误级别的详情是「错误详情」半屏，标签 Demo 在分组行里
+    expect(find.text('错误详情'), findsOneWidget);
+    expect(find.text('Demo'), findsWidgets);
     expect(find.textContaining('#0 main'), findsOneWidget);
     expectNoUiException(tester);
   });

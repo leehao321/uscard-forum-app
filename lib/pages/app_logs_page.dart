@@ -17,6 +17,7 @@ import '../services/toast_service.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 
+import '../widgets/logs/error_detail_sheet.dart';
 import '../widgets/post/reply_sheet.dart';
 import '../l10n/s.dart';
 import '../utils/dialog_utils.dart';
@@ -455,6 +456,25 @@ class _AppLogsPageState extends State<AppLogsPage> {
     final appVersion = entry['appVersion']?.toString();
     final extras = _extraFields(entry);
 
+    // 错误：用「错误详情」半屏（类型 / 级别 / 时间 / 版本 + 堆栈 + 复制）
+    if (level == 'error') {
+      showErrorDetailSheet(
+        context,
+        level: level,
+        timestamp: timestamp,
+        tag: tag,
+        errorType: errorType,
+        appVersion: appVersion,
+        message: [
+          if (message.isNotEmpty) message,
+          if (error != null && error != message) error,
+        ].join('\n'),
+        extras: extras,
+        stackTrace: stackTrace,
+      );
+      return;
+    }
+
     final detail = StringBuffer()
       ..writeln('${S.current.appLogs_time}: $timestamp')
       ..writeln('${S.current.appLogs_level}: $level');
@@ -519,7 +539,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
         final value = base
             .merge(tokens.text.meta)
             .copyWith(color: tokens.colors.textPrimary);
-        const mono = TextStyle(fontFamily: 'monospace');
+        final mono = tokens.text.monoUrl;
         Widget codeBlock(String label, String text) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -635,7 +655,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
         final value = base
             .merge(tokens.text.meta)
             .copyWith(color: tokens.colors.textPrimary);
-        const mono = TextStyle(fontFamily: 'monospace');
+        final mono = tokens.text.monoUrl;
         Widget kv(String key, String text, {bool monospace = false}) => Padding(
           padding: const EdgeInsets.only(bottom: AppSpace.s),
           child: Row(
@@ -781,39 +801,33 @@ class _AppLogsPageState extends State<AppLogsPage> {
   PreferredSizeWidget _buildAppBar() {
     final tokens = context.tokens;
     if (_searching) {
+      // 搜索模式：左返回、右「取消」，中间不放标题；搜索框在下面（见 [_buildSearchField]）
       return AppNavBar(
-        showDivider: true,
         automaticallyImplyLeading: false,
         leading: AppIconButton(
           icon: AppIcons.back,
           semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
           onPressed: _stopSearch,
         ),
-        titleWidget: TextField(
-          controller: _searchController,
-          autofocus: true,
-          cursorColor: tokens.colors.brandPrimary,
-          style: Theme.of(context).textTheme.bodyMedium
-              ?.merge(tokens.text.control)
-              .copyWith(color: tokens.colors.textPrimary),
-          decoration: InputDecoration(
-            hintText: context.l10n.appLogs_search,
-            border: InputBorder.none,
-          ),
-          textInputAction: TextInputAction.search,
-          onChanged: (_) => setState(_applyFilters),
-        ),
         trailing: [
-          if (_searchController.text.isNotEmpty)
-            AppIconButton(
-              icon: AppIcons.close,
-              semanticLabel: MaterialLocalizations.of(context)
-                  .clearButtonTooltip,
-              onPressed: () {
-                _searchController.clear();
-                setState(_applyFilters);
-              },
+          AppPressable(
+            onTap: _stopSearch,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                minWidth: AppSize.hit,
+                minHeight: AppSize.hit,
+              ),
+              child: Center(
+                widthFactor: 1,
+                child: Text(
+                  context.l10n.common_cancel,
+                  style: Theme.of(context).textTheme.bodyMedium
+                      ?.merge(tokens.text.control)
+                      .copyWith(color: tokens.colors.brandPrimary),
+                ),
+              ),
             ),
+          ),
         ],
       );
     }
@@ -892,12 +906,78 @@ class _AppLogsPageState extends State<AppLogsPage> {
     );
   }
 
+  /// 搜索框：44 高 r10 surface/grouped，search 20 + 输入 17 + 有字时右侧清除钮
+  Widget _buildSearchField() {
+    final tokens = context.tokens;
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpace.pageMargin,
+        AppSpace.xs,
+        AppSpace.pageMargin,
+        AppSpace.xs,
+      ),
+      child: SizedBox(
+        height: AppSize.hit,
+        child: TextField(
+          controller: _searchController,
+          autofocus: true,
+          cursorColor: tokens.colors.brandPrimary,
+          textInputAction: TextInputAction.search,
+          style: base
+              .merge(tokens.text.control)
+              .copyWith(color: tokens.colors.textPrimary),
+          onChanged: (_) => setState(_applyFilters),
+          decoration: InputDecoration(
+            hintText: context.l10n.appLogs_search,
+            hintStyle: base
+                .merge(tokens.text.control)
+                .copyWith(color: tokens.colors.textMeta),
+            prefixIcon: Icon(
+              AppIcons.search,
+              size: AppSize.iconM,
+              color: tokens.colors.textMeta,
+            ),
+            suffixIcon: _searchController.text.isEmpty
+                ? null
+                : AppIconButton(
+                    icon: AppIcons.cancelCircle,
+                    size: AppSize.iconM,
+                    color: tokens.colors.textMeta,
+                    semanticLabel: MaterialLocalizations.of(context)
+                        .clearButtonTooltip,
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(_applyFilters);
+                    },
+                  ),
+            filled: true,
+            fillColor: tokens.colors.surfaceGrouped,
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal: AppSpace.m),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(tokens.radius.field),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.tokens.colors.surfacePage,
       appBar: ReadableAppBar(child: _buildAppBar()),
-      body: ReadableBody(child: _buildBody()),
+      body: ReadableBody(
+        child: Column(
+          children: [
+            if (_searching) _buildSearchField(),
+            Expanded(child: _buildBody()),
+          ],
+        ),
+      ),
     );
   }
 
@@ -989,7 +1069,7 @@ class _AppLogsPageState extends State<AppLogsPage> {
       if (duration != null) '${duration}ms',
       ?adapter,
     ].join(' · ');
-    const mono = TextStyle(fontFamily: 'monospace', fontSize: AppFontSize.meta);
+    final mono = tokens.text.monoUrl;
     return InkWell(
       onTap: () => _showDetail(entry),
       child: Container(
@@ -1061,10 +1141,13 @@ class _AppLogsPageState extends State<AppLogsPage> {
     );
     // v2：不再用彩色左边条，错误行只把标题改成 destructive 文字色
     final isErrorRow = barColor == theme.colorScheme.error;
-    final titleStyle = theme.textTheme.bodyMedium?.copyWith(
-      fontSize: AppFontSize.meta,
-      color: isErrorRow ? context.tokens.colors.textDestructive : null,
-    );
+    final titleStyle = theme.textTheme.bodyMedium
+        ?.merge(context.tokens.text.monoUrl)
+        .copyWith(
+          color: isErrorRow
+              ? context.tokens.colors.textDestructive
+              : context.tokens.colors.textPrimary,
+        );
     final subtitleStyle = theme.textTheme.bodySmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
     );

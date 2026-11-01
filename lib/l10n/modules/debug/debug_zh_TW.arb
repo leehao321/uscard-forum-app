@@ -9,6 +9,7 @@
   "appLogs_cookie": "Cookie",
   "appLogs_copyAll": "複製全部",
   "appLogs_copyDeviceInfo": "複製裝置資訊",
+  "appLogs_copyErrorAndStack": "複製錯誤類型和完整堆疊",
   "appLogs_debug": "除錯",
   "appLogs_duration": "耗時",
   "appLogs_entryCount": "{count} 條",
@@ -20,6 +21,7 @@
     }
   },
   "appLogs_error": "錯誤",
+  "appLogs_errorDetail": "錯誤詳情",
   "appLogs_errorType": "錯誤型別",
   "appLogs_event": "事件",
   "appLogs_feedbackSending": "正在傳送回報…",

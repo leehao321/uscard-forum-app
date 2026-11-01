@@ -9,6 +9,7 @@
   "appLogs_cookie": "Cookie",
   "appLogs_copyAll": "Copy all",
   "appLogs_copyDeviceInfo": "Copy device info",
+  "appLogs_copyErrorAndStack": "Copy error type and full stack trace",
   "appLogs_debug": "Debug",
   "appLogs_duration": "Duration",
   "appLogs_entryCount": "{count} entries",
@@ -20,6 +21,7 @@
     }
   },
   "appLogs_error": "Error",
+  "appLogs_errorDetail": "Error details",
   "appLogs_errorType": "Error type",
   "appLogs_event": "Event",
   "appLogs_feedbackSending": "Sending feedback...",
