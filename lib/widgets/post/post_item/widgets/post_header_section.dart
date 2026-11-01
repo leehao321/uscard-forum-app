@@ -45,6 +45,11 @@ class PostHeaderSection extends ConsumerStatefulWidget {
 
   /// 头像长按菜单「@用户」回调（null = 不可回复，菜单不显示该项）
   final void Function(String username)? onMentionUser;
+
+  /// 加载「回复给」内联预览内容；默认走论坛接口，测试里可替换成假数据
+  @visibleForTesting
+  final Future<List<Post>> Function(int postId)? replyHistoryLoader;
+
   const PostHeaderSection({
     super.key,
     required this.post,
@@ -60,6 +65,7 @@ class PostHeaderSection extends ConsumerStatefulWidget {
     this.onToggleDanmaku,
     this.onEditWiki,
     this.onMentionUser,
+    this.replyHistoryLoader,
   });
 
   @override
@@ -122,35 +128,37 @@ class _PostHeaderSectionState extends ConsumerState<PostHeaderSection> {
     }
   }
 
+  /// 展开 / 收起「回复给」内联预览。点开后立刻展开，内容未到时引用块位置
+  /// 先显示加载指示（补充稿 14），到达后替换（补充稿 13）；加载中再点一次
+  /// 就是收起，收起后内容到达也不再自动展开。
   Future<void> _toggleReplyHistory() async {
     if (_showReplyHistoryNotifier.value) {
       _showReplyHistoryNotifier.value = false;
       return;
     }
 
-    if (_replyHistory != null) {
-      _showReplyHistoryNotifier.value = true;
-      return;
-    }
-
+    _showReplyHistoryNotifier.value = true;
+    if (_replyHistory != null) return;
     if (_isLoadingReplyHistoryNotifier.value) return;
 
     _isLoadingReplyHistoryNotifier.value = true;
     try {
-      final history = await _service.getPostReplyHistory(widget.post.id);
+      final loader = widget.replyHistoryLoader ?? _service.getPostReplyHistory;
+      final history = await loader(widget.post.id);
       if (!mounted) return;
       _replyHistory = history;
       _isLoadingReplyHistoryNotifier.value = false;
-      _showReplyHistoryNotifier.value = true;
     } on DioException catch (_) {
       // 网络错误已由 ErrorInterceptor 处理
       if (mounted) {
         _isLoadingReplyHistoryNotifier.value = false;
+        _showReplyHistoryNotifier.value = false;
       }
     } catch (e, s) {
       AppErrorHandler.handleUnexpected(e, s);
       if (mounted) {
         _isLoadingReplyHistoryNotifier.value = false;
+        _showReplyHistoryNotifier.value = false;
       }
     }
   }
@@ -212,9 +220,6 @@ class _PostHeaderSectionState extends ConsumerState<PostHeaderSection> {
                 isOwnPost: isOwnPost,
                 isWhisper: isWhisper,
                 cachedAvatarWidget: _cachedAvatarWidget!,
-                isLoadingReplyHistoryNotifier: widget.disableReplyHistory
-                    ? null
-                    : _isLoadingReplyHistoryNotifier,
                 onToggleReplyHistory: widget.disableReplyHistory
                     ? null
                     : _toggleReplyHistory,
@@ -315,13 +320,28 @@ class _PostHeaderSectionState extends ConsumerState<PostHeaderSection> {
                   ],
                 ),
               ),
-              ValueListenableBuilder<bool>(
-                valueListenable: _showReplyHistoryNotifier,
-                builder: (context, showReplyHistory, _) {
-                  if (!showReplyHistory) return const SizedBox.shrink();
+              ListenableBuilder(
+                listenable: Listenable.merge([
+                  _showReplyHistoryNotifier,
+                  _isLoadingReplyHistoryNotifier,
+                ]),
+                builder: (context, _) {
+                  if (!_showReplyHistoryNotifier.value) {
+                    return const SizedBox.shrink();
+                  }
+                  final replyToUser = post.replyToUser;
+                  final replyToName =
+                      (replyToUser?.name != null &&
+                          replyToUser!.name!.isNotEmpty)
+                      ? replyToUser.name!
+                      : (replyToUser?.username ?? '');
                   return PostReplyHistory(
-                    replyHistory: _replyHistory,
-                    showReplyHistoryNotifier: _showReplyHistoryNotifier,
+                    // 加载中（或已收起后迟到的结果）不给内容
+                    replyHistory: _isLoadingReplyHistoryNotifier.value
+                        ? null
+                        : _replyHistory,
+                    replyToName: replyToName,
+                    onCollapse: () => _showReplyHistoryNotifier.value = false,
                     onJumpToPost: widget.onJumpToPost,
                     contentFontScale: ref
                         .watch(preferencesProvider)

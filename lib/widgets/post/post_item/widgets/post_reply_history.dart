@@ -5,182 +5,194 @@ import 'package:app_icons/app_icons.dart';
 import '../../../../l10n/s.dart';
 import '../../../../models/topic.dart';
 import '../../../../utils/fluxdo_render_callbacks.dart';
-import '../../../common/smart_avatar.dart';
 
-/// 回复历史预览组件
+/// 「回复给」内联预览（补充稿 13 / 14）
+///
+/// 点楼层顶部的「回复给」入口后，在楼内展开：先一行
+/// 「↩ 回复给 某人 …… 收起」，下面是被回复楼层的引用块（3pt 左竖线、
+/// 「作者 · #楼层」13、正文 17）。内容还没到达时（[replyHistory] 为空）
+/// 引用块的位置先放加载指示，内容到达后替换。
 class PostReplyHistory extends StatelessWidget {
+  /// 被回复楼层；null 表示还在加载
   final List<Post>? replyHistory;
-  final ValueNotifier<bool> showReplyHistoryNotifier;
+
+  /// 「回复给」后面的名字
+  final String replyToName;
+
+  /// 点「收起」
+  final VoidCallback onCollapse;
   final void Function(int postNumber)? onJumpToPost;
   final double contentFontScale;
 
   const PostReplyHistory({
     super.key,
     required this.replyHistory,
-    required this.showReplyHistoryNotifier,
+    required this.replyToName,
+    required this.onCollapse,
     this.onJumpToPost,
     this.contentFontScale = 1.0,
   });
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     final theme = Theme.of(context);
+    final metaStyle = theme.textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
+    final history = replyHistory;
 
-    if (replyHistory == null || replyHistory!.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(top: 12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpace.s),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header Area
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: AppSize.hit),
             child: Row(
               children: [
-                Icon(
-                  AppIcons.formatQuote,
-                  size: 16,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.post_replyTo,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w600,
+                Icon(AppIcons.reply, size: AppSize.iconS, color: colors.textMeta),
+                const SizedBox(width: AppSpace.s),
+                Expanded(
+                  child: Text(
+                    '${context.l10n.post_replyTo} $replyToName',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: metaStyle,
                   ),
                 ),
-                const Spacer(),
                 InkWell(
-                  onTap: () {
-                    showReplyHistoryNotifier.value = false;
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(
-                      AppIcons.close,
-                      size: 16,
-                      color: theme.colorScheme.onSurfaceVariant,
+                  key: const ValueKey('reply_history_collapse'),
+                  onTap: onCollapse,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minHeight: AppSize.hit,
+                      minWidth: AppSize.hit,
+                    ),
+                    child: Center(
+                      child: Text(
+                        context.l10n.post_collapse,
+                        style: metaStyle.copyWith(color: colors.brandPrimary),
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          Divider(
-            height: 1,
-            thickness: 0.5,
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-          ),
-          // Reply Items
-          ...replyHistory!.map((replyPost) {
-            final avatarUrl = replyPost.getAvatarUrl(size: 60);
-            return InkWell(
-              onTap: () => onJumpToPost?.call(replyPost.postNumber),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SmartAvatar(
-                      imageUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
-                      radius: 14,
-                      backgroundColor: theme.colorScheme.primaryContainer,
-                      fallbackText: replyPost.username,
+          if (history == null)
+            LoadingHint(
+              key: const ValueKey('reply_history_loading'),
+              label: context.l10n.common_loadingLabel,
+              filled: true,
+            )
+          else
+            for (final post in history) ...[
+              _ReplyQuote(
+                post: post,
+                contentFontScale: contentFontScale,
+                onTap: () => onJumpToPost?.call(post.postNumber),
+              ),
+              const SizedBox(height: AppSpace.s),
+            ],
+        ],
+      ),
+    );
+  }
+}
+
+/// 一条被回复楼层的引用块：3pt 左竖线 + 「作者 · #楼层」+ 正文
+class _ReplyQuote extends StatelessWidget {
+  const _ReplyQuote({
+    required this.post,
+    required this.contentFontScale,
+    required this.onTap,
+  });
+
+  final Post post;
+  final double contentFontScale;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final theme = Theme.of(context);
+    final metaStyle = theme.textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
+    final name = (post.name != null && post.name!.isNotEmpty)
+        ? post.name!
+        : post.username;
+    return InkWell(
+      onTap: onTap,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(width: 3, color: colors.quoteRule),
+            const SizedBox(width: AppSpace.m),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(text: '$name · '),
+                        TextSpan(
+                          text: '#${post.postNumber}',
+                          style: TextStyle(color: colors.brandPrimary),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                (replyPost.name != null &&
-                                        replyPost.name!.isNotEmpty)
-                                    ? replyPost.name!
-                                    : replyPost.username,
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: metaStyle,
+                  ),
+                  const SizedBox(height: AppSpace.xs),
+                  IgnorePointer(
+                    child: ShaderMask(
+                      shaderCallback: (rect) {
+                        return const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [AppFixedColors.black, Colors.transparent],
+                          stops: [0.6, 1.0],
+                        ).createShader(rect);
+                      },
+                      blendMode: BlendMode.dstIn,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxHeight: 72),
+                        child: SingleChildScrollView(
+                          physics: const NeverScrollableScrollPhysics(),
+                          // 回复历史预览:改用自研 FluxdoRender 只读渲染(关闭选区)
+                          child:
+                              FluxdoRenderCallbacks.generic(
+                                heroTagNamespace:
+                                    'reply_history_${post.postNumber}',
+                              ).render(
+                                cookedHtml: post.cooked,
+                                baseTextStyle: theme.textTheme.bodyMedium!
+                                    .merge(tokens.text.body)
+                                    .copyWith(
+                                      fontSize:
+                                          AppFontSize.body * contentFontScale,
+                                      color: colors.textMeta,
+                                    ),
+                                compact: true,
+                                selectionEnabled: false,
                               ),
-                              const SizedBox(width: 6),
-                              Text(
-                                '#${replyPost.postNumber}',
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              const Spacer(),
-                              Icon(
-                                AppIcons.arrowUpRight,
-                                size: 12,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          IgnorePointer(
-                            child: ShaderMask(
-                              shaderCallback: (rect) {
-                                return const LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    AppFixedColors.black,
-                                    Colors.transparent,
-                                  ],
-                                  stops: [0.6, 1.0],
-                                ).createShader(rect);
-                              },
-                              blendMode: BlendMode.dstIn,
-                              child: Container(
-                                constraints: const BoxConstraints(
-                                  maxHeight: 60,
-                                ),
-                                child: SingleChildScrollView(
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  // 回复历史预览:改用自研 FluxdoRender 只读渲染(关闭选区)
-                                  child:
-                                      FluxdoRenderCallbacks.generic(
-                                        heroTagNamespace:
-                                            'reply_history_${replyPost.postNumber}',
-                                      ).render(
-                                        cookedHtml: replyPost.cooked,
-                                        baseTextStyle: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                              fontSize:
-                                                  AppFontSize.meta *
-                                                  contentFontScale,
-                                              height: 1.4,
-                                            ),
-                                        compact: true,
-                                        selectionEnabled: false,
-                                      ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            );
-          }),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

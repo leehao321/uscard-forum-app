@@ -146,7 +146,6 @@ class PostHeader extends StatelessWidget {
   final bool isOwnPost;
   final bool isWhisper;
   final Widget cachedAvatarWidget;
-  final ValueNotifier<bool>? isLoadingReplyHistoryNotifier;
   final VoidCallback? onToggleReplyHistory;
 
   /// 自定义回复指示点击回调（用于弹框内滚动跳转，不加载回复历史）
@@ -175,7 +174,6 @@ class PostHeader extends StatelessWidget {
     required this.isOwnPost,
     required this.isWhisper,
     required this.cachedAvatarWidget,
-    required this.isLoadingReplyHistoryNotifier,
     required this.onToggleReplyHistory,
     this.onReplyIndicatorTap,
     this.hideReplyIndicator = false,
@@ -359,15 +357,12 @@ class PostHeader extends StatelessWidget {
       children: [
         if (post.replyToUser != null && !hideReplyIndicator) ...[
           if (onToggleReplyHistory != null)
-            ValueListenableBuilder<bool>(
-              valueListenable: isLoadingReplyHistoryNotifier!,
-              builder: (context, isLoading, _) {
-                return GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: isLoading ? null : onToggleReplyHistory,
-                  child: _buildReplyIndicator(theme, isLoading: isLoading),
-                );
-              },
+            // 加载中的状态由楼内的内联预览自己显示（补充稿 14），入口始终可点，
+            // 加载过程中再点一次就是收起
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onToggleReplyHistory,
+              child: _buildReplyIndicator(theme),
             )
           else if (onReplyIndicatorTap != null)
             GestureDetector(
@@ -410,11 +405,7 @@ class PostHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildReplyIndicator(
-    ThemeData theme, {
-    bool isLoading = false,
-    bool showUsername = false,
-  }) {
+  Widget _buildReplyIndicator(ThemeData theme, {bool showUsername = false}) {
     final replyToUser = post.replyToUser!;
     final displayName =
         (replyToUser.name != null && replyToUser.name!.isNotEmpty)
@@ -433,14 +424,7 @@ class PostHeader extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (isLoading)
-            const SizedBox(
-              width: 12,
-              height: 12,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          else
-            Icon(AppIcons.reply, size: 14, color: theme.colorScheme.primary),
+          Icon(AppIcons.reply, size: 14, color: theme.colorScheme.primary),
           const SizedBox(width: 6),
           SmartAvatar(
             imageUrl: replyToUser.avatarTemplate.isNotEmpty

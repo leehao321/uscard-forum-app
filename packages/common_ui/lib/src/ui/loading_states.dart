@@ -45,6 +45,54 @@ class WaitingHint extends StatelessWidget {
   }
 }
 
+/// 共享加载指示（补充稿「帖子详情 · 加载中」「回复给 · 加载中」）：
+/// 系统菊花 24 + 下方「加载中」13 meta，居中成列。不用 M3E 指示器。
+///
+/// [filled] 为真时铺一层 surface/grouped 圆角块（回复对象内联预览的占位）。
+class LoadingHint extends StatelessWidget {
+  const LoadingHint({super.key, required this.label, this.filled = false});
+
+  final String label;
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final column = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const CupertinoActivityIndicator(radius: AppSize.iconL / 2),
+        const SizedBox(height: AppSpace.xs),
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodySmall!
+              .merge(tokens.text.meta)
+              .copyWith(color: tokens.colors.textMeta),
+        ),
+      ],
+    );
+    return Semantics(
+      liveRegion: true,
+      label: label,
+      child: ExcludeSemantics(
+        child: filled
+            ? Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: AppSpace.m),
+                decoration: BoxDecoration(
+                  color: tokens.colors.surfaceGrouped,
+                  borderRadius: BorderRadius.circular(tokens.radius.card),
+                ),
+                child: column,
+              )
+            : Center(child: column),
+      ),
+    );
+  }
+}
+
 /// 加载阶段（设计说明 §1-6）：200ms 内什么都不显示，之后出骨架，
 /// 超过 3 秒在骨架上方加等待提示。
 enum LoadingPhase { quiet, skeleton, waiting }
