@@ -101,7 +101,7 @@ class AiL10nEn extends AiL10n {
   String get quickPromptsValidateTemplateRequired =>
       'Please enter a prompt template';
   @override
-  String get quickPromptsEmpty => 'No custom quick prompts yet. Tap + at the top right to add one.';
+  String get quickPromptsEmpty => 'No custom quick prompts yet';
   @override
   String get quickPromptsEmptyHint => 'Tap + at the top right to create one, or import from the clipboard';
   @override

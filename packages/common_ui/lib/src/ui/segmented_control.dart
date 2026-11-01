@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../tokens/tokens.dart';
+import 'app_nav_bar.dart' show kChromeMaxTextScale;
 
 /// [AppSegmentedControl] 的一个选项
 @immutable
@@ -11,12 +13,16 @@ class AppSegment<T> {
   final String label;
 }
 
-/// v2 分段控件（Figma「导出文章 · 半屏」的导出范围 / 文件格式）：
-/// 轨道 surface/elevated、圆角 10、内边距 4；选中的滑块 surface/page、圆角 8，
+/// 分段控件轨道的底色：放在 surface/page 的页面上用 [grouped]，
+/// 放在 surface/grouped 的半屏上用 [elevated]。
+enum AppSegmentedTrack { elevated, grouped }
+
+/// v2 分段控件（导出文章的导出范围 / 文件格式、并发与限流预设、快捷词的图像 / 文本）：
+/// 轨道圆角 10、内边距 4；选中的滑块 surface/page、圆角 8，
 /// 文字 13（选中 Semibold text/primary，未选 Regular text/meta）。
 ///
 /// 轨道视觉高 40，点击区撑到 44（上下各 2 透明热区，不改变布局）。
-/// 选项宽度均分。[onChanged] 为 null 时整体禁用。
+/// 选项宽度均分；点已选中的那一段不回调。[onChanged] 为 null 时整体禁用。
 class AppSegmentedControl<T> extends StatelessWidget {
   const AppSegmentedControl({
     super.key,
@@ -24,7 +30,34 @@ class AppSegmentedControl<T> extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.semanticLabel,
+    this.track = AppSegmentedTrack.elevated,
+    this.padding = EdgeInsets.zero,
   }) : assert(segments.length >= 2);
+
+  /// 按下标选的分段（选项就是一串文案）；[selectedIndex] 为 -1 表示一段都不选。
+  /// 轨道默认用 [AppSegmentedTrack.grouped]（页面底上的分段）。
+  static AppSegmentedControl<int> indexed({
+    Key? key,
+    required List<String> labels,
+    required int selectedIndex,
+    required ValueChanged<int>? onChanged,
+    String? semanticLabel,
+    AppSegmentedTrack track = AppSegmentedTrack.grouped,
+    EdgeInsetsGeometry padding = EdgeInsets.zero,
+  }) {
+    return AppSegmentedControl<int>(
+      key: key,
+      segments: [
+        for (var i = 0; i < labels.length; i++)
+          AppSegment(value: i, label: labels[i]),
+      ],
+      value: selectedIndex,
+      onChanged: onChanged,
+      semanticLabel: semanticLabel,
+      track: track,
+      padding: padding,
+    );
+  }
 
   final List<AppSegment<T>> segments;
   final T value;
@@ -32,6 +65,11 @@ class AppSegmentedControl<T> extends StatelessWidget {
 
   /// 整个控件的无障碍标签（如「导出范围」）
   final String? semanticLabel;
+
+  final AppSegmentedTrack track;
+
+  /// 控件外的内边距
+  final EdgeInsetsGeometry padding;
 
   /// 轨道视觉高度
   static const double trackHeight = 40;
@@ -46,7 +84,7 @@ class AppSegmentedControl<T> extends StatelessWidget {
     final n = segments.length;
     final enabled = onChanged != null;
 
-    return Semantics(
+    final bar = Semantics(
       container: true,
       label: semanticLabel,
       child: Opacity(
@@ -61,7 +99,9 @@ class AppSegmentedControl<T> extends StatelessWidget {
                 bottom: (AppSize.hit - trackHeight) / 2,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: c.surfaceElevated,
+                    color: track == AppSegmentedTrack.grouped
+                        ? c.surfaceGrouped
+                        : c.surfaceElevated,
                     borderRadius: BorderRadius.circular(tokens.radius.field),
                   ),
                   child: Padding(
@@ -103,7 +143,13 @@ class AppSegmentedControl<T> extends StatelessWidget {
                         child: _SegmentCell<T>(
                           segment: s,
                           selected: s.value == value,
-                          onTap: enabled ? () => onChanged!(s.value) : null,
+                          onTap: enabled && s.value != value
+                              ? () {
+                                  HapticFeedback.selectionClick();
+                                  onChanged!(s.value);
+                                }
+                              : null,
+                          enabled: enabled,
                         ),
                       ),
                   ],
@@ -114,6 +160,13 @@ class AppSegmentedControl<T> extends StatelessWidget {
         ),
       ),
     );
+    return Padding(
+      padding: padding,
+      child: MediaQuery.withClampedTextScaling(
+        maxScaleFactor: kChromeMaxTextScale,
+        child: bar,
+      ),
+    );
   }
 }
 
@@ -122,11 +175,13 @@ class _SegmentCell<T> extends StatelessWidget {
     required this.segment,
     required this.selected,
     required this.onTap,
+    required this.enabled,
   });
 
   final AppSegment<T> segment;
   final bool selected;
   final VoidCallback? onTap;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +192,8 @@ class _SegmentCell<T> extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      enabled: onTap != null,
+      inMutuallyExclusiveGroup: true,
+      enabled: enabled,
       label: segment.label,
       excludeSemantics: true,
       onTap: onTap,

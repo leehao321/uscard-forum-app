@@ -110,14 +110,13 @@ class _PromptPresetEditPageState extends ConsumerState<PromptPresetEditPage> {
             children: [
               _GroupLabel(AiL10n.current.quickPromptsType),
               // 分段：图像在前、文本在后（和管理页一致）
-              AppSegmentedControl(
-                padding: EdgeInsets.zero,
+              AppSegmentedControl.indexed(
                 labels: [
                   AiL10n.current.quickPromptsTypeImage,
                   AiL10n.current.quickPromptsTypeText,
                 ],
                 selectedIndex: _type == PromptType.image ? 0 : 1,
-                onSelected: _isBuiltIn
+                onChanged: _isBuiltIn
                     ? null
                     : (i) => setState(
                         () => _type = i == 0 ? PromptType.image : PromptType.text,

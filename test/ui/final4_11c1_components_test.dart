@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'support/ui_harness.dart';
 
-// 第 11 批 · 11c-1 新增的通用分段控件 AppSegmented（补充稿 33 / 40 / 41 共用）。
+// 第 11 批 · 11c-1 新增的通用分段控件 AppSegmentedControl（补充稿 33 / 40 / 41 共用）。
 
 void main() {
   setUpAll(loadUiFonts);
@@ -21,7 +21,7 @@ void main() {
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20),
-            child: AppSegmented(
+            child: AppSegmentedControl.indexed(
               labels: const ['甲', '乙', '丙'],
               selectedIndex: selected,
               onChanged: taps.add,
@@ -44,12 +44,12 @@ void main() {
 
   testUi('每一段的点击区不小于 44，整条 44 高', (tester) async {
     await pumpSegmented(tester);
-    expect(tester.getSize(find.byType(AppSegmented)).height, 44);
+    expect(tester.getSize(find.byType(AppSegmentedControl<int>)).height, 44);
     for (final label in ['甲', '乙', '丙']) {
       final hit = tester.getSize(
         find.ancestor(
           of: find.text(label),
-          matching: find.byType(AppPressable),
+          matching: find.byType(GestureDetector),
         ),
       );
       expect(hit.height, greaterThanOrEqualTo(44), reason: label);
@@ -59,17 +59,16 @@ void main() {
 
   testUi('选中段是 surface/page 的圆角块，文字 Semibold；未选中段文字 meta', (tester) async {
     await pumpSegmented(tester, selected: 2);
-    final colors = tester.element(find.byType(AppSegmented)).tokens.colors;
+    final colors = tester.element(find.byType(AppSegmentedControl<int>)).tokens.colors;
     final selectedStyle = tester.widget<Text>(find.text('丙')).style!;
     final otherStyle = tester.widget<Text>(find.text('甲')).style!;
     expect(selectedStyle.fontWeight, FontWeight.w600);
     expect(selectedStyle.color, colors.textPrimary);
     expect(otherStyle.fontWeight, FontWeight.w400);
     expect(otherStyle.color, colors.textMeta);
+    // 滑块在选中的那一段（第 3 段）下面，是 surface/page 的圆角块
     final pill = tester.widget<DecoratedBox>(
-      find
-          .ancestor(of: find.text('丙'), matching: find.byType(DecoratedBox))
-          .first,
+      find.byKey(const ValueKey('segment_thumb')),
     );
     expect((pill.decoration as BoxDecoration).color, colors.surfacePage);
   });

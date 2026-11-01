@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxdo/pages/download_list_page.dart';
 import 'package:fluxdo/pages/my_browser_page.dart';

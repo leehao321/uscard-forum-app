@@ -156,10 +156,12 @@ void main() {
       final env = await _env();
       await _openManage(tester, env);
 
-      expect(find.byType(AppSegmentedControl), findsOneWidget);
+      expect(find.byType(AppSegmentedControl<int>), findsOneWidget);
       final labels = tester
-          .widget<AppSegmentedControl>(find.byType(AppSegmentedControl))
-          .labels;
+          .widget<AppSegmentedControl<int>>(find.byType(AppSegmentedControl<int>))
+          .segments
+          .map((s) => s.label)
+          .toList();
       expect(labels, ['图像', '文本']);
       expect(find.text('内置'), findsOneWidget);
       expect(find.text('自定义'), findsOneWidget);
@@ -438,8 +440,9 @@ void main() {
       expect(find.text('保存'), findsOneWidget);
       expect(
         tester
-            .widget<AppSegmentedControl>(find.byType(AppSegmentedControl))
-            .labels,
+            .widget<AppSegmentedControl<int>>(find.byType(AppSegmentedControl<int>))
+            .segments
+            .map((s) => s.label),
         ['图像', '文本'],
       );
       // 名称 / Prompt 模板 / 标签三个填充输入框，标签在框上方
@@ -619,8 +622,8 @@ void main() {
       // 类型分段点不动
       expect(
         tester
-            .widget<AppSegmentedControl>(find.byType(AppSegmentedControl))
-            .onSelected,
+            .widget<AppSegmentedControl<int>>(find.byType(AppSegmentedControl<int>))
+            .onChanged,
         isNull,
       );
     });

@@ -62,7 +62,7 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 500));
       await tester.scrollUntilVisible(
-        find.byType(AppSegmented),
+        find.byType(AppSegmentedControl<int>),
         300,
         scrollable: find.byType(Scrollable).first,
       );

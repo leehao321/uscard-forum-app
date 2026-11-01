@@ -28,7 +28,7 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 500));
     await tester.scrollUntilVisible(
-      find.byType(AppSegmented),
+      find.byType(AppSegmentedControl<int>),
       300,
       scrollable: find.byType(Scrollable).first,
     );
@@ -36,15 +36,15 @@ void main() {
   }
 
   int selectedSegment(WidgetTester tester) =>
-      tester.widget<AppSegmented>(find.byType(AppSegmented)).selectedIndex;
+      tester.widget<AppSegmentedControl<int>>(find.byType(AppSegmentedControl<int>)).value;
 
   testUi('底部「高级」区：预设分段 + 页脚，默认选中「均衡」，不展开滑杆', (tester) async {
     final (_, overrides) = await fakeStore();
     await openDiagnostics(tester, overrides);
     expect(find.text('高级 · 并发与限流'), findsOneWidget);
-    final seg = tester.widget<AppSegmented>(find.byType(AppSegmented));
-    expect(seg.labels, ['省心', '均衡', '极速', '自定义']);
-    expect(seg.selectedIndex, 1);
+    final seg = tester.widget<AppSegmentedControl<int>>(find.byType(AppSegmentedControl<int>));
+    expect(seg.segments.map((s) => s.label), ['省心', '均衡', '极速', '自定义']);
+    expect(seg.value, 1);
     expect(find.byType(StepSlider), findsNothing);
     expect(
       find.text(

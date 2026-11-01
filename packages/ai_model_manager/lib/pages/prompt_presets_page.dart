@@ -99,13 +99,16 @@ class _PromptPresetsPageState extends ConsumerState<PromptPresetsPage> {
         child: Column(
           children: [
             // 分段：图像 / 文本
-            AppSegmentedControl(
+            AppSegmentedControl.indexed(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpace.pageMargin,
+              ),
               labels: [
                 AiL10n.current.quickPromptsImageTab,
                 AiL10n.current.quickPromptsTextTab,
               ],
               selectedIndex: _type == PromptType.image ? 0 : 1,
-              onSelected: (i) => setState(
+              onChanged: (i) => setState(
                 () => _type = i == 0 ? PromptType.image : PromptType.text,
               ),
             ),

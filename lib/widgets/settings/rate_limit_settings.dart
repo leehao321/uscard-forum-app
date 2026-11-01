@@ -112,7 +112,7 @@ class _RateLimitSettingsState extends ConsumerState<RateLimitSettings> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        AppSegmented(
+        AppSegmentedControl.indexed(
           labels: labels,
           selectedIndex: _order.indexOf(selected),
           onChanged: (i) async {

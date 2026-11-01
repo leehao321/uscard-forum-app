@@ -99,7 +99,7 @@ class AiL10nZhHK extends AiL10n {
   @override
   String get quickPromptsValidateTemplateRequired => '請輸入 prompt 模板';
   @override
-  String get quickPromptsEmpty => '還沒有自定義快捷詞，點右上角 + 添加';
+  String get quickPromptsEmpty => '還沒有自定義快捷詞';
   @override
   String get quickPromptsEmptyHint => '點右上角 + 新增，或從剪貼簿匯入';
   @override
