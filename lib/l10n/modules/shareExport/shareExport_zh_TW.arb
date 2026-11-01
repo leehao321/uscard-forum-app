@@ -52,6 +52,7 @@
     }
   },
   "export_exportingNoProgress": "匯出中...",
+  "export_allPosts": "全部樓層",
   "export_failed": "匯出失敗: {error}",
   "@export_failed": {
     "placeholders": {

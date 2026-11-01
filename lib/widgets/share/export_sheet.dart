@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:m3e_ui/m3e_ui.dart' show LoadingSpinner, SegmentedCardGroup;
+import 'package:m3e_ui/m3e_ui.dart' show LoadingSpinner;
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -305,180 +305,205 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
     // 拿到的可能是 username 还在 loading 时构造的空 cfg,误判"未配置"。
     final notionCfg = ref.watch(notionConfigProvider);
     final busy = _running != null;
+    final isDesktop = PlatformUtils.isDesktop;
+
+    // 主操作：桌面端「保存」本身就是另存为对话框；移动端是「另存为…」。
+    // iOS 没有「公共目录」这一说:沙盒外无处可写,Documents 里躺着
+    // 数据库/cookie/日志(不能靠 UIFileSharingEnabled 整目录暴露),
+    // 所以那边只给「另存为」,由用户导出到「文件」App。
+    final primaryAction = isDesktop ? _ExportAction.save : _ExportAction.saveAs;
+    // 其余去向放在 Notion 下面一行：安卓保存到「下载」目录；
+    // Linux 上 share_plus 不支持分享文件，隐藏分享。
+    final canSaveToDownloads = !isDesktop && PublicFileChannel.hasPublicDownloads;
+    final canShare = ShareUtils.canShareFiles;
 
     return AppSheetScaffold(
       title: context.l10n.export_title,
-      showCloseButton: false,
-      contentPadding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 导出范围
-          _sectionLabel(theme, context.l10n.export_range),
-          Wrap(
-            spacing: AppSpace.s,
-            children: [
-              FilterPill(
-                label: context.l10n.export_firstPostOnly,
-                icon: AppIcons.article,
-                showChevron: false,
-                selected: _scope == ExportScope.firstPostOnly,
-                onTap: busy
-                    ? null
-                    : () => setState(() => _scope = ExportScope.firstPostOnly),
-              ),
-              FilterPill(
-                label: context.l10n.common_all,
-                icon: AppIcons.forum,
-                showChevron: false,
-                selected: _scope == ExportScope.allPosts,
-                onTap: busy
-                    ? null
-                    : () => setState(() => _scope = ExportScope.allPosts),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // 文件格式（只作用于"保存"/"分享"，Notion 固定以页面写入）
-          _sectionLabel(theme, context.l10n.export_format),
-          Wrap(
-            spacing: AppSpace.s,
-            children: [
-              for (final f in const [ExportFormat.markdown, ExportFormat.html])
-                FilterPill(
-                  label: f == ExportFormat.markdown ? 'Markdown' : 'HTML',
-                  icon: AppIcons.code,
-                  showChevron: false,
-                  selected: _format == f,
-                  onTap: busy ? null : () => setState(() => _format = f),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: AppSpace.pageMargin,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 导出范围
+            _sectionLabel(context, context.l10n.export_range),
+            AppSegmentedControl<ExportScope>(
+              semanticLabel: context.l10n.export_range,
+              value: _scope,
+              onChanged: busy ? null : (v) => setState(() => _scope = v),
+              segments: [
+                AppSegment(
+                  value: ExportScope.firstPostOnly,
+                  label: context.l10n.export_firstPostOnly,
                 ),
-            ],
-          ),
-          // Markdown 限制提示
-          if (_willBeLimited) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(
-                  AppIcons.info,
-                  size: 14,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    context.l10n.export_markdownLimit(
-                      ExportUtils.maxMarkdownPosts,
-                    ),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
+                AppSegment(
+                  value: ExportScope.allPosts,
+                  label: context.l10n.export_allPosts,
                 ),
               ],
             ),
-          ],
-          const SizedBox(height: 16),
-          // 去向：点哪个即执行哪个
-          _sectionLabel(theme, context.l10n.export_deliverTitle),
-          SegmentedCardGroup(
-            children: [
-              // iOS 没有「公共目录」这一说:沙盒外无处可写,Documents 里躺着
-              // 数据库/cookie/日志(不能靠 UIFileSharingEnabled 整目录暴露),
-              // 所以那边只给「另存为」,由用户导出到「文件」App。
-              if (PlatformUtils.isDesktop || PublicFileChannel.hasPublicDownloads)
-                _deliveryTile(
-                  theme,
-                  action: _ExportAction.save,
-                  icon: AppIcons.save,
-                  title: context.l10n.export_deliverSave,
-                  subtitle: PlatformUtils.isDesktop
-                      ? context.l10n.export_deliverSaveDescDesktop
-                      : context.l10n.export_deliverSaveDescMobile,
-                ),
-              // 桌面端「保存」本身就是另存为对话框，不必重复这一行
-              if (!PlatformUtils.isDesktop)
-                _deliveryTile(
-                  theme,
-                  action: _ExportAction.saveAs,
-                  icon: AppIcons.folderUp,
-                  title: context.l10n.export_deliverSaveAs,
-                  subtitle: context.l10n.export_deliverSaveAsDesc,
-                ),
-              // Linux 上 share_plus 不支持分享文件，隐藏该入口
-              if (ShareUtils.canShareFiles)
-                _deliveryTile(
-                  theme,
-                  action: _ExportAction.share,
-                  icon: AppIcons.share,
-                  title: context.l10n.export_deliverShare,
-                  subtitle: context.l10n.export_deliverShareDesc,
-                ),
-              _deliveryTile(
-                theme,
-                action: _ExportAction.notion,
-                icon: AppIcons.cloud,
-                title: context.l10n.export_deliverNotion,
-                subtitle: notionCfg.isComplete
-                    ? context.l10n.export_deliverNotionDesc
-                    : context.l10n.export_deliverNotionUnconfigured,
+            const SizedBox(height: AppSpace.m),
+            // 文件格式（只作用于"保存"/"分享"，Notion 固定以页面写入）
+            _sectionLabel(context, context.l10n.export_format),
+            AppSegmentedControl<ExportFormat>(
+              semanticLabel: context.l10n.export_format,
+              value: _format,
+              onChanged: busy ? null : (v) => setState(() => _format = v),
+              segments: const [
+                AppSegment(value: ExportFormat.markdown, label: 'Markdown'),
+                AppSegment(value: ExportFormat.html, label: 'HTML'),
+              ],
+            ),
+            // Markdown 限制提示
+            if (_willBeLimited) ...[
+              const SizedBox(height: AppSpace.s),
+              Row(
+                children: [
+                  Icon(
+                    AppIcons.info,
+                    size: 14,
+                    color: context.tokens.colors.brandPrimary,
+                  ),
+                  const SizedBox(width: AppSpace.xs),
+                  Expanded(
+                    child: Text(
+                      context.l10n.export_markdownLimit(
+                        ExportUtils.maxMarkdownPosts,
+                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: context.tokens.colors.brandPrimary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _sectionLabel(ThemeData theme, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: theme.textTheme.titleSmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
+            const SizedBox(height: AppSpace.xxl),
+            // 去向：点哪个即执行哪个。另存为（主按钮）/ 同步到 Notion（次按钮）
+            _deliveryButton(
+              context,
+              action: primaryAction,
+              icon: AppIcons.download,
+              title: isDesktop
+                  ? context.l10n.export_deliverSave
+                  : context.l10n.export_deliverSaveAs,
+              primary: true,
+            ),
+            const SizedBox(height: AppSpace.l),
+            _deliveryButton(
+              context,
+              action: _ExportAction.notion,
+              icon: AppIcons.refresh,
+              title: context.l10n.export_deliverNotion,
+              primary: false,
+            ),
+            if (!notionCfg.isComplete)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpace.xs),
+                child: Text(
+                  context.l10n.export_deliverNotionUnconfigured,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall?.merge(
+                    context.tokens.text.meta.copyWith(
+                      color: context.tokens.colors.textMeta,
+                    ),
+                  ),
+                ),
+              ),
+            if (canSaveToDownloads || canShare)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpace.xs),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (canSaveToDownloads)
+                      _extraAction(
+                        context,
+                        action: _ExportAction.save,
+                        icon: AppIcons.save,
+                        title: context.l10n.export_deliverSave,
+                      ),
+                    if (canShare)
+                      _extraAction(
+                        context,
+                        action: _ExportAction.share,
+                        icon: AppIcons.share,
+                        title: context.l10n.export_deliverShare,
+                      ),
+                  ],
+                ),
+              ),
+          ],
         ),
       ),
     );
   }
 
-  /// 一行去向。执行中的那行显示进度文案与转圈，其余行禁用。
-  Widget _deliveryTile(
-    ThemeData theme, {
+  /// 分区标题：13 meta，下面 8
+  Widget _sectionLabel(BuildContext context, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpace.s),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.bodySmall
+            ?.merge(context.tokens.text.meta)
+            .copyWith(color: context.tokens.colors.textMeta),
+      ),
+    );
+  }
+
+  /// 一个去向按钮（48 高）。执行中的那个显示进度文案与转圈，其余禁用。
+  Widget _deliveryButton(
+    BuildContext context, {
     required _ExportAction action,
     required IconData icon,
     required String title,
-    required String subtitle,
+    required bool primary,
   }) {
-    final cs = theme.colorScheme;
     final isRunning = _running == action;
-    final disabled = _running != null && !isRunning;
-
-    return Opacity(
-      opacity: disabled ? 0.4 : 1,
-      child: ListTile(
-        enabled: _running == null,
-        onTap: () => _run(action),
-        leading: Icon(icon, color: cs.primary),
-        title: Text(
-          title,
-          // 显式给色：执行中整行 enabled=false，否则文字会被 ListTile 灰化
-          style: theme.textTheme.bodyLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: cs.onSurface,
-          ),
-        ),
-        subtitle: Text(
-          isRunning ? _progressLabel(context) : subtitle,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: isRunning ? cs.primary : cs.onSurfaceVariant,
-          ),
-        ),
-        trailing: isRunning
-            ? LoadingSpinner(size: 18, color: cs.primary)
-            : Icon(AppIcons.chevronRight, color: cs.onSurfaceVariant),
+    final disabled = _running != null;
+    final base = FilledButton.styleFrom(
+      minimumSize: const Size.fromHeight(AppSize.replyButton),
+    );
+    return FilledButton.icon(
+      onPressed: disabled ? null : () => _run(action),
+      style: primary
+          ? base
+          : base.merge(AppButtonStyles.secondary(context)),
+      icon: isRunning
+          ? LoadingSpinner(
+              size: 18,
+              color: primary ? AppFixedColors.white : null,
+            )
+          : Icon(
+              icon,
+              size: AppSize.iconM,
+              color: primary ? null : context.tokens.colors.brandPrimary,
+            ),
+      label: Text(
+        isRunning ? _progressLabel(context) : title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
+    );
+  }
+
+  /// 次要去向（保存到「下载」、分享）：文字按钮，44 高
+  Widget _extraAction(
+    BuildContext context, {
+    required _ExportAction action,
+    required IconData icon,
+    required String title,
+  }) {
+    final isRunning = _running == action;
+    return TextButton.icon(
+      onPressed: _running != null ? null : () => _run(action),
+      icon: isRunning
+          ? const LoadingSpinner(size: 16)
+          : Icon(icon, size: AppSize.iconS),
+      label: Text(isRunning ? _progressLabel(context) : title),
     );
   }
 

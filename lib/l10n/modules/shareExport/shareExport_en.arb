@@ -14,6 +14,7 @@
   "download_verifying": "Verifying file...",
   "export_exporting": "Exporting ({progress}/{total})",
   "export_exportingNoProgress": "Exporting...",
+  "export_allPosts": "All posts",
   "export_failed": "Export failed: {error}",
   "export_fetchPostsFailed": "Failed to fetch post data",
   "export_firstPostOnly": "First post only",

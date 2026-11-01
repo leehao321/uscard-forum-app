@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxdo/models/topic.dart';
 import 'package:fluxdo/providers/theme_provider.dart'
     show sharedPreferencesProvider;
+import 'package:fluxdo/providers/user_content_providers.dart';
+import 'package:fluxdo/widgets/share/export_sheet.dart';
 import 'package:fluxdo/widgets/share/share_image_preview.dart';
 import 'package:fluxdo/widgets/share/share_image_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -116,4 +118,49 @@ void main() {
       });
     }
   }
+
+  // 26 导出文章半屏
+  for (final v in [_light, _dark]) {
+    testUi('26_导出文章_半屏（${_name(v)}）', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final sp = await SharedPreferences.getInstance();
+      await pumpUi(
+        tester,
+        _sheetHost(ExportSheet(detail: _exportDetail())),
+        variant: v,
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(sp),
+          currentUsernameProvider.overrideWith((ref) async => null),
+        ],
+      );
+      // 默认「仅主帖」；切到「全部楼层」，和稿一致
+      await tester.tap(find.text('全部楼层'));
+      await tester.pumpAndSettle();
+      expectNoUiException(tester);
+      await uiShot(tester, '26_导出文章_半屏_${_name(v)}');
+    });
+  }
 }
+
+/// 导出半屏只用帖子 id 列表
+TopicDetail _exportDetail() => TopicDetail.fromJson({
+  'id': 1001,
+  'title': '示例话题标题',
+  'slug': 'example',
+  'posts_count': 5,
+  'category_id': 11,
+  'tags': <String>[],
+  'views': 1,
+  'like_count': 0,
+  'created_at': '2026-10-30T08:00:00.000Z',
+  'highest_post_number': 5,
+  'last_read_post_number': 1,
+  'post_stream': {
+    'posts': <Map<String, dynamic>>[],
+    'stream': [1, 2, 3, 4, 5],
+  },
+  'details': {
+    'created_by': {'id': 1, 'username': 'example', 'avatar_template': ''},
+    'last_poster': {'id': 1, 'username': 'example', 'avatar_template': ''},
+  },
+});

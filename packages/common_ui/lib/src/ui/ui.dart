@@ -15,6 +15,7 @@ export 'floating_bars.dart';
 export 'lifted_context_menu.dart';
 export 'loading_states.dart';
 export 'readable.dart';
+export 'segmented_control.dart';
 export 'step_slider.dart';
 export 'surfaces.dart';
 export 'swipe_actions.dart';
