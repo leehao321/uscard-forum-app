@@ -180,7 +180,7 @@ void main() {
       // 预览图整宽、高 160
       final card0 = tester.getRect(find.byType(DefaultOneboxCard));
       expect(img.width, card0.width);
-      expect(img.height, DefaultOneboxCard.thumbnailHeight);
+      expect(img.height, 160);
       // 标题 17 Semibold，摘要 13
       expect(tester.widget<Text>(find.text('示例链接标题')).style!.fontSize, 17);
       expect(
