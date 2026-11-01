@@ -108,33 +108,9 @@ class FilterDropdown extends ConsumerWidget {
     }
   }
 
+  /// v2 筛选胶囊（32 高 + chevron-down 16）；点按由外层 [AppMenuAnchor] 接管
   Widget _buildNormalChild(ColorScheme colorScheme, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: AppFontSize.meta,
-              fontWeight: FontWeight.w400,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(width: 2),
-          Icon(
-            AppIcons.dropdown,
-            size: 18,
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ],
-      ),
-    );
+    return FilterPill(label: label, onTap: null);
   }
 
   Widget _buildCompactChild(ColorScheme colorScheme, String label) {
@@ -210,41 +186,14 @@ class OrderDropdown extends StatelessWidget {
     );
   }
 
+  /// v2 筛选胶囊：默认时写「默认排序」，选了别的排序写「活跃度 ↓」并换成 brand 色
   Widget _buildNormalChild(ColorScheme colorScheme, bool isActive) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: isActive
-            ? colorScheme.primaryContainer.withValues(alpha: 0.3)
-            : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            currentOrder.label,
-            style: TextStyle(
-              fontSize: AppFontSize.meta,
-              fontWeight: FontWeight.w400,
-              color: isActive ? colorScheme.primary : colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(width: 2),
-          if (isActive)
-            Icon(
-              ascending ? AppIcons.arrowUp : AppIcons.arrowDown,
-              size: 14,
-              color: colorScheme.primary,
-            )
-          else
-            Icon(
-              AppIcons.dropdown,
-              size: 18,
-              color: colorScheme.onSurfaceVariant,
-            ),
-        ],
-      ),
+    return FilterPill(
+      label: isActive
+          ? '${currentOrder.label} ${ascending ? '↑' : '↓'}'
+          : S.current.topicSort_defaultPill,
+      selected: isActive,
+      onTap: null,
     );
   }
 
@@ -331,33 +280,10 @@ class NewSubsetDropdown extends StatelessWidget {
   }
 
   Widget _buildNormalChild(ColorScheme colorScheme, bool isActive) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: isActive
-            ? colorScheme.primaryContainer.withValues(alpha: 0.3)
-            : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            _shortLabel(currentSubset),
-            style: TextStyle(
-              fontSize: AppFontSize.meta,
-              fontWeight: FontWeight.w400,
-              color: isActive ? colorScheme.primary : colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(width: 2),
-          Icon(
-            AppIcons.dropdown,
-            size: 18,
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ],
-      ),
+    return FilterPill(
+      label: _shortLabel(currentSubset),
+      selected: isActive,
+      onTap: null,
     );
   }
 

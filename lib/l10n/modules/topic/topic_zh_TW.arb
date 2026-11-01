@@ -249,6 +249,7 @@
   "topicSort_activity": "活躍度",
   "topicSort_created": "建立時間",
   "topicSort_default": "預設",
+  "topicSort_defaultPill": "預設排序",
   "topicSort_likes": "點贊數",
   "topicSort_posters": "參與者",
   "topicSort_posts": "回覆數",

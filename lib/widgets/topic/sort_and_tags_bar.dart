@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
-import 'package:app_icons/app_icons.dart';
 
 import '../../providers/topic_list/filter_provider.dart';
 import '../../providers/topic_list/sort_provider.dart';
@@ -63,11 +62,11 @@ class SortAndTagsBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
+    // 筛选胶囊行（Figma「分类话题页 / 标签话题列表」）：左右 20，胶囊间距 8，
+    // 胶囊自带上下 6 的透明热区，凑足 44 高
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpace.pageMargin),
       child: Row(
         children: [
           // 筛选下拉
@@ -78,13 +77,13 @@ class SortAndTagsBar extends StatelessWidget {
           ),
           // 「新话题」子过滤下拉
           if (currentFilter == TopicListFilter.newTopics) ...[
-            const SizedBox(width: 4),
+            const SizedBox(width: AppSpace.s),
             NewSubsetDropdown(
               currentSubset: currentSubset,
               onSubsetChanged: onSubsetChanged,
             ),
           ],
-          const SizedBox(width: 4),
+          const SizedBox(width: AppSpace.s),
           // 排序下拉
           OrderDropdown(
             currentOrder: currentOrder,
@@ -92,7 +91,7 @@ class SortAndTagsBar extends StatelessWidget {
             onOrderChanged: onOrderChanged,
             onToggleAscending: onToggleAscending,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpace.s),
           // 标签区域
           Expanded(
             child: SingleChildScrollView(
@@ -101,7 +100,7 @@ class SortAndTagsBar extends StatelessWidget {
                 children: [
                   ...selectedTags.map(
                     (tag) => Padding(
-                      padding: const EdgeInsets.only(right: 6),
+                      padding: const EdgeInsets.only(right: AppSpace.s),
                       child: RemovableTagBadge(
                         name: tag,
                         onDeleted: () => onTagRemoved(tag),
@@ -118,45 +117,16 @@ class SortAndTagsBar extends StatelessWidget {
                     ),
                   ),
                   if (onAddTag != null)
-                    _AddTagButton(colorScheme: colorScheme, onTap: onAddTag!),
+                    FilterPill(
+                      label: context.l10n.tag_tabTags,
+                      onTap: onAddTag,
+                    ),
                 ],
               ),
             ),
           ),
           if (trailing != null) ...[const SizedBox(width: 8), trailing!],
         ],
-      ),
-    );
-  }
-}
-
-class _AddTagButton extends StatelessWidget {
-  final ColorScheme colorScheme;
-  final VoidCallback onTap;
-
-  const _AddTagButton({required this.colorScheme, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-          ),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(AppIcons.add, size: 14, color: colorScheme.onSurfaceVariant),
-            const SizedBox(width: 2),
-            Icon(AppIcons.tag, size: 14, color: colorScheme.onSurfaceVariant),
-          ],
-        ),
       ),
     );
   }

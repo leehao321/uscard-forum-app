@@ -264,6 +264,7 @@
   "topicSort_activity": "活跃度",
   "topicSort_created": "创建时间",
   "topicSort_default": "默认",
+  "topicSort_defaultPill": "默认排序",
   "topicSort_likes": "点赞数",
   "topicSort_posters": "参与者",
   "topicSort_posts": "回复数",

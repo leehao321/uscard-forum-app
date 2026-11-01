@@ -547,6 +547,8 @@ class _TagTopicsPageState extends ConsumerState<TagTopicsPage>
             isSelected: topic.id == selectedTopicId,
             onTap: () => _openTopic(topic),
             enableLongPress: enableLongPress,
+            // 标签下的话题来自各个分类：行里带分类名（Figma「标签话题列表」）
+            categoryMap: ref.watch(categoryMapProvider).value,
           );
         },
       ),

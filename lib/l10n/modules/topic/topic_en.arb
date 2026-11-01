@@ -188,6 +188,7 @@
   "topicSort_activity": "Activity",
   "topicSort_created": "Created",
   "topicSort_default": "Default",
+  "topicSort_defaultPill": "Default order",
   "topicSort_likes": "Likes",
   "topicSort_posters": "Posters",
   "topicSort_posts": "Replies",
