@@ -36,6 +36,7 @@
   "search_dateEnd": "结束日期",
   "search_dateRange": "时间范围",
   "search_dateStart": "开始日期",
+  "search_selectDate": "选择日期",
   "search_emptyHint": "输入关键词搜索",
   "search_error": "搜索出错",
   "search_filterBookmarks": "书签",
@@ -95,7 +96,6 @@
       }
     }
   },
-  "search_selectDateRange": "选择时间范围",
   "search_selectedTags": "已选标签",
   "search_sortLabel": "排序：",
   "search_sortLatest": "最新帖子",

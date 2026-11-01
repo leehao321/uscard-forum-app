@@ -1,4 +1,4 @@
-import 'date_range_sheet.dart';
+import 'date_pick_sheet.dart';
 
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
@@ -49,6 +49,9 @@ class SearchFilterPanel extends ConsumerStatefulWidget {
 
 class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
   late SearchFilter _localFilter;
+
+  /// 「自定义」是否选中：选中后时间组下展开开始 / 结束日期两行
+  late bool _customOpen;
   final ScrollController _scrollController = ScrollController();
   final Map<SearchFilterSection, GlobalKey> _sectionKeys = {
     for (final s in SearchFilterSection.values) s: GlobalKey(),
@@ -58,6 +61,10 @@ class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
   void initState() {
     super.initState();
     _localFilter = widget.filter;
+    // 已有的日期范围不是「最近一周 / 一月 / 一年」档位时，打开就是自定义
+    _customOpen =
+        (_localFilter.afterDate != null || _localFilter.beforeDate != null) &&
+        _activePresetDays() == null;
     final target = widget.initialSection;
     if (target != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -163,23 +170,36 @@ class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
     }
   }
 
-  Future<void> _selectDateRange() async {
-    final now = DateTime.now();
-    final initialRange = DateTimeRange(
-      start: _localFilter.afterDate ?? now.subtract(const Duration(days: 30)),
-      end: _localFilter.beforeDate ?? now,
-    );
-
-    final result = await showDateRangeSheet(
+  /// 点开始 / 结束日期那一行：弹 iOS 系统日期选择器，选完只改这一端
+  Future<void> _pickDate({required bool start}) async {
+    final today = DateUtils.dateOnly(DateTime.now());
+    final after = _localFilter.afterDate;
+    final before = _localFilter.beforeDate;
+    // 开始日期不能晚于结束日期，结束日期不能早于开始日期
+    final first = start
+        ? DateTime(2010)
+        : (after == null ? DateTime(2010) : DateUtils.dateOnly(after));
+    final last = start
+        ? (before == null ? today : DateUtils.dateOnly(before))
+        : today;
+    final current = start ? after : before;
+    final initial = DateUtils.dateOnly(current ?? (start ? last : today));
+    final l10n = context.l10n;
+    final result = await showDatePickSheet(
       context,
-      first: DateTime(2010),
-      last: now,
-      initial: initialRange,
+      title: start ? l10n.search_dateStart : l10n.search_dateEnd,
+      first: first,
+      last: last,
+      initial: initial.isBefore(first)
+          ? first
+          : (initial.isAfter(last) ? last : initial),
     );
-
-    if (result != null && mounted) {
-      _setDateRange(after: result.start, before: result.end);
-    }
+    if (result == null || !mounted) return;
+    _updateFilter(
+      start
+          ? _localFilter.copyWith(afterDate: result)
+          : _localFilter.copyWith(beforeDate: result),
+    );
   }
 
   @override
@@ -396,82 +416,71 @@ class _SearchFilterPanelState extends ConsumerState<SearchFilterPanel> {
     return const {7, 30, 365}.contains(days) ? days : null;
   }
 
+  /// 选一个预设档位（或「不限」）：收起自定义日期行，按档位写入范围
+  void _selectPreset(int? days) {
+    _customOpen = false;
+    if (days == null) {
+      _setDateRange();
+      return;
+    }
+    final now = DateTime.now();
+    _setDateRange(after: now.subtract(Duration(days: days)), before: now);
+  }
+
   Widget _buildDateRangeSection(ThemeData theme) {
     final hasDateRange =
         _localFilter.afterDate != null || _localFilter.beforeDate != null;
     final presetDays = _activePresetDays();
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 不限
-        _FilterChip(
-          label: context.l10n.search_noLimit,
-          isSelected: !hasDateRange,
-          onTap: () => _setDateRange(),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            // 不限
+            _FilterChip(
+              label: context.l10n.search_noLimit,
+              isSelected: !hasDateRange && !_customOpen,
+              onTap: () => _selectPreset(null),
+            ),
+            // 快捷选项
+            _FilterChip(
+              label: context.l10n.search_lastWeek,
+              isSelected: !_customOpen && presetDays == 7,
+              onTap: () => _selectPreset(7),
+            ),
+            _FilterChip(
+              label: context.l10n.search_lastMonth,
+              isSelected: !_customOpen && presetDays == 30,
+              onTap: () => _selectPreset(30),
+            ),
+            _FilterChip(
+              label: context.l10n.search_lastYear,
+              isSelected: !_customOpen && presetDays == 365,
+              onTap: () => _selectPreset(365),
+            ),
+            // 自定义：选中后下面展开开始 / 结束日期两行
+            _FilterChip(
+              label: context.l10n.search_custom,
+              isSelected: _customOpen,
+              onTap: () => setState(() => _customOpen = true),
+            ),
+          ],
         ),
-        // 快捷选项
-        _FilterChip(
-          label: context.l10n.search_lastWeek,
-          isSelected: presetDays == 7,
-          onTap: () {
-            final now = DateTime.now();
-            _setDateRange(
-              after: now.subtract(const Duration(days: 7)),
-              before: now,
-            );
-          },
-        ),
-        _FilterChip(
-          label: context.l10n.search_lastMonth,
-          isSelected: presetDays == 30,
-          onTap: () {
-            final now = DateTime.now();
-            _setDateRange(
-              after: now.subtract(const Duration(days: 30)),
-              before: now,
-            );
-          },
-        ),
-        _FilterChip(
-          label: context.l10n.search_lastYear,
-          isSelected: presetDays == 365,
-          onTap: () {
-            final now = DateTime.now();
-            _setDateRange(
-              after: now.subtract(const Duration(days: 365)),
-              before: now,
-            );
-          },
-        ),
-        // 自定义
-        _FilterChip(
-          label: hasDateRange ? _formatDateRange() : context.l10n.search_custom,
-          isSelected: hasDateRange && presetDays == null,
-          onTap: _selectDateRange,
-          icon: AppIcons.history,
-        ),
+        if (_customOpen) ...[
+          const SizedBox(height: AppSpace.m),
+          _DateRows(
+            key: const ValueKey('custom-date-rows'),
+            after: _localFilter.afterDate,
+            before: _localFilter.beforeDate,
+            onPickStart: () => _pickDate(start: true),
+            onPickEnd: () => _pickDate(start: false),
+          ),
+        ],
       ],
     );
-  }
-
-  String _formatDateRange() {
-    final l10n = S.current;
-    final after = _localFilter.afterDate;
-    final before = _localFilter.beforeDate;
-    if (after != null && before != null) {
-      return '${_formatShortDate(after)} - ${_formatShortDate(before)}';
-    } else if (after != null) {
-      return l10n.search_afterDate(_formatShortDate(after));
-    } else if (before != null) {
-      return l10n.search_beforeDate(_formatShortDate(before));
-    }
-    return l10n.search_custom;
-  }
-
-  String _formatShortDate(DateTime date) {
-    return '${date.month}/${date.day}';
   }
 
   Widget _buildCategoryGrid(
@@ -698,13 +707,11 @@ class _FilterChip extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
-  final IconData? icon;
 
   const _FilterChip({
     required this.label,
     required this.isSelected,
     required this.onTap,
-    this.icon,
   });
 
   @override
@@ -714,8 +721,130 @@ class _FilterChip extends StatelessWidget {
       label: label,
       selected: isSelected,
       showChevron: false,
-      icon: isSelected ? AppIcons.check : icon,
+      icon: isSelected ? AppIcons.check : null,
       onTap: onTap,
+    );
+  }
+}
+
+/// 自定义时间的两行（Figma「高级筛选 · 自定义时间」）：开始日期 / 结束日期，
+/// 分组卡片（surface/elevated、圆角 12），行高 48，标题 17 + 右侧值 17 meta + chevron；
+/// 没选显示「选择日期」，选了显示 yyyy-MM-dd。点按由上层弹系统日期选择器。
+class _DateRows extends StatelessWidget {
+  const _DateRows({
+    super.key,
+    required this.after,
+    required this.before,
+    required this.onPickStart,
+    required this.onPickEnd,
+  });
+
+  final DateTime? after;
+  final DateTime? before;
+  final VoidCallback onPickStart;
+  final VoidCallback onPickEnd;
+
+  static String format(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final l10n = context.l10n;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: tokens.colors.surfaceElevated,
+        borderRadius: BorderRadius.circular(tokens.radius.card),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _DateRow(
+            rowKey: const ValueKey('date-row-start'),
+            label: l10n.search_dateStart,
+            value: after,
+            onTap: onPickStart,
+          ),
+          const AppHairline(indent: AppSpace.m),
+          _DateRow(
+            rowKey: const ValueKey('date-row-end'),
+            label: l10n.search_dateEnd,
+            value: before,
+            onTap: onPickEnd,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DateRow extends StatelessWidget {
+  const _DateRow({
+    required this.rowKey,
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
+
+  final Key rowKey;
+  final String label;
+  final DateTime? value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    final shown = value == null
+        ? context.l10n.search_selectDate
+        : _DateRows.format(value!);
+    return Semantics(
+      button: true,
+      label: '$label $shown',
+      excludeSemantics: true,
+      child: AppPressable(
+        key: rowKey,
+        highlight: true,
+        borderRadius: BorderRadius.circular(tokens.radius.card),
+        onTap: onTap,
+        button: false,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: AppSize.row48),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpace.m),
+            child: Row(
+              children: [
+                Text(
+                  label,
+                  style: base
+                      .merge(tokens.text.control)
+                      .copyWith(color: colors.textPrimary),
+                ),
+                const SizedBox(width: AppSpace.m),
+                Expanded(
+                  child: Text(
+                    shown,
+                    key: ValueKey('${(rowKey as ValueKey<String>).value}-value'),
+                    textAlign: TextAlign.end,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: base
+                        .merge(tokens.text.control)
+                        .copyWith(color: colors.textMeta),
+                  ),
+                ),
+                const SizedBox(width: AppSpace.xs),
+                Icon(
+                  AppIcons.chevronRight,
+                  size: AppSize.iconS,
+                  color: colors.textMeta,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
