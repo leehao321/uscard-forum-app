@@ -39,6 +39,7 @@ McpClientService _service({int status = 200}) => McpClientService(
             {'name': 'search', 'description': '搜索', 'annotations': {'readOnlyHint': true}},
             {'name': 'plain', 'description': '没有标注'},
             {'name': 'write', 'description': '写入', 'annotations': {'readOnlyHint': false}},
+            {'name': 'noinfo'},
           ],
         }));
     }
@@ -95,29 +96,46 @@ void main() {
     expect((saved.single as Map)['url'], 'http://192.168.1.2:8080/mcp');
   });
 
-  testWidgets('测试连接：显示工具数量；默认只开只读的，其余关；手动打开会修改数据的工具时出现提示', (tester) async {
+  testWidgets('测试连接：显示工具数量；默认只开只读的，非只读和没有标注的都是关；这两类一律提示风险，只读的有小徽标', (tester) async {
     await pump(tester, const McpServerEditPage(), service: _service());
     await tester.enterText(find.byKey(const ValueKey('mcp-url')), 'https://mcp.example.com/mcp');
     await tester.tap(find.byKey(const ValueKey('mcp-test')));
     await _settle(tester);
 
     expect(find.byKey(const ValueKey('mcp-test-ok')), findsOneWidget);
-    expect(find.text('连接正常：3 个工具'), findsOneWidget);
+    expect(find.text('连接正常：4 个工具'), findsOneWidget);
     Switch switchOf(String tool) => tester.widget<Switch>(
       find.descendant(of: find.byKey(ValueKey('mcp-tool-$tool')), matching: find.byType(Switch)),
     );
-    expect(switchOf('search').value, isTrue);
-    expect(switchOf('plain').value, isFalse);
-    expect(switchOf('write').value, isFalse);
-    expect(find.byKey(const ValueKey('mcp-modify-plain')), findsNothing, reason: '关着的时候不提示');
-
+    expect(switchOf('search').value, isTrue, reason: '标了只读的默认开');
+    expect(switchOf('plain').value, isFalse, reason: '没有标注的默认关');
+    expect(switchOf('write').value, isFalse, reason: '标了非只读的默认关');
+    // 风险提示不管开关开没开：没有标注的、非只读的都有；只读的没有
     await tester.ensureVisible(find.byKey(const ValueKey('mcp-tool-write')));
-    await tester.tap(find.descendant(of: find.byKey(const ValueKey('mcp-tool-write')), matching: find.byType(Switch)));
-    await tester.pump();
+    expect(find.byKey(const ValueKey('mcp-modify-plain')), findsOneWidget);
     expect(find.byKey(const ValueKey('mcp-modify-write')), findsOneWidget);
-    expect(find.text('这个工具可能会修改数据'), findsOneWidget);
-    // 只读的工具即使打开也没有这行
     expect(find.byKey(const ValueKey('mcp-modify-search')), findsNothing);
+    expect(find.text('这个工具可能会修改数据'), findsNWidgets(3), reason: 'plain、write、noinfo');
+    // 「只读」是小徽标
+    expect(find.descendant(of: find.byKey(const ValueKey('mcp-tool-search')), matching: find.byType(McpBadge)), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('mcp-tool-plain')), matching: find.byType(McpBadge)), findsNothing);
+
+    // 手动打开之后开关变开，风险提示仍在
+    final writeSwitch = find.descendant(of: find.byKey(const ValueKey('mcp-tool-write')), matching: find.byType(Switch));
+    await tester.ensureVisible(writeSwitch);
+    await tester.pumpAndSettle();
+    await tester.tap(writeSwitch);
+    await tester.pumpAndSettle();
+    expect(switchOf('write').value, isTrue);
+    expect(find.byKey(const ValueKey('mcp-modify-write')), findsOneWidget);
+  });
+
+  testWidgets('没有描述的工具写「（无说明）」', (tester) async {
+    await pump(tester, const McpServerEditPage(), service: _service());
+    await tester.enterText(find.byKey(const ValueKey('mcp-url')), 'https://mcp.example.com/mcp');
+    await tester.tap(find.byKey(const ValueKey('mcp-test')));
+    await _settle(tester);
+    expect(find.descendant(of: find.byKey(const ValueKey('mcp-tool-noinfo')), matching: find.text('（无说明）')), findsOneWidget);
   });
 
   testWidgets('测试连接失败：显示可读原因，不显示工具', (tester) async {
@@ -150,7 +168,7 @@ void main() {
     expect(raw, isNot(contains('TOKEN-ABC')));
     expect(raw, isNot(contains('HEADER-XYZ')));
     final cfg = (jsonDecode(raw) as List).single as Map;
-    expect(cfg['tools'], {'search': true, 'plain': true, 'write': false});
+    expect(cfg['tools'], {'search': true, 'plain': true, 'write': false, 'noinfo': false});
     final secret = await const FlutterSecureStorage().read(key: SecureMcpSecretStore.keyOf(cfg['id'] as String));
     expect(secret, contains('TOKEN-ABC'));
     expect(secret, contains('HEADER-XYZ'));
@@ -165,7 +183,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('文档搜索'), findsOneWidget);
     expect(find.text('docs.example.com'), findsOneWidget);
-    expect(find.text('10.0.0.5 · 明文 http'), findsOneWidget);
+    expect(find.text('10.0.0.5'), findsOneWidget);
+    expect(find.text('明文 http'), findsOneWidget, reason: '明文 http 是单独的警示标签');
     await tester.tap(find.byType(Switch).first);
     await tester.pumpAndSettle();
     expect(container.read(mcpServerListProvider).first.enabled, isFalse);

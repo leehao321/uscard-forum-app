@@ -274,7 +274,15 @@ class AiChatMessageItem extends StatelessWidget {
       key: const ValueKey('ai-tool-notes'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (final n in notes) Text(n, style: style, maxLines: 2, overflow: TextOverflow.ellipsis),
+        for (final n in notes)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 2),
+            child: Text(
+              // 数字和单位、箭头和数字之间不换行
+              n.replaceAllMapped(RegExp(r'(→|\d) (?=\d|字|token)'), (m) => '${m[1]}\u00A0'),
+              style: style,
+            ),
+          ),
       ],
     );
   }
@@ -358,7 +366,7 @@ class AiChatMessageItem extends StatelessWidget {
       text,
       style: theme.textTheme.bodySmall?.copyWith(
         fontSize: AppFontSize.caption,
-        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+        color: theme.colorScheme.onSurfaceVariant,
       ),
     );
   }
@@ -1115,7 +1123,7 @@ class _ActionButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: color),
+            Icon(icon, size: MediaQuery.textScalerOf(context).scale(14).clamp(14, 28), color: color),
             const SizedBox(width: 3),
             Text(
               label,

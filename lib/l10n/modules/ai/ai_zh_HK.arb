@@ -285,7 +285,7 @@
   "ai_translationEnabledDesc": "在帖子菜單中顯示「翻譯」入口，使用所選 AI 模型翻譯帖子內容",
   "ai_translationTruncated": "內容過長，僅翻譯開頭部分",
   "ai_translationStopped": "已停止翻譯",
-  "ai_tokenUsage": "輸入 {prompt} · 輸出 {response}",
+  "ai_tokenUsage": "輸入 {prompt} token · 輸出 {response} token",
   "@ai_tokenUsage": {
     "placeholders": {
       "prompt": {

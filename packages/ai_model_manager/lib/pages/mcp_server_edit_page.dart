@@ -10,6 +10,7 @@ import '../providers/mcp_server_providers.dart';
 import '../services/mcp_client_service.dart';
 import '../services/mcp_secret_read_exception.dart';
 import '../services/mcp_tool_bridge.dart';
+import 'mcp_page_parts.dart';
 
 /// 添加 / 编辑一个 MCP 服务：名称、地址、Token、请求头；「测试连接」拉取工具列表，
 /// 每个工具一个开关（默认只开标了只读的）。
@@ -34,6 +35,8 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
   bool _testing = false;
   bool _loaded = false;
   bool _saving = false;
+  final _scroll = ScrollController();
+  bool _scrolled = false;
 
   /// 读不到已保存的 Token / 请求头：用户没改这两个字段就不写入，更不删除
   bool _secretsFailed = false;
@@ -73,6 +76,10 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
       unawaited(_loadSecrets(e.id));
     }
     _url.addListener(() => setState(() {}));
+    _scroll.addListener(() {
+      final scrolled = _scroll.hasClients && _scroll.offset > 1;
+      if (scrolled != _scrolled) setState(() => _scrolled = scrolled);
+    });
   }
 
   Future<void> _loadSecrets(String id) async {
@@ -103,6 +110,7 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
     _url.dispose();
     _token.dispose();
     _headers.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -264,31 +272,22 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
       appBar: AppNavBar(
         title: widget.serverId == null ? '添加 MCP 服务' : '编辑 MCP 服务',
         slotWidth: 70,
+        // 内容滚动之后加细分隔线
+        showDivider: _scrolled,
         trailing: [TextButton(key: const ValueKey('mcp-save'), onPressed: (_loaded && !_saving) ? _save : null, child: const Text('保存'))],
       ),
       body: ReadableBody(
         child: ListView(
+          controller: _scroll,
           padding: const EdgeInsets.fromLTRB(AppSpace.pageMargin, AppSpace.m, AppSpace.pageMargin, AppSpace.xxl),
           children: [
             field('名称', _name, hint: '例如：文档搜索'),
-            field('服务地址（Streamable HTTP）', _url, hint: 'https://example.com/mcp', key: const ValueKey('mcp-url')),
+            field('服务地址（Streamable HTTP）', _url, hint: 'https://example.com/mcp', key: const ValueKey('mcp-url'), maxLines: 3),
             if (_plainHttp)
-              Padding(
-                key: const ValueKey('mcp-plain-warning'),
-                padding: const EdgeInsets.only(bottom: AppSpace.m),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(AppIcons.warning, size: AppSize.iconS, color: colors.textDestructive),
-                    const SizedBox(width: AppSpace.s),
-                    Expanded(
-                      child: Text(
-                        '这个地址不是 https，Token 和请求内容会以明文传输。只在你信任的网络里使用。',
-                        style: meta.copyWith(color: colors.textDestructive),
-                      ),
-                    ),
-                  ],
-                ),
+              const Padding(
+                key: ValueKey('mcp-plain-warning'),
+                padding: EdgeInsets.only(bottom: AppSpace.m),
+                child: McpWarning('这个地址不是 https，Token 和请求内容会以明文传输。只在你信任的网络里使用。'),
               ),
             field(
               'Bearer Token（可选）',
@@ -363,12 +362,23 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
             Row(
               children: [
                 Expanded(child: Text('启用这个服务', style: label)),
-                Switch.adaptive(value: _enabled, onChanged: (v) => setState(() => _enabled = v)),
+                Switch.adaptive(
+                  value: _enabled,
+                  activeTrackColor: colors.brandButton,
+                  onChanged: (v) => setState(() => _enabled = v),
+                ),
               ],
             ),
             const SizedBox(height: AppSpace.m),
             FilledButton(
               key: const ValueKey('mcp-test'),
+              style: FilledButton.styleFrom(
+                backgroundColor: colors.brandButton,
+                foregroundColor: colors.onBrandButton,
+                // 大字号下按钮也要有足够的高度和上下内边距
+                minimumSize: const Size.fromHeight(AppSize.hit),
+                padding: const EdgeInsets.symmetric(vertical: AppSpace.m, horizontal: AppSpace.l),
+              ),
               onPressed: _testing ? null : _test,
               child: Text(_testing ? '正在连接…' : '测试连接'),
             ),
@@ -397,7 +407,7 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
                   ),
                 ),
               const SizedBox(height: AppSpace.s),
-              for (final t in _tools!) _toolRow(context, t),
+              McpGroupCard(children: [for (final t in _tools!) _toolRow(context, t)]),
             ],
             if (_saveError != null)
               Padding(
@@ -427,7 +437,7 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
     final on = _isOn(t);
     return Padding(
       key: ValueKey('mcp-tool-${t.name}'),
-      padding: const EdgeInsets.symmetric(vertical: AppSpace.xs),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpace.m, vertical: AppSpace.s),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -435,26 +445,36 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(text: t.title ?? t.name, style: base),
-                      if (t.readOnlyHint == true) TextSpan(text: '  只读', style: meta.copyWith(color: colors.brandPrimary)),
-                    ],
-                  ),
+                // 名字和「只读」小徽标
+                Wrap(
+                  spacing: AppSpace.s,
+                  runSpacing: 2,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(t.title ?? t.name, style: base),
+                    if (t.readOnlyHint == true) const McpBadge('只读'),
+                  ],
                 ),
-                if (t.description.isNotEmpty)
-                  Text(t.description, style: meta, maxLines: 2, overflow: TextOverflow.ellipsis),
-                if (on && t.mayModify)
-                  Text(
-                    '这个工具可能会修改数据',
-                    key: ValueKey('mcp-modify-${t.name}'),
-                    style: meta.copyWith(color: colors.textDestructive),
+                Text(
+                  t.description.isEmpty ? '（无说明）' : t.description,
+                  style: meta,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                // 不是明确只读的工具（含没有标注的）一律提示风险，不管开关开没开
+                if (t.mayModify)
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpace.xs),
+                    child: McpWarning('这个工具可能会修改数据', key: ValueKey('mcp-modify-${t.name}')),
                   ),
               ],
             ),
           ),
-          Switch.adaptive(value: on, onChanged: (v) => setState(() => _states[t.name] = v)),
+          Switch.adaptive(
+            value: on,
+            activeTrackColor: colors.brandButton,
+            onChanged: (v) => setState(() => _states[t.name] = v),
+          ),
         ],
       ),
     );

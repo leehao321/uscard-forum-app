@@ -5,15 +5,39 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/mcp_server_config.dart';
 import '../providers/mcp_server_providers.dart';
+import 'mcp_page_parts.dart';
 import 'mcp_server_edit_page.dart';
 
 /// MCP 服务列表：添加、编辑、开关。
 /// 页面文案目前只有中文（其他语言也显示中文）。
-class McpServersPage extends ConsumerWidget {
+class McpServersPage extends ConsumerStatefulWidget {
   const McpServersPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<McpServersPage> createState() => _McpServersPageState();
+}
+
+class _McpServersPageState extends ConsumerState<McpServersPage> {
+  final _scroll = ScrollController();
+  bool _scrolled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(() {
+      final scrolled = _scroll.hasClients && _scroll.offset > 1;
+      if (scrolled != _scrolled) setState(() => _scrolled = scrolled);
+    });
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final servers = ref.watch(mcpServerListProvider);
     final tokens = context.tokens;
     final colors = tokens.colors;
@@ -29,6 +53,8 @@ class McpServersPage extends ConsumerWidget {
       appBar: AppNavBar(
         title: 'MCP 服务',
         slotWidth: 70,
+        // 内容滚动之后加细分隔线
+        showDivider: _scrolled,
         trailing: [
           IconButton(
             key: const ValueKey('mcp-add'),
@@ -40,6 +66,7 @@ class McpServersPage extends ConsumerWidget {
       ),
       body: ReadableBody(
         child: ListView(
+          controller: _scroll,
           padding: EdgeInsets.zero,
           children: [
             ReadableColumn(
@@ -50,23 +77,8 @@ class McpServersPage extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(vertical: AppSpace.xxl),
                         child: Center(child: Text('还没有 MCP 服务。点右上角添加一个。', style: meta)),
                       )
-                    : DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: colors.surfaceElevated,
-                          borderRadius: BorderRadius.circular(tokens.radius.card),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(tokens.radius.card),
-                          child: Column(
-                            children: [
-                              for (var i = 0; i < servers.length; i++) ...[
-                                if (i > 0)
-                                  const Padding(padding: EdgeInsets.only(left: AppSpace.m), child: AppHairline()),
-                                _ServerRow(server: servers[i], onTap: () => open(servers[i])),
-                              ],
-                            ],
-                          ),
-                        ),
+                    : McpGroupCard(
+                        children: [for (final s in servers) _ServerRow(server: s, onTap: () => open(s))],
                       ),
               ),
             ),
@@ -119,18 +131,21 @@ class _ServerRow extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(server.name.isEmpty ? host : server.name, style: base, maxLines: 1, overflow: TextOverflow.ellipsis),
-                    Text(
-                      server.isPlainHttp ? '$host · 明文 http' : host,
-                      style: meta.copyWith(color: server.isPlainHttp ? colors.textDestructive : colors.textMeta),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    Text(server.name.isEmpty ? host : server.name, style: base, maxLines: 2, overflow: TextOverflow.ellipsis),
+                    // 地址用普通次要色，允许两行
+                    Text(host, style: meta, maxLines: 2, overflow: TextOverflow.ellipsis),
+                    // 明文 http 单独做成警示标签，不会被地址挤掉
+                    if (server.isPlainHttp)
+                      const Padding(
+                        padding: EdgeInsets.only(top: AppSpace.xs),
+                        child: McpWarning('明文 http', compact: true),
+                      ),
                   ],
                 ),
               ),
               Switch.adaptive(
                 value: server.enabled,
+                activeTrackColor: colors.brandButton,
                 onChanged: (v) => ref.read(mcpServerListProvider.notifier).update(server.id, enabled: v),
               ),
             ],

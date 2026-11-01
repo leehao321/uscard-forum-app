@@ -159,7 +159,7 @@ void main() {
       final msg = n.state.messages.last;
       expect(msg.status, MessageStatus.completed);
       expect(msg.content, contains('根据资料，答案如下'));
-      expect(msg.toolNotes, ['MCP · 文档 · search → 7 字']);
+      expect(msg.toolNotes, ['MCP · 文档 · search →\u00A07\u00A0字']);
       // 第一轮：带工具定义，tool_choice 是 auto
       expect((llm.bodies[0]['tools'] as List).single['function']['name'], 'mcp_srvabc__search');
       expect(llm.bodies[0]['tool_choice'], 'auto');

@@ -216,7 +216,7 @@ void main() {
       expect(j['untrusted'], isTrue, reason: '结果按不可信数据对待');
       expect(j['source'], 'mcp');
       expect(out.title, 'MCP · 文档 · search.docs');
-      expect(out.summary, '→ 2 字');
+      expect(out.summary, '→\u00A02\u00A0字');
     });
 
     test('结果超过 8000 字：截断并注明原文字数', () async {

@@ -257,7 +257,7 @@ class McpToolBridge {
           if (r.isError) 'error': text.isEmpty ? '工具执行失败' : text else 'text': text,
         }),
         title: bound.title,
-        summary: r.isError ? '工具报告失败：${_short(text)}' : '→ $total 字',
+        summary: r.isError ? '工具报告失败：${_short(text)}' : '→\u00A0$total\u00A0字',
         isError: r.isError,
       );
     } on McpException catch (e) {
