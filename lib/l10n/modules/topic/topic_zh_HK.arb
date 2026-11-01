@@ -409,5 +409,6 @@
       }
     }
   },
-  "topic_keywordFilter_manage": "管理"
+  "topic_keywordFilter_manage": "管理",
+  "topicDetail_showHiddenRepliesLabel": "顯示隱藏的回覆"
 }

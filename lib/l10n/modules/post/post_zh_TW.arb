@@ -413,5 +413,7 @@
       }
     }
   },
-  "nested_restoreFailed": "暫時無法恢復此位置，請重試"
+  "nested_restoreFailed": "暫時無法恢復此位置，請重試",
+  "post_collapse": "收起",
+  "post_relatedReplies": "相關回覆"
 }

@@ -154,5 +154,6 @@
   "common_view": "檢視",
   "common_viewAll": "檢視全部",
   "common_viewDetails": "檢視詳情",
-  "common_waitingForForum": "正在等待論壇回應"
+  "common_waitingForForum": "正在等待論壇回應",
+  "common_loadingLabel": "加載中"
 }

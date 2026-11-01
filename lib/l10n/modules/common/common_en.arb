@@ -140,5 +140,6 @@
   "common_view": "View",
   "common_viewAll": "View all",
   "common_viewDetails": "View details",
-  "common_waitingForForum": "Waiting for the forum to respond"
+  "common_waitingForForum": "Waiting for the forum to respond",
+  "common_loadingLabel": "Loading"
 }

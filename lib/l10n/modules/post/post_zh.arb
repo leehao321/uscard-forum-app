@@ -466,5 +466,7 @@
       }
     }
   },
-  "nested_restoreFailed": "暂时无法恢复该位置，请重试"
+  "nested_restoreFailed": "暂时无法恢复该位置，请重试",
+  "post_collapse": "收起",
+  "post_relatedReplies": "相关回复"
 }
