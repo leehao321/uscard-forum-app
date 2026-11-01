@@ -222,6 +222,7 @@ abstract final class AppIcons {
   static const accountTree = LucideIcons300.listTree;
   static const category = LucideIcons300.layoutGrid;
   static const tag = LucideIcons300.tag;
+  static const tags = LucideIcons300.tags;
   static const history = LucideIcons300.history;
   static const lockClock = LucideIcons300.lockKeyhole;
   static const cloud = LucideIcons300.cloud;

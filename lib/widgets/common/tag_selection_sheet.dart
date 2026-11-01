@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart' show CupertinoActivityIndicator;
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:common_ui/common_ui.dart';
 import 'package:app_icons/app_icons.dart';
@@ -10,6 +12,9 @@ import 'package:fluxdo/models/tag_search_result.dart';
 import 'package:fluxdo/services/discourse/discourse_service.dart';
 import 'package:fluxdo/services/toast_service.dart';
 import 'package:fluxdo/widgets/common/topic_badges.dart';
+
+/// 搜索框高度（Figma「首页 · 添加标签」：40 高填充框）
+const double _fieldHeight = 40;
 
 class TagSelectionSheet extends StatefulWidget {
   /// 分类 ID（用于联动过滤标签）
@@ -153,9 +158,18 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
     _searchTags(_searchController.text);
   }
 
+  /// 选中的标签和打开时不一样（有变化才出「确定」）
+  bool get _changed {
+    final a = [...widget.selectedTags]..sort();
+    final b = [..._currentSelectedTags]..sort();
+    return !listEquals(a, b);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final colors = tokens.colors;
 
     // 构建提示文本
     final l10n = context.l10n;
@@ -190,172 +204,147 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
         .where((t) => !_currentSelectedTags.contains(t.name))
         .toList();
 
+    final hintColor = (widget.filterForInput && _requiredTagGroup != null)
+        ? colors.brandPrimary
+        : (widget.filterForInput &&
+                  _currentSelectedTags.length < widget.minTags
+              ? colors.textDestructive
+              : colors.textMeta);
+
     return DraggableScrollableSheet(
-      initialChildSize: 0.7,
+      initialChildSize: 0.5,
       minChildSize: 0.5,
       maxChildSize: 0.95,
       expand: false,
       builder: (context, scrollController) {
+        // Figma「首页 · 添加标签」：头行「添加标签」+ 关闭；搜索框；内容区
         return AppSheetScaffold(
           expandToFill: true,
-          showCloseButton: false,
-          contentPadding: EdgeInsets.zero,
+          title: l10n.topic_addTags,
+          actions: [
+            // 有改动才出现：确定后把选中的标签带回去；没改动时只能关闭
+            if (_changed)
+              TextButton(
+                onPressed: () => Navigator.pop(context, _currentSelectedTags),
+                child: Text(
+                  l10n.common_confirm,
+                  style: TextStyle(color: colors.brandPrimary),
+                ),
+              ),
+          ],
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 搜索栏区域
-              Container(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: theme.colorScheme.outlineVariant.withValues(
-                        alpha: 0.5,
+              // 必选标签组提示（仅创建话题模式）
+              if (widget.filterForInput && _requiredTagGroup != null)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpace.m,
+                    vertical: AppSpace.s,
+                  ),
+                  margin: const EdgeInsets.only(bottom: AppSpace.m),
+                  decoration: BoxDecoration(
+                    color: colors.surfaceElevated,
+                    borderRadius: BorderRadius.circular(tokens.radius.field),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        AppIcons.info,
+                        size: AppSize.iconS,
+                        color: colors.brandPrimary,
                       ),
-                      width: 0.5,
-                    ),
+                      const SizedBox(width: AppSpace.s),
+                      Expanded(
+                        child: Text(
+                          l10n.tag_requiredGroupWarning(
+                            _requiredTagGroup!.name,
+                            _requiredTagGroup!.minCount,
+                          ),
+                          style: theme.textTheme.bodySmall
+                              ?.merge(tokens.text.meta)
+                              .copyWith(color: colors.brandPrimary),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Column(
+              // 搜索框：40 高填充框，搜索图标 16 + 17 号输入
+              Container(
+                key: const ValueKey('tag-search-field'),
+                height: _fieldHeight,
+                decoration: BoxDecoration(
+                  color: colors.surfaceElevated,
+                  borderRadius: BorderRadius.circular(tokens.radius.field),
+                ),
+                child: Row(
                   children: [
-                    // 必选标签组提示（仅创建话题模式）
-                    if (widget.filterForInput && _requiredTagGroup != null)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primaryContainer.withValues(
-                            alpha: 0.3,
+                    const SizedBox(width: AppSpace.m),
+                    _isLoading
+                        ? const SizedBox(
+                            width: AppSize.iconS,
+                            height: AppSize.iconS,
+                            child: CupertinoActivityIndicator(
+                              radius: AppSize.iconS / 2,
+                            ),
+                          )
+                        : Icon(
+                            AppIcons.search,
+                            size: AppSize.iconS,
+                            color: colors.textMeta,
                           ),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: theme.colorScheme.primary.withValues(
-                              alpha: 0.3,
-                            ),
-                          ),
+                    const SizedBox(width: AppSpace.s),
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        focusNode: _searchFocusNode,
+                        textAlignVertical: TextAlignVertical.center,
+                        style: theme.textTheme.bodyLarge
+                            ?.merge(tokens.text.control)
+                            .copyWith(color: colors.textPrimary),
+                        decoration: InputDecoration(
+                          hintText: hintText,
+                          hintStyle: theme.textTheme.bodyLarge
+                              ?.merge(tokens.text.control)
+                              .copyWith(color: hintColor),
+                          filled: false,
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
                         ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              AppIcons.info,
-                              size: 16,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                l10n.tag_requiredGroupWarning(
-                                  _requiredTagGroup!.name,
-                                  _requiredTagGroup!.minCount,
-                                ),
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.primary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                        onChanged: (value) {
+                          setState(() {});
+                          _onSearchChanged(value);
+                        },
                       ),
-                    // 搜索栏
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerHighest
-                                  .withValues(alpha: 0.5),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: TextField(
-                              controller: _searchController,
-                              focusNode: _searchFocusNode,
-                              textAlignVertical: TextAlignVertical.center,
-                              style: const TextStyle(
-                                fontSize: AppFontSize.body,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: hintText,
-                                hintStyle: TextStyle(
-                                  color:
-                                      (widget.filterForInput &&
-                                          _requiredTagGroup != null)
-                                      ? theme.colorScheme.primary
-                                      : (widget.filterForInput &&
-                                                _currentSelectedTags.length <
-                                                    widget.minTags
-                                            ? theme.colorScheme.error
-                                            : theme
-                                                  .colorScheme
-                                                  .onSurfaceVariant),
-                                  fontSize: AppFontSize.meta,
-                                ),
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding: const EdgeInsets.only(
-                                  left: 0,
-                                  right: 12,
-                                ),
-                                prefixIconConstraints: const BoxConstraints(
-                                  minWidth: 44,
-                                  minHeight: 44,
-                                ),
-                                prefixIcon: _isLoading
-                                    ? const Padding(
-                                        padding: EdgeInsets.all(12),
-                                        child: LoadingSpinner(size: 20),
-                                      )
-                                    : Icon(
-                                        AppIcons.search,
-                                        size: 20,
-                                        color: theme.colorScheme.onSurface,
-                                      ),
-                                suffixIcon: _searchController.text.isNotEmpty
-                                    ? IconButton(
-                                        icon: const Icon(
-                                          AppIcons.cancelCircle,
-                                          size: 18,
-                                        ),
-                                        color:
-                                            theme.colorScheme.onSurfaceVariant,
-                                        onPressed: () {
-                                          _searchController.clear();
-                                          _searchTags('');
-                                        },
-                                      )
-                                    : null,
-                              ),
-                              onChanged: _onSearchChanged,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        FilledButton(
-                          onPressed: () =>
-                              Navigator.pop(context, _currentSelectedTags),
-                          style: FilledButton.styleFrom(
-                            visualDensity: VisualDensity.compact,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                          ).merge(AppButtonStyles.secondary(context)),
-                          child: Text(l10n.common_confirm),
-                        ),
-                      ],
                     ),
+                    if (_searchController.text.isNotEmpty)
+                      AppIconButton(
+                        icon: AppIcons.cancelCircle,
+                        size: AppSize.iconS,
+                        semanticLabel: l10n.common_clear,
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {});
+                          _searchTags('');
+                        },
+                      )
+                    else
+                      const SizedBox(width: AppSpace.m),
                   ],
                 ),
               ),
 
               // 已选标签展示区
               if (_currentSelectedTags.isNotEmpty)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpace.m),
                   child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    spacing: AppSpace.s,
+                    runSpacing: AppSpace.s,
                     children: _currentSelectedTags.map((tag) {
                       return RemovableTagBadge(
                         name: tag,
@@ -379,25 +368,18 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
                 child: !_initialized
                     ? const Center(child: LoadingSpinner())
                     : displayTags.isEmpty
-                    ? Center(
-                        child: Text(
-                          _searchController.text.isEmpty
-                              ? l10n.tag_noTags
-                              : l10n.tag_noTagsFound,
-                          style: TextStyle(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      )
+                    ? _buildEmpty(context)
                     : ListView.builder(
                         controller: scrollController,
                         itemCount: displayTags.length,
                         padding: EdgeInsets.only(
+                          top: AppSpace.s,
                           bottom: MediaQuery.of(context).viewInsets.bottom + 24,
                         ),
                         itemBuilder: (context, index) {
                           final tag = displayTags[index];
                           return ListTile(
+                            contentPadding: EdgeInsets.zero,
                             title: TagBadge(
                               name: tag.text,
                               size: const BadgeSize(
@@ -416,13 +398,10 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
                                 : null,
                             trailing:
                                 _currentSelectedTags.length >= widget.maxTags
-                                ? Icon(
-                                    AppIcons.block,
-                                    color: theme.colorScheme.outline,
-                                  )
+                                ? Icon(AppIcons.block, color: colors.textMeta)
                                 : Icon(
                                     AppIcons.addCircle,
-                                    color: theme.colorScheme.primary,
+                                    color: colors.brandPrimary,
                                   ),
                             onTap: () => _toggleTag(tag.name),
                             enabled:
@@ -435,6 +414,57 @@ class _TagSelectionSheetState extends State<TagSelectionSheet> {
           ),
         );
       },
+    );
+  }
+
+  /// 空状态（Figma「添加标签 · 无可用标签」）：48 标签图标 + 标题 + 13 号说明，居中。
+  /// 搜索没有结果时只显示标题「未找到相关标签」。
+  Widget _buildEmpty(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final l10n = context.l10n;
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    final searching = _searchController.text.isNotEmpty;
+    final title = searching ? l10n.tag_noTagsFound : l10n.tag_noTags;
+    final message = searching
+        ? null
+        : (widget.categoryId != null
+              ? l10n.tag_noTagsInCategoryDesc
+              : l10n.tag_noTagsDesc);
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpace.x40),
+        child: Column(
+          key: const ValueKey('tag-empty-state'),
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ExcludeSemantics(
+              child: Icon(AppIcons.tags, size: 48, color: colors.textMeta),
+            ),
+            const SizedBox(height: AppSpace.s),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: base
+                  .merge(tokens.text.control)
+                  .copyWith(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+            if (message != null) ...[
+              const SizedBox(height: AppSpace.s),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: base
+                    .merge(tokens.text.meta)
+                    .copyWith(color: colors.textMeta),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
