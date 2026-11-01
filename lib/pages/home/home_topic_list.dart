@@ -695,8 +695,6 @@ class _HomeTopicListState extends ConsumerState<HomeTopicList>
   Widget _newTopicIndicator(int count, int? providerKey) {
     return TopicListUpdateBanner(
       count: count,
-      filter: topicUpdates.query!.filter,
-      newNewView: newNewViewEnabled,
       loading: isLoadingTopicUpdates,
       onTap: () async {
         final insertedIds = await loadTopicUpdates(

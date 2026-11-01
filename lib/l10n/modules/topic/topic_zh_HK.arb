@@ -129,22 +129,6 @@
   "topic_rowBookmark": "書籤",
   "topic_rowMarkRead": "標為已讀",
   "topic_rowOpen": "開啟",
-  "topics_viewNewOnlyTopics": "查看 {count} 個新話題",
-  "@topics_viewNewOnlyTopics": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "topics_viewUnreadTopics": "查看 {count} 個未讀話題",
-  "@topics_viewUnreadTopics": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "@@locale": "zh_HK",
   "topicDetail_addToReadLater": "加入浮窗",
   "topicDetail_addToReadLaterSuccess": "已加入浮窗",
@@ -409,14 +393,7 @@
   "topics_topicId": "話題 ID",
   "topics_topicIdHint": "例如: 1095754",
   "topics_unreadTopics": "未讀話題",
-  "topics_viewNewTopics": "查看 {count} 個新的或更新的話題",
-  "@topics_viewNewTopics": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
+  "topics_newOrUpdatedHint": "有新的或更新的話題，點按查看",
   "topic_keywordFilter_hiddenCount": "已隱藏 {count} 條話題",
   "@topic_keywordFilter_hiddenCount": {
     "placeholders": {

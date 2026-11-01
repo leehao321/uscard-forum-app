@@ -88,8 +88,6 @@
   "topic_rowBookmark": "Bookmark",
   "topic_rowMarkRead": "Mark as read",
   "topic_rowOpen": "Open",
-  "topics_viewNewOnlyTopics": "See {count} new topics",
-  "topics_viewUnreadTopics": "See {count} unread topics",
   "@@locale": "en",
   "topicDetail_addToReadLater": "Add to float",
   "topicDetail_addToReadLaterSuccess": "Added to float",
@@ -261,7 +259,7 @@
   "topics_topicId": "Topic ID",
   "topics_topicIdHint": "e.g., 1095754",
   "topics_unreadTopics": "Unread topics",
-  "topics_viewNewTopics": "View {count} new or updated topics",
+  "topics_newOrUpdatedHint": "New or updated topics. Tap to view",
   "topic_keywordFilter_hiddenCount": "{count} topics hidden",
   "topic_keywordFilter_manage": "Manage"
 }

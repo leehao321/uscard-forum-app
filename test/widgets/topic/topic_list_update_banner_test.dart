@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart' show CupertinoActivityIndicator;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxdo/l10n/s.dart';
-import 'package:fluxdo/providers/topic_list/filter_provider.dart';
 import 'package:fluxdo/widgets/topic/topic_list_update_banner.dart';
 
 void main() {
@@ -30,8 +29,6 @@ void main() {
                       children: [
                         TopicListUpdateBanner(
                           count: 123,
-                          filter: TopicListFilter.newTopics,
-                          newNewView: true,
                           loading: loading,
                           onTap: () => taps++,
                         ),
@@ -47,6 +44,20 @@ void main() {
         expect(tester.takeException(), isNull);
         final rect = tester.getRect(find.byType(TopicListUpdateBanner));
         expect(rect.width, lessThanOrEqualTo(size.width));
+        // Figma「首页 · 新话题提示条」：文案固定、不显示数量；40 高胶囊，外框上下 8、左右 20
+        expect(find.text('有新的或更新的话题，点按查看'), findsOneWidget);
+        expect(find.textContaining('123'), findsNothing);
+        expect(rect.height, 56);
+        final pill = tester.getRect(
+          find.descendant(
+            of: find.byType(TopicListUpdateBanner),
+            matching: find.byType(DecoratedBox),
+          ),
+        );
+        expect(pill.height, 40);
+        expect(pill.left - rect.left, 20);
+        expect(rect.right - pill.right, 20);
+        expect(pill.top - rect.top, 8);
         await tester.tap(find.byType(TopicListUpdateBanner));
         expect(taps, 1);
         await pump(true);

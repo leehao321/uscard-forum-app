@@ -494,8 +494,6 @@ class _TagTopicsPageState extends ConsumerState<TagTopicsPage>
           if (updateOffset > 0 && index == 0) {
             return TopicListUpdateBanner(
               count: updateCount,
-              filter: _currentFilter,
-              newNewView: newNewViewEnabled,
               loading: isLoadingTopicUpdates,
               onTap: _showTopicUpdates,
             );
