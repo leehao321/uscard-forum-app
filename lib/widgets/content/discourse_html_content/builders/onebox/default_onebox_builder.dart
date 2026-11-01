@@ -106,12 +106,13 @@ class DefaultOneboxCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(tokens.radius.card),
             child: SizedBox(
               height: thumbnailHeight,
-              child: Image(
-                image: discourseImageProvider(thumbnailUrl),
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => ColoredBox(
-                  color: colors.surfaceGrouped,
-                  child: Center(
+              // 底色垫在图下面：图还没到的时候就是一块 surface/grouped
+              child: ColoredBox(
+                color: colors.surfaceGrouped,
+                child: Image(
+                  image: discourseImageProvider(thumbnailUrl),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Center(
                     child: Icon(
                       AppIcons.image,
                       size: AppSize.iconL,
