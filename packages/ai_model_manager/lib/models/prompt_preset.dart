@@ -132,9 +132,11 @@ class PromptPreset {
           'defaultDimensionValues': defaultDimensionValues,
       };
 
+  /// 从 JSON 读取。导出给别人的内容不带 `id`（自己的内部 id 不该带出去），
+  /// 导入时由调用方换上新生成的 id，所以这里缺 `id` 时先用空串占位。
   factory PromptPreset.fromJson(Map<String, dynamic> json) {
     return PromptPreset(
-      id: json['id'] as String,
+      id: json['id'] as String? ?? '',
       type: PromptType.fromJson(json['type'] as String? ?? 'text'),
       name: json['name'] as String,
       iconRaw: json['iconRaw'] as String? ?? 'auto_awesome_outlined',
