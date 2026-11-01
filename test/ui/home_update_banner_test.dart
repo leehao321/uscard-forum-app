@@ -174,14 +174,15 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final probe = _Probe();
-    // 用例失败时也卸载页面，避免残留的页面影响后面的用例
-    addTearDown(() => _unmount(tester));
     await pumpUi(
       tester,
       Scaffold(body: TopicsPage(onCreateTopic: () {})),
       variant: variant,
       overrides: _overrides(prefs, probe),
     );
+    // 用例失败时也先卸载页面（后注册的先执行，要赶在 pumpUi 还原桌面标记之前），
+    // 否则页面在桌面标记还原后才销毁，会连带弄坏后面的用例
+    addTearDown(() => _unmount(tester));
     await tester.pump(const Duration(milliseconds: 300));
     return probe;
   }

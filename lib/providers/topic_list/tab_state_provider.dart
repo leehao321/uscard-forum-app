@@ -23,6 +23,7 @@ final staleTabsProvider = StateProvider<Set<int?>>((ref) => {});
 final topicListGlobalParamsSignal = Provider<Object>((ref) {
   ref.watch(topicFilterProvider);
   ref.watch(topicNewSubsetProvider);
+  ref.watch(topPeriodProvider);
   ref.watch(topicSortOrderProvider);
   ref.watch(topicSortAscendingProvider);
   return Object();

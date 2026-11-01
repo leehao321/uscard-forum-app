@@ -25,6 +25,7 @@ import 'home/home_signals.dart';
 import 'home/home_topic_list.dart';
 import 'home/leaderboard_topic_list.dart';
 import 'home/title_menu.dart';
+import 'home/top_period_bar.dart';
 
 export 'home/home_signals.dart';
 
@@ -238,7 +239,7 @@ class _TopicsPageState extends ConsumerState<TopicsPage> {
     final pinnedIds = visibleIds != null
         ? allPinnedIds.where(visibleIds.contains).toList()
         : allPinnedIds;
-    ref.watch(topicFilterProvider);
+    final filter = ref.watch(topicFilterProvider);
 
     _visiblePinnedIds = pinnedIds;
     if (_index > pinnedIds.length) _index = 0;
@@ -338,6 +339,9 @@ class _TopicsPageState extends ConsumerState<TopicsPage> {
             onOpenAllCategories: () => showAllCategoriesSheet(context),
           ),
           const AppHairline(),
+          // 排行榜：分类条下加时间段分段控件（榜单模式里没有）
+          if (mode == null && filter == TopicListFilter.top)
+            const TopPeriodBar(),
           Expanded(
             child: mode != null
                 // 导航栏已经让过状态栏，列表不要再叠一次顶部安全区

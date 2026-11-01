@@ -174,7 +174,7 @@ class TopicListNotifier extends AsyncNotifier<List<Topic>>
         categorySlug: filterParams.categorySlug,
         parentCategorySlug: filterParams.parentCategorySlug,
         tags: filterParams.tags.isNotEmpty ? filterParams.tags : null,
-        period: filter.period,
+        period: _periodFor(filter),
         page: page,
         order: order,
         ascending: ascending,
@@ -210,7 +210,12 @@ class TopicListNotifier extends AsyncNotifier<List<Topic>>
           ascending: ascending,
         );
       case TopicListFilter.top:
-        return service.getTopTopics();
+        // 排行榜按分段控件选的时间段取，可翻页
+        return service.getFilteredTopics(
+          filter: filter.filterName,
+          period: _periodFor(filter),
+          page: page,
+        );
       case TopicListFilter.hot:
         return service.getHotTopics(
           page: page,
@@ -221,6 +226,11 @@ class TopicListNotifier extends AsyncNotifier<List<Topic>>
   }
 
   String _getFilterName(TopicListFilter filter) => filter.filterName;
+
+  /// 请求用的时间段：排行榜取分段控件的选择，热门固定一周，其余不传
+  String? _periodFor(TopicListFilter filter) => filter == TopicListFilter.top
+      ? ref.read(topPeriodProvider).apiValue
+      : filter.period;
 
   /// 根据分类 ID 和标签构建筛选参数
   TopicFilterParams _buildFilterParams(List<String> tags) {

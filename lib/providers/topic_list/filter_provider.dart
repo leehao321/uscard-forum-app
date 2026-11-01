@@ -65,6 +65,21 @@ extension TopicListFilterX on TopicListFilter {
   }
 }
 
+/// 「排行榜」的时间段（Discourse `top` 的 period 参数）
+enum TopPeriod {
+  daily('daily'),
+  weekly('weekly'),
+  monthly('monthly'),
+  quarterly('quarterly'),
+  yearly('yearly'),
+  all('all');
+
+  const TopPeriod(this.apiValue);
+
+  /// 传给 Discourse API 的 period 参数值
+  final String apiValue;
+}
+
 /// 话题筛选条件（内部使用）
 class TopicFilterParams {
   final int? categoryId;
@@ -111,6 +126,34 @@ final topicFilterProvider =
     StateNotifierProvider<TopicFilterNotifier, TopicListFilter>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return TopicFilterNotifier(prefs);
+});
+
+/// 「排行榜」时间段持久化 Notifier（首页排行榜的分段控件）
+class TopPeriodNotifier extends StateNotifier<TopPeriod> {
+  static const String _key = 'topic_top_period';
+  final SharedPreferences _prefs;
+
+  TopPeriodNotifier(this._prefs) : super(_fromName(_prefs.getString(_key)));
+
+  static TopPeriod _fromName(String? name) {
+    for (final period in TopPeriod.values) {
+      if (period.name == name) return period;
+    }
+    return TopPeriod.weekly;
+  }
+
+  void setPeriod(TopPeriod period) {
+    state = period;
+    _prefs.setString(_key, period.name);
+  }
+}
+
+/// 当前「排行榜」时间段（持久化到 SharedPreferences，默认一周）
+final topPeriodProvider = StateNotifierProvider<TopPeriodNotifier, TopPeriod>((
+  ref,
+) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return TopPeriodNotifier(prefs);
 });
 
 /// 「新话题」子过滤持久化 Notifier

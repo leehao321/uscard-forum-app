@@ -290,6 +290,12 @@
     }
   },
   "topic_filterTop": "排行榜",
+  "topic_periodDaily": "日",
+  "topic_periodWeekly": "周",
+  "topic_periodMonthly": "月",
+  "topic_periodQuarterly": "季",
+  "topic_periodYearly": "年",
+  "topic_periodAll": "全部",
   "topic_filterUnread": "未读完",
   "topic_filterUnseen": "未浏览",
   "topic_flagInappropriate": "不当内容",
