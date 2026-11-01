@@ -13,7 +13,6 @@ import '../providers/prompt_preset_providers.dart';
 import '../services/toast_delegate.dart';
 import '../utils/dialog_utils.dart';
 import '../widgets/preset_icon.dart';
-import '../widgets/swipe_action_cell.dart';
 import 'prompt_preset_edit_page.dart';
 
 /// 快捷词管理页
@@ -43,15 +42,18 @@ class _PromptPresetsPageState extends ConsumerState<PromptPresetsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final tokens = context.tokens;
     final all = ref.watch(promptPresetsByTypeProvider(_type));
     final builtIns = all.where((p) => p.builtIn).toList(growable: false);
     final customs = all.where((p) => !p.builtIn).toList(growable: false);
+    final bottom = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
-      appBar: ReadableAppBar(child: AppBar(
-        title: Text(AiL10n.current.quickPromptsManageTitle),
-        actions: [
+      backgroundColor: tokens.colors.surfacePage,
+      // 补充稿 43：返回 + 标题 + 右上「+」和「⋯」（iOS 圆角浮层菜单）
+      appBar: AppNavBar(
+        title: AiL10n.current.quickPromptsManageTitle,
+        trailing: [
           AppIconButton(
             icon: AppIcons.add,
             semanticLabel: AiL10n.current.quickPromptsAddNew,
@@ -92,38 +94,34 @@ class _PromptPresetsPageState extends ConsumerState<PromptPresetsPage> {
             ],
           ),
         ],
-      )),
+      ),
       body: ReadableBody(
-          child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: SegmentedButton<PromptType>(
-              segments: [
-                ButtonSegment(
-                  value: PromptType.image,
-                  label: Text(AiL10n.current.quickPromptsImageTab),
-                  icon: const Icon(AppIcons.image),
-                ),
-                ButtonSegment(
-                  value: PromptType.text,
-                  label: Text(AiL10n.current.quickPromptsTextTab),
-                  icon: const Icon(AppIcons.message),
-                ),
+        child: Column(
+          children: [
+            // 分段：图像 / 文本
+            AppSegmentedControl(
+              labels: [
+                AiL10n.current.quickPromptsImageTab,
+                AiL10n.current.quickPromptsTextTab,
               ],
-              selected: {_type},
-              onSelectionChanged: (s) => setState(() => _type = s.first),
+              selectedIndex: _type == PromptType.image ? 0 : 1,
+              onSelected: (i) => setState(
+                () => _type = i == 0 ? PromptType.image : PromptType.text,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: SwipeActionScope(
+            Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                padding: EdgeInsets.fromLTRB(
+                  AppSpace.pageMargin,
+                  0,
+                  AppSpace.pageMargin,
+                  bottom + AppSpace.xxl,
+                ),
                 children: [
                   if (builtIns.isNotEmpty) ...[
                     _SectionLabel(
-                        text: AiL10n.current.quickPromptsBuiltInSection),
+                      text: AiL10n.current.quickPromptsBuiltInSection,
+                    ),
                     _ReorderableGroup(
                       presets: builtIns,
                       type: _type,
@@ -131,16 +129,16 @@ class _PromptPresetsPageState extends ConsumerState<PromptPresetsPage> {
                       onEdit: _openEdit,
                     ),
                   ],
-                  const SizedBox(height: 16),
                   _SectionLabel(text: AiL10n.current.quickPromptsCustomSection),
                   if (customs.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Text(
-                        AiL10n.current.quickPromptsEmpty,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                    // 空态：48 图标 + 标题 + 说明（稿里这一块 180 高）
+                    SizedBox(
+                      height: 180,
+                      child: AppStateView(
+                        bareIcon: true,
+                        icon: AppIcons.sparkles,
+                        title: AiL10n.current.quickPromptsEmpty,
+                        message: AiL10n.current.quickPromptsEmptyHint,
                       ),
                     )
                   else
@@ -153,9 +151,9 @@ class _PromptPresetsPageState extends ConsumerState<PromptPresetsPage> {
                 ],
               ),
             ),
-          ),
-        ],
-      )),
+          ],
+        ),
+      ),
     );
   }
 
@@ -322,22 +320,21 @@ class _PromptPresetsPageState extends ConsumerState<PromptPresetsPage> {
   }
 }
 
+/// 组页眉：13 meta，上 24 下 8（稿里 48 高的页眉）
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel({required this.text});
   final String text;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final tokens = context.tokens;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 4, 0, 6),
+      padding: const EdgeInsets.only(top: AppSpace.xxl, bottom: AppSpace.s),
       child: Text(
         text,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.5,
-        ),
+        style: Theme.of(context).textTheme.bodySmall
+            ?.merge(tokens.text.meta)
+            .copyWith(color: tokens.colors.textMeta),
       ),
     );
   }
@@ -360,206 +357,64 @@ class _ReorderableGroup extends ConsumerStatefulWidget {
   ConsumerState<_ReorderableGroup> createState() => _ReorderableGroupState();
 }
 
+/// 分组卡片（surface/grouped r12）：每行 48 高（有比例 / 标签说明时 64）——
+/// 拖拽柄 20（44 热区）+ 图标 20 + 名称 17 + 右侧图钉 20（44 热区），
+/// 行间发丝线从文字起点（76）开始。
 class _ReorderableGroupState extends ConsumerState<_ReorderableGroup> {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return ReorderableListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: widget.presets.length,
-      buildDefaultDragHandles: false,
-      onReorderItem: (oldIndex, newIndex) async {
-        final ids = [for (final p in widget.presets) p.id];
-        final id = ids.removeAt(oldIndex);
-        ids.insert(newIndex, id);
-        await ref
-            .read(promptPresetListProvider.notifier)
-            .reorderInGroup(widget.type, widget.builtIn, ids);
-      },
-      itemBuilder: (context, index) {
-        final preset = widget.presets[index];
-        return Padding(
-          key: ValueKey(preset.id),
-          padding: const EdgeInsets.only(bottom: 8),
-          child: SwipeActionCell(
-            key: ValueKey('swipe_${preset.id}'),
-            trailingActions: [
-              if (!preset.builtIn)
-                SwipeAction(
-                  icon: AppIcons.edit,
-                  color: context.tokens.colors.brandButton,
-                  label: AiL10n.current.edit,
-                  onPressed: () => widget.onEdit(preset),
-                ),
-              if (preset.builtIn)
-                SwipeAction(
-                  icon: preset.hidden
-                      ? AppIcons.visibility
-                      : AppIcons.visibilityOff,
-                  color: context.tokens.colors.brandButton,
-                  label: preset.hidden
-                      ? AiL10n.current.quickPromptsUnhide
-                      : AiL10n.current.quickPromptsHide,
-                  onPressed: () {
-                    final notifier =
-                        ref.read(promptPresetListProvider.notifier);
-                    if (preset.hidden) {
-                      notifier.unhide(preset.id);
-                    } else {
-                      notifier.hide(preset.id);
-                    }
-                  },
-                ),
-              if (!preset.builtIn)
-                SwipeAction(
-                  icon: AppIcons.copy,
-                  color: context.tokens.colors.brandButton,
-                  label: AiL10n.current.presetExport,
-                  onPressed: () => _PromptPresetsPageState.exportPreset(preset),
-                ),
-              if (!preset.builtIn)
-                SwipeAction(
-                  icon: AppIcons.delete,
-                  color: context.tokens.colors.textDestructive,
-                  label: AiL10n.current.delete,
-                  onPressed: () async {
-                    final ok = await _confirmDelete(context, preset.name);
-                    if (ok) {
-                      await ref
-                          .read(promptPresetListProvider.notifier)
-                          .deletePreset(preset.id);
-                    }
-                  },
-                ),
-            ],
-            child: Card(
-              clipBehavior: Clip.antiAlias,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: InkWell(
-                onTap: !preset.builtIn ? () => widget.onEdit(preset) : null,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 6, 4, 6),
-                  child: Row(
-                    children: [
-                      ReorderableDragStartListener(
-                        index: index,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: Icon(
-                            AppIcons.grip,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        width: 36,
-                        height: 36,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHigh,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: PresetIcon(
-                          iconRaw: preset.iconRaw,
-                          size: 20,
-                          color: theme.colorScheme.onSurface,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Row(
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    preset.name,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w500,
-                                      color: preset.hidden
-                                          ? theme.colorScheme.onSurfaceVariant
-                                          : null,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                if (preset.hidden) ...[
-                                  const SizedBox(width: 6),
-                                  Icon(
-                                    AppIcons.visibilityOff,
-                                    size: 14,
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ],
-                              ],
-                            ),
-                            if (preset.tags.isNotEmpty ||
-                                preset.aspectRatio != null) ...[
-                              const SizedBox(height: 2),
-                              Wrap(
-                                spacing: 4,
-                                runSpacing: 2,
-                                children: [
-                                  if (preset.aspectRatio != null)
-                                    _badge(theme, preset.aspectRatio!),
-                                  for (final t in preset.tags)
-                                    _badge(theme, t, dim: true),
-                                ],
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: preset.pinned
-                            ? AiL10n.current.quickPromptsUnpin
-                            : AiL10n.current.quickPromptsPin,
-                        icon: Icon(
-                          AppIcons.pushPin,
-                          fill: preset.pinned ? 1 : 0,
-                          size: 18,
-                          color: preset.pinned
-                              ? theme.colorScheme.primary
-                              : theme.colorScheme.onSurfaceVariant,
-                        ),
-                        onPressed: () {
-                          ref
-                              .read(promptPresetListProvider.notifier)
-                              .togglePin(preset.id);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _badge(ThemeData theme, String text, {bool dim = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+    final tokens = context.tokens;
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: dim
-            ? theme.colorScheme.surfaceContainerHighest
-            : theme.colorScheme.primaryContainer.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(4),
+        color: tokens.colors.surfaceGrouped,
+        borderRadius: BorderRadius.circular(tokens.radius.card),
       ),
-      child: Text(
-        text,
-        style: theme.textTheme.labelSmall?.copyWith(
-          fontSize: AppFontSize.caption,
-          color: dim
-              ? theme.colorScheme.onSurfaceVariant
-              : theme.colorScheme.onPrimaryContainer,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(tokens.radius.card),
+        child: ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: widget.presets.length,
+          buildDefaultDragHandles: false,
+          proxyDecorator: (child, index, animation) =>
+              ColoredBox(color: tokens.colors.surfaceGrouped, child: child),
+          onReorderItem: (oldIndex, newIndex) async {
+            final ids = [for (final p in widget.presets) p.id];
+            final id = ids.removeAt(oldIndex);
+            ids.insert(newIndex, id);
+            await ref
+                .read(promptPresetListProvider.notifier)
+                .reorderInGroup(widget.type, widget.builtIn, ids);
+          },
+          itemBuilder: (context, index) {
+            final preset = widget.presets[index];
+            return KeyedSubtree(
+              key: ValueKey(preset.id),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (index > 0)
+                    const Padding(
+                      padding: EdgeInsets.only(left: _kTextInset),
+                      child: AppHairline(),
+                    ),
+                  _PresetRow(
+                    preset: preset,
+                    index: index,
+                    onEdit: widget.onEdit,
+                    onDelete: () async {
+                      final ok = await _confirmDelete(context, preset.name);
+                      if (ok) {
+                        await ref
+                            .read(promptPresetListProvider.notifier)
+                            .deletePreset(preset.id);
+                      }
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -586,5 +441,167 @@ class _ReorderableGroupState extends ConsumerState<_ReorderableGroup> {
       ),
     );
     return result ?? false;
+  }
+}
+
+/// 文字起点（拖拽柄 44 + 图标 20 + 间距 12）
+const double _kTextInset = 76;
+
+class _PresetRow extends ConsumerWidget {
+  const _PresetRow({
+    required this.preset,
+    required this.index,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final PromptPreset preset;
+  final int index;
+  final void Function(PromptPreset) onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    final notifier = ref.read(promptPresetListProvider.notifier);
+    // 比例 / 标签收成一行 13 meta 说明
+    final note = [
+      if (preset.aspectRatio != null) preset.aspectRatio!,
+      ...preset.tags,
+    ].join(' · ');
+
+    final actions = [
+      if (!preset.builtIn)
+        SwipeActionItem(
+          icon: AppIcons.edit,
+          label: AiL10n.current.edit,
+          onTap: () => onEdit(preset),
+        ),
+      if (preset.builtIn)
+        SwipeActionItem(
+          icon: preset.hidden ? AppIcons.visibility : AppIcons.visibilityOff,
+          label: preset.hidden
+              ? AiL10n.current.quickPromptsUnhide
+              : AiL10n.current.quickPromptsHide,
+          onTap: () {
+            if (preset.hidden) {
+              notifier.unhide(preset.id);
+            } else {
+              notifier.hide(preset.id);
+            }
+          },
+        ),
+      if (!preset.builtIn)
+        SwipeActionItem(
+          icon: AppIcons.copy,
+          label: AiL10n.current.presetExport,
+          onTap: () => _PromptPresetsPageState.exportPreset(preset),
+        ),
+      if (!preset.builtIn)
+        SwipeActionItem(
+          icon: AppIcons.delete,
+          label: AiL10n.current.delete,
+          background: colors.textDestructive,
+          onTap: onDelete,
+        ),
+    ];
+
+    return SwipeActions(
+      actions: actions,
+      child: AppPressable(
+        highlight: true,
+        onTap: preset.builtIn ? null : () => onEdit(preset),
+        button: !preset.builtIn,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: AppSize.row48),
+          child: Row(
+            children: [
+              ReorderableDragStartListener(
+                index: index,
+                child: SizedBox(
+                  width: AppSize.hit,
+                  height: AppSize.row48,
+                  child: Center(
+                    child: Icon(
+                      AppIcons.grip,
+                      size: AppSize.iconM,
+                      color: colors.textMeta,
+                    ),
+                  ),
+                ),
+              ),
+              PresetIcon(
+                iconRaw: preset.iconRaw,
+                size: AppSize.iconM,
+                color: preset.hidden ? colors.textMeta : colors.textPrimary,
+              ),
+              const SizedBox(width: AppSpace.m),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: note.isEmpty ? 0 : AppSpace.m,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              preset.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: base
+                                  .merge(tokens.text.control)
+                                  .copyWith(
+                                    color: preset.hidden
+                                        ? colors.textMeta
+                                        : colors.textPrimary,
+                                  ),
+                            ),
+                          ),
+                          if (preset.hidden) ...[
+                            const SizedBox(width: AppSpace.xs + AppSpace.xxs),
+                            Icon(
+                              AppIcons.visibilityOff,
+                              size: AppSize.iconS,
+                              color: colors.textMeta,
+                            ),
+                          ],
+                        ],
+                      ),
+                      if (note.isNotEmpty) ...[
+                        const SizedBox(height: AppSpace.xs),
+                        Text(
+                          note,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: base
+                              .merge(tokens.text.meta)
+                              .copyWith(color: colors.textMeta),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              AppIconButton(
+                icon: AppIcons.pushPin,
+                size: AppSize.iconM,
+                color: preset.pinned ? colors.brandPrimary : colors.textMeta,
+                selected: preset.pinned,
+                semanticLabel: preset.pinned
+                    ? AiL10n.current.quickPromptsUnpin
+                    : AiL10n.current.quickPromptsPin,
+                onPressed: () => notifier.togglePin(preset.id),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

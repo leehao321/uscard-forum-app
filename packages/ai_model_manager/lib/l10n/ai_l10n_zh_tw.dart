@@ -101,6 +101,20 @@ class AiL10nZhTW extends AiL10n {
   @override
   String get quickPromptsEmpty => '還沒有自訂快捷詞';
   @override
+  String get quickPromptsEmptyHint => '點右上角 + 新增，或從剪貼簿匯入';
+  @override
+  String quickPromptsIconSelected(String name) => '已選：$name';
+  @override
+  String get quickPromptsIconSearch => '搜尋圖示';
+  @override
+  String get quickPromptsIconSearchHint => '按英文名搜尋圖示';
+  @override
+  String get quickPromptsIconSearchNote => '不提供 Emoji：圖示統一用線性圖示，可按英文名搜尋全部圖示。';
+  @override
+  String get quickPromptsIconNoResult => '沒有符合的圖示';
+  @override
+  String get quickPromptsIconSearchClear => '清除搜尋';
+  @override
   String get quickPromptsAspectAuto => '自動';
   @override
   String get quickPromptsTypeImage => '圖像';

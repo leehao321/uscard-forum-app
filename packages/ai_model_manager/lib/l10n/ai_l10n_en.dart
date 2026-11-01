@@ -103,6 +103,20 @@ class AiL10nEn extends AiL10n {
   @override
   String get quickPromptsEmpty => 'No custom quick prompts yet';
   @override
+  String get quickPromptsEmptyHint => 'Tap + at the top right to create one, or import from the clipboard';
+  @override
+  String quickPromptsIconSelected(String name) => 'Selected: $name';
+  @override
+  String get quickPromptsIconSearch => 'Search icons';
+  @override
+  String get quickPromptsIconSearchHint => 'Search icons by English name';
+  @override
+  String get quickPromptsIconSearchNote => 'Emoji are not offered: icons are line icons only, and you can search all of them by English name.';
+  @override
+  String get quickPromptsIconNoResult => 'No matching icons';
+  @override
+  String get quickPromptsIconSearchClear => 'Clear search';
+  @override
   String get quickPromptsAspectAuto => 'Auto';
   @override
   String get quickPromptsTypeImage => 'Image';

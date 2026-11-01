@@ -24,6 +24,8 @@ class AppFilledField extends StatefulWidget {
     this.enabled = true,
     this.minLines,
     this.maxLines = 1,
+    this.minHeight = AppSize.hit,
+    this.prefix,
     this.suffix,
     this.fillColor,
     this.validator,
@@ -45,6 +47,12 @@ class AppFilledField extends StatefulWidget {
   final bool enabled;
   final int? minLines;
   final int? maxLines;
+
+  /// 框的最小高度，默认 44；多行文本框（Prompt 模板）用 96
+  final double minHeight;
+
+  /// 框内左侧控件（如搜索框的放大镜）
+  final Widget? prefix;
 
   /// 框内右侧控件（一般是 [AppIconButton]）
   final Widget? suffix;
@@ -111,7 +119,7 @@ class _AppFilledFieldState extends State<AppFilledField> {
     final base = Theme.of(context).textTheme.bodyMedium!;
     final control = base
         .merge(tokens.text.control)
-        .copyWith(color: colors.textPrimary)
+        .copyWith(color: widget.enabled ? colors.textPrimary : colors.textMeta)
         .merge(widget.textStyle);
     final meta = base
         .merge(tokens.text.meta)
@@ -147,12 +155,17 @@ class _AppFilledFieldState extends State<AppFilledField> {
                     : null,
               ),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: AppSize.hit),
+                constraints: BoxConstraints(minHeight: widget.minHeight),
                 child: Row(
                   crossAxisAlignment: multiline
                       ? CrossAxisAlignment.start
                       : CrossAxisAlignment.center,
                   children: [
+                    if (widget.prefix != null)
+                      Padding(
+                        padding: const EdgeInsets.only(left: AppSpace.m),
+                        child: widget.prefix!,
+                      ),
                     Expanded(
                       child: TextField(
                         controller: _controller,
@@ -179,7 +192,7 @@ class _AppFilledFieldState extends State<AppFilledField> {
                           isDense: true,
                           // 单行：上下 12 + 行高 20 = 44；聚焦描边在框外沿，不占内边距
                           contentPadding: EdgeInsets.fromLTRB(
-                            AppSpace.m,
+                            widget.prefix == null ? AppSpace.m : AppSpace.s,
                             AppSpace.m,
                             widget.suffix == null ? AppSpace.m : 0,
                             AppSpace.m,

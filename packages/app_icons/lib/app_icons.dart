@@ -9,3 +9,5 @@ library;
 export 'src/app_icon.dart';
 export 'src/app_icons.dart';
 export 'src/icon_painters.dart';
+export 'src/lucide_catalog.dart';
+export 'src/lucide_search.dart';

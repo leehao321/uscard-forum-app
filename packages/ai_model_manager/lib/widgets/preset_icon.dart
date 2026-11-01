@@ -4,9 +4,11 @@ import 'package:app_icons/app_icons.dart';
 /// 把 PromptPreset.iconRaw 渲染成一个 Widget
 ///
 /// iconRaw 可以是：
-/// - emoji 字符（首 rune > 0xFF）：直接用 Text 渲染
-/// - Material icon name（小写下划线）：查表
-/// - 未知：fallback 到 AppIcons.autoAwesome
+/// - Lucide 图标名（kebab-case，如 `sparkles`、`heart-handshake`）：新建快捷词选的就是这种
+/// - 历史 Material 图标名（小写下划线，如 `auto_awesome_outlined`）：内置快捷词和旧数据，
+///   按 [kLegacyPresetIconNames] 换成对应的 Lucide 图标
+/// - emoji 字符（首 rune >= 0x80）：旧数据里可能有，仍然按文字渲染，新建时不再提供
+/// - 未知：fallback 到 sparkles
 class PresetIcon extends StatelessWidget {
   const PresetIcon({
     super.key,
@@ -28,8 +30,7 @@ class PresetIcon extends StatelessWidget {
         style: TextStyle(fontSize: size * 0.95, height: 1),
       );
     }
-    final icon = _materialIconMap[iconRaw] ?? AppIcons.autoAwesome;
-    return Icon(icon, size: size, color: color);
+    return Icon(presetIconData(iconRaw), size: size, color: color);
   }
 
   static bool _looksLikeEmoji(String s) {
@@ -41,56 +42,69 @@ class PresetIcon extends StatelessWidget {
   }
 }
 
-/// 暴露给 IconEmojiPicker 使用的 outlined icon 候选集
-const List<String> kBuiltInIconNames = [
-  'image_outlined',
-  'brush_outlined',
-  'draw_outlined',
-  'palette_outlined',
-  'auto_awesome_outlined',
-  'lightbulb_outlined',
-  'summarize_outlined',
-  'translate_outlined',
-  'question_answer_outlined',
-  'smart_toy_outlined',
-  'emoji_emotions_outlined',
-  'camera_alt_outlined',
-  'movie_outlined',
-  'map_outlined',
-  'favorite_outline',
-  'star_outline',
-  'share_outlined',
-  'crop_din_outlined',
-  'view_in_ar_outlined',
-  'sticky_note_2_outlined',
-  'grid_4x4',
+/// 新建快捷词图标网格里默认显示的 18 个 Lucide 图标（6 列 × 3 行）
+const List<String> kPresetIconGrid = [
+  'image',
+  'brush',
+  'pen-line',
+  'palette',
+  'sparkles',
+  'lightbulb',
+  'file-text',
+  'languages',
+  'messages-square',
+  'bot',
+  'smile',
+  'camera',
+  'clapperboard',
+  'map',
+  'heart',
+  'star',
+  'share-2',
+  'square',
 ];
 
-/// Material icon name → IconData 映射
-const Map<String, IconData> _materialIconMap = {
-  'image_outlined': AppIcons.image,
-  'brush_outlined': AppIcons.brush,
-  'draw_outlined': AppIcons.brush,
-  'palette_outlined': AppIcons.palette,
-  'auto_awesome_outlined': AppIcons.autoAwesome,
-  'lightbulb_outlined': AppIcons.lightbulb,
-  'summarize_outlined': AppIcons.description,
-  'translate_outlined': AppIcons.language,
-  'question_answer_outlined': AppIcons.forum,
-  'smart_toy_outlined': AppIcons.bot,
-  'emoji_emotions_outlined': AppIcons.emoji,
-  'camera_alt_outlined': AppIcons.camera,
-  'movie_outlined': AppIcons.videoLibrary,
-  'map_outlined': AppIcons.mapIcon,
-  'favorite_outline': AppIcons.favorite,
-  'star_outline': AppIcons.star,
-  'share_outlined': AppIcons.share,
-  'crop_din_outlined': AppIcons.checkBox,
-  'view_in_ar_outlined': AppIcons.cube,
-  'sticky_note_2_outlined': AppIcons.note,
-  'grid_4x4': AppIcons.grid,
-  // 兼容历史 chip 用的图标（防止预设 iconRaw 找不到时降级）
-  'image': AppIcons.image,
-  'brush': AppIcons.brush,
-  'draw': AppIcons.brush,
+/// 新建快捷词的默认图标
+const String kDefaultPresetIcon = 'sparkles';
+
+/// 历史 Material 图标名 → Lucide 图标名
+const Map<String, String> kLegacyPresetIconNames = {
+  'image_outlined': 'image',
+  'brush_outlined': 'brush',
+  'draw_outlined': 'pen-line',
+  'palette_outlined': 'palette',
+  'auto_awesome_outlined': 'sparkles',
+  'lightbulb_outlined': 'lightbulb',
+  'summarize_outlined': 'file-text',
+  'translate_outlined': 'languages',
+  'question_answer_outlined': 'messages-square',
+  'smart_toy_outlined': 'bot',
+  'emoji_emotions_outlined': 'smile',
+  'camera_alt_outlined': 'camera',
+  'movie_outlined': 'clapperboard',
+  'map_outlined': 'map',
+  'favorite_outline': 'heart',
+  'star_outline': 'star',
+  'share_outlined': 'share-2',
+  'crop_din_outlined': 'square',
+  'view_in_ar_outlined': 'box',
+  'sticky_note_2_outlined': 'sticky-note',
+  'grid_4x4': 'grid-3x3',
+  // 兼容历史 chip 用的图标
+  'image': 'image',
+  'brush': 'brush',
+  'draw': 'pen-line',
 };
+
+/// iconRaw 对应的 Lucide 图标名：历史名换成新名，已经是 Lucide 名的原样返回；
+/// 认不出来返回 null（emoji、未知名）。
+String? presetLucideName(String iconRaw) {
+  final name = kLegacyPresetIconNames[iconRaw] ?? iconRaw;
+  return lucideIconByName(name) == null ? null : name;
+}
+
+/// iconRaw 对应的图标；认不出来用 sparkles
+IconData presetIconData(String iconRaw) {
+  final name = presetLucideName(iconRaw);
+  return lucideIconByName(name ?? kDefaultPresetIcon) ?? AppIcons.autoAwesome;
+}

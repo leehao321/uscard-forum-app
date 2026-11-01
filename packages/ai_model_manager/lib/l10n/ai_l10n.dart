@@ -88,6 +88,13 @@ class AiL10n {
   String get quickPromptsValidateNameRequired => '请输入名称';
   String get quickPromptsValidateTemplateRequired => '请输入 prompt 模板';
   String get quickPromptsEmpty => '还没有自定义快捷词';
+  String get quickPromptsEmptyHint => '点右上角 + 新建，或从剪贴板导入';
+  String quickPromptsIconSelected(String name) => '已选：$name';
+  String get quickPromptsIconSearch => '搜索图标';
+  String get quickPromptsIconSearchHint => '按英文名搜索图标';
+  String get quickPromptsIconSearchNote => '不提供 Emoji：图标统一用线性图标，可按英文名搜索全部图标。';
+  String get quickPromptsIconNoResult => '没有匹配的图标';
+  String get quickPromptsIconSearchClear => '清除搜索';
   String get quickPromptsAspectAuto => '自动';
   String get quickPromptsTypeImage => '图像';
   String get quickPromptsTypeText => '文本';

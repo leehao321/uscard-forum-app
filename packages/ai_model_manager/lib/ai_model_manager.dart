@@ -36,7 +36,7 @@ export 'pages/ai_advanced_settings_page.dart';
 export 'pages/ai_chat_history_page.dart';
 export 'pages/prompt_presets_page.dart';
 export 'pages/prompt_preset_edit_page.dart';
-export 'widgets/icon_emoji_picker.dart';
+export 'widgets/preset_icon_picker.dart';
 export 'widgets/model_icon.dart';
 export 'widgets/preset_icon.dart';
 export 'widgets/swipe_action_cell.dart';
