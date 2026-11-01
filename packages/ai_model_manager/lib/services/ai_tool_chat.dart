@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import '../models/ai_provider.dart';
@@ -246,7 +247,8 @@ class AiToolChatService {
     int maxOutputTokens,
   ) async* {
     final trigger = abort.future;
-    final req = switch (provider.type) {
+    // 请求对象只能发一次，重试要重新构造
+    http.Request buildRequest() => switch (provider.type) {
       AiProviderType.openai => _openAiRequest(provider.baseUrl, apiKey, model,
           turns, tools, systemPrompt, toolChoice, maxOutputTokens, trigger),
       AiProviderType.openaiResponse => _responsesRequest(provider.baseUrl,
@@ -258,17 +260,29 @@ class AiToolChatService {
       AiProviderType.gemini => _geminiRequest(provider.baseUrl, apiKey, model,
           turns, tools, systemPrompt, toolChoice, maxOutputTokens, trigger),
     };
-    final http.StreamedResponse response;
-    try {
-      response = await client.send(req);
-    } on http.RequestAbortedException {
-      return;
-    }
-    if (response.statusCode < 200 || response.statusCode >= 300) {
+    http.StreamedResponse response;
+    var retried = false;
+    while (true) {
+      try {
+        response = await client.send(buildRequest());
+      } on http.RequestAbortedException {
+        return;
+      }
+      if (response.statusCode >= 200 && response.statusCode < 300) break;
       final body = await response.stream
           .bytesToString()
           .timeout(const Duration(seconds: 10), onTimeout: () => '');
-      throw classifyHttpError(response.statusCode, body);
+      final error = classifyHttpError(response.statusCode, body);
+      // 服务端临时故障：还没向调用方发出任何事件时，等一小会儿重试 1 次。
+      // 「不支持工具」「tool_choice 不接受」「鉴权错误」等已经归了别的类，不会走到这里。
+      if (!retried &&
+          error is AiToolChatHttpException &&
+          retryableStatuses.contains(response.statusCode)) {
+        retried = true;
+        if (await _delayOrAbort(retryDelay, trigger)) return;
+        continue;
+      }
+      throw error;
     }
     // 200 但不是 SSE（代理把错误包成 JSON 返回）：带上原文报错，不当成「没有内容」
     final contentType = (response.headers['content-type'] ?? '').toLowerCase();
@@ -293,6 +307,29 @@ class AiToolChatService {
     } on http.RequestAbortedException {
       return;
     }
+  }
+
+  /// 值得自动重试一次的服务端状态码
+  static const retryableStatuses = {500, 502, 503, 529};
+
+  /// 重试前的默认等待
+  static const defaultRetryDelay = Duration(milliseconds: 1500);
+
+  /// 重试前的等待（测试里改短）
+  @visibleForTesting
+  static Duration retryDelay = defaultRetryDelay;
+
+  /// 等 [delay]；等待期间被取消返回 true（调用方立即结束，不再发请求）
+  static Future<bool> _delayOrAbort(Duration delay, Future<void> abort) {
+    final done = Completer<bool>();
+    final timer = Timer(delay, () {
+      if (!done.isCompleted) done.complete(false);
+    });
+    abort.then<void>((_) {
+      timer.cancel();
+      if (!done.isCompleted) done.complete(true);
+    });
+    return done.future;
   }
 
   // ───────────────────────── 错误分类 ─────────────────────────
