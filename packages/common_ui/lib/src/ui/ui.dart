@@ -5,7 +5,6 @@ export 'app_filled_field.dart';
 export 'app_icon_button.dart';
 export 'app_menu.dart';
 export 'app_modal_routes.dart';
-export 'app_segmented_control.dart';
 export 'app_nav_bar.dart';
 export 'app_pressable.dart';
 export 'avatar_row.dart';

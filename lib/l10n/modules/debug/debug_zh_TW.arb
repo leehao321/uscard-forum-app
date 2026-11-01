@@ -80,12 +80,14 @@
   "debugTools_noLogsToShare": "暫無日誌可分享",
   "debugTools_shareLogs": "分享日誌",
   "debugTools_viewLogs": "檢視日誌",
+  "diagnostics_advanced": "高階 · 並行與限流",
   "diagnostics_eruda": "內建瀏覽器除錯主控台",
   "diagnostics_erudaHint": "切換後需重新開啟相關頁面或重新啟動應用程式才生效",
   "diagnostics_exportPackage": "匯出診斷包",
   "diagnostics_footer": "HTTP 狀態碼、請求標頭和原始錯誤只會出現在這裡",
   "diagnostics_logs": "日誌",
   "diagnostics_perf": "效能診斷",
+  "diagnostics_rateLimitFooter": "調高載入更快，也更容易觸發論壇限流和 Cloudflare 驗證；一般用「均衡」即可。",
   "diagnostics_send": "傳給開發者",
   "diagnostics_tools": "除錯工具"
 }

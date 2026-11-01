@@ -9,6 +9,7 @@ import '../services/log/logger_utils.dart';
 import '../services/toast_service.dart';
 import '../settings/settings_model.dart';
 import '../utils/share_utils.dart';
+import '../widgets/settings/rate_limit_settings.dart';
 import '../widgets/settings/settings_group_page.dart';
 import 'app_logs_page.dart';
 import 'perf_diagnostics_page.dart';
@@ -127,6 +128,21 @@ List<SettingsGroup> buildDiagnosticsGroups(BuildContext context) {
               subject: S.current.appLogs_shareSubject,
             );
           },
+        ),
+      ],
+    ),
+    // 并发与限流从网络设置移到这里（补充稿 33）：预设分段 + 自定义时三条滑杆
+    SettingsGroup(
+      title: l10n.diagnostics_advanced,
+      icon: AppIcons.speed,
+      wrapInCard: false,
+      footer: l10n.diagnostics_rateLimitFooter,
+      items: [
+        CustomModel(
+          id: 'rateLimit',
+          title: l10n.networkSettings_rateLimitTitle,
+          subtitle: l10n.diagnostics_advanced,
+          builder: (context, ref) => const RateLimitSettings(),
         ),
       ],
     ),

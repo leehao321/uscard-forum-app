@@ -80,12 +80,14 @@
   "debugTools_noLogsToShare": "No logs to share",
   "debugTools_shareLogs": "Share logs",
   "debugTools_viewLogs": "View logs",
+  "diagnostics_advanced": "Advanced · Concurrency & rate limit",
   "diagnostics_eruda": "Built-in browser debug console",
   "diagnostics_erudaHint": "Reopen the page or restart the app after switching",
   "diagnostics_exportPackage": "Export diagnostics package",
   "diagnostics_footer": "HTTP status codes, headers and raw errors only appear here",
   "diagnostics_logs": "Logs",
   "diagnostics_perf": "Performance diagnostics",
+  "diagnostics_rateLimitFooter": "Higher values load faster but are more likely to trigger forum rate limits and Cloudflare checks. “Balanced” is fine for most people.",
   "diagnostics_send": "Send to developer",
   "diagnostics_tools": "Debug tools"
 }

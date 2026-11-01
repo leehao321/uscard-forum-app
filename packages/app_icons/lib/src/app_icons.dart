@@ -232,6 +232,8 @@ abstract final class AppIcons {
   static const palette = LucideIcons300.palette;
   static const colorLens = LucideIcons300.palette;
   static const speed = LucideIcons300.gauge;
+  static const activity = LucideIcons300.activity;
+  static const timer = LucideIcons300.timer;
   static const rocket = LucideIcons300.rocket;
   static const touchApp = LucideIcons300.pointer;
   static const wallet = LucideIcons300.wallet;

@@ -10,7 +10,6 @@ import '../../pages/network_settings_page/widgets/cf_verify_card.dart';
 import '../../pages/network_settings_page/widgets/doh_settings_card.dart';
 import '../../pages/network_settings_page/widgets/engine_card.dart';
 import '../../pages/network_settings_page/widgets/http_proxy_card.dart';
-import '../../pages/network_settings_page/widgets/rate_limit_card.dart';
 import '../../pages/network_settings_page/widgets/vpn_auto_toggle_card.dart';
 import '../../widgets/settings/settings_group_page.dart';
 import '../settings_model.dart';
@@ -156,19 +155,6 @@ List<SettingsGroup> buildNetworkCustomGroups(BuildContext context) {
           onChanged: (ref, value) => ref
               .read(preferencesProvider.notifier)
               .setForceDisableMultipartUpload(value),
-        ),
-      ],
-    ),
-    SettingsGroup(
-      title: l10n.networkSettings_advanced,
-      icon: AppIcons.settings,
-      wrapInCard: false,
-      items: [
-        CustomModel(
-          id: 'rateLimit',
-          title: l10n.networkSettings_rateLimitTitle,
-          subtitle: l10n.networkSettings_advanced,
-          builder: (context, ref) => const RateLimitCard(),
         ),
       ],
     ),
