@@ -163,6 +163,7 @@
   "settings_dataManagement": "資料管理",
   "reading_bookmarksOpenMode": "預設開啟標籤頁方式",
   "reading_bookmarksOpenModeDefault": "預設",
+  "reading_bookmarksOpenModeRow": "標籤頁開啟方式",
   "reading_bookmarksOpenModeTabbedWorkspace": "標籤頁模式",
   "settings_diagnostics": "診斷",
   "settings_engineCompat": "相容",

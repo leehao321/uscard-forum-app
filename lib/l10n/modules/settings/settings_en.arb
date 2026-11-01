@@ -163,6 +163,7 @@
   "settings_dataManagement": "Data Management",
   "reading_bookmarksOpenMode": "Default bookmark open mode",
   "reading_bookmarksOpenModeDefault": "Default",
+  "reading_bookmarksOpenModeRow": "Tab open mode",
   "reading_bookmarksOpenModeTabbedWorkspace": "Tabbed workspace",
   "settings_diagnostics": "Diagnostics",
   "settings_engineCompat": "Compatible",

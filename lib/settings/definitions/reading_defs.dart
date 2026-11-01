@@ -8,6 +8,7 @@ import '../../config/sites/uscard.dart';
 import '../../l10n/s.dart';
 import '../../providers/preferences_provider.dart';
 import '../../services/preloaded_data_service.dart';
+import '../choice_dialog.dart';
 import '../choice_sheet.dart';
 import '../settings_model.dart';
 
@@ -40,7 +41,7 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
       ],
     ),
     SettingsGroup(
-      title: l10n.preferences_basic,
+      title: l10n.preferences_interaction,
       icon: AppIcons.touchApp,
       items: [
         SwitchModel(
@@ -72,6 +73,24 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
           onChanged: (ref, v) =>
               ref.read(preferencesProvider.notifier).setExpandRelatedLinks(v),
         ),
+        ActionModel(
+          id: 'bookmarksOpenMode',
+          title: l10n.reading_bookmarksOpenModeRow,
+          icon: AppIcons.menu,
+          valueBuilder: (ref) => switch (ref
+              .watch(preferencesProvider)
+              .bookmarksOpenMode) {
+            BookmarksOpenMode.defaultRoute =>
+              l10n.reading_bookmarksOpenModeDefault,
+            BookmarksOpenMode.tabbedWorkspace =>
+              l10n.reading_bookmarksOpenModeTabbedWorkspace,
+          },
+          onTap: (context, ref) => _showBookmarksOpenModePicker(
+            context,
+            ref,
+            ref.read(preferencesProvider).bookmarksOpenMode,
+          ),
+        ),
         // 服务端未启用签名插件时隐藏该开关
         if (PreloadedDataService().signaturesEnabled)
           SwitchModel(
@@ -95,24 +114,6 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
                 .read(preferencesProvider.notifier)
                 .setAdaptiveSignatureFrameRate(v),
           ),
-        ActionModel(
-          id: 'bookmarksOpenMode',
-          title: l10n.reading_bookmarksOpenMode,
-          icon: AppIcons.menu,
-          valueBuilder: (ref) => switch (ref
-              .watch(preferencesProvider)
-              .bookmarksOpenMode) {
-            BookmarksOpenMode.defaultRoute =>
-              l10n.reading_bookmarksOpenModeDefault,
-            BookmarksOpenMode.tabbedWorkspace =>
-              l10n.reading_bookmarksOpenModeTabbedWorkspace,
-          },
-          onTap: (context, ref) => _showBookmarksOpenModePicker(
-            context,
-            ref,
-            ref.read(preferencesProvider).bookmarksOpenMode,
-          ),
-        ),
         PlatformConditionalModel(
           inner: SwitchModel(
             id: 'aiSwipeEntry',
@@ -190,7 +191,7 @@ void _showBookmarksOpenModePicker(
   BookmarksOpenMode current,
 ) {
   final l10n = context.l10n;
-  showSettingsChoiceSheet<BookmarksOpenMode>(
+  showSettingsChoiceDialog<BookmarksOpenMode>(
     context,
     title: l10n.reading_bookmarksOpenMode,
     options: [

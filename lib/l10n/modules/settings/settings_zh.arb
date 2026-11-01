@@ -190,6 +190,7 @@
   "settings_dataManagement": "数据管理",
   "reading_bookmarksOpenMode": "默认打开标签页方式",
   "reading_bookmarksOpenModeDefault": "默认",
+  "reading_bookmarksOpenModeRow": "标签页打开方式",
   "reading_bookmarksOpenModeTabbedWorkspace": "标签页模式",
   "settings_diagnostics": "诊断",
   "settings_engineCompat": "兼容",
