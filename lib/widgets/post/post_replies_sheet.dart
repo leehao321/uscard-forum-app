@@ -5,8 +5,8 @@ import 'package:common_ui/common_ui.dart';
 import '../../utils/copy_source_tracker.dart';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart' show CupertinoActivityIndicator;
 import 'package:flutter/material.dart';
-import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/s.dart';
@@ -22,9 +22,7 @@ import '../../utils/code_selection_context.dart';
 import '../../utils/html_text_mapper.dart';
 import '../../utils/html_to_markdown.dart';
 import '../../utils/quote_builder.dart';
-import '../common/app_bottom_sheet.dart';
 
-import 'package:m3e_ui/m3e_ui.dart';
 
 import '../../utils/fluxdo_render_callbacks.dart';
 import 'post_item/quote_selection_helper.dart';
@@ -44,6 +42,7 @@ void showPostRepliesSheet({
   bool isPrivateMessageTopic = false,
   bool isPmWithNonHumanUser = false,
   void Function(int postNumber)? onJumpToPost,
+  @visibleForTesting DiscourseService? service,
 }) {
   showAppBottomSheet(
     context: context,
@@ -56,6 +55,7 @@ void showPostRepliesSheet({
       isPrivateMessageTopic: isPrivateMessageTopic,
       isPmWithNonHumanUser: isPmWithNonHumanUser,
       onJumpToPost: onJumpToPost,
+      service: service,
     ),
   );
 }
@@ -67,6 +67,7 @@ class _PostRepliesSheetContent extends ConsumerStatefulWidget {
   final bool isPrivateMessageTopic;
   final bool isPmWithNonHumanUser;
   final void Function(int postNumber)? onJumpToPost;
+  final DiscourseService? service;
 
   const _PostRepliesSheetContent({
     required this.post,
@@ -75,6 +76,7 @@ class _PostRepliesSheetContent extends ConsumerStatefulWidget {
     this.isPrivateMessageTopic = false,
     this.isPmWithNonHumanUser = false,
     this.onJumpToPost,
+    this.service,
   });
 
   @override
@@ -87,7 +89,8 @@ class _PostRepliesSheetContentState
     with WidgetsBindingObserver {
   static const int _batchSize = 20;
 
-  final DiscourseService _service = DiscourseService();
+  late final DiscourseService _service =
+      widget.service ?? DiscourseService();
   final List<Post> _replies = [];
   List<int> _allReplyIds = [];
   bool _isLoading = true;
@@ -367,7 +370,10 @@ class _PostRepliesSheetContentState
     ThemeData theme,
     ScrollController scrollController,
   ) {
-    if (_isLoading) return const Center(child: LoadingSpinner());
+    // 加载态用共享加载指示（补充稿 16），不用 M3E 指示器
+    if (_isLoading) {
+      return LoadingHint(label: context.l10n.common_loadingLabel);
+    }
 
     if (_error != null) {
       return Center(
@@ -422,31 +428,29 @@ class _PostRepliesSheetContentState
     );
   }
 
-  /// 回复分隔标题
+  /// 回复分隔标题（补充稿 15）：13 meta 的「相关回复」，数量放进朗读标签
   Widget _buildRepliesDivider(ThemeData theme) {
+    final tokens = context.tokens;
     final totalCount = _allReplyIds.isNotEmpty
         ? _allReplyIds.length
         : widget.post.replyCount;
     return Padding(
-      padding: const EdgeInsets.only(left: 4, top: 4, bottom: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 3,
-            height: 14,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary,
-              borderRadius: BorderRadius.circular(1.5),
-            ),
+      padding: const EdgeInsets.only(
+        left: AppSpace.m,
+        top: AppSpace.xl,
+        bottom: AppSpace.s,
+      ),
+      child: Semantics(
+        header: true,
+        label: S.current.post_relatedRepliesCount(totalCount),
+        child: ExcludeSemantics(
+          child: Text(
+            S.current.post_relatedReplies,
+            style: theme.textTheme.bodySmall!
+                .merge(tokens.text.meta)
+                .copyWith(color: tokens.colors.textMeta),
           ),
-          const SizedBox(width: 8),
-          Text(
-            S.current.post_relatedRepliesCount(totalCount),
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -528,8 +532,10 @@ class _PostRepliesSheetContentState
                 topicId: widget.topicId,
               ).render(
                 cookedHtml: post.cooked,
-                baseTextStyle: Theme.of(context).textTheme.bodySmall
-                    ?.copyWith(fontSize: AppFontSize.meta, height: 1.5),
+                // 半屏里正文用 17（补充稿 15）
+                baseTextStyle: Theme.of(context).textTheme.bodyMedium!.merge(
+                  context.tokens.text.body,
+                ),
                 compact: true,
                 selectionEnabled: _isLoggedIn,
                 onQuoteRequest: _isLoggedIn
@@ -582,20 +588,25 @@ class _PostRepliesSheetContentState
   }
 
   Widget _buildLoadMore(ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Center(
-        child: TextButton.icon(
-          onPressed: _isLoadingMore ? null : _loadMore,
-          icon: _isLoadingMore
-              ? const SizedBox(
-                  width: 12,
-                  height: 12,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(AppIcons.expandMore, size: 16),
-          label: Text(S.current.post_loadMoreReplies),
-          style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+    final tokens = context.tokens;
+    final style = theme.textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: tokens.colors.brandPrimary);
+    return Center(
+      child: InkWell(
+        onTap: _isLoadingMore ? null : _loadMore,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: AppSize.hit),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_isLoadingMore) ...[
+                const CupertinoActivityIndicator(radius: AppSize.iconS / 2),
+                const SizedBox(width: AppSpace.xs),
+              ],
+              Text(S.current.post_loadMoreReplies, style: style),
+            ],
+          ),
         ),
       ),
     );
