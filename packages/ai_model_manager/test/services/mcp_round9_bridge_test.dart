@@ -167,6 +167,29 @@ void main() {
     });
   });
 
+  group('生产默认值（不传任何上限参数）', () {
+    test('桥的默认值：单次结果 ≤8000 字、工具总数 ≤32、列表缓存 10 分钟；客户端超时 15 / 30 秒', () {
+      final b = McpToolBridge(service: McpClientService(), secretsOf: (_) async => const McpSecrets());
+      expect(b.maxResultChars, 8000);
+      expect(b.listTtl, const Duration(minutes: 10));
+      expect(McpToolBridge.maxTools, 32);
+      final c = McpClientService();
+      expect(c.initTimeout, const Duration(seconds: 15));
+      expect(c.callTimeout, const Duration(seconds: 30));
+    });
+
+    test('用默认上限构造的桥：很长的结果按 8000 字截断', () async {
+      final w = _World(callReply: '字' * 20000);
+      final b = McpToolBridge(service: w.service, secretsOf: (_) async => const McpSecrets());
+      await b.load([_srv('abcdef')]);
+      final out = await b.call(AiToolCall(id: '1', name: b.tools.first.exposedName, argumentsJson: '{}'));
+      final text = (jsonDecode(out.content) as Map)['text'] as String;
+      expect(text.length, lessThan(8100));
+      expect(text.length, greaterThan(7900));
+      expect(text, contains('原文共 20000 字'));
+    });
+  });
+
   group('调用', () {
     test('字数预算：上限取 min(8000, 剩余)；剩余为 0 直接拒绝，不发请求', () async {
       final w = _World(callReply: '字' * 5000);

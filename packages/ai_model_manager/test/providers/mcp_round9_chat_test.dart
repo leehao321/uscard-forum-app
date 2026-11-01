@@ -144,6 +144,22 @@ void main() {
   Future<void> send(TopicAiChatNotifier n) =>
       n.sendMessage('帮我查一下', ContextScope.firstPostOnly, selectedModel: (provider: _provider, model: _model));
 
+  test('生产默认值：工具循环最多 4 轮、空闲 60 秒', () {
+    expect(TopicAiChatNotifier.mcpMaxRounds, 4);
+    expect(TopicAiChatNotifier.mcpIdleTimeout, const Duration(seconds: 60));
+  });
+
+  test('一直要调工具：恰好 4 轮请求，最后一轮 tool_choice 是 none', () async {
+    final llm = _Llm([(200, _toolCall())]);
+    final mcp = _Mcp();
+    final n = await make(llm, mcp);
+    await send(n);
+    await _waitIdle(n);
+    expect(llm.bodies.length, 4);
+    expect(llm.bodies.map((b) => b['tool_choice']), ['auto', 'auto', 'auto', 'none']);
+    expect(mcp.calls, 3, reason: '第 4 轮的工具调用不执行');
+  });
+
   group('降级', () {
     test('首轮「不支持工具」：退回原来的路径（第二个请求不带 tools），正常出回答', () async {
       final llm = _Llm([

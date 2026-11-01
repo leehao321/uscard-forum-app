@@ -41,15 +41,18 @@ class _Store implements McpSecretStore {
 }
 
 class _RecSvc extends McpClientService {
-  _RecSvc() : super(clientFactory: () => MockClient((_) async => http.Response('{}', 200)));
+  _RecSvc({this.toolCount = 1}) : super(clientFactory: () => MockClient((_) async => http.Response('{}', 200)));
 
+  final int toolCount;
   final listed = <String>[];
   final forgot = <String>[];
 
   @override
   Future<List<McpToolInfo>> listTools(McpServerConfig server, McpSecrets secrets, {Future<void>? abort}) async {
     listed.add(server.id);
-    return [McpToolInfo.fromJson({'name': 'search', 'annotations': {'readOnlyHint': true}})];
+    return [
+      for (var i = 0; i < toolCount; i++) McpToolInfo.fromJson({'name': 't$i', 'annotations': {'readOnlyHint': true}}),
+    ];
   }
 
   @override
@@ -156,6 +159,26 @@ void main() {
     expect(svc.listed.single, isNot('a1'));
     expect(svc.forgot, [svc.listed.single], reason: '测完忘掉探测会话，且只忘它');
     expect(svc.forgot.contains('a1'), isFalse);
+  });
+
+  testWidgets('启用的工具超过 32 个：设置页提示只会用前 32 个；不超过就没有提示', (tester) async {
+    await pump(tester, const McpServerEditPage(), store: _Store(), service: _RecSvc(toolCount: 40));
+    await tester.enterText(find.byKey(const ValueKey('mcp-url')), 'https://mcp.example.com/mcp');
+    await tester.ensureVisible(find.byKey(const ValueKey('mcp-test')));
+    await tester.tap(find.byKey(const ValueKey('mcp-test')));
+    await _settle(tester);
+    await tester.ensureVisible(find.byKey(const ValueKey('mcp-too-many')));
+    expect(find.byKey(const ValueKey('mcp-too-many')), findsOneWidget);
+    expect(find.textContaining('超过 32 个'), findsOneWidget);
+  });
+
+  testWidgets('不超过 32 个：没有这条提示', (tester) async {
+    await pump(tester, const McpServerEditPage(), store: _Store(), service: _RecSvc(toolCount: 3));
+    await tester.enterText(find.byKey(const ValueKey('mcp-url')), 'https://mcp.example.com/mcp');
+    await tester.ensureVisible(find.byKey(const ValueKey('mcp-test')));
+    await tester.tap(find.byKey(const ValueKey('mcp-test')));
+    await _settle(tester);
+    expect(find.byKey(const ValueKey('mcp-too-many')), findsNothing);
   });
 
   testWidgets('连点保存：只新增一个服务、只返回一次；保存期间按钮是禁用的', (tester) async {
