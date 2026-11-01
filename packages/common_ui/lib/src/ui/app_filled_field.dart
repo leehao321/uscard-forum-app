@@ -19,6 +19,7 @@ class AppFilledField extends StatefulWidget {
     this.hintText,
     this.keyboardType,
     this.textInputAction,
+    this.floatingLabel = false,
     this.autofocus = false,
     this.obscureText = false,
     this.enabled = true,
@@ -38,6 +39,9 @@ class AppFilledField extends StatefulWidget {
   });
 
   final String? label;
+
+  /// true：标签平时不显示（占位文字当标签用），聚焦或有内容时才出现在框上方
+  final bool floatingLabel;
   final TextEditingController? controller;
   final String? hintText;
   final TextInputType? keyboardType;
@@ -86,6 +90,7 @@ class _AppFilledFieldState extends State<AppFilledField> {
   void initState() {
     super.initState();
     _focusNode.addListener(_onFocus);
+    _controller.addListener(_onText);
     _focused = _focusNode.hasFocus;
   }
 
@@ -101,9 +106,15 @@ class _AppFilledFieldState extends State<AppFilledField> {
   @override
   void dispose() {
     _focusNode.removeListener(_onFocus);
+    _controller.removeListener(_onText);
     _ownController?.dispose();
     _ownFocus?.dispose();
     super.dispose();
+  }
+
+  // 有没有内容影响浮动标签的显隐
+  void _onText() {
+    if (widget.floatingLabel && mounted) setState(() {});
   }
 
   void _onFocus() {
@@ -136,7 +147,10 @@ class _AppFilledFieldState extends State<AppFilledField> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (widget.label != null)
+            if (widget.label != null &&
+                (!widget.floatingLabel ||
+                    _focused ||
+                    _controller.text.isNotEmpty))
               Padding(
                 padding: const EdgeInsets.only(bottom: AppSpace.s),
                 child: Text(

@@ -391,6 +391,7 @@ abstract final class AppIcons {
   static const textItalic = LucideIcons300.italic;
   static const textStrike = LucideIcons300.strikethrough;
   static const clipboard = LucideIcons300.clipboard;
+  static const folderSync = LucideIcons300.folderSync;
   static const fileCode = LucideIcons300.fileCode;
   static const squarePlus = LucideIcons300.squarePlus;
   static const alignLeft = LucideIcons300.textAlignStart;

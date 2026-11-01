@@ -237,9 +237,9 @@ class _NotionSettingsPageState extends ConsumerState<NotionSettingsPage> {
             AppSpace.x32,
           ),
           children: [
-            // 顶部说明
-            _Header(),
-            const SizedBox(height: 20),
+            // 顶部状态行：图标 + 标题 / 说明 + 右侧连接状态
+            _StatusRow(connected: cfg.isComplete),
+            const SizedBox(height: AppSpace.l),
 
             if (cfg.isComplete && _needsUpgrade == true) ...[
               _UpgradeBanner(
@@ -261,43 +261,37 @@ class _NotionSettingsPageState extends ConsumerState<NotionSettingsPage> {
                     cfg.integrationToken != null &&
                     cfg.integrationToken!.isNotEmpty,
                 children: [
-                  const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    icon: const Icon(AppIcons.openInNew, size: 16),
+                  _StepButton(
+                    icon: AppIcons.openInNew,
+                    label: context.l10n.notion_openIntegrationsPage,
                     onPressed: _openIntegrationsPage,
-                    label: Text(context.l10n.notion_openIntegrationsPage),
-                    style: OutlinedButton.styleFrom(
-                      visualDensity: VisualDensity.compact,
-                    ),
                   ),
-                  const SizedBox(height: 12),
-                  TextField(
+                  AppFilledField(
+                    // 平时占位当标签；聚焦或有内容时标签出现在框上方（品牌色）
+                    label: context.l10n.notion_tokenSection,
+                    floatingLabel: true,
+                    hintText: context.l10n.notion_tokenSection,
                     controller: _tokenController,
                     obscureText: _obscureToken,
                     autocorrect: false,
                     enableSuggestions: false,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.notion_tokenSection,
-                      hintText: 'secret_xxxxxxxxxxxxxxxx',
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureToken
-                              ? AppIcons.visibilityOff
-                              : AppIcons.visibility,
-                          size: 18,
-                        ),
-                        onPressed: () =>
-                            setState(() => _obscureToken = !_obscureToken),
-                      ),
+                    fillColor: context.tokens.colors.surfacePage,
+                    suffix: AppIconButton(
+                      icon: _obscureToken
+                          ? AppIcons.visibilityOff
+                          : AppIcons.visibility,
+                      size: AppSize.iconM,
+                      color: context.tokens.colors.textMeta,
+                      semanticLabel: _obscureToken
+                          ? context.l10n.notion_showToken
+                          : context.l10n.notion_hideToken,
+                      onPressed: () =>
+                          setState(() => _obscureToken = !_obscureToken),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpace.l),
 
               // Step 2: Database
               _StepCard(
@@ -306,43 +300,36 @@ class _NotionSettingsPageState extends ConsumerState<NotionSettingsPage> {
                 body: context.l10n.notion_step2Body,
                 done: cfg.databaseId != null && cfg.databaseId!.isNotEmpty,
                 children: [
-                  const SizedBox(height: 12),
-                  TextField(
+                  AppFilledField(
+                    label: context.l10n.notion_databaseIdLabel,
+                    floatingLabel: true,
+                    hintText: context.l10n.notion_databaseIdLabel,
                     controller: _databaseIdController,
                     autocorrect: false,
                     enableSuggestions: false,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.notion_databaseSection,
-                      hintText: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      suffixIcon: IconButton(
-                        tooltip: context.l10n.common_paste,
-                        icon: const Icon(AppIcons.paste, size: 18),
-                        onPressed: () async {
-                          final data = await Clipboard.getData('text/plain');
-                          final text = data?.text?.trim();
-                          if (text != null && text.isNotEmpty) {
-                            _databaseIdController.text = text;
-                          }
-                        },
-                      ),
+                    fillColor: context.tokens.colors.surfacePage,
+                    suffix: AppIconButton(
+                      icon: AppIcons.clipboard,
+                      size: AppSize.iconM,
+                      color: context.tokens.colors.textMeta,
+                      semanticLabel: context.l10n.common_paste,
+                      onPressed: () async {
+                        final data = await Clipboard.getData('text/plain');
+                        final text = data?.text?.trim();
+                        if (text != null && text.isNotEmpty) {
+                          _databaseIdController.text = text;
+                        }
+                      },
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    icon: const Icon(AppIcons.autoAwesome, size: 16),
+                  _StepButton(
+                    icon: AppIcons.autoAwesome,
+                    label: context.l10n.notion_createTemplateDb,
                     onPressed: _testing ? null : _createTemplateDatabase,
-                    label: Text(context.l10n.notion_createTemplateDb),
-                    style: OutlinedButton.styleFrom(
-                      visualDensity: VisualDensity.compact,
-                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpace.l),
 
               // Step 3: Save + test
               _StepCard(
@@ -351,34 +338,20 @@ class _NotionSettingsPageState extends ConsumerState<NotionSettingsPage> {
                 body: context.l10n.notion_step3Body,
                 done: cfg.isComplete && !_editing,
                 children: [
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      icon: _testing
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppFixedColors.white,
-                              ),
-                            )
-                          : const Icon(AppIcons.checkCircle, size: 18),
-                      onPressed: _testing
-                          ? null
-                          : () async {
-                              await _saveAndTest();
-                              if (mounted &&
-                                  ref.read(notionConfigProvider).isComplete) {
-                                setState(() => _editing = false);
-                              }
-                            },
-                      label: Text(context.l10n.notion_saveAndTest),
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                    ),
+                  _StepButton(
+                    primary: true,
+                    loading: _testing,
+                    icon: AppIcons.checkCircle,
+                    label: context.l10n.notion_saveAndTest,
+                    onPressed: _testing
+                        ? null
+                        : () async {
+                            await _saveAndTest();
+                            if (mounted &&
+                                ref.read(notionConfigProvider).isComplete) {
+                              setState(() => _editing = false);
+                            }
+                          },
                   ),
                 ],
               ),
@@ -448,32 +421,39 @@ class _NotionSettingsPageState extends ConsumerState<NotionSettingsPage> {
               ),
             ],
 
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(12),
+            const SizedBox(height: AppSpace.l),
+            // 底部说明：分组底色条 + lock 16 + 13 meta
+            DecoratedBox(
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(10),
+                color: context.tokens.colors.surfaceGrouped,
+                borderRadius: BorderRadius.circular(
+                  context.tokens.radius.card,
+                ),
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    AppIcons.lock,
-                    size: 14,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      context.l10n.notion_tokenSecurityNote,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontSize: AppFontSize.caption,
-                        height: 1.5,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpace.m),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpace.xxs),
+                      child: Icon(
+                        AppIcons.lock,
+                        size: AppSize.iconS,
+                        color: context.tokens.colors.textMeta,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: AppSpace.s),
+                    Expanded(
+                      child: Text(
+                        context.l10n.notion_tokenSecurityNote,
+                        style: theme.textTheme.bodySmall
+                            ?.merge(context.tokens.text.meta)
+                            .copyWith(color: context.tokens.colors.textMeta),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -612,58 +592,77 @@ class _ConfiguredBanner extends StatelessWidget {
   }
 }
 
-class _Header extends StatelessWidget {
+/// 顶部状态行（surface/grouped r12，64 高）：folder-sync 20 + 标题 17 / 说明 13 meta，
+/// 右侧「未连接 / 已连接」17 meta
+class _StatusRow extends StatelessWidget {
+  const _StatusRow({required this.connected});
+
+  final bool connected;
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(AppSpace.m),
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: context.tokens.colors.surfaceGrouped,
-        borderRadius: BorderRadius.circular(context.tokens.radius.card),
+        color: colors.surfaceGrouped,
+        borderRadius: BorderRadius.circular(tokens.radius.card),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: context.tokens.colors.avatarFill,
-              borderRadius: BorderRadius.circular(context.tokens.radius.field),
-            ),
-            child: Icon(
-              AppIcons.cloud,
-              color: context.tokens.colors.brandPrimary,
-            ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 64),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpace.m,
+            vertical: AppSpace.m,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  context.l10n.notion_title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+          child: Row(
+            children: [
+              Icon(
+                AppIcons.folderSync,
+                size: AppSize.iconM,
+                color: colors.brandPrimary,
+              ),
+              const SizedBox(width: AppSpace.m),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.l10n.notion_title,
+                      style: base
+                          .merge(tokens.text.control)
+                          .copyWith(color: colors.textPrimary),
+                    ),
+                    const SizedBox(height: AppSpace.xs),
+                    Text(
+                      context.l10n.notion_subtitle,
+                      style: base
+                          .merge(tokens.text.meta)
+                          .copyWith(color: colors.textMeta),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  context.l10n.notion_subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(width: AppSpace.m),
+              Text(
+                connected
+                    ? context.l10n.notion_statusConnected
+                    : context.l10n.notion_statusDisconnected,
+                style: base
+                    .merge(tokens.text.control)
+                    .copyWith(color: colors.textMeta),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-/// 步骤卡片。step done 时左上角圆圈显示 ✓。
+/// 步骤卡片（surface/grouped r12，内边距 16）：序号徽标 24 + 标题 17 Medium，
+/// 正文 13 meta，下面是输入框 / 按钮（各 44 高，间距 12）。完成的步骤徽标变成 ✓。
 class _StepCard extends StatelessWidget {
   const _StepCard({
     required this.index,
@@ -681,70 +680,144 @@ class _StepCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(AppSpace.m),
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: context.tokens.colors.surfaceGrouped,
-        borderRadius: BorderRadius.circular(context.tokens.radius.card),
-        border: Border.all(
-          color: done
-              ? context.tokens.colors.brandPrimary
-              : context.tokens.colors.separator,
-          width: done ? 1 : AppSpace.hairline,
+        color: colors.surfaceGrouped,
+        borderRadius: BorderRadius.circular(tokens.radius.card),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpace.l),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                // 序号徽标：24 圆，surface/page 底、13 Medium；完成后 brand 底 + ✓
+                Container(
+                  width: AppSize.iconL,
+                  height: AppSize.iconL,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: done ? colors.brandButton : colors.surfacePage,
+                    shape: BoxShape.circle,
+                  ),
+                  child: done
+                      ? Icon(
+                          AppIcons.check,
+                          size: AppSize.iconS,
+                          color: colors.onBrandButton,
+                        )
+                      : Text(
+                          '$index',
+                          style: base
+                              .merge(tokens.text.metaStrong)
+                              .copyWith(
+                                fontWeight: FontWeight.w500,
+                                color: colors.textPrimary,
+                              ),
+                        ),
+                ),
+                const SizedBox(width: AppSpace.m),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: base
+                        .merge(tokens.text.control)
+                        .copyWith(
+                          fontWeight: FontWeight.w500,
+                          color: colors.textPrimary,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpace.m),
+            Text(
+              body,
+              style: base
+                  .merge(tokens.text.meta)
+                  .copyWith(color: colors.textMeta),
+            ),
+            for (final child in children) ...[
+              const SizedBox(height: AppSpace.m),
+              child,
+            ],
+          ],
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+    );
+  }
+}
+
+/// 步骤卡片里的按钮：44 高 r12。次按钮是 surface/page 底 + brand 文字；
+/// [primary] 是 brand/button 底 + 白字。[onPressed] 为空时变淡不可点。
+class _StepButton extends StatelessWidget {
+  const _StepButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    this.primary = false,
+    this.loading = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+  final bool primary;
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final foreground = primary ? colors.onBrandButton : colors.brandPrimary;
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    return Opacity(
+      opacity: onPressed == null && !loading ? 0.4 : 1,
+      child: AppPressable(
+        onTap: onPressed,
+        semanticLabel: label,
+        excludeChildSemantics: true,
+        child: Container(
+          height: AppSize.hit,
+          decoration: BoxDecoration(
+            color: primary ? colors.brandButton : colors.surfacePage,
+            borderRadius: BorderRadius.circular(tokens.radius.card),
+          ),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: done
-                      ? context.tokens.colors.brandPrimary
-                      : context.tokens.colors.avatarFill,
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: done
-                    ? Icon(
-                        AppIcons.check,
-                        size: 16,
-                        color: theme.colorScheme.onPrimary,
-                      )
-                    : Text(
-                        '$index',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+              loading
+                  ? SizedBox(
+                      width: AppSize.iconM,
+                      height: AppSize.iconM,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: foreground,
                       ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
+                    )
+                  : Icon(icon, size: AppSize.iconM, color: foreground),
+              const SizedBox(width: AppSpace.s),
+              Flexible(
                 child: Text(
-                  title,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: base
+                      .merge(tokens.text.control)
+                      .copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: foreground,
+                      ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Text(
-            body,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              height: 1.6,
-            ),
-          ),
-          ...children,
-        ],
+        ),
       ),
     );
   }
