@@ -414,8 +414,10 @@ class AiChatMessageItem extends StatelessWidget {
       );
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    // 大字号下一行放不下就换行，不溢出
+    return Wrap(
+      spacing: 12,
+      runSpacing: 4,
       children: [
         _ActionButton(
           icon: AppIcons.image,
@@ -423,22 +425,19 @@ class AiChatMessageItem extends StatelessWidget {
           color: color,
           onTap: onShareAsImage,
         ),
-        const SizedBox(width: 12),
         _ActionButton(
           icon: AppIcons.copy,
           label: context.l10n.ai_copyLabel,
           color: color,
           onTap: onCopyText,
         ),
-        if (onRegenerate != null) ...[
-          const SizedBox(width: 12),
+        if (onRegenerate != null)
           _ActionButton(
             icon: AppIcons.refresh,
             label: context.l10n.ai_regenerateLabel,
             color: color,
             onTap: onRegenerate,
           ),
-        ],
       ],
     );
   }

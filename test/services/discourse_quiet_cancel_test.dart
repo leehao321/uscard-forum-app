@@ -79,7 +79,10 @@ void main() {
     final service = _service(adapter);
     final token = CancelToken();
     final future = service.getTopicDetail(1, quiet: QuietRequest(cancelToken: token));
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    // 请求要走完拦截器链才到适配器，负载高时不止 50ms：轮询等到
+    for (var i = 0; i < 150 && adapter.requests.isEmpty; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
     expect(adapter.requests.length, 1);
     token.cancel('stop');
     await expectLater(

@@ -20,6 +20,7 @@ import 'package:fluxdo/providers/bookmark_sync_controller.dart';
 import 'package:fluxdo/providers/topic_list/topic_list_provider.dart';
 import 'package:fluxdo/widgets/topic/topic_row.dart';
 import 'package:fluxdo/models/user.dart';
+import 'package:fluxdo/services/network/quiet_request.dart';
 import 'package:fluxdo/pages/badge_page.dart';
 import 'package:fluxdo/pages/follow_list_page.dart';
 import 'package:fluxdo/pages/user_profile_page.dart';
@@ -92,6 +93,7 @@ class _BadgeService implements DiscourseService {
     required int badgeId,
     String? username,
     int offset = 0,
+    QuietRequest? quiet,
   }) async {
     return badge_model.BadgeDetailResponse.fromJson({
       'badges': [
@@ -151,7 +153,7 @@ class _FollowService implements DiscourseService {
 
 class _ProfileService implements DiscourseService {
   @override
-  Future<User> getUser(String username, {bool isSilent = false}) async => User.fromJson({
+  Future<User> getUser(String username, {bool isSilent = false, QuietRequest? quiet}) async => User.fromJson({
     'id': 99,
     'username': username,
     'name': '一个名字很长很长很长很长的测试用户',
@@ -172,6 +174,7 @@ class _ProfileService implements DiscourseService {
   Future<UserSummary> getUserSummary(
     String username, {
     bool forceRefresh = false,
+    QuietRequest? quiet,
   }) async => UserSummary.fromJson({'user_summary': <String, dynamic>{}});
 
   @override
