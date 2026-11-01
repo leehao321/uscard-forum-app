@@ -46,6 +46,8 @@ class DataBackupService {
     'auth_passive_logout_history',
     'bg_shared_session_key',
     'one_time_password',
+    // MCP 服务列表：地址和开关没有 Token / 请求头就用不了，凭据在安全存储里，不导出
+    'mcp_servers_',
     // ── 设备绑定 / 运行态 ──
     'cronet_', // 降级状态
     'vpn_suppressed_',

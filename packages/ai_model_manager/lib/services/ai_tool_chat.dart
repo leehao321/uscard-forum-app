@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import '../models/ai_provider.dart';
 import '../utils/api_host_formatter.dart';
+import '../utils/tool_schema.dart';
 
 /// 带工具调用的对话（function calling）。
 ///
@@ -509,7 +510,7 @@ class AiToolChatService {
               'function': {
                 'name': s.name,
                 'description': s.description,
-                'parameters': s.parameters,
+                'parameters': ToolSchema.clean(s.parameters, AiProviderType.openai),
               },
             },
         ],
@@ -707,7 +708,7 @@ class AiToolChatService {
               'type': 'function',
               'name': s.name,
               'description': s.description,
-              'parameters': s.parameters,
+              'parameters': ToolSchema.clean(s.parameters, AiProviderType.openaiResponse),
             },
         ],
         if (choice != AiToolChoice.unspecified)
@@ -897,7 +898,7 @@ class AiToolChatService {
             {
               'name': s.name,
               'description': s.description,
-              'input_schema': s.parameters,
+              'input_schema': ToolSchema.clean(s.parameters, AiProviderType.anthropic),
             },
         ],
         if (choice != AiToolChoice.unspecified)
@@ -1150,7 +1151,7 @@ class AiToolChatService {
                   // 没有参数的工具不能带空的 properties
                   if (((s.parameters['properties'] as Map?) ?? const {})
                       .isNotEmpty)
-                    'parameters': _geminiSchema(s.parameters),
+                    'parameters': _geminiSchema(ToolSchema.clean(s.parameters, AiProviderType.gemini)),
                 },
             ],
           },
