@@ -7,13 +7,16 @@ import '../../../../../services/discourse_cache_manager.dart';
 
 export '../../../../../models/topic.dart' show LinkCount;
 
-/// Onebox 基础容器
+/// Onebox 基础容器（补充稿 11：链接预览卡片的统一外壳）
+///
+/// 不加底色，1 像素 separator 描边、圆角 12（随圆角档），内边距 12。
+/// 默认卡片和 GitHub 等专用卡片共用这层外壳。
 class OneboxContainer extends StatelessWidget {
   final Widget child;
   final VoidCallback? onTap;
   final EdgeInsets margin;
   final EdgeInsets padding;
-  final double borderRadius;
+  final double? borderRadius;
 
   const OneboxContainer({
     super.key,
@@ -21,22 +24,22 @@ class OneboxContainer extends StatelessWidget {
     this.onTap,
     this.margin = const EdgeInsets.symmetric(vertical: 8),
     this.padding = const EdgeInsets.all(12),
-    this.borderRadius = 8,
+    this.borderRadius,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final tokens = context.tokens;
+    final radius = borderRadius ?? tokens.radius.card;
     return Container(
       margin: margin,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: tokens.colors.separator, width: 1),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(borderRadius),
+        borderRadius: BorderRadius.circular(radius),
         child: Padding(padding: padding, child: child),
       ),
     );
@@ -49,7 +52,7 @@ class OneboxContainerWithHeader extends StatelessWidget {
   final Widget child;
   final VoidCallback? onTap;
   final EdgeInsets margin;
-  final double borderRadius;
+  final double? borderRadius;
 
   const OneboxContainerWithHeader({
     super.key,
@@ -57,24 +60,24 @@ class OneboxContainerWithHeader extends StatelessWidget {
     required this.child,
     this.onTap,
     this.margin = const EdgeInsets.symmetric(vertical: 8),
-    this.borderRadius = 8,
+    this.borderRadius,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final borderColor = theme.colorScheme.outlineVariant;
+    final tokens = context.tokens;
+    final borderColor = tokens.colors.separator;
+    final radius = borderRadius ?? tokens.radius.card;
 
     return Container(
       margin: margin,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(borderRadius),
+        borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: borderColor, width: 1),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(borderRadius),
+        borderRadius: BorderRadius.circular(radius),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

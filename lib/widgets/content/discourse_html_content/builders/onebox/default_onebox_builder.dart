@@ -1,10 +1,16 @@
+import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 
+import '../../../../../services/discourse_cache_manager.dart';
 import '../../../../../utils/link_launcher.dart';
 import 'onebox_base.dart';
 
-/// 构建默认链接预览卡片
+/// 构建默认链接预览卡片（补充稿 11）
+///
+/// 模板：预览图（整宽、高 160、圆角 12，没有图就不画）→ 标题 17 Semibold
+/// （最多 2 行）→ 摘要 13 meta（最多 2 行）→ 站点行（图标 16 + 站点名 13 meta，
+/// 右端点击数）。GitHub 等专用卡片共用同一层外壳（[OneboxContainer]）。
 Widget buildDefaultOnebox({
   required BuildContext context,
   required ThemeData theme,
@@ -48,116 +54,132 @@ Widget buildDefaultOnebox({
         await launchContentLink(context, url);
       }
     },
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 来源和图标和点击数
-        if (sourceName.isNotEmpty || iconUrl.isNotEmpty || clickCount != null)
-          OneboxSourceHeader(
-            iconUrl: iconUrl,
-            sourceName: sourceName,
-            clickCount: clickCount,
-          ),
-        if (sourceName.isNotEmpty || iconUrl.isNotEmpty || clickCount != null)
-          const SizedBox(height: 8),
-
-        // 内容区域（可能带缩略图）
-        if (thumbnailUrl.isNotEmpty)
-          _buildWithThumbnail(
-            theme: theme,
-            title: title,
-            description: description,
-            thumbnailUrl: thumbnailUrl,
-          )
-        else
-          _buildWithoutThumbnail(
-            theme: theme,
-            title: title,
-            description: description,
-          ),
-      ],
+    child: DefaultOneboxCard(
+      title: title,
+      description: description,
+      thumbnailUrl: thumbnailUrl,
+      sourceName: sourceName,
+      iconUrl: iconUrl,
+      clickCount: clickCount,
     ),
   );
 }
 
-Widget _buildWithThumbnail({
-  required ThemeData theme,
-  required String title,
-  required String description,
-  required String thumbnailUrl,
-}) {
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (title.isNotEmpty) ...[
-              Text(
-                title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-            ],
-            if (description.isNotEmpty)
-              Text(
-                description,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-          ],
-        ),
-      ),
-      const SizedBox(width: 12),
-      ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: OneboxAvatar(
-          imageUrl: thumbnailUrl,
-          size: 80,
-          borderRadius: 6,
-          fallbackIcon: AppIcons.image,
-        ),
-      ),
-    ],
-  );
-}
+/// 默认链接预览卡片的内容（不含外壳）
+class DefaultOneboxCard extends StatelessWidget {
+  const DefaultOneboxCard({
+    super.key,
+    required this.title,
+    required this.description,
+    required this.thumbnailUrl,
+    required this.sourceName,
+    required this.iconUrl,
+    this.clickCount,
+  });
 
-Widget _buildWithoutThumbnail({
-  required ThemeData theme,
-  required String title,
-  required String description,
-}) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      if (title.isNotEmpty) ...[
-        Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
+  final String title;
+  final String description;
+  final String thumbnailUrl;
+  final String sourceName;
+  final String iconUrl;
+  final String? clickCount;
+
+  /// 预览图高度
+  static const double thumbnailHeight = 160;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final theme = Theme.of(context);
+    final metaStyle = theme.textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
+    final hasSite =
+        sourceName.isNotEmpty || iconUrl.isNotEmpty || clickCount != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (thumbnailUrl.isNotEmpty) ...[
+          ClipRRect(
+            borderRadius: BorderRadius.circular(tokens.radius.card),
+            child: SizedBox(
+              height: thumbnailHeight,
+              child: Image(
+                image: discourseImageProvider(thumbnailUrl),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => ColoredBox(
+                  color: colors.surfaceGrouped,
+                  child: Center(
+                    child: Icon(
+                      AppIcons.image,
+                      size: AppSize.iconL,
+                      color: colors.textMeta,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 4),
+          const SizedBox(height: AppSpace.s),
+        ],
+        if (title.isNotEmpty)
+          Text(
+            title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium!
+                .merge(tokens.text.headline)
+                .copyWith(color: colors.textPrimary),
+          ),
+        if (description.isNotEmpty) ...[
+          const SizedBox(height: AppSpace.xs),
+          Text(
+            description,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: metaStyle,
+          ),
+        ],
+        if (hasSite) ...[
+          const SizedBox(height: AppSpace.s),
+          Row(
+            children: [
+              if (iconUrl.isNotEmpty)
+                Image(
+                  image: discourseImageProvider(iconUrl),
+                  width: AppSize.iconS,
+                  height: AppSize.iconS,
+                  errorBuilder: (context, error, stackTrace) => Icon(
+                    AppIcons.globe,
+                    size: AppSize.iconS,
+                    color: colors.textMeta,
+                  ),
+                )
+              else
+                Icon(
+                  AppIcons.globe,
+                  size: AppSize.iconS,
+                  color: colors.textMeta,
+                ),
+              const SizedBox(width: AppSpace.s),
+              Expanded(
+                child: Text(
+                  sourceName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: metaStyle,
+                ),
+              ),
+              if (clickCount != null) ...[
+                const SizedBox(width: AppSpace.s),
+                OneboxClickCount(count: clickCount!),
+              ],
+            ],
+          ),
+        ],
       ],
-      if (description.isNotEmpty)
-        Text(
-          description,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
-        ),
-    ],
-  );
+    );
+  }
 }
