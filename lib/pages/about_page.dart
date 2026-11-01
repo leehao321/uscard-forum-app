@@ -18,6 +18,7 @@ import 'package:m3e_ui/m3e_ui.dart';
 
 import '../widgets/update_dialog.dart';
 import 'dev/ui_gallery_page.dart';
+import 'open_source_licenses_page.dart';
 
 class AboutPage extends StatefulWidget {
   const AboutPage({super.key});
@@ -313,11 +314,13 @@ class _AboutPageState extends State<AboutPage> {
                       context,
                       icon: AppIcons.description,
                       title: l10n.about_openSourceLicense,
-                      onTap: () => showLicensePage(
-                        context: context,
-                        applicationName: l10n.about_appName,
-                        applicationVersion: _version,
-                        applicationLegalese: l10n.about_legalese,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => OpenSourceLicensesPage(
+                            appName: l10n.about_appName,
+                            appVersion: _version,
+                          ),
+                        ),
                       ),
                     ),
                   ],

@@ -14,6 +14,35 @@
   "about_info": "Info",
   "about_latestVersion": "Up to date",
   "about_legalese": "Unofficial USCard Forum client\nBuilt with Flutter & Material 3",
+  "about_licensesVersion": "Version {version}",
+  "@about_licensesVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "about_licensesTagline": "Unofficial USCard Forum client · Built with Flutter",
+  "about_licensesThirdParty": "Third-party components · sorted by name",
+  "about_licensesCount": "{count} license(s)",
+  "@about_licensesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "about_licenseIndex": "License {index} / {total}",
+  "@about_licenseIndex": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "about_noUpdateContent": "Current version: {version}\nYou are using the latest version of USCard Forum.",
   "about_openSourceLicense": "Open source licenses",
   "about_sourceCode": "Source code",

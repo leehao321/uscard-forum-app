@@ -21,6 +21,35 @@
   "about_info": "信息",
   "about_latestVersion": "已是最新版本",
   "about_legalese": "非官方 美卡论坛 客户端\n基於 Flutter & Material 3",
+  "about_licensesVersion": "版本 {version}",
+  "@about_licensesVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "about_licensesTagline": "非官方美卡論壇客戶端 · 基於 Flutter",
+  "about_licensesThirdParty": "第三方組件 · 按名稱排序",
+  "about_licensesCount": "{count} 份許可",
+  "@about_licensesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "about_licenseIndex": "許可 {index} / {total}",
+  "@about_licenseIndex": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "about_noUpdateContent": "當前版本: {version}\n您正在使用最新版本的 USCard Forum，無需更新。",
   "@about_noUpdateContent": {
     "placeholders": {
