@@ -18,6 +18,7 @@ import 'package:m3e_ui/m3e_ui.dart';
 import 'package:common_ui/common_ui.dart';
 
 import '../../common/smart_avatar.dart';
+import 'revision_diff_utils.dart';
 
 /// 帖子编辑历史主视图(放入 modal/page 内)。
 ///
@@ -209,7 +210,7 @@ class _PostRevisionViewState extends ConsumerState<PostRevisionView> {
     final result = await showAppDialog<bool>(
       context: context,
       builder: (dialogContext) {
-        final theme = Theme.of(dialogContext);
+        final tokens = dialogContext.tokens;
         return AppAlertDialog(
           title: Text(title),
           content: Text(body),
@@ -222,7 +223,7 @@ class _PostRevisionViewState extends ConsumerState<PostRevisionView> {
               onPressed: () => Navigator.of(dialogContext).pop(true),
               style: destructive
                   ? TextButton.styleFrom(
-                      foregroundColor: theme.colorScheme.error,
+                      foregroundColor: tokens.colors.textDestructive,
                     )
                   : null,
               child: Text(dialogContext.l10n.common_confirm),
@@ -279,19 +280,23 @@ class _PostRevisionViewState extends ConsumerState<PostRevisionView> {
                   ? null
                   : () => _navigateTo(revision.lastRevision),
             ),
-            const Divider(height: 1),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpace.pageMargin,
+                  AppSpace.s,
+                  AppSpace.pageMargin,
+                  AppSpace.l,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _AuthorMeta(revision: revision),
                     if (revision.hasMetaChanges) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpace.m),
                       _MetaChanges(revision: revision),
                     ],
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpace.l),
                     _BodyDiff(revision: revision, mode: _diffMode),
                   ],
                 ),
@@ -314,8 +319,10 @@ class _PostRevisionViewState extends ConsumerState<PostRevisionView> {
   }
 }
 
-/// 顶部紧凑工具栏:左侧导航(上一版/版本号/下一版),右侧 diff 模式 + 溢出菜单(首版/末版)。
-/// 桌面端把全部按钮平铺,移动端隐藏首版/末版到溢出菜单。
+/// 工具栏（补充稿 29–31）：左侧「‹ 上一版 → 当前版 ›」切换版本，右侧是当前对比方式
+/// （brand/primary 13 + ⌄），点开菜单换成 行内差异 / 并排 Markdown / 渲染后对比。
+/// 桌面端另外平铺首版 / 末版；手机端把它们收进溢出菜单。
+/// 只有一个版本（没有上一版也没有下一版）时不画箭头。
 class _RevisionToolbar extends StatelessWidget {
   final PostRevision revision;
   final _DiffMode diffMode;
@@ -335,76 +342,129 @@ class _RevisionToolbar extends StatelessWidget {
     required this.onLast,
   });
 
+  /// 菜单里的顺序：行内差异 / 并排 Markdown / 渲染后对比
+  static const modeOrder = [
+    _DiffMode.inline,
+    _DiffMode.sideBySideMarkdown,
+    _DiffMode.sideBySide,
+  ];
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final tokens = context.tokens;
     final l10n = context.l10n;
     final isMobile = Responsive.isMobile(context);
+    final hasNav = onPrevious != null || onNext != null;
+    final label = theme.textTheme.bodySmall
+        ?.merge(tokens.text.meta)
+        .copyWith(color: tokens.colors.textPrimary);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      // 箭头的 44 热区里图标居中，左缘要和 20 的页边距对齐
+      padding: EdgeInsets.only(
+        left: hasNav ? AppSpace.s : AppSpace.pageMargin,
+        right: AppSpace.pageMargin,
+      ),
       child: Row(
         children: [
-          if (!isMobile)
-            IconButton(
-              icon: const Icon(AppIcons.chevronFirst),
-              tooltip: l10n.postRevision_first,
-              onPressed: onFirst,
-              visualDensity: VisualDensity.compact,
-            ),
-          IconButton(
-            icon: const Icon(AppIcons.chevronLeft),
-            tooltip: l10n.postRevision_previous,
-            onPressed: onPrevious,
-            visualDensity: VisualDensity.compact,
-          ),
+          // 左组「‹ 上一版 → 当前版 ›」占满剩余宽度，对比方式靠右
           Expanded(
-            child: Center(
-              child: Text(
-                l10n.postRevision_versionLabel(
-                  revision.currentVersion,
-                  revision.versionCount,
-                ),
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!isMobile)
+                    AppIconButton(
+                      icon: AppIcons.chevronFirst,
+                      size: AppSize.iconM,
+                      semanticLabel: l10n.postRevision_first,
+                      onPressed: onFirst,
+                    ),
+                  if (hasNav)
+                    AppIconButton(
+                      key: const ValueKey('revision_previous'),
+                      icon: AppIcons.chevronLeft,
+                      size: AppSize.iconM,
+                      semanticLabel: l10n.postRevision_previous,
+                      onPressed: onPrevious,
+                    ),
+                  Flexible(
+                    child: Semantics(
+                      label: l10n.postRevision_versionLabel(
+                        revision.currentVersion,
+                        revision.versionCount,
+                      ),
+                      child: Text(
+                        l10n.postRevision_compareLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: label,
+                      ),
+                    ),
+                  ),
+                  if (hasNav)
+                    AppIconButton(
+                      key: const ValueKey('revision_next'),
+                      icon: AppIcons.chevronRight,
+                      size: AppSize.iconM,
+                      semanticLabel: l10n.postRevision_next,
+                      onPressed: onNext,
+                    ),
+                  if (!isMobile)
+                    AppIconButton(
+                      icon: AppIcons.chevronLast,
+                      size: AppSize.iconM,
+                      semanticLabel: l10n.postRevision_last,
+                      onPressed: onLast,
+                    ),
+                ],
               ),
             ),
           ),
-          IconButton(
-            icon: const Icon(AppIcons.chevronRight),
-            tooltip: l10n.postRevision_next,
-            onPressed: onNext,
-            visualDensity: VisualDensity.compact,
-          ),
-          if (!isMobile)
-            IconButton(
-              icon: const Icon(AppIcons.chevronLast),
-              tooltip: l10n.postRevision_last,
-              onPressed: onLast,
-              visualDensity: VisualDensity.compact,
-            ),
           if (onModeChanged != null)
-            AppMenuButton<_DiffMode>(
-              icon: _modeIcon(diffMode),
+            AppMenuAnchor<_DiffMode>(
+              key: const ValueKey('revision_mode_menu'),
               semanticLabel: _modeLabel(l10n, diffMode),
               onSelected: onModeChanged,
               sectionsBuilder: (_) => [
                 [
-                  for (final mode in _DiffMode.values)
+                  for (final mode in modeOrder)
                     AppMenuItem<_DiffMode>(
                       label: _modeLabel(l10n, mode),
                       value: mode,
-                      icon: _modeIcon(mode),
                       checked: mode == diffMode,
+                      rowKey: ValueKey('revision_mode_${mode.name}'),
                     ),
                 ],
               ],
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: AppSize.hit),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _modeLabel(l10n, diffMode),
+                      key: const ValueKey('revision_mode_label'),
+                      style: label?.copyWith(color: tokens.colors.brandPrimary),
+                    ),
+                    const SizedBox(width: AppSpace.xs),
+                    Icon(
+                      AppIcons.chevronDown,
+                      size: AppSize.iconS,
+                      color: tokens.colors.brandPrimary,
+                    ),
+                  ],
+                ),
+              ),
             ),
           if (isMobile && (onFirst != null || onLast != null))
             AppMenuButton<String>(
               icon: AppIcons.moreVert,
-              semanticLabel: MaterialLocalizations.of(context).moreButtonTooltip,
+              semanticLabel: MaterialLocalizations.of(
+                context,
+              ).moreButtonTooltip,
               onSelected: (value) {
                 if (value == 'first') onFirst?.call();
                 if (value == 'last') onLast?.call();
@@ -431,17 +491,6 @@ class _RevisionToolbar extends StatelessWidget {
     );
   }
 
-  static IconData _modeIcon(_DiffMode mode) {
-    switch (mode) {
-      case _DiffMode.inline:
-        return AppIcons.rows;
-      case _DiffMode.sideBySide:
-        return AppIcons.columns;
-      case _DiffMode.sideBySideMarkdown:
-        return AppIcons.code;
-    }
-  }
-
   static String _modeLabel(AppLocalizations l10n, _DiffMode mode) {
     switch (mode) {
       case _DiffMode.inline:
@@ -454,6 +503,7 @@ class _RevisionToolbar extends StatelessWidget {
   }
 }
 
+/// 编辑者信息：不画底色的两行小字——「v2 / 5 · 由 X 编辑 · 时间」和编辑原因。
 class _AuthorMeta extends StatelessWidget {
   final PostRevision revision;
 
@@ -462,81 +512,68 @@ class _AuthorMeta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final tokens = context.tokens;
     final l10n = context.l10n;
     final avatarUrl = revision.getAvatarUrl();
     final timeText = TimeUtils.formatDetailTime(revision.createdAt);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              if (avatarUrl.isNotEmpty)
-                SmartAvatar(imageUrl: avatarUrl, radius: 16),
-              if (avatarUrl.isNotEmpty) const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.postRevision_editedBy(
-                        revision.actingUserName ?? revision.displayActor,
-                      ),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      timeText,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
+    final meta = theme.textTheme.bodySmall
+        ?.merge(tokens.text.meta)
+        .copyWith(color: tokens.colors.textMeta);
+    final version = l10n.postRevision_versionLabel(
+      revision.currentVersion,
+      revision.versionCount,
+    );
+    final editedBy = l10n.postRevision_editedBy(
+      revision.actingUserName ?? revision.displayActor,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            if (avatarUrl.isNotEmpty) ...[
+              SmartAvatar(imageUrl: avatarUrl, radius: 10),
+              const SizedBox(width: AppSpace.s),
+            ],
+            Expanded(
+              child: Text(
+                '$version · $editedBy · $timeText',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: meta,
+              ),
+            ),
+            if (revision.currentHidden)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpace.s,
+                  vertical: AppSpace.xxs,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(color: tokens.colors.textDestructive),
+                  borderRadius: BorderRadius.circular(tokens.radius.tag),
+                ),
+                child: Text(
+                  l10n.postRevision_revisionHidden,
+                  style: tokens.text.caption.copyWith(
+                    color: tokens.colors.textDestructive,
+                  ),
                 ),
               ),
-              if (revision.currentHidden)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.errorContainer,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    l10n.postRevision_revisionHidden,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onErrorContainer,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-            ],
+          ],
+        ),
+        const SizedBox(height: AppSpace.xs),
+        Text(
+          revision.editReason != null
+              ? l10n.postRevision_editReason(revision.editReason!)
+              : l10n.postRevision_editReasonEmpty,
+          style: meta?.copyWith(
+            fontStyle: revision.editReason == null
+                ? FontStyle.italic
+                : FontStyle.normal,
           ),
-          const SizedBox(height: 6),
-          Text(
-            revision.editReason != null
-                ? l10n.postRevision_editReason(revision.editReason!)
-                : l10n.postRevision_editReasonEmpty,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: revision.editReason != null
-                  ? theme.colorScheme.onSurface
-                  : theme.colorScheme.onSurfaceVariant,
-              fontStyle: revision.editReason == null
-                  ? FontStyle.italic
-                  : FontStyle.normal,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -549,7 +586,6 @@ class _MetaChanges extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
     final categoryMap =
         ref.watch(categoryMapProvider).whenOrNull(data: (m) => m) ?? const {};
 
@@ -637,19 +673,18 @@ class _MetaChanges extends ConsumerWidget {
 
     if (entries.isEmpty) return const SizedBox.shrink();
 
+    final tokens = context.tokens;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.all(AppSpace.m),
       decoration: BoxDecoration(
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
-        ),
-        borderRadius: BorderRadius.circular(10),
+        color: tokens.colors.surfaceElevated,
+        borderRadius: BorderRadius.circular(tokens.radius.card),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           for (var i = 0; i < entries.length; i++) ...[
-            if (i > 0) const Divider(height: 16),
+            if (i > 0) const AppHairline(),
             _MetaRow(entry: entries[i]),
           ],
         ],
@@ -686,35 +721,49 @@ class _MetaRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final delBg = theme.colorScheme.errorContainer.withValues(alpha: 0.4);
-    final insBg = theme.colorScheme.tertiaryContainer.withValues(alpha: 0.4);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 72,
-          child: Text(
-            entry.label,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
+    final tokens = context.tokens;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpace.s),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 72,
+            child: Text(
+              entry.label,
+              style: theme.textTheme.bodySmall
+                  ?.merge(tokens.text.metaStrong)
+                  .copyWith(color: tokens.colors.textMeta),
             ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              _MetaChip(text: entry.previous, color: delBg, strike: true),
-              const Icon(AppIcons.moveRight, size: 18),
-              _MetaChip(text: entry.current, color: insBg, strike: false),
-            ],
+          const SizedBox(width: AppSpace.s),
+          Expanded(
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: AppSpace.s,
+              runSpacing: AppSpace.xs,
+              children: [
+                // 旧值：text/destructive + 删除线；新值：brand/primary
+                _MetaChip(
+                  text: entry.previous,
+                  color: tokens.colors.textDestructive,
+                  strike: true,
+                ),
+                Icon(
+                  AppIcons.moveRight,
+                  size: AppSize.iconS,
+                  color: tokens.colors.textMeta,
+                ),
+                _MetaChip(
+                  text: entry.current,
+                  color: tokens.colors.brandPrimary,
+                  strike: false,
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -733,17 +782,12 @@ class _MetaChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
+    return Text(
+      text,
+      style: theme.textTheme.bodySmall?.copyWith(
         color: color,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        text,
-        style: theme.textTheme.bodySmall?.copyWith(
-          decoration: strike ? TextDecoration.lineThrough : null,
-        ),
+        decoration: strike ? TextDecoration.lineThrough : null,
+        decorationColor: color,
       ),
     );
   }
@@ -757,18 +801,18 @@ class _BodyDiff extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final tokens = context.tokens;
     if (revision.diffError) {
       return Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppSpace.m),
         decoration: BoxDecoration(
-          color: theme.colorScheme.errorContainer.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(8),
+          color: tokens.colors.surfaceElevated,
+          borderRadius: BorderRadius.circular(tokens.radius.card),
         ),
         child: Text(
           context.l10n.postRevision_diffError,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onErrorContainer,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: tokens.colors.textDestructive,
           ),
         ),
       );
@@ -778,13 +822,23 @@ class _BodyDiff extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    // 删除 text/destructive（删除线）、新增 brand/primary
+    String paint(String html) => colorizeDiffHtml(
+      html,
+      insColor: tokens.colors.brandPrimary,
+      delColor: tokens.colors.textDestructive,
+    );
+
     switch (mode) {
       case _DiffMode.inline:
         final html = body.inline ?? body.sideBySide ?? body.sideBySideMarkdown;
         if (html == null || html.isEmpty) return const SizedBox.shrink();
-        return FluxdoRenderCallbacks.generic(
-          heroTagNamespace: 'revision_inline',
-        ).render(cookedHtml: html, selectionEnabled: false);
+        // 行内差异：一张 surface/elevated 卡片，里面是交错的新旧文字
+        return _DiffCard(
+          child: FluxdoRenderCallbacks.generic(
+            heroTagNamespace: 'revision_inline',
+          ).render(cookedHtml: paint(html), selectionEnabled: false),
+        );
 
       case _DiffMode.sideBySide:
         final raw = body.sideBySide ?? body.sideBySideMarkdown ?? body.inline;
@@ -793,28 +847,32 @@ class _BodyDiff extends StatelessWidget {
         // 拆开用 Row 渲染(单列 fallback 走新引擎 FluxdoRender)。
         final parts = _splitSideBySide(raw);
         if (parts == null) {
-          return FluxdoRenderCallbacks.generic(heroTagNamespace: 'revision_sbs')
-              .render(cookedHtml: raw, selectionEnabled: false);
+          return _DiffCard(
+            child: FluxdoRenderCallbacks.generic(
+              heroTagNamespace: 'revision_sbs',
+            ).render(cookedHtml: paint(raw), selectionEnabled: false),
+          );
         }
-        return _TwoColumnDiff(previousHtml: parts.$1, currentHtml: parts.$2);
+        return _TwoColumnDiff(
+          previousHtml: paint(parts.$1),
+          currentHtml: paint(parts.$2),
+        );
 
       case _DiffMode.sideBySideMarkdown:
         final raw = body.sideBySideMarkdown ?? body.sideBySide ?? body.inline;
         if (raw == null || raw.isEmpty) return const SizedBox.shrink();
-        // markdown 模式后端给的是 <table>:每行两个 td (--previous / --current),内容是 markdown raw 文本。
-        // 直接渲染 table 会触发自定义 table_builder 的固定列宽 + 虚拟化(出现 1/1391 滚动指示器)。
-        // 拆成左右两列原始 markdown 文本,各自渲染到 _TwoColumnDiff。
-        final parts = _splitSideBySideMarkdown(raw);
-        if (parts == null) {
-          return FluxdoRenderCallbacks.generic(
-            heroTagNamespace: 'revision_sbsmd',
-          ).render(cookedHtml: raw, selectionEnabled: false);
+        // markdown 模式后端给的是 <table>：每行两个 td，内容是 markdown 原文。
+        // 直接渲染 table 会触发自定义 table_builder 的固定列宽 + 虚拟化，
+        // 所以拆成行，用系统等宽字体按行画（左上一版、右当前版）。
+        final rows = parseMarkdownDiffRows(raw);
+        if (rows == null) {
+          return _DiffCard(
+            child: FluxdoRenderCallbacks.generic(
+              heroTagNamespace: 'revision_sbsmd',
+            ).render(cookedHtml: raw, selectionEnabled: false),
+          );
         }
-        return _TwoColumnDiff(
-          previousHtml: parts.$1,
-          currentHtml: parts.$2,
-          preformatted: true,
-        );
+        return _MarkdownDiffTable(rows: rows);
     }
   }
 
@@ -829,65 +887,77 @@ class _BodyDiff extends StatelessWidget {
     if (match == null) return null;
     return (match.group(1) ?? '', match.group(2) ?? '');
   }
+}
 
-  /// 拆 discourse 的 `<table class="markdown"><tr><td class="--previous ...">A</td><td class="--current ...">B</td></tr>...</table>`
-  /// 按行配对成 `(previousLines, currentLines)`,每行用 `<div>` 包(继承 diff-ins/del class 着色)。
-  static (String, String)? _splitSideBySideMarkdown(String raw) {
-    final rowPattern = RegExp(
-      r'<tr>\s*<td\s+class="([^"]*?)">([\s\S]*?)</td>\s*<td\s+class="([^"]*?)">([\s\S]*?)</td>\s*</tr>',
-      caseSensitive: false,
+/// 正文差异的卡片：surface/elevated、r12、内边距 16
+class _DiffCard extends StatelessWidget {
+  final Widget child;
+
+  const _DiffCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Container(
+      key: const ValueKey('revision_diff_card'),
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpace.l),
+      decoration: BoxDecoration(
+        color: tokens.colors.surfaceElevated,
+        borderRadius: BorderRadius.circular(tokens.radius.card),
+      ),
+      child: child,
     );
-    final matches = rowPattern.allMatches(raw).toList();
-    if (matches.isEmpty) return null;
-    final previousBuf = StringBuffer();
-    final currentBuf = StringBuffer();
-    for (final m in matches) {
-      final prevClasses = m.group(1) ?? '';
-      final prevContent = m.group(2) ?? '';
-      final currClasses = m.group(3) ?? '';
-      final currContent = m.group(4) ?? '';
-      previousBuf.write('<div class="$prevClasses">$prevContent</div>');
-      currentBuf.write('<div class="$currClasses">$currContent</div>');
-    }
-    return (previousBuf.toString(), currentBuf.toString());
   }
 }
 
+/// 「上一版 / 当前版」两列的小标题（13 meta）
+class _ColumnHeaders extends StatelessWidget {
+  const _ColumnHeaders();
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final style = Theme.of(context).textTheme.bodySmall
+        ?.merge(tokens.text.meta)
+        .copyWith(color: tokens.colors.textMeta);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpace.s),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(context.l10n.postRevision_columnPrevious, style: style),
+          ),
+          const SizedBox(width: AppSpace.s),
+          Expanded(
+            child: Text(context.l10n.postRevision_columnCurrent, style: style),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 渲染后对比：左上一版、右当前版，两张卡片
 class _TwoColumnDiff extends StatelessWidget {
   final String previousHtml;
   final String currentHtml;
 
-  /// markdown 模式下内容是原始 markdown 文本(含 \n 与空白),用等宽字体并保留空白。
-  final bool preformatted;
-
-  const _TwoColumnDiff({
-    required this.previousHtml,
-    required this.currentHtml,
-    this.preformatted = false,
-  });
+  const _TwoColumnDiff({required this.previousHtml, required this.currentHtml});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final delBorder = theme.colorScheme.error.withValues(alpha: 0.25);
-    final insBorder = theme.colorScheme.tertiary.withValues(alpha: 0.3);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(
-          child: _DiffColumn(
-            html: previousHtml,
-            borderColor: delBorder,
-            preformatted: preformatted,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _DiffColumn(
-            html: currentHtml,
-            borderColor: insBorder,
-            preformatted: preformatted,
-          ),
+        const _ColumnHeaders(),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _DiffColumn(html: previousHtml)),
+            const SizedBox(width: AppSpace.s),
+            Expanded(child: _DiffColumn(html: currentHtml)),
+          ],
         ),
       ],
     );
@@ -896,42 +966,132 @@ class _TwoColumnDiff extends StatelessWidget {
 
 class _DiffColumn extends StatelessWidget {
   final String html;
-  final Color borderColor;
-  final bool preformatted;
 
-  const _DiffColumn({
-    required this.html,
-    required this.borderColor,
-    this.preformatted = false,
+  const _DiffColumn({required this.html});
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Container(
+      padding: const EdgeInsets.all(AppSpace.m),
+      decoration: BoxDecoration(
+        color: tokens.colors.surfaceElevated,
+        borderRadius: BorderRadius.circular(tokens.radius.card),
+      ),
+      // 左右两列 html 不同,用 hashCode 保证 heroTagNamespace 唯一。
+      child: FluxdoRenderCallbacks.generic(
+        heroTagNamespace: 'revision_col_${html.hashCode}',
+      ).render(cookedHtml: html, selectionEnabled: false),
+    );
+  }
+}
+
+/// 并排 Markdown（补充稿 31）：左上一版、右当前版，源码用系统等宽（D37）。
+/// 逐行对齐：每行是左右两格，整行等高；被删的行 text/destructive，新增的行
+/// brand/primary，没改的 text/primary。两列各自是一张 surface/elevated 卡片
+/// （上下圆角只落在第一行和最后一行）。
+class _MarkdownDiffTable extends StatelessWidget {
+  final List<DiffRow> rows;
+
+  const _MarkdownDiffTable({required this.rows});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const _ColumnHeaders(),
+        for (var i = 0; i < rows.length; i++)
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: _MarkdownCell(
+                    cell: rows[i].previous,
+                    first: i == 0,
+                    last: i == rows.length - 1,
+                  ),
+                ),
+                const SizedBox(width: AppSpace.s),
+                Expanded(
+                  child: _MarkdownCell(
+                    cell: rows[i].current,
+                    first: i == 0,
+                    last: i == rows.length - 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _MarkdownCell extends StatelessWidget {
+  final DiffCell cell;
+  final bool first;
+  final bool last;
+
+  const _MarkdownCell({
+    required this.cell,
+    required this.first,
+    required this.last,
   });
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final radius = Radius.circular(tokens.radius.card);
+    final color = switch (cell.kind) {
+      DiffLineKind.deleted => tokens.colors.textDestructive,
+      DiffLineKind.added => tokens.colors.brandPrimary,
+      DiffLineKind.common => tokens.colors.textPrimary,
+    };
     final theme = Theme.of(context);
-    // markdown 模式:用等宽字体 + 保留换行;新引擎不识别 white-space:pre,
-    // 直接把 raw 文本里的 \n 替换成 <br/> 让渲染保留行结构。
-    final processed = preformatted ? html.replaceAll('\n', '<br/>') : html;
+    // 系统等宽；中文字形回退到界面字体（等宽字体里没有）
+    final appFont = theme.textTheme.bodySmall?.fontFamily;
+    final mono = tokens.text.monoUrl;
+    final base = mono.copyWith(
+      color: color,
+      fontFamilyFallback: [...?mono.fontFamilyFallback, ?appFont],
+    );
+    final style = theme.textTheme.bodySmall?.merge(base) ?? base;
+    // 空格（占位的空行）也要占一行高度，左右两格才对得齐
+    final text = cell.isEmpty ? ' ' : null;
     return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        border: Border.all(color: borderColor),
-        borderRadius: BorderRadius.circular(6),
+      key: ValueKey('revision_md_${cell.kind.name}'),
+      padding: EdgeInsets.fromLTRB(
+        AppSpace.m,
+        first ? AppSpace.m : 0,
+        AppSpace.m,
+        last ? AppSpace.m : 0,
       ),
-      // 左右两列 processed 不同,用 hashCode 保证 heroTagNamespace 唯一。
-      child:
-          FluxdoRenderCallbacks.generic(
-            heroTagNamespace: 'revision_col_${processed.hashCode}',
-          ).render(
-            cookedHtml: processed,
-            baseTextStyle: preformatted
-                ? theme.textTheme.bodySmall?.copyWith(
-                    fontFamily: 'monospace',
-                    fontSize: AppFontSize.meta,
-                    height: 1.5,
-                  )
-                : null,
-            selectionEnabled: false,
-          ),
+      decoration: BoxDecoration(
+        color: tokens.colors.surfaceElevated,
+        borderRadius: BorderRadius.vertical(
+          top: first ? radius : Radius.zero,
+          bottom: last ? radius : Radius.zero,
+        ),
+      ),
+      child: text != null
+          ? Text(text, style: style)
+          : Text.rich(
+              TextSpan(
+                style: style,
+                children: [
+                  for (final seg in cell.segments)
+                    TextSpan(
+                      text: seg.text,
+                      // 行内被改的片段加粗，整行颜色不变
+                      style: seg.changed
+                          ? const TextStyle(fontWeight: FontWeight.w600)
+                          : null,
+                    ),
+                ],
+              ),
+            ),
     );
   }
 }
@@ -959,13 +1119,14 @@ class _StaffActions extends ConsumerWidget {
     if (currentUser == null || !currentUser.isStaff) {
       return const SizedBox.shrink();
     }
-    final theme = Theme.of(context);
+    final tokens = context.tokens;
     final l10n = context.l10n;
     return Container(
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+            color: tokens.colors.separator,
+            width: AppSpace.hairline,
           ),
         ),
       ),
@@ -987,7 +1148,7 @@ class _StaffActions extends ConsumerWidget {
               icon: const Icon(AppIcons.visibilityOff, size: 16),
               label: Text(l10n.postRevision_hide),
               style: OutlinedButton.styleFrom(
-                foregroundColor: theme.colorScheme.error,
+                foregroundColor: tokens.colors.textDestructive,
               ),
             ),
           if (revision.hasPreviousRevision)
@@ -996,7 +1157,7 @@ class _StaffActions extends ConsumerWidget {
               icon: const Icon(AppIcons.history, size: 16),
               label: Text(l10n.postRevision_revert),
               style: OutlinedButton.styleFrom(
-                foregroundColor: theme.colorScheme.error,
+                foregroundColor: tokens.colors.textDestructive,
               ),
             ),
           if (revision.previousHidden)
@@ -1005,7 +1166,7 @@ class _StaffActions extends ConsumerWidget {
               icon: const Icon(AppIcons.delete, size: 16),
               label: Text(l10n.postRevision_permanentlyDelete),
               style: OutlinedButton.styleFrom(
-                foregroundColor: theme.colorScheme.error,
+                foregroundColor: tokens.colors.textDestructive,
               ),
             ),
         ],

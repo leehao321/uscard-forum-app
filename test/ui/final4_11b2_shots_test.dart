@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxdo/models/post_revision.dart';
 import 'package:fluxdo/models/topic.dart';
+import 'package:fluxdo/widgets/post/post_revision/revision_modal.dart';
 import 'package:fluxdo/models/user.dart';
 import 'package:fluxdo/providers/core_providers.dart';
 import 'package:fluxdo/services/discourse/discourse_service.dart';
@@ -88,7 +92,15 @@ TopicDetail _shareDetail() {
 String _name(UiVariant v) => v.brightness == Brightness.dark ? 'dark' : 'light';
 
 void main() {
-  setUpAll(loadUiFonts);
+  setUpAll(() async {
+    await loadUiFonts();
+    // 测试环境没有系统等宽字体：把 'SF Mono' 指到 MiSans，截图里才有字形
+    // （真机并排 Markdown 用的是系统等宽）
+    final bytes = await File('assets/fonts/MiSansVF.ttf').readAsBytes();
+    final loader = FontLoader('SF Mono')
+      ..addFont(Future.value(ByteData.view(bytes.buffer)));
+    await loader.load();
+  });
 
   // 21–25 分享图片 5 种样式
   const styles = {
@@ -165,6 +177,33 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       expectNoUiException(tester);
       await uiShot(tester, '28_用户卡片_加载骨架_${_name(v)}');
+    });
+  }
+
+  // 29 编辑历史 · 行内差异 / 30 对比方式菜单 / 31 并排 Markdown
+  for (final v in [_light, _dark]) {
+    testUi('29_编辑历史_行内差异（${_name(v)}）', (tester) async {
+      await _openRevision(tester, v);
+      expectNoUiException(tester);
+      await uiShot(tester, '29_编辑历史_行内差异_${_name(v)}');
+    });
+
+    testUi('30_编辑历史_对比方式菜单（${_name(v)}）', (tester) async {
+      await _openRevision(tester, v);
+      await tester.tap(find.byKey(const ValueKey('revision_mode_menu')));
+      await tester.pumpAndSettle();
+      expectNoUiException(tester);
+      await uiShot(tester, '30_编辑历史_对比方式菜单_${_name(v)}');
+    });
+
+    testUi('31_编辑历史_并排_Markdown（${_name(v)}）', (tester) async {
+      await _openRevision(tester, v);
+      await tester.tap(find.byKey(const ValueKey('revision_mode_menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('并排 Markdown'));
+      await tester.pumpAndSettle();
+      expectNoUiException(tester);
+      await uiShot(tester, '31_编辑历史_并排_Markdown_${_name(v)}');
     });
   }
 }
@@ -252,3 +291,63 @@ Future<void> _openUserCard(
 }
 
 Widget _sheetHostPage(Widget child) => Scaffold(body: Center(child: child));
+
+class _RevisionService extends Fake implements DiscourseService {
+  @override
+  Future<PostRevision> getLatestPostRevision(int postId) async =>
+      PostRevision.fromJson({
+        'first_revision': 1,
+        'previous_revision': 1,
+        'current_revision': 2,
+        'next_revision': 3,
+        'last_revision': 3,
+        'current_version': 2,
+        'version_count': 3,
+        'username': 'example',
+        'acting_user_name': '示例用户',
+        'avatar_template': '',
+        'created_at': '2026-10-30T08:00:00.000Z',
+        'body_changes': {
+          'inline':
+              '<div class="inline-diff"><p>示例数据：这一句没有改动。</p>'
+              '<p><del>示例：被删除的文字</del></p>'
+              '<p><ins>示例：新增的文字</ins></p></div>',
+          'side_by_side':
+              '<div class="revision-content --previous"><p>示例：上一版正文</p></div>'
+              '<div class="revision-content --current"><p>示例：当前版正文</p></div>',
+          'side_by_side_markdown':
+              '<table class="markdown">'
+              '<tr><td>## 示例标题</td><td>## 示例标题</td></tr>'
+              '<tr><td class="diff-del">- 示例删除行</td>'
+              '<td class="diff-ins">+ 示例新增行</td></tr>'
+              '<tr><td>示例未改行</td><td>示例未改行</td></tr></table>',
+        },
+      });
+}
+
+class _NoUser extends CurrentUserNotifier {
+  @override
+  FutureOr<User?> build() => null;
+}
+
+/// 打开真实的编辑历史半屏（和楼层「已编辑」入口同一个函数）
+Future<void> _openRevision(WidgetTester tester, UiVariant v) async {
+  await pumpUi(
+    tester,
+    Builder(
+      builder: (context) => _sheetHostPage(
+        TextButton(
+          onPressed: () => showPostRevisionSheet(context: context, postId: 1),
+          child: const Text('打开'),
+        ),
+      ),
+    ),
+    variant: v,
+    overrides: [
+      discourseServiceProvider.overrideWithValue(_RevisionService()),
+      currentUserProvider.overrideWith(_NoUser.new),
+    ],
+  );
+  await tester.tap(find.text('打开'));
+  await tester.pumpAndSettle();
+}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
+import 'package:common_ui/common_ui.dart';
 
 import '../../../l10n/s.dart';
 import '../../../utils/dialog_utils.dart';
@@ -47,16 +48,23 @@ Future<void> _showAsBottomSheet({
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    showDragHandle: true,
+    backgroundColor: Colors.transparent,
     useRootNavigator: useRootNavigator,
     builder: (sheetContext) {
       // 固定高度,避免内容加载/切换 revision 时 sheet 高度跳变
       final maxHeight = MediaQuery.sizeOf(sheetContext).height * 0.85;
+      // 共享半屏外壳：拖拽条 + 「编辑历史」标题 + 右上 x；
+      // 内容区自己带 20 的左右边距（补充稿 29–31）
       return SizedBox(
         height: maxHeight,
-        child: _RevisionSheetFrame(
-          postId: postId,
-          initialRevision: initialRevision,
+        child: AppSheetScaffold(
+          title: sheetContext.l10n.postRevision_modalTitle,
+          expandToFill: true,
+          contentPadding: EdgeInsets.zero,
+          child: PostRevisionView(
+            postId: postId,
+            initialRevision: initialRevision,
+          ),
         ),
       );
     },
@@ -127,9 +135,12 @@ class _RevisionSheetFrame extends StatelessWidget {
                   ),
                 ),
               ),
-              IconButton(
-                tooltip: MaterialLocalizations.of(context).closeButtonLabel,
-                icon: const Icon(AppIcons.close, size: 20),
+              AppIconButton(
+                icon: AppIcons.close,
+                size: AppSize.iconM,
+                semanticLabel: MaterialLocalizations.of(
+                  context,
+                ).closeButtonLabel,
                 onPressed: () => Navigator.of(context).maybePop(),
               ),
             ],
