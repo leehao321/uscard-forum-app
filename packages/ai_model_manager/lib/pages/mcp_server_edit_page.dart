@@ -164,7 +164,7 @@ class _McpServerEditPageState extends ConsumerState<McpServerEditPage> {
     if (id == null) return;
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: const Text('删除这个 MCP 服务？'),
         content: const Text('保存的 Token 和请求头也会一起删除。'),
         actions: [
