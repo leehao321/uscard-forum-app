@@ -24,6 +24,8 @@ export 'providers/ai_provider_providers.dart';
 export 'providers/ai_chat_providers.dart';
 export 'providers/prompt_preset_providers.dart';
 export 'pages/ai_providers_page.dart';
+export 'pages/mcp_servers_page.dart';
+export 'pages/mcp_server_edit_page.dart';
 export 'pages/ai_provider_list_page.dart';
 export 'pages/ai_provider_edit_page.dart';
 export 'pages/ai_model_config_page.dart';

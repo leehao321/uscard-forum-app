@@ -6,10 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/ai_l10n.dart';
 import '../providers/ai_chat_providers.dart';
 import '../providers/ai_provider_providers.dart';
+import '../providers/mcp_server_providers.dart';
 import 'ai_advanced_settings_page.dart';
 import 'ai_chat_history_page.dart';
 import 'ai_model_config_page.dart';
 import 'ai_provider_list_page.dart';
+import 'mcp_servers_page.dart';
 import 'prompt_presets_page.dart';
 
 /// AI 模型服务入口页（0.4.0 v2，Figma 51:162）：
@@ -23,6 +25,7 @@ class AiProvidersPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final providerCount = ref.watch(aiProviderListProvider).length;
     final hasModels = ref.watch(hasAvailableAiModelProvider);
+    final mcpCount = ref.watch(mcpServerListProvider).length;
     final tokens = context.tokens;
     final colors = tokens.colors;
     final base = Theme.of(context).textTheme.bodyMedium!;
@@ -46,6 +49,13 @@ class AiProvidersPage extends ConsumerWidget {
           title: l10n.modelConfig,
           onTap: () => open(const AiModelConfigPage()),
         ),
+      _EntryRow(
+        icon: AppIcons.wrench,
+        title: 'MCP 服务',
+        subtitle: '连接外部工具，让 AI 对话和问论坛可以调用',
+        value: mcpCount > 0 ? '$mcpCount 个' : null,
+        onTap: () => open(const McpServersPage()),
+      ),
       _EntryRow(
         icon: AppIcons.history,
         title: l10n.chatHistory,
