@@ -143,8 +143,10 @@ class AppSegmentedControl<T> extends StatelessWidget {
                         child: _SegmentCell<T>(
                           segment: s,
                           selected: s.value == value,
-                          onTap: enabled && s.value != value
+                          // 点已选中的那一段什么也不做，但朗读上仍然是可点的按钮
+                          onTap: enabled
                               ? () {
+                                  if (s.value == value) return;
                                   HapticFeedback.selectionClick();
                                   onChanged!(s.value);
                                 }

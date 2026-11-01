@@ -147,6 +147,32 @@ void main() {
       );
     });
 
+    for (final (variant, suffix) in [
+      (const UiVariant(Brightness.light, 1.0, UiDevice.pro), 'light'),
+      (const UiVariant(Brightness.dark, 1.0, UiDevice.pro), 'dark'),
+    ]) {
+      testUi('出图 18 展开隐藏回复（$suffix）', (tester) async {
+        await pumpUi(
+          tester,
+          Scaffold(
+            body: ListView(
+              children: [
+                RevealedGapHeader(onCollapse: () {}),
+                for (final n in [2, 3])
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text('示例数据：一条原先隐藏的回复（#$n）。'),
+                  ),
+              ],
+            ),
+          ),
+          variant: variant,
+        );
+        expectNoUiException(tester);
+        await uiShot(tester, '18_展开隐藏回复_$suffix');
+      });
+    }
+
     testUi('顶部提示行：「已显示隐藏的回复」+「收起」，点收起回调一次', (tester) async {
       var taps = 0;
       await pumpUi(

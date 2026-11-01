@@ -147,6 +147,7 @@ void main() {
           isButton: true,
           isSelected: true,
           isEnabled: true,
+          isInMutuallyExclusiveGroup: true,
           hasEnabledState: true,
           hasSelectedState: true,
           hasTapAction: true,
