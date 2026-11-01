@@ -10,8 +10,9 @@ import '../../utils/discourse_url_parser.dart';
 
 /// 帖子相关链接组件
 ///
-/// 显示其他帖子引用当前帖子的入站链接（reflection links）
-/// 默认折叠，点击标题栏展开/收起
+/// 显示其他帖子引用当前帖子的入站链接（reflection links）。
+/// 默认折叠成一行（补充稿 09），点击展开成列表（补充稿 10），
+/// 列表下方的「收起」收回。
 class PostLinks extends StatefulWidget {
   final List<LinkCount>? linkCounts;
   final bool defaultExpanded;
@@ -21,12 +22,17 @@ class PostLinks extends StatefulWidget {
 
   const PostLinks({super.key, this.linkCounts, this.defaultExpanded = false});
 
+  /// 链接的站点名：取 host，去掉前导 www.
+  static String hostOf(String url) {
+    final host = Uri.tryParse(url)?.host ?? '';
+    return host.startsWith('www.') ? host.substring(4) : host;
+  }
+
   @override
   State<PostLinks> createState() => _PostLinksState();
 }
 
-class _PostLinksState extends State<PostLinks>
-    with SingleTickerProviderStateMixin {
+class _PostLinksState extends State<PostLinks> {
   late bool _expanded = widget.defaultExpanded;
   bool _showAll = false; // 链接列表内部的"查看更多"
 
@@ -99,189 +105,204 @@ class _PostLinksState extends State<PostLinks>
 
   @override
   Widget build(BuildContext context) {
-    final links = _internalLinks;
-    if (links.isEmpty) return const SizedBox.shrink();
+    if (_internalLinks.isEmpty) return const SizedBox.shrink();
+    return _expanded ? _buildExpanded(context) : _buildCollapsed(context);
+  }
 
+  /// 折叠态：一整行（48 高、r12、surface/grouped），整行可点
+  Widget _buildCollapsed(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
     final theme = Theme.of(context);
-
-    return Container(
-      margin: const EdgeInsets.only(top: 16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 可点击的标题栏
-          InkWell(
-            onTap: () => setState(() => _expanded = !_expanded),
-            borderRadius: _expanded
-                ? const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
-                  )
-                : BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                children: [
-                  Icon(
-                    AppIcons.link,
-                    size: 16,
-                    color: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    context.l10n.post_relatedLinks,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 1,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer.withValues(
-                        alpha: 0.5,
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpace.s),
+      child: Semantics(
+        button: true,
+        expanded: false,
+        label: context.l10n.post_relatedLinks,
+        child: ExcludeSemantics(
+          child: Material(
+            color: colors.surfaceGrouped,
+            borderRadius: BorderRadius.circular(tokens.radius.card),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              key: const ValueKey('related_links_toggle'),
+              onTap: () => setState(() => _expanded = true),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: AppSize.row48),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpace.m),
+                  child: Row(
+                    children: [
+                      Icon(
+                        AppIcons.link,
+                        size: AppSize.iconM,
+                        color: colors.textPrimary,
                       ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '${links.length}',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w600,
+                      const SizedBox(width: AppSpace.m),
+                      Expanded(
+                        child: Text(
+                          context.l10n.post_relatedLinks,
+                          style: theme.textTheme.bodyMedium!
+                              .merge(tokens.text.control)
+                              .copyWith(color: colors.textPrimary),
+                        ),
                       ),
-                    ),
+                      Icon(
+                        AppIcons.chevronRight,
+                        size: AppSize.iconS,
+                        color: colors.textMeta,
+                      ),
+                    ],
                   ),
-                  const Spacer(),
-                  AnimatedRotation(
-                    turns: _expanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      AppIcons.expandMore,
-                      size: 20,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-          // 展开的链接列表。用 AnimatedSize + 条件渲染而不是
-          // AnimatedCrossFade:后者收起状态也会构建并布局整个列表
-          // (楼层挂载时白付几 ms),而视觉上可感知的只有尺寸过渡。
-          AnimatedSize(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-            alignment: Alignment.topCenter,
-            child: !_expanded
-                ? const SizedBox(width: double.infinity, height: 0)
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Divider(
-                        height: 1,
-                        thickness: 0.5,
-                        color: theme.colorScheme.outlineVariant.withValues(
-                          alpha: 0.3,
+        ),
+      ),
+    );
+  }
+
+  /// 展开态：小标题 + 分组卡片（每行 标题 + 站点 + 外跳箭头）+ 右下「收起」
+  Widget _buildExpanded(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final theme = Theme.of(context);
+    final metaStyle = theme.textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
+    final brandMeta = metaStyle.copyWith(color: colors.brandPrimary);
+    final links = _displayedLinks;
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpace.l),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpace.s),
+            child: Text(context.l10n.post_relatedLinks, style: metaStyle),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: colors.surfaceGrouped,
+              borderRadius: BorderRadius.circular(tokens.radius.card),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var i = 0; i < links.length; i++) ...[
+                  if (i > 0)
+                    const AppHairline(
+                      indent: AppSpace.m + AppSize.iconM + AppSpace.m,
+                    ),
+                  _buildLinkItem(links[i], context),
+                ],
+                if (_canShowMore) ...[
+                  const AppHairline(),
+                  InkWell(
+                    onTap: () => setState(() => _showAll = true),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: AppSize.hit),
+                      child: Center(
+                        child: Text(
+                          context.l10n.post_moreLinks(_remainingCount),
+                          style: brandMeta,
                         ),
                       ),
-                      ..._displayedLinks.map(
-                        (link) => _buildLinkItem(link, theme),
-                      ),
-                      if (_canShowMore)
-                        InkWell(
-                          onTap: () => setState(() => _showAll = true),
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(12),
-                            bottomRight: Radius.circular(12),
-                          ),
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  AppIcons.moreHoriz,
-                                  size: 16,
-                                  color: theme.colorScheme.primary,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  context.l10n.post_moreLinks(_remainingCount),
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
+                    ),
                   ),
+                ],
+              ],
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: InkWell(
+              key: const ValueKey('related_links_collapse'),
+              onTap: () => setState(() => _expanded = false),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: AppSize.hit),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(context.l10n.post_collapse, style: brandMeta),
+                    const SizedBox(width: AppSpace.xs),
+                    Icon(
+                      AppIcons.chevronUp,
+                      size: AppSize.iconS,
+                      color: colors.brandPrimary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLinkItem(LinkCount link, ThemeData theme) {
+  Widget _buildLinkItem(LinkCount link, BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final theme = Theme.of(context);
+    final host = PostLinks.hostOf(link.url);
+    final metaStyle = theme.textTheme.bodySmall!
+        .merge(tokens.text.meta)
+        .copyWith(color: colors.textMeta);
     return InkWell(
       onTap: () => _onLinkTap(link),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          children: [
-            Icon(
-              AppIcons.cornerDownRight,
-              size: 16,
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                link.title ?? link.url,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.primary,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: AppSize.row48),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpace.m,
+            vertical: AppSpace.s,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                AppIcons.link,
+                size: AppSize.iconM,
+                color: colors.textPrimary,
               ),
-            ),
-            if (link.clicks > 0) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
+              const SizedBox(width: AppSpace.m),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      link.title ?? link.url,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium!
+                          .merge(tokens.text.control)
+                          .copyWith(color: colors.textPrimary),
+                    ),
+                    if (host.isNotEmpty)
+                      Text(
+                        host,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: metaStyle,
+                      ),
+                  ],
                 ),
-                child: Text(
-                  _formatClicks(link.clicks),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontSize: AppFontSize.caption,
-                  ),
-                ),
+              ),
+              if (link.clicks > 0) ...[
+                const SizedBox(width: AppSpace.s),
+                Text(_formatClicks(link.clicks), style: metaStyle),
+              ],
+              const SizedBox(width: AppSpace.s),
+              Icon(
+                AppIcons.arrowUpRight,
+                size: AppSize.iconM,
+                color: colors.textMeta,
               ),
             ],
-            const SizedBox(width: 4),
-            Icon(
-              AppIcons.arrowUpRight,
-              size: 14,
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-            ),
-          ],
+          ),
         ),
       ),
     );

@@ -89,20 +89,9 @@ class PostSegmentFrame extends StatelessWidget {
                   child: FractionalTranslation(
                     translation: const Offset(0, -0.5),
                     child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 1,
-                        ),
+                      child: DateSeparatorChip(
+                        label: topDateSeparatorLabel!,
                         color: targetColor,
-                        child: Text(
-                          topDateSeparatorLabel!,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant
-                                .withValues(alpha: 0.6),
-                            fontSize: AppFontSize.caption,
-                          ),
-                        ),
                       ),
                     ),
                   ),
@@ -115,20 +104,9 @@ class PostSegmentFrame extends StatelessWidget {
                   child: FractionalTranslation(
                     translation: const Offset(0, 0.5),
                     child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 1,
-                        ),
+                      child: DateSeparatorChip(
+                        label: bottomDateSeparatorLabel!,
                         color: targetColor,
-                        child: Text(
-                          bottomDateSeparatorLabel!,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant
-                                .withValues(alpha: 0.6),
-                            fontSize: AppFontSize.caption,
-                          ),
-                        ),
                       ),
                     ),
                   ),
@@ -144,6 +122,29 @@ class PostSegmentFrame extends StatelessWidget {
     );
     return RepaintBoundary(
       child: dimmed ? Opacity(opacity: 0.6, child: body) : body,
+    );
+  }
+}
+
+/// 楼层间的日期分隔标签（补充稿 09）：13 meta、居中，底色盖住下方发丝线。
+class DateSeparatorChip extends StatelessWidget {
+  const DateSeparatorChip({super.key, required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpace.m),
+      color: color,
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.bodySmall!
+            .merge(tokens.text.meta)
+            .copyWith(color: tokens.colors.textMeta),
+      ),
     );
   }
 }

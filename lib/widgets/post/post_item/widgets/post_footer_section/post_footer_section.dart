@@ -387,13 +387,6 @@ class _PostFooterSectionState extends ConsumerState<PostFooterSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PostLinks(
-            linkCounts: widget.post.linkCounts,
-            // select:整 provider watch 会让任何偏好变化都重建所有在屏帖脚
-            defaultExpanded: ref.watch(
-              preferencesProvider.select((p) => p.expandRelatedLinks),
-            ),
-          ),
           if (widget.post.postNumber == 1 &&
               widget.topicHasAcceptedAnswer &&
               widget.acceptedAnswers.isNotEmpty)
@@ -445,6 +438,14 @@ class _PostFooterSectionState extends ConsumerState<PostFooterSection> {
                     topicClosed: widget.topicClosed,
                   )
                 : null,
+          ),
+          // 相关链接（补充稿 09/10）：在点赞行下方，默认折叠成一行
+          PostLinks(
+            linkCounts: widget.post.linkCounts,
+            // select:整 provider watch 会让任何偏好变化都重建所有在屏帖脚
+            defaultExpanded: ref.watch(
+              preferencesProvider.select((p) => p.expandRelatedLinks),
+            ),
           ),
           // 问答话题:评论区(官方语义——问题帖与顶层答案帖下方,
           // 评论代替对答案的追问;含点赞/加载更多/添加评论)
