@@ -102,6 +102,7 @@ import '../../providers/topic_toc_provider.dart';
 import '../edit_topic_page.dart';
 import 'topic_bookmark_edit_target.dart';
 import 'topic_more_menu_actions.dart';
+import 'topic_unavailable_fallback.dart';
 import 'widgets/ai_chat_page.dart';
 import 'widgets/ai_chat_guide.dart';
 import '../../utils/dialog_utils.dart';
@@ -2881,14 +2882,11 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
     Widget content = const SizedBox();
 
     if (detailAsync.hasError && detail == null) {
-      // 错误页面
-      content = CustomScrollView(
-        slivers: [
-          SliverErrorView(
-            error: detailAsync.error!,
-            onRetry: () => ref.refresh(topicDetailProvider(params)),
-          ),
-        ],
+      // 错误页面（话题已不可见 / 受限时，可由 TopicUnavailableFallback 换成替代内容）
+      content = TopicLoadErrorContent(
+        topicId: widget.topicId,
+        error: detailAsync.error!,
+        onRetry: () => ref.refresh(topicDetailProvider(params)),
       );
     } else if (detail != null) {
       // 正常内容构建 (保持原有逻辑，但简化提取)
