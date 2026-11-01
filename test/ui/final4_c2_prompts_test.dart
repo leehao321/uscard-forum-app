@@ -543,7 +543,7 @@ void main() {
       expect(_cell('camera'), findsNothing);
       // 搜索时「已选」行收起，说明文字出现
       expect(find.text('已选：sparkles'), findsNothing);
-      expect(find.text('不提供 Emoji：图标统一用线性图标，可按英文名搜索全部图标。'), findsOneWidget);
+      expect(find.text('不提供 Emoji：图标统一用线性图标，可按英文名搜索常用图标。'), findsOneWidget);
 
       // 选中搜索结果里的 heart-handshake：高亮、保存后写入
       await tester.tap(_cell('heart-handshake'));

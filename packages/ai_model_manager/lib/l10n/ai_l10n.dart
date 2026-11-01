@@ -92,7 +92,7 @@ class AiL10n {
   String quickPromptsIconSelected(String name) => '已选：$name';
   String get quickPromptsIconSearch => '搜索图标';
   String get quickPromptsIconSearchHint => '按英文名搜索图标';
-  String get quickPromptsIconSearchNote => '不提供 Emoji：图标统一用线性图标，可按英文名搜索全部图标。';
+  String get quickPromptsIconSearchNote => '不提供 Emoji：图标统一用线性图标，可按英文名搜索常用图标。';
   String get quickPromptsIconNoResult => '没有匹配的图标';
   String get quickPromptsIconSearchClear => '清除搜索';
   String get quickPromptsAspectAuto => '自动';

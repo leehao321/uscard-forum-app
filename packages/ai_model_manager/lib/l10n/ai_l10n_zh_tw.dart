@@ -109,7 +109,7 @@ class AiL10nZhTW extends AiL10n {
   @override
   String get quickPromptsIconSearchHint => '按英文名搜尋圖示';
   @override
-  String get quickPromptsIconSearchNote => '不提供 Emoji：圖示統一用線性圖示，可按英文名搜尋全部圖示。';
+  String get quickPromptsIconSearchNote => '不提供 Emoji：圖示統一用線性圖示，可按英文名搜尋常用圖示。';
   @override
   String get quickPromptsIconNoResult => '沒有符合的圖示';
   @override

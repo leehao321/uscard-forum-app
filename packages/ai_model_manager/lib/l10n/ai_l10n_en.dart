@@ -111,7 +111,7 @@ class AiL10nEn extends AiL10n {
   @override
   String get quickPromptsIconSearchHint => 'Search icons by English name';
   @override
-  String get quickPromptsIconSearchNote => 'Emoji are not offered: icons are line icons only, and you can search all of them by English name.';
+  String get quickPromptsIconSearchNote => 'Emoji are not offered: icons are line icons only, and you can search the common ones by English name.';
   @override
   String get quickPromptsIconNoResult => 'No matching icons';
   @override
