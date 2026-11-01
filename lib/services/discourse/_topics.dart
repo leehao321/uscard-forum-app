@@ -175,7 +175,7 @@ mixin _TopicsMixin on _DiscourseServiceBase {
   }
 
   /// 获取话题详情
-  Future<TopicDetail> getTopicDetail(int id, {int? postNumber, bool trackVisit = false, String? filter, String? usernameFilters, bool filterTopLevelReplies = false}) async {
+  Future<TopicDetail> getTopicDetail(int id, {int? postNumber, bool trackVisit = false, String? filter, String? usernameFilters, bool filterTopLevelReplies = false, QuietRequest? quiet}) async {
     final path = postNumber != null ? '/t/$id/$postNumber.json' : '/t/$id.json';
     final queryParams = <String, dynamic>{};
     if (trackVisit) {
@@ -199,8 +199,9 @@ mixin _TopicsMixin on _DiscourseServiceBase {
     final response = await _dio.get<String>(
       path,
       queryParameters: queryParams.isNotEmpty ? queryParams : null,
-      options: (options ?? Options())
+      options: (quiet?.options(options) ?? options ?? Options())
           .copyWith(responseType: ResponseType.plain),
+      cancelToken: quiet?.cancelToken,
     );
     // isolate 内 jsonDecode + fromJson:大话题响应几百 KB~几 MB,主线程
     // 解析实测把 DartIsolate::HandleMessage 顶到 46~56ms(滚动/进话题时
@@ -235,14 +236,15 @@ mixin _TopicsMixin on _DiscourseServiceBase {
   /// [includeSuggested] 对齐网页版 post-stream 的 `include_suggested`:话题
   /// 详情首屏未到末尾时服务端不下发推荐话题,靠翻页请求补一次(已拿到就别
   /// 再要,服务端每次都要多跑一轮 TopicQuery)。
-  Future<PostStream> getPosts(int topicId, List<int> postIds, {bool includeSuggested = false}) async {
+  Future<PostStream> getPosts(int topicId, List<int> postIds, {bool includeSuggested = false, QuietRequest? quiet}) async {
     final response = await _dio.get<String>(
       '/t/$topicId/posts.json',
       queryParameters: {
         'post_ids[]': postIds,
         if (includeSuggested) 'include_suggested': 'true',
       },
-      options: Options(responseType: ResponseType.plain),
+      options: (quiet?.options() ?? Options()).copyWith(responseType: ResponseType.plain),
+      cancelToken: quiet?.cancelToken,
     );
     return compute(_parsePostStreamJson, response.data!);
   }

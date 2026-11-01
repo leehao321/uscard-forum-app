@@ -44,7 +44,9 @@ mixin _UsersMixin on _DiscourseServiceBase {
   }
 
   /// 获取用户信息
-  Future<User> getUser(String username, {bool isSilent = false}) async {
+  Future<User> getUser(String username, {bool isSilent = false, QuietRequest? quiet}) async {
+    // 安静请求不和别处共用进行中的请求（取消只该影响自己），也不给对方记资料页浏览
+    if (quiet != null) return _fetchUser(username, isSilent: true, quiet: quiet);
     final activeRequest = _activeUserRequests[username];
     if (activeRequest != null) return activeRequest;
 
@@ -58,10 +60,12 @@ mixin _UsersMixin on _DiscourseServiceBase {
     return request;
   }
 
-  Future<User> _fetchUser(String username, {required bool isSilent}) async {
+  Future<User> _fetchUser(String username, {required bool isSilent, QuietRequest? quiet}) async {
     final response = await _dio.get(
       '/u/$username.json',
-      options: _userRequestOptions(isSilent),
+      queryParameters: quiet?.skipTrackVisit == true ? {'skip_track_visit': true} : null,
+      options: quiet?.options(_userRequestOptions(isSilent)) ?? _userRequestOptions(isSilent),
+      cancelToken: quiet?.cancelToken,
     );
     final data = response.data as Map<String, dynamic>;
     return User.fromJson(data['user'] ?? data);
@@ -122,7 +126,10 @@ mixin _UsersMixin on _DiscourseServiceBase {
   Future<UserSummary> getUserSummary(
     String username, {
     bool forceRefresh = false,
+    QuietRequest? quiet,
   }) async {
+    // 安静请求不读缓存、不和别处共用进行中的请求
+    if (quiet != null) return _fetchUserSummary(username, quiet: quiet);
     if (!forceRefresh &&
         _cachedUserSummary != null &&
         _cachedUserSummaryUsername == username &&
@@ -145,8 +152,12 @@ mixin _UsersMixin on _DiscourseServiceBase {
     return request;
   }
 
-  Future<UserSummary> _fetchUserSummary(String username) async {
-    final response = await _dio.get('/u/$username/summary.json');
+  Future<UserSummary> _fetchUserSummary(String username, {QuietRequest? quiet}) async {
+    final response = await _dio.get(
+      '/u/$username/summary.json',
+      options: quiet?.options(),
+      cancelToken: quiet?.cancelToken,
+    );
     final summary = UserSummary.fromJson(response.data);
 
     _cachedUserSummary = summary;
@@ -162,6 +173,7 @@ mixin _UsersMixin on _DiscourseServiceBase {
     String? filter,
     int offset = 0,
     bool isSilent = false,
+    QuietRequest? quiet,
   }) async {
     final queryParams = <String, dynamic>{
       'username': username,
@@ -173,7 +185,8 @@ mixin _UsersMixin on _DiscourseServiceBase {
     final response = await _dio.get(
       '/user_actions.json',
       queryParameters: queryParams,
-      options: _userRequestOptions(isSilent),
+      options: quiet?.options(_userRequestOptions(isSilent)) ?? _userRequestOptions(isSilent),
+      cancelToken: quiet?.cancelToken,
     );
     return UserActionResponse.fromJson(response.data);
   }
@@ -403,6 +416,7 @@ mixin _UsersMixin on _DiscourseServiceBase {
   Future<BadgeDetailResponse> getBadgeUsers({
     required int badgeId,
     String? username,
+    QuietRequest? quiet,
   }) async {
     final queryParams = <String, dynamic>{'badge_id': badgeId};
     if (username != null) {
@@ -412,6 +426,8 @@ mixin _UsersMixin on _DiscourseServiceBase {
     final response = await _dio.get(
       '/user_badges.json',
       queryParameters: queryParams,
+      options: quiet?.options(),
+      cancelToken: quiet?.cancelToken,
     );
 
     return BadgeDetailResponse.fromJson(response.data);
