@@ -1133,12 +1133,16 @@ class FluxdoRenderCallbacks {
   }
 
   /// 解析占位和实际图片共用的显示尺寸。
+  ///
+  /// [fillWidth]（阅读场景）：原始宽已经占到可用宽一半以上的图拉到整宽，
+  /// 多张图纵向排列时每张都是全宽（补充稿 20）；更小的图保持原尺寸，不上采样放大。
   static (double?, double?) _imageDisplayDimensions(
     BuildContext context,
     BoxConstraints constraints,
     double? width,
-    double? height,
-  ) {
+    double? height, {
+    bool fillWidth = false,
+  }) {
     if (GridTileScope.of(context) &&
         constraints.hasTightWidth &&
         constraints.hasTightHeight) {
@@ -1148,7 +1152,8 @@ class FluxdoRenderCallbacks {
         height != null &&
         width > 0 &&
         constraints.maxWidth.isFinite &&
-        width > constraints.maxWidth) {
+        (width > constraints.maxWidth ||
+            (fillWidth && width >= constraints.maxWidth / 2))) {
       return (constraints.maxWidth, height * constraints.maxWidth / width);
     }
     return (width, height);
@@ -1194,6 +1199,8 @@ class FluxdoRenderCallbacks {
           lbc,
           image.width,
           image.height,
+          // 编辑器预览带缩放档（onImageScaleChanged），显示宽由档位决定，不拉伸
+          fillWidth: onImageScaleChanged == null,
         );
         if (isSvg) {
           // SVG 统一走 DiscourseSvgView(内容嗅探动画:静态 jovial_svg,
@@ -1300,7 +1307,7 @@ class FluxdoRenderCallbacks {
                 // 文档流保持 contain
                 fit: inGridTile ? BoxFit.cover : BoxFit.contain,
                 coverFlight: inGridTile,
-                flightRadius: inGridTile ? 4 : 0,
+                flightRadius: inGridTile ? 4 : ctx.tokens.radius.card,
                 // 解码恒按**原始宽**(scale 乘之前的声明宽):缩放档切换
                 // 显示宽变但解码宽不变 → ImageCache 同 key,切档零重
                 // 解码零 spinner(此前解码宽跟显示宽走,每次切档全新
@@ -1356,7 +1363,7 @@ class FluxdoRenderCallbacks {
                         : [image.filename],
                     initialIndex: hasGallery ? galleryIndex : 0,
                     heroSourceFit: inGridTile ? BoxFit.cover : null,
-                    heroSourceRadius: inGridTile ? 4 : 0,
+                    heroSourceRadius: inGridTile ? 4 : ctx.tokens.radius.card,
                   );
                 },
                 // 长按/右键 → 图片上下文菜单(对齐 legacy LazyImage
@@ -1379,7 +1386,7 @@ class FluxdoRenderCallbacks {
                       fit: inGridTile ? BoxFit.cover : BoxFit.contain,
                       gaplessPlayback: true,
                     ),
-                    sourceRadius: inGridTile ? 4 : 0,
+                    sourceRadius: inGridTile ? 4 : ctx.tokens.radius.card,
                   ),
                 ),
                 onSecondaryTapUp: (details) => _showImageContextMenu(
@@ -1398,7 +1405,7 @@ class FluxdoRenderCallbacks {
                       fit: inGridTile ? BoxFit.cover : BoxFit.contain,
                       gaplessPlayback: true,
                     ),
-                    sourceRadius: inGridTile ? 4 : 0,
+                    sourceRadius: inGridTile ? 4 : ctx.tokens.radius.card,
                   ),
                 ),
               );
@@ -1433,7 +1440,14 @@ class FluxdoRenderCallbacks {
                   opacity: identical(lifted, ctx) ? 0.0 : 1.0,
                   child: child,
                 ),
-                child: img,
+                child: inGridTile
+                    ? img
+                    : ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          ctx.tokens.radius.card,
+                        ),
+                        child: img,
+                      ),
               );
             },
           ),
