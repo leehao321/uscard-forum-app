@@ -425,5 +425,6 @@
     }
   },
   "topic_keywordFilter_manage": "管理",
-  "topicDetail_showHiddenRepliesLabel": "显示隐藏的回复"
+  "topicDetail_showHiddenRepliesLabel": "显示隐藏的回复",
+  "topicDetail_hiddenRepliesShown": "已显示隐藏的回复"
 }

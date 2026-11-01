@@ -1634,7 +1634,17 @@ class PostStreamGaps {
   final Map<int, List<int>> before; // {postId: [gapPostIds]}
   final Map<int, List<int>> after; // {postId: [gapPostIds]}
 
-  const PostStreamGaps({this.before = const {}, this.after = const {}});
+  /// 已经点开展开的 gap（`{锚点 postId: 展开记录}`），仅本地使用：
+  /// 用来在展开出来的楼层顶部画「收起」行，并能不发请求地重新折叠。
+  final Map<int, RevealedGap> revealedBefore;
+  final Map<int, RevealedGap> revealedAfter;
+
+  const PostStreamGaps({
+    this.before = const {},
+    this.after = const {},
+    this.revealedBefore = const {},
+    this.revealedAfter = const {},
+  });
 
   factory PostStreamGaps.fromJson(Map<String, dynamic> json) {
     Map<int, List<int>> parseGapMap(Map<String, dynamic>? raw) {
@@ -1655,7 +1665,30 @@ class PostStreamGaps {
     );
   }
 
-  bool get isEmpty => before.isEmpty && after.isEmpty;
+  /// 既没有待展开的 gap，也没有可收起的展开记录
+  bool get isEmpty =>
+      before.isEmpty &&
+      after.isEmpty &&
+      revealedBefore.isEmpty &&
+      revealedAfter.isEmpty;
+}
+
+/// 一次 gap 展开留下的记录，折叠时据此还原
+class RevealedGap {
+  /// 展开前这个 gap 里被跳过的楼层 id（折叠后原样放回 gaps）
+  final List<int> gapPostIds;
+
+  /// 展开时真正插入本地列表的楼层 id
+  final List<int> insertedPostIds;
+
+  /// 展开时新加进 stream 的楼层 id（折叠时一并从 stream 去掉）
+  final List<int> addedStreamIds;
+
+  const RevealedGap({
+    required this.gapPostIds,
+    required this.insertedPostIds,
+    required this.addedStreamIds,
+  });
 }
 
 /// 帖子流信息

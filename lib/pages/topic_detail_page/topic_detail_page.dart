@@ -3291,6 +3291,8 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
               onPointerScroll: _controller.handlePointerScroll,
               onFillGapBefore: (postId) => notifier.fillGapBefore(postId),
               onFillGapAfter: (postId) => notifier.fillGapAfter(postId),
+              onCollapseGap: (anchorPostId, before) =>
+                  notifier.collapseGap(anchorPostId, before: before),
               onExpandHiddenPost: (postId) => notifier.expandHiddenPost(postId),
               useReplyDialog: notifier.isTopLevelMode,
               onShowPostDetail: (post) => showPostRepliesSheet(

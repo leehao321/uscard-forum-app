@@ -269,5 +269,6 @@
   "topics_newOrUpdatedHint": "New or updated topics. Tap to view",
   "topic_keywordFilter_hiddenCount": "{count} topics hidden",
   "topic_keywordFilter_manage": "Manage",
-  "topicDetail_showHiddenRepliesLabel": "Show hidden replies"
+  "topicDetail_showHiddenRepliesLabel": "Show hidden replies",
+  "topicDetail_hiddenRepliesShown": "Hidden replies shown"
 }

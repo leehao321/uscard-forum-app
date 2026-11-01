@@ -410,5 +410,6 @@
     }
   },
   "topic_keywordFilter_manage": "管理",
-  "topicDetail_showHiddenRepliesLabel": "顯示隱藏的回覆"
+  "topicDetail_showHiddenRepliesLabel": "顯示隱藏的回覆",
+  "topicDetail_hiddenRepliesShown": "已顯示隱藏的回覆"
 }

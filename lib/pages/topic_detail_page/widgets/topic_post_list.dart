@@ -114,6 +114,9 @@ class TopicPostList extends StatefulWidget {
   final void Function(int postId)? onFillGapBefore;
   final void Function(int postId)? onFillGapAfter;
 
+  /// 收起已展开的 gap：参数是锚点楼层 id 和展开方向（true = 展开在锚点前面）
+  final void Function(int anchorPostId, bool before)? onCollapseGap;
+
   /// 展开隐藏帖子回调
   final void Function(int postId)? onExpandHiddenPost;
 
@@ -193,6 +196,7 @@ class TopicPostList extends StatefulWidget {
     this.onPointerScroll,
     this.onFillGapBefore,
     this.onFillGapAfter,
+    this.onCollapseGap,
     this.onExpandHiddenPost,
     this.useReplyDialog = false,
     this.onShowPostDetail,
@@ -448,6 +452,8 @@ class _TopicPostListState extends State<TopicPostList> {
       widget.onVisiblePostsChanged;
   void Function(int postId)? get onFillGapBefore => widget.onFillGapBefore;
   void Function(int postId)? get onFillGapAfter => widget.onFillGapAfter;
+  void Function(int anchorPostId, bool before)? get onCollapseGap =>
+      widget.onCollapseGap;
   void Function(int postId)? get onExpandHiddenPost =>
       widget.onExpandHiddenPost;
   bool get useReplyDialog => widget.useReplyDialog;
@@ -752,6 +758,8 @@ class _TopicPostListState extends State<TopicPostList> {
         return 'gap-before-${segment.post.id}';
       case _PostRenderSegmentType.gapAfter:
         return 'gap-after-${segment.post.id}';
+      case _PostRenderSegmentType.revealedHeader:
+        return 'gap-revealed-${segment.anchorPostId}-${segment.revealedBefore}';
     }
   }
 
@@ -791,10 +799,41 @@ class _TopicPostListState extends State<TopicPostList> {
         <int, ({int firstScrollIndex, int lastScrollIndex})>{};
     final activePostIds = <int>{};
 
+    // 已展开的 gap：展开出来的第一条楼层前面要画「已显示隐藏的回复 · 收起」行
+    final revealedHeaders = <int, List<({int anchorPostId, bool before})>>{};
+    if (gaps != null) {
+      void collect(Map<int, RevealedGap> map, bool before) {
+        for (final entry in map.entries) {
+          final ids = entry.value.insertedPostIds.toSet();
+          final first = posts.where((p) => ids.contains(p.id)).firstOrNull;
+          if (first == null) continue;
+          revealedHeaders
+              .putIfAbsent(first.id, () => [])
+              .add((anchorPostId: entry.key, before: before));
+        }
+      }
+
+      collect(gaps.revealedBefore, true);
+      collect(gaps.revealedAfter, false);
+    }
+
     for (int postIndex = 0; postIndex < posts.length; postIndex++) {
       final post = posts[postIndex];
       activePostIds.add(post.id);
       final firstScrollIndex = segments.length;
+
+      for (final header in revealedHeaders[post.id] ?? const []) {
+        scrollIndexToPostNumber[segments.length] = post.postNumber;
+        segments.add(
+          _PostRenderSegment.revealedHeader(
+            scrollIndex: segments.length,
+            postIndex: postIndex,
+            post: post,
+            anchorPostId: header.anchorPostId,
+            before: header.before,
+          ),
+        );
+      }
 
       // 检查此帖子前面是否有 gap
       if (gaps != null && gaps.before.containsKey(post.id)) {
@@ -1656,6 +1695,15 @@ class _TopicPostListState extends State<TopicPostList> {
           onTap: onFillGapAfter != null ? () => onFillGapAfter!(post.id) : null,
         );
         break;
+      case _PostRenderSegmentType.revealedHeader:
+        final anchorPostId = segment.anchorPostId!;
+        final before = segment.revealedBefore;
+        child = RevealedGapHeader(
+          onCollapse: onCollapseGap != null
+              ? () => onCollapseGap!(anchorPostId, before)
+              : null,
+        );
+        break;
     }
 
     final childWithParticipants =
@@ -1723,6 +1771,7 @@ enum _PostRenderSegmentType {
   longFooter,
   gapBefore,
   gapAfter,
+  revealedHeader,
 }
 
 /// shortPost 段的实例缓存条目:signature 是构建输入的具名 record,
@@ -1777,6 +1826,8 @@ class _PostRenderSegment {
   final HtmlChunk? chunkData;
   final NewEngineLongPostData? newEngineData;
   final int gapCount; // gap 段中隐藏帖子的数量
+  final int? anchorPostId; // 已展开 gap 的锚点楼层 id（revealedHeader 用）
+  final bool revealedBefore; // 展开在锚点前面还是后面
 
   const _PostRenderSegment._({
     required this.type,
@@ -1787,6 +1838,8 @@ class _PostRenderSegment {
     this.chunkData,
     this.newEngineData,
     this.gapCount = 0,
+    this.anchorPostId,
+    this.revealedBefore = false,
   });
   factory _PostRenderSegment.shortPost({
     required int scrollIndex,
@@ -1858,6 +1911,23 @@ class _PostRenderSegment {
       postIndex: postIndex,
       post: post,
       gapCount: gapCount,
+    );
+  }
+
+  factory _PostRenderSegment.revealedHeader({
+    required int scrollIndex,
+    required int postIndex,
+    required Post post,
+    required int anchorPostId,
+    required bool before,
+  }) {
+    return _PostRenderSegment._(
+      type: _PostRenderSegmentType.revealedHeader,
+      scrollIndex: scrollIndex,
+      postIndex: postIndex,
+      post: post,
+      anchorPostId: anchorPostId,
+      revealedBefore: before,
     );
   }
 
@@ -1958,6 +2028,61 @@ class GapIndicatorState extends State<GapIndicator> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// 已展开的 gap 顶部的提示行：「已显示隐藏的回复」+ 右侧「收起 ⌃」。
+///
+/// 补充稿 18：点收起只在本地把这批楼层重新折叠，不发请求。
+@visibleForTesting
+class RevealedGapHeader extends StatelessWidget {
+  final VoidCallback? onCollapse;
+
+  const RevealedGapHeader({super.key, this.onCollapse});
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final colors = tokens.colors;
+    final metaStyle = tokens.text.meta.copyWith(color: colors.textMeta);
+    final actionStyle = tokens.text.metaStrong.copyWith(
+      color: colors.brandPrimary,
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpace.pageMargin,
+        vertical: AppSpace.m,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              S.current.topicDetail_hiddenRepliesShown,
+              style: metaStyle,
+            ),
+          ),
+          InkWell(
+            key: const ValueKey('revealed_gap_collapse'),
+            onTap: onCollapse,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: AppSize.hit),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(S.current.post_collapse, style: actionStyle),
+                  const SizedBox(width: AppSpace.xs),
+                  Icon(
+                    AppIcons.chevronUp,
+                    size: AppSize.iconS,
+                    color: colors.brandPrimary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
