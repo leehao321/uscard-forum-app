@@ -13,7 +13,7 @@ import '../../utils/fluxdo_render_callbacks.dart';
 import '../../utils/url_helper.dart';
 import '../../utils/time_utils.dart';
 import '../common/emoji_text.dart';
-import 'share_image_preview.dart';
+import 'share_image_theme.dart';
 
 /// AI 分享图片 Widget
 /// 用于生成可截图的 AI 消息分享图片，支持单条或多条消息
@@ -48,17 +48,14 @@ class AiShareImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = shareTheme.isDark;
-    final bgColor = shareTheme.bgColor;
-    final cardColor = shareTheme.cardColor;
+    // 分享图的取色全部来自所选样式的 token，不跟随 App 深浅色
+    final palette = shareTheme.palette;
+    final bgColor = palette.bg;
+    final cardColor = palette.card;
 
-    final textColor = isDark ? AppFixedColors.white : AppFixedColors.black;
-    final secondaryTextColor = isDark
-        ? AppFixedColors.white.withValues(alpha: 0.6)
-        : AppFixedColors.black.withValues(alpha: 0.6);
-    final borderColor = isDark
-        ? AppFixedColors.white.withValues(alpha: 0.1)
-        : AppFixedColors.black.withValues(alpha: 0.1);
+    final textColor = palette.text;
+    final secondaryTextColor = palette.meta;
+    final borderColor = palette.rule;
 
     return RepaintBoundary(
       key: repaintBoundaryKey,

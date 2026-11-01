@@ -15,6 +15,7 @@ import '../services/cf_challenge_service.dart';
 import '../services/crash_context_reporter.dart';
 import '../services/render_backend_service.dart';
 import '../utils/blocked_user_filter.dart';
+import '../widgets/share/share_image_theme.dart';
 import 'theme_provider.dart';
 
 /// 嵌套视图连接线样式
@@ -438,7 +439,10 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
   static const String _longPressPreviewKey = 'pref_long_press_preview';
   static const String _openExternalLinksInAppBrowserKey =
       'pref_open_external_links_in_app_browser';
+  // 旧键存的是 6 种样式时的索引，保留不删（降级回旧版还能用）；
+  // 新键存 5 种样式的索引，缺失时从旧键换算。
   static const String _shareImageThemeIndexKey = 'pref_share_image_theme_index';
+  static const String _shareImageStyleIndexKey = 'pref_share_image_style_index';
   static const String _autoFillLoginKey = 'pref_auto_fill_login';
   static const String _homeRefreshButtonKey = 'pref_home_refresh_button';
   static const String _clipboardTopicLinkDetectionKey =
@@ -518,7 +522,7 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
           // 动态字体 × 档位），旧值只在迁移时读一次；这里固定 1，避免
           // 阅读页再乘一遍。键保留不删，降级回旧版还能用。
           contentFontScale: 1.0,
-          shareImageThemeIndex: _prefs.getInt(_shareImageThemeIndexKey) ?? 0,
+          shareImageThemeIndex: _readShareImageStyleIndex(_prefs),
           autoFillLogin: _prefs.getBool(_autoFillLoginKey) ?? true,
           homeRefreshButton: _prefs.getBool(_homeRefreshButtonKey) ?? false,
           clipboardTopicLinkDetection:
@@ -635,9 +639,17 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
     await _prefs.setBool(_openExternalLinksInAppBrowserKey, enabled);
   }
 
+  /// 读分享图片样式索引：新键优先，没有就把旧版 6 种样式的索引换算过来
+  static int _readShareImageStyleIndex(SharedPreferences prefs) {
+    final current = prefs.getInt(_shareImageStyleIndexKey);
+    if (current != null) return ShareImageTheme.fromIndex(current).index;
+    final legacy = prefs.getInt(_shareImageThemeIndexKey);
+    return legacy == null ? 0 : ShareImageTheme.fromLegacyIndex(legacy);
+  }
+
   Future<void> setShareImageThemeIndex(int index) async {
     state = state.copyWith(shareImageThemeIndex: index);
-    await _prefs.setInt(_shareImageThemeIndexKey, index);
+    await _prefs.setInt(_shareImageStyleIndexKey, index);
   }
 
   Future<void> setAutoFillLogin(bool enabled) async {

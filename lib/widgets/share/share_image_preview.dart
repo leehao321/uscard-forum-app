@@ -13,99 +13,8 @@ import '../../services/toast_service.dart';
 import '../../utils/dialog_utils.dart';
 import '../../utils/image_save_utils.dart';
 import '../../utils/screenshot_utils.dart';
+import 'share_image_theme.dart';
 import 'share_image_widget.dart';
-
-/// 预设的分享图片主题
-enum ShareImageTheme {
-  /// 经典米黄色（浅色）
-  classic(
-    nameKey: 'share_themeClassic',
-    bgColor: AppSharePalette.classicBg,
-    cardColor: AppFixedColors.white,
-    isDark: false,
-  ),
-
-  /// 纯白色（浅色）
-  light(
-    nameKey: 'share_themeWhite',
-    bgColor: AppSharePalette.lightBg,
-    cardColor: AppSharePalette.lightCard,
-    isDark: false,
-  ),
-
-  /// 深灰色（深色）
-  dark(
-    nameKey: 'share_themeDark',
-    bgColor: AppSharePalette.darkBg,
-    cardColor: AppSharePalette.darkCard,
-    isDark: true,
-  ),
-
-  /// 纯黑色（深色）
-  black(
-    nameKey: 'share_themeBlack',
-    bgColor: AppSharePalette.blackBg,
-    cardColor: AppSharePalette.blackCard,
-    isDark: true,
-  ),
-
-  /// 蓝色调（浅色）
-  blue(
-    nameKey: 'share_themeBlue',
-    bgColor: AppSharePalette.blueBg,
-    cardColor: AppFixedColors.white,
-    isDark: false,
-  ),
-
-  /// 绿色调（浅色）
-  green(
-    nameKey: 'share_themeGreen',
-    bgColor: AppSharePalette.greenBg,
-    cardColor: AppFixedColors.white,
-    isDark: false,
-  );
-
-  const ShareImageTheme({
-    required this.nameKey,
-    required this.bgColor,
-    required this.cardColor,
-    required this.isDark,
-  });
-
-  final String nameKey;
-
-  String get name {
-    final l10n = S.current;
-    switch (nameKey) {
-      case 'share_themeClassic':
-        return l10n.share_themeClassic;
-      case 'share_themeWhite':
-        return l10n.share_themeWhite;
-      case 'share_themeDark':
-        return l10n.share_themeDark;
-      case 'share_themeBlack':
-        return l10n.share_themeBlack;
-      case 'share_themeBlue':
-        return l10n.share_themeBlue;
-      case 'share_themeGreen':
-        return l10n.share_themeGreen;
-      default:
-        return nameKey;
-    }
-  }
-
-  final Color bgColor;
-  final Color cardColor;
-  final bool isDark;
-
-  /// 根据索引获取主题
-  static ShareImageTheme fromIndex(int index) {
-    if (index >= 0 && index < values.length) {
-      return values[index];
-    }
-    return classic;
-  }
-}
 
 /// 分享图片预览页
 /// 以 BottomSheet 形式展示，支持保存和分享
@@ -225,78 +134,57 @@ class _ShareImagePreviewState extends ConsumerState<ShareImagePreview> {
     ref.read(preferencesProvider.notifier).setShareImageThemeIndex(theme.index);
   }
 
-  /// 基于当前主题创建新的 ThemeData，只改变亮度
-  ThemeData _buildThemeData(ThemeData currentTheme) {
-    final brightness = _selectedTheme.isDark
-        ? Brightness.dark
-        : Brightness.light;
-
-    // 使用当前主题的 seedColor 创建对应亮度的 ColorScheme
-    return ThemeData(
-      useMaterial3: true,
-      brightness: brightness,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: currentTheme.colorScheme.primary,
-        brightness: brightness,
-      ),
-    );
-  }
-
-  /// 构建预览内容
+  /// 构建预览内容（预览卡片：圆角 16，不带阴影）
   Widget _buildPreviewContent(ThemeData theme) {
     // 加载中
     if (_isLoadingPost) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(S.current.share_loadingPost),
-          ],
+      return SizedBox(
+        height: _placeholderHeight,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: AppSpace.l),
+              Text(S.current.share_loadingPost),
+            ],
+          ),
         ),
       );
     }
 
     // 加载失败
     if (_loadError != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(AppIcons.error, size: 48, color: theme.colorScheme.error),
-            const SizedBox(height: 16),
-            Text(_loadError!),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: _fetchMainPost,
-              icon: const Icon(AppIcons.refresh),
-              label: Text(S.current.common_retry),
-            ),
-          ],
+      return SizedBox(
+        height: _placeholderHeight,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(AppIcons.error, size: 48, color: theme.colorScheme.error),
+              const SizedBox(height: AppSpace.l),
+              Text(_loadError!),
+              const SizedBox(height: AppSpace.l),
+              FilledButton.icon(
+                onPressed: _fetchMainPost,
+                icon: const Icon(AppIcons.refresh),
+                label: Text(S.current.common_retry),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    // 显示预览
+    // 显示预览：整张图的底色就是所选样式的底色，不跟随 App 深浅色
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
       child: Center(
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: AppFixedColors.black.withValues(alpha: 0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
-          // 使用 Theme 包裹，基于当前主题但强制亮/暗模式
+        child: ClipRRect(
+          key: const ValueKey('share_preview_card'),
+          borderRadius: BorderRadius.circular(context.tokens.radius.sheet),
+          // 使用 Theme 包裹，亮度与文字色按所选样式
           child: Theme(
-            data: _buildThemeData(theme),
+            data: _selectedTheme.buildThemeData(theme),
             child: ShareImageWidget(
               detail: widget.detail,
               post: _targetPost,
@@ -308,6 +196,9 @@ class _ShareImagePreviewState extends ConsumerState<ShareImagePreview> {
       ),
     );
   }
+
+  /// 加载中 / 失败时预览区的高度
+  static const double _placeholderHeight = 240;
 
   Future<Uint8List?> _captureImage() async {
     // 等待一帧确保渲染完成
@@ -364,159 +255,30 @@ class _ShareImagePreviewState extends ConsumerState<ShareImagePreview> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final screenHeight = MediaQuery.of(context).size.height;
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    return Container(
-      height: screenHeight * 0.85,
-      decoration: BoxDecoration(
-        color: context.tokens.colors.surfaceElevated,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(context.tokens.radius.sheet),
+    // 半屏外壳：标题 + 右上 x；预览区可滚动，色板与按钮固定在底部
+    return AppSheetScaffold(
+      title: context.l10n.share_shareImageTitle,
+      footer: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpace.pageMargin,
+          AppSpace.xxl,
+          AppSpace.pageMargin,
+          0,
         ),
-      ),
-      child: Column(
-        children: [
-          // 顶部拖动条
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: AppSpace.s),
-            width: 36,
-            height: 5,
-            decoration: BoxDecoration(
-              color: context.tokens.colors.quoteRule,
-              borderRadius: BorderRadius.circular(3),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 样式色板
+            ShareThemeSwatches(
+              selected: _selectedTheme,
+              onSelected: _selectTheme,
             ),
-          ),
-
-          // 标题栏：左对齐 17 + 右侧 x（同 AppSheetScaffold）
-          Padding(
-            padding: const EdgeInsets.only(
-              left: AppSpace.pageMargin,
-              right: AppSpace.s,
-            ),
-            child: Row(
+            const SizedBox(height: AppSpace.xxl),
+            // 底部操作按钮：保存（次按钮）+ 分享（主按钮），48 高
+            Row(
               children: [
-                Expanded(
-                  child: Semantics(
-                    header: true,
-                    child: Text(
-                      context.l10n.share_shareImageTitle,
-                      style: theme.textTheme.titleMedium
-                          ?.merge(context.tokens.text.headline)
-                          .copyWith(color: context.tokens.colors.textPrimary),
-                    ),
-                  ),
-                ),
-                AppIconButton(
-                  icon: AppIcons.close,
-                  semanticLabel: context.l10n.common_close,
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: AppSpace.s),
-
-          // 图片预览区域
-          Expanded(child: _buildPreviewContent(theme)),
-
-          // 选项区域
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: context.tokens.colors.surfaceGrouped,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 主题色卡选择
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: ShareImageTheme.values.map((t) {
-                    final isSelected = t == _selectedTheme;
-                    return GestureDetector(
-                      onTap: () => _selectTheme(t),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: t.bgColor,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: isSelected
-                                    ? context.tokens.colors.brandPrimary
-                                    : context.tokens.colors.quoteRule,
-                                width: isSelected ? 2.5 : 1,
-                              ),
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                        color: context
-                                            .tokens
-                                            .colors
-                                            .brandPrimary
-                                            .withValues(alpha: 0.3),
-                                        blurRadius: 8,
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            child: isSelected
-                                ? Icon(
-                                    AppIcons.check,
-                                    size: 18,
-                                    color: t.isDark
-                                        ? AppFixedColors.white
-                                        : AppFixedColors.black87,
-                                  )
-                                : null,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            t.name,
-                            style: TextStyle(
-                              fontSize: AppFontSize.caption,
-                              color: isSelected
-                                  ? context.tokens.colors.brandPrimary
-                                  : context.tokens.colors.textMeta,
-                              fontWeight: isSelected
-                                  ? FontWeight.w400
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ),
-
-          // 底部操作按钮
-          Container(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 12,
-              bottom: 12 + bottomPadding,
-            ),
-            decoration: BoxDecoration(
-              color: context.tokens.colors.surfaceElevated,
-              border: Border(
-                top: BorderSide(
-                  color: context.tokens.colors.separator,
-                  width: AppSpace.hairline,
-                ),
-              ),
-            ),
-            child: Row(
-              children: [
-                // 保存按钮
                 Expanded(
                   child: FilledButton.icon(
                     onPressed: (_isSaving || _targetPost == null)
@@ -528,12 +290,10 @@ class _ShareImagePreviewState extends ConsumerState<ShareImagePreview> {
                     label: Text(ImageSaveUtils.actionLabel),
                     style: FilledButton.styleFrom(
                       minimumSize: const Size.fromHeight(AppSize.replyButton),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
                     ).merge(AppButtonStyles.secondary(context)),
                   ),
                 ),
-                const SizedBox(width: 12),
-                // 分享按钮
+                const SizedBox(width: AppSpace.m),
                 Expanded(
                   child: FilledButton.icon(
                     onPressed: (_isSharing || _targetPost == null)
@@ -547,15 +307,16 @@ class _ShareImagePreviewState extends ConsumerState<ShareImagePreview> {
                         : const Icon(AppIcons.share),
                     label: Text(context.l10n.common_share),
                     style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      minimumSize: const Size.fromHeight(AppSize.replyButton),
                     ),
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+      child: _buildPreviewContent(theme),
     );
   }
 }

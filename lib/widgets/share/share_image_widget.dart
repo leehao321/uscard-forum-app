@@ -14,7 +14,7 @@ import '../../utils/time_utils.dart';
 import '../common/smart_avatar.dart';
 import '../common/flair_badge.dart';
 import '../common/emoji_text.dart';
-import 'share_image_preview.dart';
+import 'share_image_theme.dart';
 
 /// 分享图片 Widget
 /// 用于生成可截图的分享图片
@@ -41,18 +41,14 @@ class ShareImageWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = shareTheme.isDark;
-    final bgColor = shareTheme.bgColor;
-    final cardColor = shareTheme.cardColor;
+    // 分享图的取色全部来自所选样式的 token，不跟随 App 深浅色
+    final palette = shareTheme.palette;
+    final bgColor = palette.bg;
+    final cardColor = palette.card;
 
-    // 根据主题计算文字颜色
-    final textColor = isDark ? AppFixedColors.white : AppFixedColors.black;
-    final secondaryTextColor = isDark
-        ? AppFixedColors.white.withValues(alpha: 0.6)
-        : AppFixedColors.black.withValues(alpha: 0.6);
-    final borderColor = isDark
-        ? AppFixedColors.white.withValues(alpha: 0.1)
-        : AppFixedColors.black.withValues(alpha: 0.1);
+    final textColor = palette.text;
+    final secondaryTextColor = palette.meta;
+    final borderColor = palette.rule;
 
     // 优先使用传入的 post，否则查找主帖，最后使用第一个可用帖子
     final targetPost =

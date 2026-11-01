@@ -18,7 +18,7 @@ import '../../utils/dialog_utils.dart';
 import '../../utils/image_save_utils.dart';
 import '../../utils/screenshot_utils.dart';
 import 'ai_share_image_widget.dart';
-import 'share_image_preview.dart';
+import 'share_image_theme.dart';
 
 /// AI 分享图片预览页
 /// 以 BottomSheet 形式展示，支持复制、保存、分享和回复话题
@@ -112,20 +112,6 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
   void _selectTheme(ShareImageTheme theme) {
     setState(() => _selectedTheme = theme);
     ref.read(preferencesProvider.notifier).setShareImageThemeIndex(theme.index);
-  }
-
-  ThemeData _buildThemeData(ThemeData currentTheme) {
-    final brightness = _selectedTheme.isDark
-        ? Brightness.dark
-        : Brightness.light;
-    return ThemeData(
-      useMaterial3: true,
-      brightness: brightness,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: currentTheme.colorScheme.primary,
-        brightness: brightness,
-      ),
-    );
   }
 
   Future<Uint8List?> _captureImage() async {
@@ -315,7 +301,7 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: Theme(
-                    data: _buildThemeData(theme),
+                    data: _selectedTheme.buildThemeData(theme),
                     child: AiShareImageWidget(
                       messages: widget.messages,
                       topicTitle: widget.topicTitle,
@@ -336,67 +322,12 @@ class _AiShareImagePreviewState extends ConsumerState<AiShareImagePreview> {
             decoration: BoxDecoration(
               color: context.tokens.colors.surfaceGrouped,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: ShareImageTheme.values.map((t) {
-                final isSelected = t == _selectedTheme;
-                return GestureDetector(
-                  onTap: () => _selectTheme(t),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: t.bgColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isSelected
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.outline.withValues(
-                                    alpha: 0.3,
-                                  ),
-                            width: isSelected ? 2.5 : 1,
-                          ),
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: theme.colorScheme.primary.withValues(
-                                      alpha: 0.3,
-                                    ),
-                                    blurRadius: 8,
-                                  ),
-                                ]
-                              : null,
-                        ),
-                        child: isSelected
-                            ? Icon(
-                                AppIcons.check,
-                                size: 18,
-                                color: t.isDark
-                                    ? AppFixedColors.white
-                                    : AppFixedColors.black87,
-                              )
-                            : null,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        t.name,
-                        style: TextStyle(
-                          fontSize: AppFontSize.caption,
-                          color: isSelected
-                              ? context.tokens.colors.brandPrimary
-                              : context.tokens.colors.textMeta,
-                          fontWeight: isSelected
-                              ? FontWeight.w400
-                              : FontWeight.normal,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: ShareThemeSwatches(
+                selected: _selectedTheme,
+                onSelected: _selectTheme,
+              ),
             ),
           ),
 

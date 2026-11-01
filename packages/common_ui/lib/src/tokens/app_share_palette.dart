@@ -1,15 +1,12 @@
 import 'package:flutter/painting.dart';
 
-/// 分享长图的预设底色。导出的是一张图片，不跟 App 的明暗主题走，
-/// 用户在预览里自选，所以是固定色。
+/// 分享长图里不属于 11 色体系的固定色。导出的是一张图片，不跟 App 的
+/// 明暗主题走，用户在预览里自选，所以是固定色（浅、深同值）。
+///
+/// 其余四种样式直接取 [AppColors] 的 token：经典 = 浅色 surface/grouped，
+/// 深色 = 深色 surface/grouped，纯黑 = 深色 surface/page，绿野 = brand/button
+/// 底 + 白字（见设计说明 §6、Figma「补充 · 话题阅读」分享图片组）。
 abstract final class AppSharePalette {
-  static const classicBg = Color(0xFFF9F1E4);
-  static const lightBg = Color(0xFFFFFFFF);
-  static const lightCard = Color(0xFFF5F5F5);
-  static const darkBg = Color(0xFF1E1E1E);
-  static const darkCard = Color(0xFF2D2D2D);
-  static const blackBg = Color(0xFF000000);
-  static const blackCard = Color(0xFF1A1A1A);
-  static const blueBg = Color(0xFFE8F4FC);
-  static const greenBg = Color(0xFFE8F5E9);
+  /// share/蓝调：蓝调样式的卡片底色。取自真机截图采样（估计值），浅、深同值。
+  static const blue = Color(0xFFE8F4FC);
 }
