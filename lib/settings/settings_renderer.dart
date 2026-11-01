@@ -175,9 +175,10 @@ class SettingsRenderer extends ConsumerWidget {
     final metaStyle = theme.textTheme.bodySmall!
         .merge(tokens.text.meta)
         .copyWith(color: colors.textMeta);
+    final danger = m.destructive ? colors.textDestructive : null;
     return ListTile(
-      leading: Icon(m.icon, color: colors.brandPrimary),
-      title: Text(m.title),
+      leading: Icon(m.icon, color: danger ?? colors.brandPrimary),
+      title: Text(m.title, style: danger != null ? TextStyle(color: danger) : null),
       subtitle: displaySub != null
           ? Text(
               displaySub,

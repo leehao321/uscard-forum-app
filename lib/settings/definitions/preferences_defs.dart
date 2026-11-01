@@ -358,6 +358,8 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
     SettingsGroup(
       title: l10n.crypto_settingsGroup,
       icon: AppIcons.key,
+      // 补充稿：两行都带行内说明
+      keepSubtitles: true,
       items: [
         SwitchModel(
           id: 'cryptoRememberPassword',
@@ -374,7 +376,8 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
           id: 'cryptoClearRememberedPasswords',
           title: l10n.crypto_settingsClearPasswords,
           icon: AppIcons.delete,
-          getDynamicSubtitle: (ref) => l10n.crypto_secureStorageNote,
+          destructive: true,
+          getDynamicSubtitle: (ref) => l10n.crypto_settingsClearPasswordsDesc,
           onTap: (context, ref) async {
             final confirmed = await showDialog<bool>(
               context: context,
@@ -862,58 +865,123 @@ class _EntryChipsEditorState extends State<_EntryChipsEditor> {
 }
 
 void _showStickerBaseUrlDialog(BuildContext context, WidgetRef ref) {
-  final service = ref.read(stickerMarketServiceProvider);
-  final controller = TextEditingController(text: service.baseUrl);
-
   showAppDialog(
     context: context,
-    builder: (dialogContext) => AppAlertDialog(
+    builder: (dialogContext) => _StickerBaseUrlDialog(ref: ref),
+  );
+}
+
+/// 表情包数据源对话框（补充稿 49）：标题靠左，填充输入框 + 「恢复默认」+ 取消 / 确定。
+/// 输入框的控制器由对话框自己持有，退出动画结束后才释放。
+class _StickerBaseUrlDialog extends StatefulWidget {
+  const _StickerBaseUrlDialog({required this.ref});
+
+  final WidgetRef ref;
+
+  @override
+  State<_StickerBaseUrlDialog> createState() => _StickerBaseUrlDialogState();
+}
+
+class _StickerBaseUrlDialogState extends State<_StickerBaseUrlDialog> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.ref.read(stickerMarketServiceProvider).baseUrl,
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final ref = widget.ref;
+    final service = ref.read(stickerMarketServiceProvider);
+    final url = _controller.text.trim();
+    if (url.isNotEmpty) {
+      await service.setBaseUrl(url);
+      // 换了站点，市场分页/分类/详情全部作废（setBaseUrl 已清网络缓存）。
+      // 订阅列表与其元信息是用户数据，不跟着清。
+      ref.invalidate(marketGroupsProvider);
+      ref.invalidate(marketTopicsProvider);
+      ref.invalidate(stickerGroupDetailProvider);
+    }
+    if (mounted) Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return AppAlertDialog(
       title: Text(context.l10n.preferences_stickerSource),
+      titleAlign: TextAlign.start,
+      titlePadding: const EdgeInsets.fromLTRB(
+        AppSpace.l,
+        AppSpace.xl,
+        AppSpace.l,
+        AppSpace.l,
+      ),
+      contentPadding: const EdgeInsets.fromLTRB(
+        AppSpace.l,
+        AppSpace.xs,
+        AppSpace.l,
+        AppSpace.m,
+      ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          TextField(
-            controller: controller,
-            decoration: InputDecoration(
-              hintText: context.l10n.preferences_enterUrl,
-              border: const OutlineInputBorder(),
-            ),
+          AppFilledField(
+            controller: _controller,
+            hintText: context.l10n.preferences_enterUrl,
             keyboardType: TextInputType.url,
             autofocus: true,
+            autocorrect: false,
+            enableSuggestions: false,
+            fillColor: tokens.colors.surfaceElevated,
           ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: () {
-                controller.text = StickerMarketService.defaultBaseUrl;
-              },
-              child: Text(context.l10n.common_restoreDefault),
+          // 稿里「恢复默认」这一行 100 高，文字在右侧垂直居中
+          SizedBox(
+            height: 100,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: AppPressable(
+                onTap: () {
+                  _controller.text = StickerMarketService.defaultBaseUrl;
+                },
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: AppSize.hit),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        AppIcons.restartAlt,
+                        size: AppSize.iconS,
+                        color: tokens.colors.brandPrimary,
+                      ),
+                      const SizedBox(width: AppSpace.s),
+                      Text(
+                        context.l10n.common_restoreDefault,
+                        style: tokens.text.control.copyWith(
+                          color: tokens.colors.brandPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(dialogContext),
+          onPressed: () => Navigator.pop(context),
           child: Text(context.l10n.common_cancel),
         ),
         FilledButton(
-          onPressed: () async {
-            final url = controller.text.trim();
-            if (url.isNotEmpty) {
-              await service.setBaseUrl(url);
-              // 换了站点，市场分页/分类/详情全部作废（setBaseUrl 已清网络缓存）。
-              // 订阅列表与其元信息是用户数据，不跟着清。
-              ref.invalidate(marketGroupsProvider);
-              ref.invalidate(marketTopicsProvider);
-              ref.invalidate(stickerGroupDetailProvider);
-            }
-            if (dialogContext.mounted) Navigator.pop(dialogContext);
-          },
+          onPressed: _save,
           child: Text(context.l10n.common_confirm),
         ),
       ],
-    ),
-  ).then((_) => controller.dispose());
+    );
+  }
 }

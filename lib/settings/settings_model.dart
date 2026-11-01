@@ -17,6 +17,10 @@ class SettingsGroup {
   /// 组页眉右侧的文字按钮（如微调的「恢复默认」）
   final Widget? headerAction;
 
+  /// 行副标题留在行内（补充稿的两行样式），不收进组页脚。
+  /// 给了 [footer] 的组本来就不收，这个开关是给只有副标题、没有页脚的组用的。
+  final bool keepSubtitles;
+
   const SettingsGroup({
     required this.title,
     required this.icon,
@@ -24,6 +28,7 @@ class SettingsGroup {
     this.wrapInCard = true,
     this.footer,
     this.headerAction,
+    this.keepSubtitles = false,
   });
 }
 
@@ -155,6 +160,9 @@ final class IntSliderModel extends SettingsModel {
 final class ActionModel extends SettingsModel {
   final IconData icon;
 
+  /// 破坏性操作行（如清除已保存的数据）：标题和图标用破坏性色
+  final bool destructive;
+
   /// 是否允许副标题按内容自然换行。
   ///
   /// 默认单行截断——[getDynamicSubtitle] 常用来显示当前值（URL、计数），
@@ -175,6 +183,7 @@ final class ActionModel extends SettingsModel {
     super.subtitle,
     required this.icon,
     this.wrapSubtitle = false,
+    this.destructive = false,
     this.getDynamicSubtitle,
     this.valueBuilder,
     required this.onTap,
@@ -186,6 +195,7 @@ final class ActionModel extends SettingsModel {
     title: title,
     icon: icon,
     wrapSubtitle: wrapSubtitle,
+    destructive: destructive,
     getDynamicSubtitle: null,
     valueBuilder: valueBuilder ?? getDynamicSubtitle,
     onTap: onTap,
@@ -228,7 +238,7 @@ List<SettingsGroup> footerizeSubtitles(List<SettingsGroup> groups) {
   return [
     for (final g in groups)
       () {
-        if (g.footer != null) return g;
+        if (g.footer != null || g.keepSubtitles) return g;
         final notes = <String>[];
         final items = <SettingsModel>[];
         for (final item in g.items) {
