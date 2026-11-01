@@ -1,6 +1,7 @@
 // v2 共享组件（0.4.0 计划 §4）。页面只用这些组件和 token，不再手写外壳。
 export 'app_alert_dialog.dart';
 export 'app_buttons.dart';
+export 'app_filled_field.dart';
 export 'app_icon_button.dart';
 export 'app_menu.dart';
 export 'app_modal_routes.dart';

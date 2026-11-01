@@ -223,47 +223,34 @@ class _EntryTile extends StatelessWidget {
 // 收藏列表页（二级页面）
 // ---------------------------------------------------------------------------
 
+/// 添加收藏对话框里网址框的预填前缀
+const _urlPrefix = 'https://';
+
 class _BookmarkListPage extends ConsumerWidget {
   const _BookmarkListPage();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bookmarks = ref.watch(webBookmarkProvider);
-    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: ReadableAppBar(child: AppBar(
         title: Text(context.l10n.myBrowser_bookmarks),
         actions: [
-          IconButton(
-            icon: const Icon(AppIcons.add),
-            tooltip: context.l10n.myBrowser_addManually,
+          AppIconButton(
+            icon: AppIcons.add,
+            semanticLabel: context.l10n.myBrowser_addManually,
             onPressed: () => _showAddDialog(context, ref),
           ),
         ],
       )),
       body: ReadableBody(
         child: bookmarks.isEmpty
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      AppIcons.star,
-                      size: 64,
-                      color: theme.colorScheme.onSurfaceVariant.withValues(
-                        alpha: 0.4,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      context.l10n.myBrowser_empty,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
+            ? AppStateView(
+                bareIcon: true,
+                icon: AppIcons.star,
+                title: context.l10n.myBrowser_empty,
+                message: context.l10n.myBrowser_emptyHint,
               )
             : SwipeActionScope(
                 child: ListView.builder(
@@ -310,31 +297,45 @@ class _BookmarkListPage extends ConsumerWidget {
   }
 
   void _showAddDialog(BuildContext context, WidgetRef ref) {
-    final urlController = TextEditingController();
+    // 网址框预填 https://，用户直接接着输入；只剩前缀等于没填
+    final urlController = TextEditingController(text: _urlPrefix);
     final titleController = TextEditingController();
 
     showAppDialog(
       context: context,
       builder: (ctx) => AppAlertDialog(
         title: Text(S.current.myBrowser_addManually),
+        titleAlign: TextAlign.start,
+        titlePadding: const EdgeInsets.fromLTRB(
+          AppSpace.l,
+          AppSpace.xl,
+          AppSpace.l,
+          AppSpace.l,
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(
+          AppSpace.l,
+          AppSpace.xs,
+          AppSpace.l,
+          AppSpace.m,
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
+            AppFilledField(
+              label: S.current.myBrowser_urlLabel,
               controller: urlController,
               autofocus: true,
               keyboardType: TextInputType.url,
-              decoration: InputDecoration(
-                labelText: S.current.myBrowser_inputUrl,
-                hintText: 'https://',
-              ),
+              autocorrect: false,
+              enableSuggestions: false,
+              fillColor: ctx.tokens.colors.surfaceElevated,
             ),
-            const SizedBox(height: 12),
-            TextField(
+            const SizedBox(height: AppSpace.s),
+            AppFilledField(
+              label: S.current.myBrowser_inputTitle,
               controller: titleController,
-              decoration: InputDecoration(
-                labelText: S.current.myBrowser_inputTitle,
-              ),
+              hintText: S.current.myBrowser_titleHint,
+              fillColor: ctx.tokens.colors.surfaceElevated,
             ),
           ],
         ),
@@ -346,7 +347,8 @@ class _BookmarkListPage extends ConsumerWidget {
           FilledButton(
             onPressed: () {
               var url = urlController.text.trim();
-              if (url.isEmpty) return;
+              // 网址必填：空，或只剩预填的前缀，都不添加
+              if (url.isEmpty || url == _urlPrefix) return;
               if (!url.startsWith('http://') && !url.startsWith('https://')) {
                 url = 'https://$url';
               }
@@ -444,7 +446,6 @@ class _WebHistoryPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final history = ref.watch(webHistoryProvider);
-    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: ReadableAppBar(child: AppBar(
@@ -460,26 +461,11 @@ class _WebHistoryPage extends ConsumerWidget {
       )),
       body: ReadableBody(
         child: history.isEmpty
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      AppIcons.history,
-                      size: 64,
-                      color: theme.colorScheme.onSurfaceVariant.withValues(
-                        alpha: 0.4,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      context.l10n.myBrowser_historyEmpty,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
+            ? AppStateView(
+                bareIcon: true,
+                icon: AppIcons.history,
+                title: context.l10n.myBrowser_historyEmpty,
+                message: context.l10n.myBrowser_historyEmptyHint,
               )
             : SwipeActionScope(
                 child: ListView.builder(

@@ -1,5 +1,10 @@
 {
   "@@locale": "zh_TW",
+  "myBrowser_downloadEmptyHint": "在內建瀏覽器裡下載的檔案會顯示在這裡",
+  "myBrowser_emptyHint": "在內建瀏覽器裡點「收藏」，或點右上角 + 手動新增網址",
+  "myBrowser_historyEmptyHint": "用內建瀏覽器開啟過的網頁會顯示在這裡",
+  "myBrowser_titleHint": "留空時使用網頁標題",
+  "myBrowser_urlLabel": "網址",
   "webviewLogin_clearSaved": "清除已儲存的密碼",
   "webviewLogin_clearSavedContent": "確定要清除已儲存的登入憑證嗎？下次登入時需要手動輸入。",
   "webviewLogin_clearSavedTitle": "清除已儲存的密碼",

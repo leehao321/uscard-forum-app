@@ -104,26 +104,11 @@ class _DownloadListPageState extends ConsumerState<DownloadListPage> {
       ),
       body: ReadableBody(
         child: downloads.isEmpty
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      AppIcons.download,
-                      size: 64,
-                      color: theme.colorScheme.onSurfaceVariant.withValues(
-                        alpha: 0.4,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      context.l10n.myBrowser_downloadEmpty,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
+            ? AppStateView(
+                bareIcon: true,
+                icon: AppIcons.download,
+                title: context.l10n.myBrowser_downloadEmpty,
+                message: context.l10n.myBrowser_downloadEmptyHint,
               )
             : SwipeActionScope(
                 child: ListView.builder(

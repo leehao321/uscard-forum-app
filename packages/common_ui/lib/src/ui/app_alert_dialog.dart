@@ -49,6 +49,7 @@ class AppAlertDialog extends StatelessWidget {
     this.scrollable = false,
     this.constraints,
     this.width,
+    this.titleAlign,
   });
 
   final Widget? icon;
@@ -83,6 +84,9 @@ class AppAlertDialog extends StatelessWidget {
 
   /// 覆盖宽度；默认纯文字 320、复杂内容 360
   final double? width;
+
+  /// 标题对齐：默认居中；带输入框的表单对话框（补充稿）标题靠左
+  final TextAlign? titleAlign;
 
   /// 纯文字内容：外面包一层限宽 / 滚动的也算（现场有 `ConstrainedBox(Text)`、
   /// `SingleChildScrollView(SelectableText)` 这样的写法，M-12）
@@ -130,7 +134,7 @@ class AppAlertDialog extends StatelessWidget {
                 .merge(tokens.text.headline)
                 .copyWith(color: colors.textPrimary)
                 .merge(titleTextStyle),
-            textAlign: TextAlign.center,
+            textAlign: titleAlign ?? TextAlign.center,
             child: title!,
           ),
         ),

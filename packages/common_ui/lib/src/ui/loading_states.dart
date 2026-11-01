@@ -136,11 +136,16 @@ class AppStateView extends StatelessWidget {
     this.icon,
     this.action,
     this.announce = false,
+    this.bareIcon = false,
   });
 
   final String title;
   final String? message;
   final IconData? icon;
+
+  /// 补充稿里的空态（网页浏览、快捷词等）：图标直接画 48、不带圆底，
+  /// 图标 → 标题 → 说明间距 12。默认（false）仍是 48 圆底 + 24 图标、间距 8。
+  final bool bareIcon;
 
   /// 一般是 FilledButton（次按钮样式）
   final Widget? action;
@@ -153,25 +158,33 @@ class AppStateView extends StatelessWidget {
     final tokens = context.tokens;
     final colors = tokens.colors;
     final base = Theme.of(context).textTheme.bodyMedium!;
+    // 补充稿空态间距 12，默认 8
+    final gap = bareIcon ? AppSpace.m : AppSpace.s;
     final column = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         ExcludeSemantics(
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: colors.surfaceGrouped,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon ?? AppIcons.info,
-              size: AppSize.iconL,
-              color: colors.textMeta,
-            ),
-          ),
+          child: bareIcon
+              ? Icon(
+                  icon ?? AppIcons.info,
+                  size: 48,
+                  color: colors.textMeta,
+                )
+              : Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: colors.surfaceGrouped,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon ?? AppIcons.info,
+                    size: AppSize.iconL,
+                    color: colors.textMeta,
+                  ),
+                ),
         ),
-        const SizedBox(height: AppSpace.s),
+        SizedBox(height: gap),
         Semantics(
           liveRegion: announce,
           child: Text(
@@ -183,7 +196,7 @@ class AppStateView extends StatelessWidget {
           ),
         ),
         if (message != null) ...[
-          const SizedBox(height: AppSpace.s),
+          SizedBox(height: gap),
           Text(
             message!,
             textAlign: TextAlign.center,
