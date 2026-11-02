@@ -5,7 +5,6 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxdo/services/discourse/discourse_service.dart';
-import 'package:fluxdo/services/network/flux_request_spec.dart';
 import 'package:fluxdo/services/network/interceptors/error_interceptor.dart';
 import 'package:fluxdo/services/network/quiet_request.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -59,16 +58,6 @@ DiscourseService _service(_Adapter adapter) {
   });
   return service;
 }
-
-const _topic = {
-  'id': 1,
-  'title': 'T',
-  'slug': 't',
-  'posts_count': 1,
-  'post_stream': {'posts': <Object>[], 'stream': <int>[]},
-  'category_id': 1,
-  'details': <String, dynamic>{},
-};
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
