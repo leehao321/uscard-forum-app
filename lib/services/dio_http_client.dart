@@ -101,7 +101,7 @@ class DioHttpClient extends http.BaseClient {
   /// 提取 [AppConstants.baseUrl] 的 host(例如 `linux.do`),用于判断主域。
   /// 注意是 host 比对而不是 URL prefix 比对 —— 子域(`auth.linux.do` 等)
   /// 也算主域,会走带 cookie 的 dio。
-  static final String _mainHost = Uri.parse(AppConstants.baseUrl).host;
+  static String get _mainHost => Uri.parse(AppConstants.baseUrl).host;
 
   bool _isMainDomain(Uri url) {
     final host = url.host;

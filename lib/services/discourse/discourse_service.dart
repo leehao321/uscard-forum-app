@@ -150,7 +150,7 @@ class DiscourseService extends _DiscourseServiceBase
         _ReviewablesMixin,
         _AssignMixin,
         _ChatMixin {
-  static const String baseUrl = AppConstants.baseUrl;
+  static String get baseUrl => AppConstants.baseUrl;
   static const String _usernameKey = 'linux_do_username';
   static const _summaryCacheDuration = Duration(minutes: 5);
 

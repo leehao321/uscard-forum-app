@@ -5,13 +5,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:ua_client_hints/ua_client_hints.dart';
 import 'config/site_customization.dart';
-import 'config/sites/linuxdo.dart';
+import 'config/sites/current.dart';
+import 'services/site_context.dart';
 import 'services/windows_webview_environment_service.dart';
 
 /// 应用常量
 class AppConstants {
   /// 当前站点自定义配置
-  static final SiteCustomization siteCustomization = linuxdoCustomization;
+  /// 当前站点的自定义配置
+  static SiteCustomization get siteCustomization => currentSiteCustomization;
 
   /// 是否启用 WebView Cookie 同步（启动时预热 WebView）
   /// 设为 false 时，不使用 WebView 同步，Cookie 由 Dio Set-Cookie 与本地存储维护
@@ -297,8 +299,14 @@ class AppConstants {
         '(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
   }
 
-  /// linux.do 域名
-  static const String baseUrl = 'https://linux.do';
+  /// 当前站点地址（`https://host[/子路径]`，无尾斜杠）。
+  ///
+  /// 拼 API 路径和站内链接用它。服务端下发的路径可能已含子路径前缀，
+  /// 那种情况走 `UrlHelper`，不要直接拼在 baseUrl 后面。
+  static String get baseUrl => SiteContext.current.baseUrl;
+
+  /// 当前站点的 origin（不含子路径），Origin 头、WebView origin 校验用它。
+  static String get siteOrigin => SiteContext.current.origin;
 
   /// 请求首页时是否跳过 X-CSRF-Token（用于预热）
   static const bool skipCsrfForHomeRequest = true;

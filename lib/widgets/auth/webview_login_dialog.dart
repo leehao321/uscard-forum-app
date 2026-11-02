@@ -386,7 +386,7 @@ class _WebViewLoginDialogState extends State<_WebViewLoginDialog> {
 ''',
       );
       final origin = probe is Map ? probe['origin']?.toString() : null;
-      if (origin != AppConstants.baseUrl) {
+      if (origin != AppConstants.siteOrigin) {
         debugPrint('[WebViewLogin] Windows bootstrap origin not ready: $probe');
         return;
       }

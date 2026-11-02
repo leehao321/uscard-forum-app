@@ -263,7 +263,7 @@ class RichComposerEditorState extends State<RichComposerEditor> {
     ).read(currentUserProvider).value;
     if (user == null || user.id <= 0) return null;
     return SemanticRecoveryScope(
-      site: '${AppConstants.baseUrl}${PreloadedDataService().baseUri}',
+      site: '${AppConstants.siteOrigin}${PreloadedDataService().baseUri}',
       userId: user.id,
     );
   }
