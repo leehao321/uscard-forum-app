@@ -385,5 +385,6 @@
   },
   "notifications_empty": "暂无通知",
   "notifications_markAllRead": "全部标为已读",
-  "notifications_title": "通知"
+  "notifications_title": "通知",
+  "notification_loadEarlier": "加载更早的通知"
 }

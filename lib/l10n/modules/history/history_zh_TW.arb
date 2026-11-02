@@ -7,5 +7,6 @@
   "myTopics_empty": "暫無話題",
   "myTopics_emptySearchHint": "輸入關鍵詞搜尋我的話題",
   "myTopics_searchHint": "在我的話題中搜尋...",
-  "myTopics_title": "我的話題"
+  "myTopics_title": "我的話題",
+  "browsingHistory_loadEarlier": "載入更早的記錄"
 }

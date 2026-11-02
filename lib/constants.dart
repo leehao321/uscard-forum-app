@@ -82,7 +82,7 @@ class AppConstants {
     }
     _uaCompleter.complete(_cachedUserAgent!);
 
-    // 初始化 Client Hints（仅 Android/iOS）
+    // 初始化 Client Hints（仅 Android）
     await _initClientHints();
   }
 
@@ -144,10 +144,16 @@ class AppConstants {
     }
   }
 
-  /// 初始化 User-Agent Client Hints 请求头
-  /// ua_client_hints 仅支持 Android/iOS，桌面端跳过
+  /// 哪个平台发 Sec-CH-UA-* 请求头：只有 Android。
+  /// Android 上的 WebView / Chrome 本来就会带这组头，这里读到的是真实值；
+  /// iOS / macOS 的 Safari 内核本来不发 Client Hints，我们也就不发，
+  /// 不编造系统没有的信息。
+  @visibleForTesting
+  static bool clientHintsEnabledFor({required bool isAndroid}) => isAndroid;
+
+  /// 初始化 User-Agent Client Hints 请求头（只在 Android 上生成，见上）
   static Future<void> _initClientHints() async {
-    if (!Platform.isAndroid && !Platform.isIOS) return;
+    if (!clientHintsEnabledFor(isAndroid: Platform.isAndroid)) return;
     try {
       final hints = await userAgentClientHintsHeader();
       // 移除包自带的 User-Agent（我们用自己清理过的）

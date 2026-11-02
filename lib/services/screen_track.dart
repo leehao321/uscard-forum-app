@@ -73,7 +73,7 @@ class ScreenTrack {
       _tick();
       _flush();
     }
-    _reset();
+    _reset(keepPending: true);
     _topicId = topicId;
     _suppressCallbacks = false;
     // 监听 CF 验证状态：CF 触发时立即清空累积数据并冻结后续 tick；
@@ -88,7 +88,9 @@ class ScreenTrack {
     _cfService.inProgressNotifier.removeListener(_onCfChange);
     _tick();
     _flush();
-    _reset();
+    // 刚入队的最后一批阅读时间不能清掉：上一个请求还在途时 _flush 发不出去，
+    // 在途请求结束后会接着把队列发完（见 _sendNextConsolidatedTiming 的 finally）
+    _reset(keepPending: true);
     _topicId = null;
     _tickTimer?.cancel();
     _tickTimer = null;
@@ -148,19 +150,21 @@ class ScreenTrack {
     _lastFlush = Duration.zero;
   }
 
-  void _reset() {
+  /// [keepPending] = true 时保留待发队列和「请求在途」标记：stop() / 切话题用，
+  /// 队列里的批次自带 topicId，不会串到别的话题；abandon() 和 CF 冻结仍然全清。
+  void _reset({bool keepPending = false}) {
     final now = DateTime.now();
     _lastTick = now;
     _lastScrolled = now;
     _lastFlush = Duration.zero;
     _timings.clear();
     _totalTimings.clear();
-    _consolidatedTimings.clear();
+    if (!keepPending) _consolidatedTimings.clear();
     _topicTime = 0;
     _onscreen = {};
     _readOnscreen = {};
     _readPosts.clear();
-    _inProgress = false;
+    if (!keepPending) _inProgress = false;
     _ajaxFailures = 0;
     _blockSendingUntil = null;
   }
@@ -315,6 +319,12 @@ class ScreenTrack {
     } finally {
       _inProgress = false;
       _lastFlush = Duration.zero;
+      // 请求在途期间又入队了批次（典型：退出帖子时 stop() 的最后一次 flush），
+      // 在这里接着发完。失败退避走 _blockSendingUntil，不会打转；
+      // abandon() 已清空队列并抑制回调，这里自然什么都不发。
+      if (_consolidatedTimings.isNotEmpty && !_suppressCallbacks) {
+        unawaited(_sendNextConsolidatedTiming());
+      }
     }
   }
 }

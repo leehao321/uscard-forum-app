@@ -126,5 +126,6 @@
   "notification_watchingCategoryNewPost": "{username} published a new post",
   "notifications_empty": "No notifications",
   "notifications_markAllRead": "Mark all as read",
-  "notifications_title": "Notifications"
+  "notifications_title": "Notifications",
+  "notification_loadEarlier": "Load earlier notifications"
 }

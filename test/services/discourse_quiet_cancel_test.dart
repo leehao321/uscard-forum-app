@@ -24,7 +24,7 @@ class _Adapter implements HttpClientAdapter {
   Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
     requests.add(options);
     if (hold != null) {
-      await Future.any([hold!.future, if (cancelFuture != null) cancelFuture]);
+      await Future.any([hold!.future, ?cancelFuture]);
       if (cancelFuture != null) {
         throw DioException.requestCancelled(requestOptions: options, reason: 'cancelled');
       }
@@ -79,7 +79,10 @@ void main() {
     final service = _service(adapter);
     final token = CancelToken();
     final future = service.getTopicDetail(1, quiet: QuietRequest(cancelToken: token));
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    // 请求要走完拦截器链才到适配器，负载高时不止 50ms：轮询等到
+    for (var i = 0; i < 150 && adapter.requests.isEmpty; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
     expect(adapter.requests.length, 1);
     token.cancel('stop');
     await expectLater(

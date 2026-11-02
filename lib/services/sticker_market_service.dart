@@ -310,7 +310,11 @@ class StickerMarketService {
 
   /// 清除全部缓存
   Future<void> _clearAllCache() async {
-    final keys = _prefs.getKeys().where((k) => k.startsWith(_cachePrefix));
+    // 数据源地址的键（sticker_market_base_url）也以缓存前缀开头，不能当缓存清掉：
+    // 否则刚存的地址立刻就丢了，改数据源等于没改
+    final keys = _prefs.getKeys().where(
+      (k) => k.startsWith(_cachePrefix) && k != _baseUrlKey,
+    );
     for (final key in keys.toList()) {
       await _prefs.remove(key);
     }

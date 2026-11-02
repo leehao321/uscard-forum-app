@@ -100,17 +100,9 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                 )
                 .toList(growable: false);
             final notifier = ref.read(notificationListProvider.notifier);
-            // 已加载页全部被本地屏蔽时列表不可滚，滚动触发的翻页永远不会
-            // 发生；主动补载下一页（coordinator 自带冷却，不会打转）
-            if (visibleNotifications.isEmpty &&
-                notifications.isNotEmpty &&
-                notifier.hasMore) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) _loadMore();
-              });
-            }
-            if (visibleNotifications.isEmpty &&
-                (notifications.isEmpty || !notifier.hasMore)) {
+            // 已加载页全部被本地屏蔽时列表不可滚，滚动触发的翻页发生不了。
+            // 不自动补载（会一页接一页地翻下去），空状态里给一个手动点的按钮。
+            if (visibleNotifications.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -125,6 +117,14 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                       context.l10n.notification_empty,
                       style: const TextStyle(color: Colors.grey),
                     ),
+                    if (notifications.isNotEmpty && notifier.hasMore) ...[
+                      const SizedBox(height: 16),
+                      OutlinedButton(
+                        key: const ValueKey('notification-load-earlier'),
+                        onPressed: notifier.isLoadingMore ? null : _loadMore,
+                        child: Text(context.l10n.notification_loadEarlier),
+                      ),
+                    ],
                   ],
                 ),
               );

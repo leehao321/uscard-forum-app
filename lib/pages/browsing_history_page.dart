@@ -55,7 +55,14 @@ class _BrowsingHistoryPageState extends ConsumerState<BrowsingHistoryPage> {
   @override
   void dispose() {
     _scrollController.dispose();
-    Future(_searchNotifier.exitSearchMode);
+    Future(() {
+      // 整个 ProviderScope 一起卸载时 notifier 已销毁，退出搜索模式没有意义
+      try {
+        _searchNotifier.exitSearchMode();
+      } on StateError {
+        // ignore
+      }
+    });
     super.dispose();
   }
 
@@ -228,14 +235,9 @@ class _BrowsingHistoryPageState extends ConsumerState<BrowsingHistoryPage> {
             blockedUsernames,
           );
           final notifier = ref.read(browsingHistoryProvider.notifier);
-          // 已加载页全部被本地屏蔽时列表不可滚，滚动触发的翻页永远不会发生；
-          // 主动补载下一页（coordinator 自带冷却，不会打转），footer 显示加载中
-          if (visibleTopics.isEmpty && topics.isNotEmpty && notifier.hasMore) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) _loadMore();
-            });
-          }
-          if (visibleTopics.isEmpty && (topics.isEmpty || !notifier.hasMore)) {
+          // 已加载页全部被本地屏蔽时列表不可滚，滚动触发的翻页发生不了。
+          // 不自动补载（会一页接一页地翻下去），空状态里给用户手动点的按钮
+          if (visibleTopics.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -246,6 +248,14 @@ class _BrowsingHistoryPageState extends ConsumerState<BrowsingHistoryPage> {
                     context.l10n.browsingHistory_empty,
                     style: const TextStyle(color: Colors.grey),
                   ),
+                  if (topics.isNotEmpty && notifier.hasMore) ...[
+                    const SizedBox(height: 16),
+                    OutlinedButton(
+                      key: const ValueKey('history-load-earlier'),
+                      onPressed: notifier.isLoadingMore ? null : _loadMore,
+                      child: Text(context.l10n.browsingHistory_loadEarlier),
+                    ),
+                  ],
                 ],
               ),
             );

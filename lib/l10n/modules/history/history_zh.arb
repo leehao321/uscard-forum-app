@@ -7,5 +7,6 @@
   "myTopics_empty": "暂无话题",
   "myTopics_emptySearchHint": "输入关键词搜索我的话题",
   "myTopics_searchHint": "在我的话题中搜索...",
-  "myTopics_title": "我的话题"
+  "myTopics_title": "我的话题",
+  "browsingHistory_loadEarlier": "加载更早的记录"
 }

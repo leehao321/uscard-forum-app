@@ -7,5 +7,6 @@
   "myTopics_empty": "No topics",
   "myTopics_emptySearchHint": "Enter keywords to search my topics",
   "myTopics_searchHint": "Search my topics...",
-  "myTopics_title": "My Topics"
+  "myTopics_title": "My Topics",
+  "browsingHistory_loadEarlier": "Load earlier history"
 }
