@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:common_ui/common_ui.dart';
+import '../../pages/leaderboard_page.dart';
+import '../../providers/leaderboard_provider.dart';
 import '../../providers/topic_list/filter_provider.dart';
 import '../../providers/topic_list/sort_provider.dart';
 import '../../providers/topic_list/tab_state_provider.dart';
@@ -121,7 +123,11 @@ class _TopicFilterMenuButtonState extends ConsumerState<TopicFilterMenuButton> {
       onCanceled: () => _setMenuOpen(false),
       onSelected: (value) {
         _setMenuOpen(false);
-        if (value is TopicListFilter) {
+        if (value is LeaderboardKind) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => LeaderboardPage(kind: value)),
+          );
+        } else if (value is TopicListFilter) {
           widget.onFilterChanged(value);
         } else if (value is NewSubset) {
           widget.onSubsetChanged(value);
@@ -173,6 +179,25 @@ class _TopicFilterMenuButtonState extends ConsumerState<TopicFilterMenuButton> {
               ),
             ),
           );
+        }
+
+        // —— 榜单（站点配了徽章才有，点了进单独的列表页）——
+        final leaderboards = availableLeaderboards();
+        if (leaderboards.isNotEmpty) {
+          items.add(const PopupMenuDivider());
+          for (final kind in leaderboards) {
+            items.add(
+              PopupMenuItem<Object>(
+                value: kind,
+                child: Row(
+                  children: [
+                    const SizedBox(width: 24),
+                    Text(leaderboardLabel(context, kind)),
+                  ],
+                ),
+              ),
+            );
+          }
         }
 
         // ——「新」子过滤（仅该模式下展示，缩进呈现从属关系）——

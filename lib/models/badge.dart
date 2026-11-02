@@ -322,3 +322,95 @@ class BadgeTopic {
     );
   }
 }
+
+/// 榜单里的一条：一次「徽章授予」对应的帖子
+class BadgeTopicEntry {
+  const BadgeTopicEntry({
+    required this.topicId,
+    required this.title,
+    required this.grantedAt,
+    this.postNumber,
+    this.author,
+    this.postsCount = 0,
+  });
+
+  final int topicId;
+  final String title;
+
+  /// 获得徽章的是话题里的哪一楼
+  final int? postNumber;
+
+  /// 作者（徽章授予的就是这个帖子的作者）
+  final String? author;
+  final DateTime grantedAt;
+  final int postsCount;
+
+  /// 回复数（不含首帖）
+  int get replyCount => postsCount > 0 ? postsCount - 1 : 0;
+}
+
+/// `/user_badges.json?badge_id=…&offset=…` 的一页
+class BadgeTopicsPage {
+  const BadgeTopicsPage({
+    required this.entries,
+    required this.fetchedCount,
+    required this.hasMore,
+  });
+
+  /// Discourse 缺省每页 96 条（`UserBadgesController::MAX_BADGES`）
+  static const pageSize = 96;
+
+  /// 能看到的话题（看不到的话题服务端不带 topic，已跳过）
+  final List<BadgeTopicEntry> entries;
+
+  /// 服务端返回的授予记录条数，下一页 offset 要按它推进（不是 [entries] 的条数）
+  final int fetchedCount;
+  final bool hasMore;
+
+  factory BadgeTopicsPage.fromJson(
+    Map<String, dynamic> json, {
+    int limit = pageSize,
+  }) {
+    final topics = <int, Map<String, dynamic>>{
+      for (final t in (json['topics'] as List<dynamic>? ?? const []))
+        if (t is Map<String, dynamic> && t['id'] is int) t['id'] as int: t,
+    };
+    final users = <int, Map<String, dynamic>>{
+      for (final u in (json['users'] as List<dynamic>? ?? const []))
+        if (u is Map<String, dynamic> && u['id'] is int) u['id'] as int: u,
+    };
+    final info = json['user_badge_info'] as Map<String, dynamic>?;
+    final raw = info?['user_badges'] as List<dynamic>? ?? const [];
+    final entries = <BadgeTopicEntry>[];
+    for (final item in raw) {
+      if (item is! Map<String, dynamic>) continue;
+      final topicId = item['topic_id'] as int?;
+      if (topicId == null) continue;
+      final topic = topics[topicId];
+      final title =
+          (topic?['title'] as String?) ?? item['topic_title'] as String?;
+      if (title == null || title.isEmpty) continue;
+      final user = users[item['user_id']];
+      final name = (user?['name'] as String?)?.trim();
+      entries.add(
+        BadgeTopicEntry(
+          topicId: topicId,
+          title: title,
+          postNumber: item['post_number'] as int?,
+          author: name != null && name.isNotEmpty
+              ? name
+              : user?['username'] as String?,
+          grantedAt:
+              TimeUtils.parseUtcTime(item['granted_at'] as String?) ??
+              DateTime.fromMillisecondsSinceEpoch(0),
+          postsCount: (topic?['posts_count'] as int?) ?? 0,
+        ),
+      );
+    }
+    return BadgeTopicsPage(
+      entries: entries,
+      fetchedCount: raw.length,
+      hasMore: raw.length >= limit,
+    );
+  }
+}

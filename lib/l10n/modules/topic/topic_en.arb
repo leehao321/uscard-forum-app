@@ -174,5 +174,12 @@
   "topics_unreadTopics": "Unread topics",
   "topics_viewNewTopics": "View {count} new or updated topics",
   "topic_keywordFilter_hiddenCount": "{count} topics hidden",
-  "topic_keywordFilter_manage": "Manage"
+  "topic_keywordFilter_manage": "Manage",
+  "leaderboard_empty": "Nothing here yet",
+  "leaderboard_funny": "Funny",
+  "leaderboard_grantedOn": "Awarded {date}",
+  "leaderboard_great": "Great",
+  "leaderboard_loginHint": "You may need to log in to see this list",
+  "leaderboard_repliesCount": "{count} replies",
+  "topicDetail_hiddenRepliesShown": "Hidden replies shown"
 }

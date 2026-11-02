@@ -116,6 +116,10 @@ class SiteCustomization {
   /// 不在站点允许列表里就直接提示。
   final bool mediaUploadAsXz;
 
+  /// 榜单用的徽章 id。没配的榜单不显示入口，徽章是站点自定义的，只能写在配置里。
+  final int? greatTopicBadgeId;
+  final int? funnyTopicBadgeId;
+
   /// 浏览器授权登录申请的 User API Key scopes。
   ///
   /// 站点的 `allow_user_api_key_scopes` 不下发给客户端，游客探测不到，所以默认只
@@ -131,6 +135,8 @@ class SiteCustomization {
     this.hcaptchaSiteKey,
     this.hasSessionBootstrapPlugin = false,
     this.mediaUploadAsXz = false,
+    this.greatTopicBadgeId,
+    this.funnyTopicBadgeId,
     this.userApiKeyScopes = 'one_time_password',
   });
 

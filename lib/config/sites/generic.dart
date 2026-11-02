@@ -3,7 +3,13 @@ import '../site_customization.dart';
 /// 没有专属配置的站点：无头像光晕、无头衔特效、无社区插件。
 /// 外链确认保持开启，当前站（含不带 www 的根域）及其子域算内部链接；
 /// 常见短链接和推广链接仍然提醒。
-SiteCustomization genericCustomization(String rootHost) => SiteCustomization(
+SiteCustomization genericCustomization(
+  String rootHost, {
+  int? greatTopicBadgeId,
+  int? funnyTopicBadgeId,
+}) => SiteCustomization(
+  greatTopicBadgeId: greatTopicBadgeId,
+  funnyTopicBadgeId: funnyTopicBadgeId,
   linkSecurityConfig: LinkSecurityConfig(
     enableExitConfirmation: true,
     internalDomains: [

@@ -283,5 +283,12 @@
       }
     }
   },
-  "topic_keywordFilter_manage": "管理"
+  "topic_keywordFilter_manage": "管理",
+  "leaderboard_empty": "榜上還沒有帖子",
+  "leaderboard_funny": "難繃",
+  "leaderboard_grantedOn": "獲得於 {date}",
+  "leaderboard_great": "精彩",
+  "leaderboard_loginHint": "登入後可能才能查看榜單",
+  "leaderboard_repliesCount": "{count} 回覆",
+  "topicDetail_hiddenRepliesShown": "已顯示隱藏的回覆"
 }

@@ -14,9 +14,16 @@ SiteCustomization get currentSiteCustomization {
   final site = SiteContext.current;
   if (_resolvedFor != site.id) {
     _resolvedFor = site.id;
-    _resolved = site.featurePack == SiteFeaturePack.linuxdo
-        ? linuxdoCustomization
-        : genericCustomization(site.rootHost);
+    _resolved = switch (site.featurePack) {
+      SiteFeaturePack.linuxdo => linuxdoCustomization,
+      // 榜单：徽章 #20「精彩的话题」、#115「难绷的话题」（美卡自定义徽章）
+      SiteFeaturePack.uscard => genericCustomization(
+        site.rootHost,
+        greatTopicBadgeId: 20,
+        funnyTopicBadgeId: 115,
+      ),
+      SiteFeaturePack.generic => genericCustomization(site.rootHost),
+    };
   }
   return _resolved!;
 }

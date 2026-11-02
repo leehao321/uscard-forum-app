@@ -350,5 +350,6 @@
       }
     }
   },
-  "nested_restoreFailed": "Could not restore this position. Please try again."
+  "nested_restoreFailed": "Could not restore this position. Please try again.",
+  "post_collapse": "Collapse"
 }
