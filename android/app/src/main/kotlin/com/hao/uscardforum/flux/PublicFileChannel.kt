@@ -1,4 +1,4 @@
-package com.github.lingyan000.fluxdo
+package com.hao.uscardforum.flux
 
 import android.app.Activity
 import android.content.ActivityNotFoundException

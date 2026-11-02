@@ -243,7 +243,7 @@ class _AboutPageState extends State<AboutPage> {
             child: Column(
               children: [
                 Text(
-                  'FluxDO',
+                  'USCard Flux',
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: theme.colorScheme.onSurface,
@@ -291,7 +291,7 @@ class _AboutPageState extends State<AboutPage> {
                   title: context.l10n.about_openSourceLicense,
                   onTap: () => showLicensePage(
                     context: context,
-                    applicationName: 'FluxDO',
+                    applicationName: 'USCard Flux',
                     applicationVersion: _version,
                     applicationLegalese: context.l10n.about_legalese,
                   ),
@@ -324,7 +324,7 @@ class _AboutPageState extends State<AboutPage> {
                   title: context.l10n.about_sourceCode,
                   subtitle: 'GitHub',
                   onTap: () => launchUrl(
-                    Uri.parse('https://github.com/Lingyan000/fluxdo'),
+                    Uri.parse('https://github.com/leehao321/uscard-forum-app'),
                     mode: LaunchMode.externalApplication,
                   ),
                 ),
@@ -354,7 +354,7 @@ class _AboutPageState extends State<AboutPage> {
                   icon: Symbols.bug_report_rounded,
                   title: context.l10n.about_feedback,
                   onTap: () => launchUrl(
-                    Uri.parse('https://github.com/Lingyan000/fluxdo/issues'),
+                    Uri.parse('https://github.com/leehao321/uscard-forum-app/issues'),
                     mode: LaunchMode.externalApplication,
                   ),
                 ),
