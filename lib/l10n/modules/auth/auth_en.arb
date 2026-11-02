@@ -72,5 +72,15 @@
   "site_errorCloudflare": "This forum is behind a Cloudflare check, so its details cannot be read right now. You can add it anyway and pass the check in the built-in browser when signing in.",
   "site_errorInvalidAddress": "That address is not valid. Enter a domain such as example.com.",
   "site_errorNotDiscourse": "This address is not a Discourse forum, or the forum is hosted under a different path.",
-  "site_errorUnreachable": "Could not reach this address. Check your network and try again."
+  "site_errorUnreachable": "Could not reach this address. Check your network and try again.",
+  "site_addButton": "Add forum",
+  "site_currentLabel": "Current forum",
+  "site_manageTitle": "Forums",
+  "site_platformNote": "The system cannot register web links for forums you add: links open fine inside the app, but tapping them in another app or browser will not bring you back here.",
+  "site_removeBody": "This forum's sign-in state and local data are kept, so you can add it again later.",
+  "site_removeConfirm": "Remove",
+  "site_removeTitle": "Remove {siteName}?",
+  "site_switchBody": "The app will quit and connect to this forum when you reopen it. Each forum keeps its own sign-in and data.",
+  "site_switchConfirm": "Switch and quit",
+  "site_switchTitle": "Switch to {siteName}?"
 }

@@ -22,6 +22,7 @@ import 'notion_settings_page.dart';
 import 'preferences_page.dart';
 import 'reading_settings_page.dart';
 import 'shortcut_settings_page.dart';
+import 'sites_page.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   static const double parallelMasterWidth = PaneBreakpoints.settingsMasterWidth;
@@ -375,6 +376,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               title: l10n.settings_bottomNav,
               onTap: () =>
                   _openSettingsPage((_) => const BottomNavSettingsPage()),
+            ),
+            _buildOptionTile(
+              icon: Symbols.forum_rounded,
+              iconColor: Colors.teal,
+              title: l10n.site_manageTitle,
+              onTap: () => _openSettingsPage((_) => const SitesPage()),
             ),
             _buildOptionTile(
               icon: Symbols.storage_rounded,

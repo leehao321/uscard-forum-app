@@ -206,6 +206,7 @@ class _AddSitePageState extends State<AddSitePage> {
     final error = _error;
 
     return Scaffold(
+      appBar: Navigator.canPop(context) ? AppBar() : null,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
