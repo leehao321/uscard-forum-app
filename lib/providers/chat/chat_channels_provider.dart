@@ -10,6 +10,7 @@ import '../../storage/chat_cache_dao.dart';
 import '../discourse_providers.dart';
 import '../message_bus/message_bus_service_provider.dart';
 import '../message_bus/topic_tracking_providers.dart';
+import '../../services/preloaded_data_service.dart';
 
 /// 会话列表状态:公共频道 + DM 频道 + 每频道未读
 class ChatChannelsState {
@@ -81,7 +82,9 @@ class ChatChannelsNotifier extends AsyncNotifier<ChatChannelsState> {
     _teardown();
     ref.onDispose(_teardown);
 
-    if (user == null) return const ChatChannelsState();
+    if (user == null || !PreloadedDataService().chatEnabled) {
+      return const ChatChannelsState();
+    }
 
     // 冷启:先出缓存快照(损坏/无缓存静默跳过),网络返回后整体覆盖
     if (state.value == null || state.value!.directMessageChannels.isEmpty) {

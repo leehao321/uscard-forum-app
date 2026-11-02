@@ -13,6 +13,7 @@ import '../widgets/topic/painted_topic_card.dart';
 import '../widgets/topic/topic_card.dart';
 import '../widgets/topic/topic_card_layout.dart';
 import '../widgets/topic/topic_expandable_excerpt.dart';
+import '../services/site_context.dart';
 
 /// 话题卡片样式设置页
 ///
@@ -256,14 +257,15 @@ class _TopicCardStyleSettingsPageState
               value: style.showImages,
               onChanged: (v) => _update(style.copyWith(showImages: v)),
             ),
-            _fieldSwitch(
-              theme,
-              icon: Symbols.cloud_download_rounded,
-              title: l10n.topicCardStyle_allowExcerptFetch,
-              subtitle: l10n.topicCardStyle_allowExcerptFetchDesc,
-              value: style.allowExcerptFetch,
-              onChanged: _setAllowExcerptFetch,
-            ),
+            if (SiteContext.current.allowBackgroundAccess)
+              _fieldSwitch(
+                theme,
+                icon: Symbols.cloud_download_rounded,
+                title: l10n.topicCardStyle_allowExcerptFetch,
+                subtitle: l10n.topicCardStyle_allowExcerptFetchDesc,
+                value: style.allowExcerptFetch,
+                onChanged: _setAllowExcerptFetch,
+              ),
           ],
         ),
         const SizedBox(height: 24),

@@ -152,7 +152,8 @@ extension _PostFooterMenuActions on _PostFooterSectionState {
                     widget.onShareAsImage!();
                   },
                 ),
-              if (!isGuest)
+              // 打赏 LDC 是 linux.do 的服务
+              if (!isGuest && SiteContext.current.hasLinuxdoServices)
                 Builder(
                   builder: (context) {
                     final currentUser = ref.read(currentUserProvider).value;

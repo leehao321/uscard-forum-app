@@ -58,6 +58,7 @@ import 'package:common_ui/common_ui.dart';
 import '../l10n/s.dart';
 import '../utils/dialog_utils.dart';
 import '../widgets/common/hero_image.dart';
+import '../services/preloaded_data_service.dart';
 
 /// 用户个人页
 /// 头像的展示方式:方形账号是 cover 裁切 + 圆角,圆形账号走 circular。
@@ -246,7 +247,7 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
 
   // tab 对应的 filter: summary=总结, 4,5=全部(话题+回复), 4=话题, 5=回复, 1=点赞,
   // reactions=回应, boosts=Boost, votes=投票, solved=已解决
-  static const List<String> _tabFilters = [
+  static const List<String> _allTabFilters = [
     'summary',
     '4,5',
     '4',
@@ -257,6 +258,18 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
     'votes',
     'solved',
   ];
+
+  /// 站点没装对应插件的标签不显示，否则点进去只有报错或空页。
+  final List<String> _tabFilters = _allTabFilters.where((filter) {
+    final preloaded = PreloadedDataService();
+    return switch (filter) {
+      'reactions' => preloaded.reactionsPluginState != false,
+      'boosts' => preloaded.boostsEnabled,
+      'votes' => preloaded.topicVotingEnabled,
+      'solved' => preloaded.solvedEnabled,
+      _ => true,
+    };
+  }).toList(growable: false);
 
   /// 桌面端 Esc 关闭当前层:平行视界嵌入层走 onEmbeddedBack,普通路由
   /// maybePop —— 与 TopicDetailPage 的 closeOverlay 语义对齐。
@@ -2615,15 +2628,21 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage>
       indicatorSize: TabBarIndicatorSize.label,
       dividerColor: Colors.transparent,
       tabs: [
-        Tab(height: 36, text: context.l10n.userProfile_tabSummary),
-        Tab(height: 36, text: context.l10n.userProfile_tabActivity),
-        Tab(height: 36, text: context.l10n.userProfile_tabTopics),
-        Tab(height: 36, text: context.l10n.userProfile_tabReplies),
-        Tab(height: 36, text: context.l10n.userProfile_tabLikes),
-        Tab(height: 36, text: context.l10n.userProfile_tabReactions),
-        Tab(height: 36, text: context.l10n.userProfile_tabBoosts),
-        Tab(height: 36, text: context.l10n.userProfile_tabVotes),
-        Tab(height: 36, text: context.l10n.userProfile_tabSolved),
+        for (final filter in _tabFilters)
+          Tab(
+            height: 36,
+            text: switch (filter) {
+              'summary' => context.l10n.userProfile_tabSummary,
+              '4,5' => context.l10n.userProfile_tabActivity,
+              '4' => context.l10n.userProfile_tabTopics,
+              '5' => context.l10n.userProfile_tabReplies,
+              '1' => context.l10n.userProfile_tabLikes,
+              'reactions' => context.l10n.userProfile_tabReactions,
+              'boosts' => context.l10n.userProfile_tabBoosts,
+              'votes' => context.l10n.userProfile_tabVotes,
+              _ => context.l10n.userProfile_tabSolved,
+            },
+          ),
       ],
     );
   }

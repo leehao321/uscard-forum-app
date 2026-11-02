@@ -18,6 +18,8 @@ import '../widgets/common/smart_avatar.dart';
 import '../widgets/notification/notification_quick_panel.dart';
 import 'nav_action_bus.dart';
 import 'nav_entry.dart';
+import '../services/preloaded_data_service.dart';
+import '../services/site_context.dart';
 
 /// 注册所有可选底栏入口
 ///
@@ -28,7 +30,7 @@ class NavEntryRegistry {
 
   /// 构建完整候选列表
   static List<NavEntry> buildAll() {
-    return [
+    final entries = [
       NavEntry(
         id: NavEntryIds.home,
         kind: NavEntryKind.page,
@@ -124,6 +126,15 @@ class NavEntryRegistry {
         requiresLogin: true,
       ),
     ];
+    // 站点没开聊天时不显示入口，也不激活 chatChannelsProvider（不请求 /chat）
+    if (!PreloadedDataService().chatEnabled) {
+      entries.removeWhere((e) => e.id == NavEntryIds.chat);
+    }
+    // 关注是定时拉取用户动态，不允许后台访问的站不提供
+    if (!SiteContext.current.allowBackgroundAccess) {
+      entries.removeWhere((e) => e.id == NavEntryIds.seeking);
+    }
+    return entries;
   }
 
   /// 按 id 查找 entry

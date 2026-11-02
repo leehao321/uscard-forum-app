@@ -159,12 +159,40 @@ extension PostUpdateMethods on TopicDetailNotifier {
   }
 
   /// 更新帖子点赞数（用于 MessageBus liked/unliked 消息）
-  void updatePostLikes(int postId, {int? likesCount}) {
+  ///
+  /// 站点没装回应插件时，界面上的点赞数来自 reactions 里的 heart（见
+  /// [PostReaction.likesFromActionsSummary]），要一起改；消息是当前用户
+  /// 发出的（[byCurrentUser]，比如在另一台设备上点的）时，同步自己的点赞状态。
+  void updatePostLikes(
+    int postId, {
+    int? likesCount,
+    bool liked = true,
+    bool byCurrentUser = false,
+  }) {
     if (likesCount == null) {
       refreshPost(postId, preserveCooked: true);
       return;
     }
-    _updatePostById(postId, (post) => post.copyWith(likeCount: likesCount));
+    final derivedLikes =
+        PreloadedDataService().reactionsPluginState == false;
+    _updatePostById(postId, (post) {
+      if (!derivedLikes) return post.copyWith(likeCount: likesCount);
+      final reactions = PostReaction.withHeartCount(
+        post.reactions ?? const [],
+        likesCount,
+      );
+      if (!byCurrentUser) {
+        return post.copyWith(likeCount: likesCount, reactions: reactions);
+      }
+      return post.copyWith(
+        likeCount: likesCount,
+        reactions: reactions,
+        currentUserReaction: liked
+            ? PostReaction(id: 'heart', type: 'emoji', count: likesCount)
+            : null,
+        clearCurrentUserReaction: !liked,
+      );
+    });
   }
 
   /// 更新单个帖子的点赞/回应状态

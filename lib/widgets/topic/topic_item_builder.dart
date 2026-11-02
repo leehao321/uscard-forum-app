@@ -15,6 +15,7 @@ import 'topic_card.dart';
 import 'topic_card_layout.dart';
 import 'topic_expandable_excerpt.dart';
 import 'topic_preview_dialog.dart';
+import '../../services/site_context.dart';
 
 /// 话题卡排版宽:与 [buildTopicItem] 的壳层约束同源(移动 = 视口宽
 /// - 页边距 24;桌面 = 同口径再封顶 [Breakpoints.maxContentWidth])。
@@ -131,7 +132,10 @@ Widget buildTopicItem({
               showImages: currentStyle.showImages,
               maxCollapsedLines: currentStyle.maxCollapsedLines,
               isFullyRead: isFullyRead,
-              allowFetch: currentStyle.allowExcerptFetch,
+              // 站点开关优先：导入的旧备份里可能带着 allowExcerptFetch
+              allowFetch:
+                  SiteContext.current.allowBackgroundAccess &&
+                  currentStyle.allowExcerptFetch,
             )
           : null);
 

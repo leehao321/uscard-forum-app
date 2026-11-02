@@ -29,7 +29,12 @@ extension _PostFooterReactionActions on _PostFooterSectionState {
 
     try {
       final reactionId = _currentUserReaction?.id ?? 'heart';
-      final result = await _service.toggleReaction(widget.post.id, reactionId);
+      final result = await _service.toggleReaction(
+        widget.post.id,
+        reactionId,
+        currentReactions: _reactions,
+        currentUserReaction: _currentUserReaction,
+      );
       if (!mounted) return;
 
       setState(() {
@@ -51,7 +56,12 @@ extension _PostFooterReactionActions on _PostFooterSectionState {
 
   Future<void> _toggleReaction(String reactionId) async {
     try {
-      final result = await _service.toggleReaction(widget.post.id, reactionId);
+      final result = await _service.toggleReaction(
+        widget.post.id,
+        reactionId,
+        currentReactions: _reactions,
+        currentUserReaction: _currentUserReaction,
+      );
       if (!mounted) return;
 
       setState(() {

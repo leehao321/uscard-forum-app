@@ -21,6 +21,7 @@ import 'discourse_url_parser.dart';
 import 'link_security.dart';
 import 'url_helper.dart';
 import '../services/site_context.dart';
+import '../services/preloaded_data_service.dart';
 
 const _browserChannel = MethodChannel('com.github.lingyan000.fluxdo/browser');
 
@@ -182,6 +183,11 @@ Future<void> launchContentLink(
   //    "/t/数字" 会被话题正则误命中抢走
   final chatInfo = DiscourseUrlParser.parseChat(url);
   if (chatInfo != null && isInternalUrlString(url)) {
+    // 站点没开聊天时交给内置浏览器，同时避免被下面的话题、分类正则误命中
+    if (!PreloadedDataService().chatEnabled) {
+      WebViewPage.open(context, UrlHelper.resolveUrl(url));
+      return;
+    }
     await Navigator.push(
       context,
       MaterialPageRoute(

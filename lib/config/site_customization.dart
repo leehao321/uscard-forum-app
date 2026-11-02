@@ -111,6 +111,11 @@ class SiteCustomization {
   /// 否则每次都找不到插件，反复起无头 WebView 拉首页和插件 JS，登录也会被拖慢。
   final bool hasSessionBootstrapPlugin;
 
+  /// 音视频是否改名成 `.xz` 上传。linux.do 的扩展名白名单不含音视频，社区的
+  /// 「媒体上传」脚本约定这样绕过；其他站点不绕白名单，按原文件名上传，扩展名
+  /// 不在站点允许列表里就直接提示。
+  final bool mediaUploadAsXz;
+
   /// 浏览器授权登录申请的 User API Key scopes。
   ///
   /// 站点的 `allow_user_api_key_scopes` 不下发给客户端，游客探测不到，所以默认只
@@ -125,6 +130,7 @@ class SiteCustomization {
     this.plugins = const [],
     this.hcaptchaSiteKey,
     this.hasSessionBootstrapPlugin = false,
+    this.mediaUploadAsXz = false,
     this.userApiKeyScopes = 'one_time_password',
   });
 

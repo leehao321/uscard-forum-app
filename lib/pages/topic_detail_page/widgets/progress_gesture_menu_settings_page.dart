@@ -80,7 +80,7 @@ class _ProgressGestureMenuSettingsPageState
       preferencesProvider.select((p) => p.progressGestureLongPressEnabled),
     );
     // 长按菜单候选不包含「无」（none 仅对滑动方向有意义）
-    final available = ProgressGestureAction.values
+    final available = availableProgressGestureActions()
         .where((a) => a != ProgressGestureAction.none && !_selected.contains(a))
         .toList();
     final atLimit = _selected.length >= kProgressGestureMenuMax;

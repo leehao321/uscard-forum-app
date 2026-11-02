@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../services/site_context.dart';
 
 /// 统计项类型
 enum ProfileStatType {
@@ -27,6 +28,13 @@ enum StatsDataSource {
   summary,   // 全量（Summary API）
   connect,   // 信任等级周期（connect.linux.do）
 }
+
+/// 当前站能用的数据源。connect 周期统计只有 linux.do 有；配置导入别的站时
+/// 回到 Summary API，否则统计卡一直没有数据。
+List<StatsDataSource> availableStatsDataSources() =>
+    SiteContext.current.hasLinuxdoServices
+    ? StatsDataSource.values
+    : const [StatsDataSource.summary];
 
 /// 各数据源支持的统计项
 const Map<StatsDataSource, Set<ProfileStatType>> supportedStatsPerSource = {
@@ -117,7 +125,7 @@ class ProfileStatsConfig {
         orElse: () => StatsLayoutMode.grid,
       ),
       columnsPerRow: json['columnsPerRow'] as int? ?? 4,
-      dataSource: StatsDataSource.values.firstWhere(
+      dataSource: availableStatsDataSources().firstWhere(
         (v) => v.name == json['dataSource'],
         orElse: () => StatsDataSource.summary,
       ),

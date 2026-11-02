@@ -9,6 +9,7 @@ import '../utils/client_id_generator.dart';
 import '../utils/scroll_busy_signal.dart';
 import 'network/discourse_dio.dart';
 import 'preloaded_data_service.dart';
+import 'site_context.dart';
 
 /// compute 入口:isolate 内解析大 chunk(结果经 Isolate.exit 转移,
 /// 回传零拷贝)。见 [_isolateDecodeThreshold] 的取舍说明。
@@ -249,8 +250,12 @@ class MessageBusService {
     }
   }
 
+  /// 不允许后台访问的站，切到后台后完全停止轮询，回前台才恢复。
+  bool get _backgroundStopped =>
+      _backgroundMode && !SiteContext.current.allowBackgroundAccess;
+
   void _startPolling() {
-    if (_isPolling) return;
+    if (_isPolling || _backgroundStopped) return;
     _isPolling = true;
     _shouldStop = false;
     _pollGeneration++;
@@ -722,6 +727,11 @@ class MessageBusService {
   void enterBackgroundMode() {
     if (_backgroundMode) return;
     _backgroundMode = true;
+    if (_backgroundStopped) {
+      debugPrint('[MessageBus] 进入后台模式,停止轮询');
+      _stopPolling();
+      return;
+    }
     debugPrint(
       '[MessageBus] 进入后台模式,轮询间隔 ${_backgroundCallbackInterval.inSeconds}s',
     );

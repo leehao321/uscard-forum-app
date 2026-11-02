@@ -10,6 +10,7 @@ import 'network/discourse_dio.dart';
 import 'network/cookie/csrf_token_service.dart';
 import 'cf_challenge_service.dart';
 import 'cf_clearance_refresh_service.dart';
+import 'site_context.dart';
 
 /// 预加载数据服务
 /// 从首页 HTML 中提取 Discourse 预加载数据，避免额外 API 请求。
@@ -42,8 +43,8 @@ class PreloadedDataService {
   String? _longPollingBaseUrl; // MessageBus 独立域名
   String _baseUri = ''; // Discourse 子路径前缀（如 /forum）
   String? _cdnUrl; // CDN 域名（从 data-discourse-setup 提取）
-  String? _s3CdnUrl; // S3 CDN 域名（如 https://cdn3.linux.do）
-  String? _s3BaseUrl; // S3 基础 URL（如 //linuxdo-uploads.s3.linux.do）
+  String? _s3CdnUrl; // S3 CDN 域名（data-discourse-setup 的 s3-cdn）
+  String? _s3BaseUrl; // S3 基础 URL（data-discourse-setup 的 s3-base-url）
   List<String>? _pluginCandidates; // 首页 HTML 中扫到的 plugin js url 列表
   bool _hasDiscourseSetup = false; // 是否提取到 data-discourse-setup 标签
   bool _loaded = false;
@@ -360,28 +361,74 @@ class PreloadedDataService {
     return raw.split('|').where((s) => s.isNotEmpty).toList();
   }
 
-  /// 获取可用的回应表情列表
+  /// 站点功能开关（核心或插件下发到 siteSettings 的布尔设置）。
+  ///
+  /// 设置里没有这一项就是没装插件。linux.do 例外：站点设置没加载时也按开启处理，
+  /// 沿用上游行为。
+  bool _siteFlag(String name) {
+    final value = _siteSettings?[name];
+    if (value is bool) return value;
+    return SiteContext.current.hasLinuxdoServices;
+  }
+
+  bool get chatEnabled => _siteFlag('chat_enabled');
+  bool get boostsEnabled => _siteFlag('discourse_boosts_enabled');
+  bool get nestedRepliesEnabled => _siteFlag('nested_replies_enabled');
+  bool get solvedEnabled => _siteFlag('solved_enabled');
+  bool get topicVotingEnabled => _siteFlag('topic_voting_enabled');
+
+  /// 站点是否装了 discourse-reactions 插件（插件设置会下发到 siteSettings）。
+  ///
+  /// siteSettings 还没加载、加载失败或刷新途中被清空时为 null：不知道装没装，
+  /// 这时点赞走 Discourse 自带接口（装没装插件都能用），也不弹表情面板。
+  /// linux.do 确定装了，不走这个分支。
+  bool? get reactionsPluginState {
+    final s = _siteSettings;
+    if (s == null || s.isEmpty) {
+      return SiteContext.current.hasLinuxdoServices ? true : null;
+    }
+    if (s.containsKey('discourse_reactions_enabled')) {
+      return s['discourse_reactions_enabled'] == true;
+    }
+    return s.containsKey('discourse_reactions_enabled_reactions');
+  }
+
+  /// 获取可用的回应表情列表（没装或不知道装没装回应插件时为空，界面就不弹表情面板）
   Future<List<String>> getEnabledReactions() async {
     await _ensureLoaded();
+    if (reactionsPluginState != true) return const [];
     return _enabledReactions ?? ['heart', '+1', 'laughing', 'open_mouth'];
   }
 
-  /// 同步获取可用回应表情列表（仅返回已 preload 结果，未 preload 时返回兜底）
+  /// 同步获取可用回应表情列表（仅返回已 preload 结果）
   /// 用于"按下立即弹出"等零延迟场景
-  List<String> get enabledReactionsSync =>
-      _enabledReactions ?? const ['heart', '+1', 'laughing', 'open_mouth'];
-
-  /// 站点 hCaptcha 插件下发的 sitekey；没装插件或站点设置没加载时为 null。
-  String? get hcaptchaSiteKey {
-    for (final name in const ['hcaptcha_site_key', 'discourse_hcaptcha_site_key']) {
-      final value = _siteSettings?[name];
-      if (value is String && value.isNotEmpty) return value;
-    }
-    return null;
+  List<String> get enabledReactionsSync {
+    if (reactionsPluginState != true) return const [];
+    return _enabledReactions ?? const ['heart', '+1', 'laughing', 'open_mouth'];
   }
 
-  /// 是否允许本地账号密码登录。站点设置没加载时按允许处理。
-  bool get localLoginsEnabled => _siteSettings?['enable_local_logins'] != false;
+  /// 站点人机验证用 hCaptcha 时的 sitekey；没开验证或站点设置没加载时为 null。
+  String? get hcaptchaSiteKey {
+    if (_siteSettings?['discourse_captcha_enabled'] == false) return null;
+    if (!_captchaProviderIsHcaptcha) return null;
+    final value = _siteSettings?['hcaptcha_site_key'];
+    return value is String && value.isNotEmpty ? value : null;
+  }
+
+  bool get _captchaProviderIsHcaptcha {
+    final provider = _siteSettings?['discourse_captcha_provider'];
+    return provider == null || provider == '' || provider == 'hcaptcha';
+  }
+
+  /// App 内的账号密码表单能不能用。站点设置没加载时按能用处理。
+  ///
+  /// 仅 SSO 的站关掉了本地登录；开了 hCaptcha 以外的人机验证（如 reCAPTCHA）的站，
+  /// 内嵌登录页跑不了那种验证。这两种都只留 WebView 登录。
+  bool get localLoginsEnabled {
+    if (_siteSettings?['enable_local_logins'] == false) return false;
+    return _siteSettings?['discourse_captcha_enabled'] != true ||
+        _captchaProviderIsHcaptcha;
+  }
 
   /// 获取 MessageBus 跨域认证 key（仅独立域名时有值）
   String? get sharedSessionKey => _sharedSessionKey;

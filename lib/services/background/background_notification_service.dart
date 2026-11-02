@@ -6,6 +6,7 @@ import 'package:workmanager/workmanager.dart';
 import '../../l10n/s.dart';
 import 'notification_task_handler.dart';
 import 'ios_background_fetch.dart';
+import '../site_context.dart';
 
 /// 后台通知统一管理入口
 ///
@@ -24,6 +25,7 @@ class BackgroundNotificationService {
 
   /// 初始化（在 main() 中调用一次）
   Future<void> initialize() async {
+    if (!SiteContext.current.allowBackgroundAccess) return;
     if (Platform.isIOS) {
       await _initIOSWorkmanager();
     }
@@ -31,6 +33,8 @@ class BackgroundNotificationService {
 
   /// 启用后台通知（App 切后台时调用）
   Future<void> enable(int userId) async {
+    // 不允许后台访问的站：不保活、不定时拉取，通知等回到前台再收
+    if (!SiteContext.current.allowBackgroundAccess) return;
     if (_enabled) return;
     _enabled = true;
     debugPrint('[BackgroundNotification] 启用后台通知, userId=$userId');

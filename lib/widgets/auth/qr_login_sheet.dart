@@ -13,6 +13,7 @@ import '../../services/toast_service.dart';
 import '../../utils/dialog_utils.dart';
 import '../../utils/responsive.dart';
 import 'package:m3e_ui/m3e_ui.dart';
+import '../../services/site_context.dart';
 
 /// OTP 一次性登录令牌的服务端 TTL(Redis setex 10 分钟,兑换即焚)。
 /// 二维码的真实可扫窗口以此为准。
@@ -230,8 +231,15 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
     _pollTimer?.cancel();
     final username = _payload?.username ?? '';
     if (username.isEmpty) return;
-    _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
+    final interval = SiteContext.current.allowBackgroundAccess
+        ? const Duration(seconds: 3)
+        : const Duration(seconds: 5);
+    _pollTimer = Timer.periodic(interval, (_) async {
       if (!mounted || _pollInFlight || _consumed || _qrExpired) return;
+      if (WidgetsBinding.instance.lifecycleState !=
+          AppLifecycleState.resumed) {
+        return;
+      }
       _pollInFlight = true;
       try {
         final alive = await QrLoginService.instance.isSharedKeyAlive(

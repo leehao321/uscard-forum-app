@@ -332,9 +332,12 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
     if (_hadNestedSession) {
       _nestedRestorePosition = _nestedReadingSession.position;
     }
-    _isNestedView = _hadNestedSession
-        ? _nestedReadingSession.enabled
-        : ref.read(preferencesProvider).defaultNestedView;
+    // 站点没开树形回复时一律平铺，不去请求 /n/topic
+    _isNestedView =
+        PreloadedDataService().nestedRepliesEnabled &&
+        (_hadNestedSession
+            ? _nestedReadingSession.enabled
+            : ref.read(preferencesProvider).defaultNestedView);
     _nestedReadingSession.enabled = _isNestedView;
     _nestedAutoEnabled = _isNestedView;
     _nestedTargetPostNumber = _hadNestedSession
@@ -1768,12 +1771,13 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
                   }
                 },
               ),
-              MenuQuickActionSubmenuChild(
-                icon: Symbols.forum_rounded,
-                label: context.l10n.nested_title,
-                selected: _isNestedView,
-                onTap: _toggleNestedView,
-              ),
+              if (PreloadedDataService().nestedRepliesEnabled)
+                MenuQuickActionSubmenuChild(
+                  icon: Symbols.forum_rounded,
+                  label: context.l10n.nested_title,
+                  selected: _isNestedView,
+                  onTap: _toggleNestedView,
+                ),
               if (hasFilter)
                 MenuQuickActionSubmenuChild(
                   icon: Symbols.filter_list_off_rounded,
@@ -2089,7 +2093,9 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
       onShowAuthorOnly: _handleShowAuthorOnly,
       onShowTopLevelReplies: _handleShowTopLevelReplies,
       onCancelFilter: _handleCancelFilter,
-      onShowNestedView: _toggleNestedView,
+      onShowNestedView: PreloadedDataService().nestedRepliesEnabled
+          ? _toggleNestedView
+          : null,
     );
     _overlayCache = (signature: signature, widget: overlay);
     return overlay;

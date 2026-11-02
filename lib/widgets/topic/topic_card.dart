@@ -24,6 +24,7 @@ import '../common/relative_time_text.dart';
 import '../../utils/number_utils.dart';
 import '../common/emoji_text.dart';
 import 'topic_expandable_excerpt.dart';
+import '../../services/site_context.dart';
 
 Widget _withDesktopTertiaryTap(Widget child, VoidCallback? onMiddleClick) {
   if (!PlatformUtils.isDesktop || onMiddleClick == null) return child;
@@ -462,7 +463,10 @@ class TopicCard extends ConsumerWidget {
                 showImages: style.showImages,
                 maxCollapsedLines: style.maxCollapsedLines,
                 isFullyRead: isFullyRead,
-                allowFetch: style.allowExcerptFetch,
+                // 站点开关优先（见 topic_item_builder 同处注释）
+                allowFetch:
+                    SiteContext.current.allowBackgroundAccess &&
+                    style.allowExcerptFetch,
               )
             : null);
 

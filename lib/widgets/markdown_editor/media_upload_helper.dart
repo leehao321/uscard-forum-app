@@ -1,6 +1,8 @@
-/// 音视频改名上传公共链路(社区「媒体上传」脚本思路的 App 端实现):
-/// 选文件 → 站点附件大小前置检查 → `.xz` 改名上传(绕站点扩展名白名单)→
-/// 生成 `<audio>/<video>` HTML 标签文本插 raw(cook 原样保留)。
+/// 音视频上传公共链路:
+/// 选文件 → 站点附件大小前置检查 → 上传 → 生成 `<audio>/<video>` HTML 标签
+/// 文本插 raw(cook 原样保留)。上传方式按站点区分(见 [uploadSiteMedia]):
+/// linux.do 沿用社区「媒体上传」脚本的 `.xz` 改名上传,其他站点按原文件名、
+/// 遵守站点扩展名白名单。
 ///
 /// 播放兼容:标签 `type` 写原文件真实 MIME(网页端浏览器/本 app
 /// AVFoundation 按它选解码器);`src` 用 `/uploads/short-url/<b62>.xz`
@@ -20,6 +22,7 @@ import 'package:mime/mime.dart' show lookupMimeType;
 import 'package:path_provider/path_provider.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 
+import '../../constants.dart';
 import '../../services/app_error_handler.dart';
 import '../../services/discourse/discourse_service.dart';
 import '../../services/media_transcoder/media_compressor.dart';
@@ -32,7 +35,7 @@ import '../../l10n/s.dart';
 /// `authorized_extensions`(staff 追加 `authorized_extensions_for_staff`)
 /// 动态派生,与网页端 `lib/uploads.js` 的 authorizedExtensions 同口径:
 /// 小写、剥空白与点、按 `|` 拆、滤掉带 `*` 的通配项。
-/// 音视频不走这里 —— 那条走 `.xz` 改名绕白名单,见文件头注释。
+/// 音视频在非 linux.do 站点也按这份名单校验(见 [uploadSiteMedia])。
 ///
 /// 返回 null = 不设限(任一名单含 `*`,官方 authorizesAllExtensions
 /// 同款判定;或 siteSettings 未加载 —— 此时让服务端裁决,好过拿一份
@@ -64,6 +67,59 @@ List<String> _extensionsToList(String raw) => raw
     .split('|')
     .where((ext) => ext.isNotEmpty && !ext.contains('*'))
     .toList();
+
+/// 按站点规则上传一个音视频文件。
+///
+/// - linux.do（[SiteCustomization.mediaUploadAsXz]）：改名 `.xz` 上传；
+/// - 其他站点（美卡）：不绕白名单。扩展名在 [attachmentAllowedExtensions]
+///   里（或站点不设限）才按原文件名上传，否则直接抛出提示，不发请求。
+Future<UploadResult> uploadSiteMedia(
+  String path, {
+  CancelToken? cancelToken,
+  UploadProgressCallback? onProgress,
+  bool? asXz,
+  List<String>? allowedExtensions,
+}) {
+  if (asXz ?? AppConstants.siteCustomization.mediaUploadAsXz) {
+    return DiscourseService().uploadMediaAsXz(
+      path,
+      cancelToken: cancelToken,
+      onProgress: onProgress,
+    );
+  }
+  final rejection = mediaExtensionRejection(
+    path,
+    allowedExtensions ?? attachmentAllowedExtensions(),
+  );
+  if (rejection != null) return Future.error(Exception(rejection));
+  return DiscourseService().uploadFile(
+    path,
+    cancelToken: cancelToken,
+    onProgress: onProgress,
+  );
+}
+
+/// 扩展名不在站点允许列表里时返回给用户看的提示；允许（或不设限）返回 null。
+String? mediaExtensionRejection(String path, List<String>? allowed) {
+  if (allowed == null) return null;
+  final name = path.split(RegExp(r'[\\/]')).last;
+  final dot = name.lastIndexOf('.');
+  final ext = dot > 0 ? name.substring(dot + 1).toLowerCase() : '';
+  if (ext.isNotEmpty && allowed.contains(ext)) return null;
+  final shown = ext.isEmpty ? '这种' : ' .$ext ';
+  return '论坛不允许上传$shown文件，可以改用外部链接分享';
+}
+
+/// 按站点规则生成标签里的播放路径：linux.do 用 `.xz`，其他站点保留原扩展。
+String mediaSrcPath(String shortUrl, {bool? asXz}) {
+  if (asXz ?? AppConstants.siteCustomization.mediaUploadAsXz) {
+    return mediaShortUrlToXzPath(shortUrl);
+  }
+  if (shortUrl.startsWith('upload://')) {
+    return '/uploads/short-url/${shortUrl.substring('upload://'.length)}';
+  }
+  return shortUrl;
+}
 
 /// `upload://<base62>.<ext>` → `/uploads/short-url/<base62>.xz` 播放路径。
 String mediaShortUrlToXzPath(String shortUrl) {
@@ -112,7 +168,7 @@ class PreparedMediaUpload {
   Future<UploadResult> execute(
     CancelToken cancelToken,
     UploadProgressCallback onProgress,
-  ) => DiscourseService().uploadMediaAsXz(
+  ) => uploadSiteMedia(
     path,
     cancelToken: cancelToken,
     onProgress: onProgress,
@@ -121,7 +177,7 @@ class PreparedMediaUpload {
   String markdown(UploadResult result) => buildMediaTag(
     isAudio: isAudio,
     voice: voice,
-    srcPath: mediaShortUrlToXzPath(result.shortUrl),
+    srcPath: mediaSrcPath(result.shortUrl),
     mime: lookupMimeType(path) ?? (isAudio ? 'audio/mpeg' : 'video/mp4'),
   );
 }
@@ -157,7 +213,7 @@ Future<PreparedMediaUpload?> prepareMediaUpload(
 }
 
 /// 已有本地媒体文件 → 上传 → 标签文本。失败弹 SnackBar 并返回 null
-/// (站点大小超限的提示文案来自 [uploadMediaAsXz] 的异常信息)。
+/// (站点大小超限、扩展名不允许的提示文案来自 [uploadSiteMedia] 的异常信息)。
 Future<String?> uploadMediaFileAsTag(
   BuildContext context, {
   required String path,
@@ -187,10 +243,10 @@ Future<String?> uploadMediaFileAsTag(
     }
     final mime =
         lookupMimeType(uploadName) ?? (isAudio ? 'audio/mpeg' : 'video/mp4');
-    final result = await DiscourseService().uploadMediaAsXz(uploadPath);
+    final result = await uploadSiteMedia(uploadPath);
     return buildMediaTag(
       isAudio: isAudio,
-      srcPath: mediaShortUrlToXzPath(result.shortUrl),
+      srcPath: mediaSrcPath(result.shortUrl),
       mime: mime,
       voice: voice,
     );

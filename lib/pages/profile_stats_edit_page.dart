@@ -238,7 +238,7 @@ class _DataSourceSelector extends ConsumerWidget {
     final notifier = ref.read(profileStatsConfigProvider.notifier);
     return Row(
       children: [
-        for (final source in StatsDataSource.values)
+        for (final source in availableStatsDataSources())
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: ChoiceChip(

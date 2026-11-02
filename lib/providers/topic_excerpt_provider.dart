@@ -4,6 +4,7 @@ import '../models/topic.dart';
 import '../services/topic_excerpt_service.dart';
 import 'core_providers.dart';
 import 'preferences_provider.dart';
+import '../services/site_context.dart';
 
 /// 话题摘要服务 Provider
 final topicExcerptServiceProvider = Provider<TopicExcerptService>((ref) {
@@ -19,6 +20,7 @@ final topicExcerptFamily = FutureProvider.family<TopicExcerptData?, Topic>((
   final allowFetch = ref.watch(
     preferencesProvider.select(
       (p) =>
+          SiteContext.current.allowBackgroundAccess &&
           p.topicCardStyle.allowExcerptFetch &&
           (p.topicCardStyle.showExcerpt || p.topicCardStyle.showImages),
     ),

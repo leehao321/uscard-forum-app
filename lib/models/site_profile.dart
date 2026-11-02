@@ -73,6 +73,9 @@ class SiteProfile {
 
   String scopedKey(String key) => '$scopePrefix$key';
 
+  /// LDC、CDK、connect、元宇宙这些 linux.do 生态服务是否可用。
+  bool get hasLinuxdoServices => featurePack == SiteFeaturePack.linuxdo;
+
   /// 是否允许后台轮询、预取等非用户触发的访问。
   bool get allowBackgroundAccess => featurePack != SiteFeaturePack.uscard;
 

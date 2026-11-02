@@ -812,6 +812,8 @@ extension _UserActions on _TopicDetailPageState {
       final result = await DiscourseService().toggleReaction(
         post.id,
         post.currentUserReaction?.id ?? 'heart',
+        currentReactions: post.reactions,
+        currentUserReaction: post.currentUserReaction,
       );
       if (!mounted) return;
 
@@ -1618,7 +1620,13 @@ extension _UserActions on _TopicDetailPageState {
         break;
       case TopicMessageType.liked:
       case TopicMessageType.unliked:
-        notifier.updatePostLikes(update.postId, likesCount: update.likesCount);
+        final me = ref.read(currentUserProvider).value?.id;
+        notifier.updatePostLikes(
+          update.postId,
+          likesCount: update.likesCount,
+          liked: update.type == TopicMessageType.liked,
+          byCurrentUser: me != null && update.userId == me,
+        );
         break;
       case TopicMessageType.boostAdded:
         if (update.boostData != null) {
@@ -1685,6 +1693,8 @@ extension _UserActions on _TopicDetailPageState {
 
   /// 切换嵌套视图
   void _toggleNestedView() {
+    // 手势或快捷键里可能还绑着这个动作；站点没开树形回复时什么也不做
+    if (!PreloadedDataService().nestedRepliesEnabled) return;
     if (_isNestedView) {
       setState(() {
         _isNestedView = false;

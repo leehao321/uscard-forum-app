@@ -43,15 +43,16 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
           onChanged: (ref, v) =>
               ref.read(preferencesProvider.notifier).setDisplayPanguSpacing(v),
         ),
-        SwitchModel(
-          id: 'boostDanmaku',
-          title: l10n.reading_boostDanmaku,
-          subtitle: l10n.reading_boostDanmakuDesc,
-          icon: Symbols.rocket_launch_rounded,
-          getValue: (ref) => ref.watch(preferencesProvider).boostDanmaku,
-          onChanged: (ref, v) =>
-              ref.read(preferencesProvider.notifier).setBoostDanmaku(v),
-        ),
+        if (PreloadedDataService().boostsEnabled)
+          SwitchModel(
+            id: 'boostDanmaku',
+            title: l10n.reading_boostDanmaku,
+            subtitle: l10n.reading_boostDanmakuDesc,
+            icon: Symbols.rocket_launch_rounded,
+            getValue: (ref) => ref.watch(preferencesProvider).boostDanmaku,
+            onChanged: (ref, v) =>
+                ref.read(preferencesProvider.notifier).setBoostDanmaku(v),
+          ),
         SwitchModel(
           id: 'showSuggestedTopics',
           title: l10n.reading_showSuggestedTopics,
@@ -327,43 +328,44 @@ List<SettingsGroup> buildReadingGroups(BuildContext context) {
         ),
       ],
     ),
-    SettingsGroup(
-      title: l10n.nested_title,
-      icon: Symbols.account_tree_rounded,
-      items: [
-        SwitchModel(
-          id: 'defaultNestedView',
-          title: l10n.nested_defaultView,
-          subtitle: l10n.nested_defaultViewDesc,
-          icon: Symbols.account_tree_rounded,
-          getValue: (ref) => ref.watch(preferencesProvider).defaultNestedView,
-          onChanged: (ref, v) =>
-              ref.read(preferencesProvider.notifier).setDefaultNestedView(v),
-        ),
-        CustomModel(
-          id: 'nestedLineStyle',
-          title: l10n.nested_lineStyle,
-          builder: (context, ref) {
-            final currentStyle = ref.watch(preferencesProvider).nestedLineStyle;
-            final l = context.l10n;
-            return ListTile(
-              leading: Icon(
-                Symbols.linear_scale_rounded,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              title: Text(l.nested_lineStyle),
-              subtitle: Text(switch (currentStyle) {
-                NestedLineStyle.auto => l.nested_lineStyleAuto,
-                NestedLineStyle.lLine => l.nested_lineStyleL,
-                NestedLineStyle.straight => l.nested_lineStyleStraight,
-              }),
-              trailing: const Icon(Symbols.chevron_right_rounded),
-              onTap: () => _showLineStylePicker(context, ref, currentStyle),
-            );
-          },
-        ),
-      ],
-    ),
+    if (PreloadedDataService().nestedRepliesEnabled)
+      SettingsGroup(
+        title: l10n.nested_title,
+        icon: Symbols.account_tree_rounded,
+        items: [
+          SwitchModel(
+            id: 'defaultNestedView',
+            title: l10n.nested_defaultView,
+            subtitle: l10n.nested_defaultViewDesc,
+            icon: Symbols.account_tree_rounded,
+            getValue: (ref) => ref.watch(preferencesProvider).defaultNestedView,
+            onChanged: (ref, v) =>
+                ref.read(preferencesProvider.notifier).setDefaultNestedView(v),
+          ),
+          CustomModel(
+            id: 'nestedLineStyle',
+            title: l10n.nested_lineStyle,
+            builder: (context, ref) {
+              final currentStyle = ref.watch(preferencesProvider).nestedLineStyle;
+              final l = context.l10n;
+              return ListTile(
+                leading: Icon(
+                  Symbols.linear_scale_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: Text(l.nested_lineStyle),
+                subtitle: Text(switch (currentStyle) {
+                  NestedLineStyle.auto => l.nested_lineStyleAuto,
+                  NestedLineStyle.lLine => l.nested_lineStyleL,
+                  NestedLineStyle.straight => l.nested_lineStyleStraight,
+                }),
+                trailing: const Icon(Symbols.chevron_right_rounded),
+                onTap: () => _showLineStylePicker(context, ref, currentStyle),
+              );
+            },
+          ),
+        ],
+      ),
   ];
 }
 

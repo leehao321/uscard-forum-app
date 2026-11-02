@@ -349,7 +349,10 @@ class SeekingNotifier extends StateNotifier<SeekingState>
   // ── 流动化刷新 ────────────────────────────────
 
   void _syncTimer() {
-    final shouldRun = state.enabled && state.users.isNotEmpty;
+    final shouldRun =
+        state.enabled &&
+        state.users.isNotEmpty &&
+        SiteContext.current.allowBackgroundAccess;
     if (shouldRun && _timer == null) {
       // 1s 轮询定时器只做门控判断，真正出手由 _lastFlowAt + 自适应节拍决定
       _timer = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
