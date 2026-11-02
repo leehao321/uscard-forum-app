@@ -28,11 +28,7 @@ const _browserChannel = MethodChannel('com.github.lingyan000.fluxdo/browser');
 /// [host] 是否本站：主域去掉 `www.` 后的根域，或它的任意子域。
 ///
 /// baseUrl 带 www 的站，帖子里贴的链接常常不带，两种都要算本站。
-bool isSiteHost(String host) {
-  final root = SiteContext.current.rootHost;
-  final h = host.toLowerCase();
-  return h == root || h.endsWith('.$root');
-}
+bool isSiteHost(String host) => SiteContext.current.ownsHost(host);
 
 /// 检查 URL 是否属于站点内部链接（主域名或子域名）
 bool isInternalUrl(Uri uri) {

@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/discourse_url_parser.dart';
+import 'site_context.dart';
 
 class ClipboardTopicLinkCandidate {
   final Uri uri;
@@ -23,8 +24,9 @@ class ClipboardTopicLinkService {
   static const String lastPromptedHashPrefsKey =
       'pref_clipboard_topic_link_last_prompted_hash';
 
-  static final RegExp _linuxDoUrlRegex = RegExp(
-    r'(?:(?:https?:)?//)?(?:www\.)?linux\.do(?::\d+)?/[^\s<>"\]\)）}】》]+',
+  static RegExp get _siteUrlRegex => RegExp(
+    '(?:(?:https?:)?//)?(?:www\\.)?${RegExp.escape(SiteContext.current.rootHost)}'
+    r'(?::\d+)?/[^\s<>"\]\)）}】》]+',
     caseSensitive: false,
   );
 
@@ -75,14 +77,15 @@ class ClipboardTopicLinkService {
   }
 
   ClipboardTopicLinkCandidate? findFirstTopicLink(String text) {
-    for (final match in _linuxDoUrlRegex.allMatches(text)) {
+    for (final match in _siteUrlRegex.allMatches(text)) {
       final rawUrl = _trimTrailingPunctuation(match.group(0)!);
       if (!_hasValidLeadingBoundary(text, match.start)) continue;
 
       final uri = _parseUri(rawUrl);
       if (uri == null || !_isAllowedHost(uri.host)) continue;
-      if (!_isSupportedTopicPath(uri.path)) continue;
-      if (DiscourseUrlParser.parseTopic(uri.path) == null) continue;
+      final path = SiteContext.current.sitePath(uri.path);
+      if (!_isSupportedTopicPath(path)) continue;
+      if (DiscourseUrlParser.parseTopic(path) == null) continue;
 
       final normalizedUri = _normalize(uri);
       final normalizedUrl = normalizedUri.toString();
@@ -165,9 +168,11 @@ class ClipboardTopicLinkService {
     return Uri.tryParse(rawUrl);
   }
 
+  /// 只认当前站：别的站的话题 ID 在这里打开会是另一个话题。
   static bool _isAllowedHost(String host) {
     final normalizedHost = host.toLowerCase();
-    return normalizedHost == 'linux.do' || normalizedHost == 'www.linux.do';
+    final root = SiteContext.current.rootHost;
+    return normalizedHost == root || normalizedHost == 'www.$root';
   }
 
   static bool _isSupportedTopicPath(String path) {

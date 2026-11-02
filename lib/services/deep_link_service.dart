@@ -10,6 +10,8 @@ import '../utils/discourse_url_parser.dart';
 import 'discourse/discourse_service.dart';
 import 'user_api_key_login_flow.dart';
 import 'user_api_key_service.dart';
+import 'site_context.dart';
+import 'site_registry_service.dart';
 
 /// Deep Link 服务
 /// 处理从外部链接打开应用的场景
@@ -107,14 +109,22 @@ class DeepLinkService {
       return;
     }
 
-    // 自定义 scheme (fluxdo://...)
-    if (uri.scheme == 'fluxdo') {
+    // 自定义 scheme (fluxdo:// 或 uscardforum://)
+    if (appSchemes.contains(uri.scheme)) {
       _handleCustomScheme(context, uri);
       return;
     }
 
+    // 已注册但不是当前站的链接：话题 ID 属于那个站，不能在当前站打开，交给内置浏览器
+    final site = SiteContext.current;
+    if (!site.ownsHost(uri.host)) {
+      WebViewPage.open(context, url);
+      return;
+    }
+    final path = site.sitePath(uri.path);
+
     // 尝试匹配用户链接 /u/username
-    final userInfo = DiscourseUrlParser.parseUser(uri.path);
+    final userInfo = DiscourseUrlParser.parseUser(path);
     if (userInfo != null) {
       Navigator.of(context).push(
         MaterialPageRoute(
@@ -125,7 +135,7 @@ class DeepLinkService {
     }
 
     // 尝试匹配话题链接（带 ID）：/t/123、/t/123/5、/t/topic-slug/123 等
-    final topicInfo = DiscourseUrlParser.parseTopic(uri.path);
+    final topicInfo = DiscourseUrlParser.parseTopic(path);
     if (topicInfo != null) {
       Navigator.of(context).push(
         MaterialPageRoute(
@@ -139,26 +149,20 @@ class DeepLinkService {
     }
 
     // 尝试匹配话题链接（只有 slug）：/t/topic-slug
-    final topicSlug = DiscourseUrlParser.parseTopicSlug(uri.path);
+    final topicSlug = DiscourseUrlParser.parseTopicSlug(path);
     if (topicSlug != null) {
       _handleTopicBySlug(context, topicSlug);
       return;
     }
 
     // 邮箱链接登录：/session/email-login/{token}
-    if (uri.host == 'linux.do' &&
-        uri.path.startsWith('/session/email-login/')) {
+    if (uri.host == site.host && path.startsWith('/session/email-login/')) {
       _handleEmailLogin(context, url);
       return;
     }
 
-    // 其他 linux.do 链接：使用内置浏览器
-    if (uri.host == 'linux.do' || uri.host.endsWith('.linux.do')) {
-      WebViewPage.open(context, url);
-      return;
-    }
-
-    debugPrint('DeepLinkService: 未知链接类型 $url');
+    // 其他站内链接：使用内置浏览器
+    WebViewPage.open(context, url);
   }
 
   /// 处理自定义 scheme
@@ -259,18 +263,20 @@ class DeepLinkService {
     _lastHandledTime = null;
   }
 
+  /// App 自有的 URL scheme。iOS plist 目前只注册 fluxdo，uscardforum 要等切回原包名
+  /// 才加：和 1.0.0 并存时两个 App 都注册它，系统不保证打开哪一个。
+  static const appSchemes = {'fluxdo', 'uscardforum'};
+
   static bool _canHandleUri(Uri uri) {
-    if (uri.scheme == 'fluxdo') return true;
+    if (appSchemes.contains(uri.scheme)) return true;
     // 浏览器授权登录回调(仅 auth_redirect,不接管其他 discourse:// 链接)
     if (uri.scheme == 'discourse' && uri.host == 'auth_redirect') return true;
     if (uri.scheme != 'http' && uri.scheme != 'https') return false;
-    return _isLinuxDoHost(uri.host);
+    return _isRegisteredHost(uri.host);
   }
 
-  static bool _isLinuxDoHost(String host) {
-    final normalizedHost = host.toLowerCase();
-    return normalizedHost == 'linux.do' ||
-        normalizedHost == 'www.linux.do' ||
-        normalizedHost.endsWith('.linux.do');
-  }
+  /// 当前站或任何已注册的站。
+  static bool _isRegisteredHost(String host) =>
+      SiteContext.current.ownsHost(host) ||
+      SiteRegistryService.instance.sites.any((s) => s.ownsHost(host));
 }

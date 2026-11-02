@@ -76,6 +76,20 @@ class SiteProfile {
   /// LDC、CDK、connect、元宇宙这些 linux.do 生态服务是否可用。
   bool get hasLinuxdoServices => featurePack == SiteFeaturePack.linuxdo;
 
+  /// [host] 是否属于这个站：根域或它的任意子域。
+  bool ownsHost(String host) {
+    final h = host.toLowerCase();
+    return h == rootHost || h.endsWith('.$rootHost');
+  }
+
+  /// 去掉子路径前缀的站内路径，路由解析都按根部署的形式写。
+  String sitePath(String path) {
+    final base = basePath;
+    if (base.isEmpty) return path;
+    if (path == base) return '/';
+    return path.startsWith('$base/') ? path.substring(base.length) : path;
+  }
+
   /// 是否允许后台轮询、预取等非用户触发的访问。
   bool get allowBackgroundAccess => featurePack != SiteFeaturePack.uscard;
 

@@ -92,6 +92,20 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="http" android:host="linux.do" android:pathPrefix="/session/email-login/" />
             </intent-filter>
+            <!-- 美卡论坛链接。不加 autoVerify：域名不归我们管，放不了 assetlinks，
+                 Android 只会列出本 App 让用户选择。用户自加的站无法在这里声明，
+                 靠 App 内打开和 fluxdo:// 跳转，这是平台限制。 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="www.uscardforum.com" android:pathPrefix="/t" />
+                <data android:scheme="https" android:host="www.uscardforum.com" android:pathPrefix="/u" />
+                <data android:scheme="https" android:host="www.uscardforum.com" android:pathPrefix="/session/email-login/" />
+                <data android:scheme="https" android:host="uscardforum.com" android:pathPrefix="/t" />
+                <data android:scheme="https" android:host="uscardforum.com" android:pathPrefix="/u" />
+                <data android:scheme="https" android:host="uscardforum.com" android:pathPrefix="/session/email-login/" />
+            </intent-filter>
             <!-- Custom URL Scheme -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
