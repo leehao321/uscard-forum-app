@@ -128,7 +128,7 @@ S0 已于 2026-11-01 审查通过。
 - **没动**：`cdk_*`、`ldc_*` 只有 linux.do 会用，阶段 6 做入口门禁。
 - **数据备份**：排除规则先去掉站点前缀再判断。新备份导回原站；按站隔离之前的老备份，站点数据归到当前站。
 
-**盘点后不用改的**：下载文件（`reserveAvailableDownload` 用独占创建，不会覆盖同名文件）；图片缓存、动图和视频缓存（都按完整 URL 取键，不同站不会撞）；WebView cookie（系统按域名隔离）。
+**盘点后不用改的**：下载文件（`reserveAvailableDownload` 用独占创建，不会覆盖同名文件）；图片缓存（`blob_image_cache` 按完整 URL 取键，不同站不会撞）；WebView cookie 的读写（系统按域名隔离，但登出时的清理见下面第 5 条）。
 
 ### 1.0.0 迁移（`SiteDataMigration`）
 
@@ -147,13 +147,13 @@ S0 已于 2026-11-01 审查通过。
 |---|---|
 | 新增单测 | 28 个全部通过：两站同名用户不串号、迁移各分支（全新、已选站、完整升级、只有 Cookie 或凭证、安全存储不可用、写入没落盘、读不出、删不掉、明文兜底、目标已有值、不重复）、备份规则，以及「只有白名单文件可以用全局安全存储」的约定测试 |
 | 全量 `flutter test` | 245 个失败，和 `bc5a04b0` **完全同一批**；通过数 1959 → 2037 |
-| `flutter analyze` | error、warning 与上游基线逐条相同，新增文件无 info。此后只改过测试文件，见提交前的单独检查 |
+| `flutter analyze` | error、warning 与上游基线逐条相同，新增文件无 info |
 | Windows 调试版编译 | 通过（之后只改了测试） |
 | 代码里残留的裸 key | 搜过，除迁移表和备份规则外没有 |
 | 私有词 | 同 S0 的词表扫 `bc5a04b0..HEAD`，无命中 |
 | **真实 1.0.0 数据覆盖安装** | **未做**：迁移只用构造的数据测过，关卡 S1 要求的这一项必须等切回原包名、真机覆盖安装 |
 
-### 改了 7 个已有测试的种子
+### 改了 8 个已有测试的种子
 
 这些测试把旧 key 或旧路径写死了，只改种子，断言不变：`create_topic_discard`、`create_topic_draft_sync`（用户名）、`nested_reading_provider`、`ai_post_review_service`、`bookmarks_page`、`bookmark_edit_sheet_launcher`、`bookmarks_notifier_pagination`（同步时间）；`oauth_session_client` 改了 Cookie 路径。
 
@@ -172,7 +172,7 @@ S0 已于 2026-11-01 审查通过。
 2. **S3 的私有数据**：只在美卡站出现，可以继续用全局位置，不需要迁移。如果放到按站位置，要把迁移步骤加在私有分支里，公开代码里不能出现这些词。
 3. **SideStore 重签可能影响钥匙串**：覆盖安装要包名和签名团队都一致才读得到 1.0.0 的 Keychain。读不到时 API Key 拿不回来，但 Cookie 在，登录态通常还在。S4 真机验证时要看这一点。
 4. **换站入口仍未开放**：存储隔离已经就位，入口按计划在阶段 8 做。
-5. **登出和清除 Cookie 只影响当前站的 jar**：WebView 那边按当前站已知的域名清理，不会动别的站。
+5. **登出时 WebView Cookie 没有按站隔离（未修）**：`CookieJarService.clearAll` 只清当前站的 jar，但 `clearWebViewCookies` 调的是 `deleteAllCookies`，会清掉所有站的 WebView Cookie。不会串号，别的站的 jar 还在，登录态也还在；但那些站的 `cf_clearance` 可能要重新验证，WebView 里的登录态要等下次同步。这是平台实现（Android 上还有防 ANR 的逻辑），我没有动。现在没有换站入口，碰不到这种情况；建议在阶段 8 做换站时一起评估。
 
 ### 下一步
 
