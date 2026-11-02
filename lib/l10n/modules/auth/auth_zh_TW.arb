@@ -64,5 +64,20 @@
   "oauth_noRedirectResponse": "授權服務未返回重定向",
   "onboarding_guestAccess": "遊客訪問",
   "onboarding_networkSettings": "網路設定",
-  "onboarding_slogan": "真誠 · 友善 · 團結 · 專業"
+  "onboarding_slogan": "真誠 · 友善 · 團結 · 專業",
+  "site_addAnyway": "仍然新增",
+  "site_chooseSubtitle": "本 App 可以連接任意 Discourse 論壇。",
+  "site_chooseTitle": "選擇論壇",
+  "site_confirmAdd": "新增",
+  "site_confirmLoginRequired": "這個論壇需要登入後才能瀏覽。",
+  "site_confirmTitle": "新增這個論壇？",
+  "site_confirmVersion": "Discourse 版本 {version}",
+  "site_continue": "繼續",
+  "site_customAddressHint": "example.com 或 example.com/forum",
+  "site_customAddressLabel": "其他 Discourse 論壇",
+  "site_errorBadCertificate": "這個位址的 HTTPS 憑證有問題，無法安全連線。",
+  "site_errorCloudflare": "這個論壇開啟了 Cloudflare 驗證，現在讀不到論壇資訊。可以先新增，登入時在內建瀏覽器裡通過驗證。",
+  "site_errorInvalidAddress": "位址格式不對，請輸入類似 example.com 的網域。",
+  "site_errorNotDiscourse": "這個位址不是 Discourse 論壇，或者論壇部署在其他路徑。",
+  "site_errorUnreachable": "連不上這個位址，請檢查網路後重試。"
 }

@@ -53,6 +53,7 @@ class DataBackupService {
     'per_device_cert_installed',
     'cert_use_per_device',
     'window_', // 桌面端窗口几何(legacy keys)
+    'site_registry_', // 站点列表与当前站，和按站隔离的数据绑定
     // ── 一次性 UI 标记(新设备应重新引导)──
     'onboarding_completed',
     'crashlytics_notice_shown',

@@ -104,6 +104,9 @@ import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:video_player_media_kit/video_player_media_kit.dart';
 import 'services/audio/just_audio_gst.dart';
 import 'widgets/preheat_gate.dart';
+import 'pages/first_run_site_picker.dart';
+import 'services/site_context.dart';
+import 'services/site_registry_service.dart';
 import 'widgets/onboarding_gate.dart';
 import 'widgets/layout/adaptive_scaffold.dart';
 import 'widgets/layout/adaptive_navigation.dart';
@@ -259,6 +262,12 @@ Future<void> main() async {
   // Android：临时关闭 WebView DevTools 调试，停用原生 CDP 链路
   if (Platform.isAndroid) {
     InAppWebViewController.setWebContentsDebuggingEnabled(false);
+  }
+
+  // 确定本次运行连接的站点。后面的 Cookie、Dio、预加载都依赖它，必须最先做。
+  await SiteRegistryService.instance.init(await SharedPreferences.getInstance());
+  if (!SiteContext.isConfigured) {
+    await runFirstRunSitePicker();
   }
 
   // 阶段 1：并行执行所有不相互依赖的初始化

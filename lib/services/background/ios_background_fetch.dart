@@ -6,6 +6,8 @@ import 'package:workmanager/workmanager.dart';
 
 import '../../constants.dart';
 import '../local_notification_service.dart';
+import '../site_context.dart';
+import '../site_registry_service.dart';
 import '../network/cookie/cookie_jar_service.dart';
 import '../network/cookie/csrf_token_service.dart';
 import '../network/discourse_dio.dart';
@@ -27,12 +29,19 @@ void callbackDispatcher() {
     try {
       debugPrint('[iOSBgFetch] 开始执行后台任务: $taskName');
 
+      // 独立 Isolate 不共享主 Isolate 的静态状态，要自己读当前站点
+      final prefs = await SharedPreferences.getInstance();
+      await SiteRegistryService.instance.init(prefs);
+      if (!SiteContext.isConfigured) {
+        debugPrint('[iOSBgFetch] 还没有选站，跳过');
+        return true;
+      }
+
       // 1. 初始化 Cookie 相关服务
       await CookieJarService().initialize();
       await CsrfTokenService().init();
 
       // 2. 从 SharedPreferences 读取 userId 和 lastMessageId
-      final prefs = await SharedPreferences.getInstance();
       final userId = prefs.getInt(_kUserId);
       if (userId == null) {
         debugPrint('[iOSBgFetch] 未找到 userId，跳过');

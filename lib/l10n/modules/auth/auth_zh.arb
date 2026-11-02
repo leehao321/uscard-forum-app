@@ -71,5 +71,27 @@
   "oauth_noRedirectResponse": "授权服务未返回重定向",
   "onboarding_guestAccess": "游客访问",
   "onboarding_networkSettings": "网络设置",
-  "onboarding_slogan": "真诚 · 友善 · 团结 · 专业"
+  "onboarding_slogan": "真诚 · 友善 · 团结 · 专业",
+  "site_addAnyway": "仍然添加",
+  "site_chooseSubtitle": "本 App 可以连接任意 Discourse 论坛。",
+  "site_chooseTitle": "选择论坛",
+  "site_confirmAdd": "添加",
+  "site_confirmLoginRequired": "这个论坛需要登录后才能浏览。",
+  "site_confirmTitle": "添加这个论坛？",
+  "site_confirmVersion": "Discourse 版本 {version}",
+  "site_continue": "继续",
+  "site_customAddressHint": "example.com 或 example.com/forum",
+  "site_customAddressLabel": "其他 Discourse 论坛",
+  "site_errorBadCertificate": "这个地址的 HTTPS 证书有问题，无法安全连接。",
+  "site_errorCloudflare": "这个论坛开启了 Cloudflare 验证，现在读不到论坛信息。可以先添加，登录时在内置浏览器里通过验证。",
+  "site_errorInvalidAddress": "地址格式不对，请输入类似 example.com 的域名。",
+  "site_errorNotDiscourse": "这个地址不是 Discourse 论坛，或者论坛部署在其他路径。",
+  "site_errorUnreachable": "连不上这个地址，请检查网络后重试。",
+  "@site_confirmVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  }
 }

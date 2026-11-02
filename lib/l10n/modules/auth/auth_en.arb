@@ -57,5 +57,20 @@
   "oauth_noRedirectResponse": "Authorization service did not return a redirect",
   "onboarding_guestAccess": "Guest access",
   "onboarding_networkSettings": "Network settings",
-  "onboarding_slogan": "Sincere · Friendly · United · Professional"
+  "onboarding_slogan": "Sincere · Friendly · United · Professional",
+  "site_addAnyway": "Add anyway",
+  "site_chooseSubtitle": "This app can connect to any Discourse forum.",
+  "site_chooseTitle": "Choose a forum",
+  "site_confirmAdd": "Add",
+  "site_confirmLoginRequired": "This forum requires signing in to browse.",
+  "site_confirmTitle": "Add this forum?",
+  "site_confirmVersion": "Discourse version {version}",
+  "site_continue": "Continue",
+  "site_customAddressHint": "example.com or example.com/forum",
+  "site_customAddressLabel": "Another Discourse forum",
+  "site_errorBadCertificate": "This address has an HTTPS certificate problem and cannot be reached securely.",
+  "site_errorCloudflare": "This forum is behind a Cloudflare check, so its details cannot be read right now. You can add it anyway and pass the check in the built-in browser when signing in.",
+  "site_errorInvalidAddress": "That address is not valid. Enter a domain such as example.com.",
+  "site_errorNotDiscourse": "This address is not a Discourse forum, or the forum is hosted under a different path.",
+  "site_errorUnreachable": "Could not reach this address. Check your network and try again."
 }
