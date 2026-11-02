@@ -790,6 +790,10 @@ class CookieJarService {
   Future<Set<String>> getKnownHostsForDomain(String baseDomain) async {
     if (!_initialized) await initialize();
     final hosts = <String>{baseDomain};
+    // 主站带 www 时，根域上的 cookie（如 cf_clearance）也要能被找到、删掉
+    if (baseDomain.startsWith('www.') && baseDomain.indexOf('.', 4) > 0) {
+      hosts.add(baseDomain.substring(4));
+    }
 
     final jar = _cookieJar;
     if (jar is EnhancedPersistCookieJar) {
@@ -799,7 +803,9 @@ class CookieJarService {
           final d = cookie.normalizedDomain;
           if (d != null &&
               d.isNotEmpty &&
-              (d == baseDomain || d.endsWith('.$baseDomain'))) {
+              (d == baseDomain ||
+                  d.endsWith('.$baseDomain') ||
+                  (d.contains('.') && baseDomain.endsWith('.$d')))) {
             hosts.add(d);
           }
         }
@@ -836,12 +842,19 @@ class CookieJarService {
       Uri.parse(AppConstants.baseUrl).host.toLowerCase();
 
   /// 检查 domain 是否匹配应用主域
+  ///
+  /// 除主站及其子域外，主站的上级域也算（如主站 `www.example.com`、cookie 域
+  /// `.example.com`）：按 cookie 域规则它本来就会发给主站，Cloudflare 的
+  /// cf_clearance 通常就下发在这一级。上级域至少要带一个点，不会放宽到 `com`
+  /// 这种顶级域。
   static bool matchesAppHost(String? domain) {
     final baseHost = appBaseHost;
     final normalized = domain?.trim().replaceFirst(RegExp(r'^\.'), '');
     if (normalized == null || normalized.isEmpty) return true;
     final lower = normalized.toLowerCase();
-    return lower == baseHost || lower.endsWith('.$baseHost');
+    return lower == baseHost ||
+        lower.endsWith('.$baseHost') ||
+        (lower.contains('.') && baseHost.endsWith('.$lower'));
   }
 
   /// Windows：通过页面级 controller 的 CDP 读取实时 cookie 值。

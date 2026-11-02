@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'site_context.dart';
+import '../constants.dart';
 
 class AiPostReviewException implements Exception {
   AiPostReviewException(this.message, {this.details});
@@ -81,7 +82,7 @@ class AiPostReviewService {
        _dio = dio,
        _guidelinesFetcher = guidelinesFetcher;
 
-  static const guidelinesUrl = 'https://linux.do/guidelines';
+  static String get guidelinesUrl => '${AppConstants.baseUrl}/guidelines';
   static String get _guidelinesCacheKey =>
       SiteContext.scopedKey('ai_post_review_guidelines_cache');
   static String get _guidelinesCacheUpdatedAtKey =>

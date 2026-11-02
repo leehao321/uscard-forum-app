@@ -52,6 +52,7 @@ import '../services/emoji_handler.dart';
 import '../services/log/log_writer.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/layout/master_detail_layout.dart';
+import '../constants.dart';
 
 /// 个人页面
 class ProfilePage extends ConsumerStatefulWidget {
@@ -338,7 +339,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     if (username != null && username.isNotEmpty) {
       await WebViewPage.open(
         context, 
-        'https://linux.do/u/$username/preferences/account',
+        '${AppConstants.baseUrl}/u/$username/preferences/account',
         title: context.l10n.profile_editProfile,
         injectCss: '''
           .new-user-content-wrapper {

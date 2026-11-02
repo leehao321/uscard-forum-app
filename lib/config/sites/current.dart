@@ -16,7 +16,7 @@ SiteCustomization get currentSiteCustomization {
     _resolvedFor = site.id;
     _resolved = site.featurePack == SiteFeaturePack.linuxdo
         ? linuxdoCustomization
-        : genericCustomization(site.host);
+        : genericCustomization(site.rootHost);
   }
   return _resolved!;
 }

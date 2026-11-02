@@ -24,6 +24,8 @@ import '../../windows_webview_environment_service.dart';
 import 'doh_resolver.dart';
 import 'ech_dns_policy.dart';
 import 'webview_mitm_policy.dart';
+import '../../../models/site_profile.dart';
+import '../../site_context.dart';
 
 class NetworkSettings {
   const NetworkSettings({
@@ -1372,12 +1374,17 @@ class NetworkSettingsService {
 
   List<String> _collectCommonHosts() {
     final preloaded = PreloadedDataService();
+    // 主站之外的长轮询、CDN、S3 域名都从站点预载数据里取，下面统一加入。
+    final site = SiteContext.current;
     final hosts = <String>{
-      'connect.linux.do',
-      'ping.linux.do',
-      'cdn.linux.do',
-      'credit.linux.do',
-      'cdk.linux.do',
+      site.rootHost,
+      if (site.featurePack == SiteFeaturePack.linuxdo) ...const [
+        'connect.linux.do',
+        'ping.linux.do',
+        'cdn.linux.do',
+        'credit.linux.do',
+        'cdk.linux.do',
+      ],
     };
 
     for (final value in [

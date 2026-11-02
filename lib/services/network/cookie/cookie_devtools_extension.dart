@@ -9,6 +9,7 @@ import 'cookie_jar_service.dart';
 import 'raw_cookie_writer.dart';
 import 'session_cookie_sentinel.dart';
 import 'webview_cookie_priming.dart';
+import '../../../constants.dart';
 
 /// Cookie 引擎的 DevTools service extension 桥。
 ///
@@ -302,7 +303,7 @@ class CookieDevtoolsExtension {
   // helpers
   // ---------------------------------------------------------------------------
 
-  String _defaultUrl() => 'https://linux.do';
+  String _defaultUrl() => AppConstants.baseUrl;
 
   developer.ServiceExtensionResponse _okResult(Object data) {
     return developer.ServiceExtensionResponse.result(jsonEncode(data));

@@ -31,17 +31,17 @@ import '../utils/discourse_url_parser.dart';
 import '../widgets/common/search_capsule.dart';
 import '../utils/link_launcher.dart';
 import 'settings_page.dart';
+import '../services/site_context.dart';
 
-/// 搜索框中的站内直达链接标准化。支持完整 URL、`linux.do/...` 和相对路径；
+/// 搜索框中的站内直达链接标准化。支持完整 URL、不带协议的站点域名（含 www）和
+/// 相对路径；
 /// 普通关键词原样返回，后续由 [isInternalUrlString] 判定后继续普通搜索。
 @visibleForTesting
 String normalizeDirectSearchLink(String rawValue) {
   final value = rawValue.trim();
   if (value.startsWith('/')) return value;
-  if (RegExp(
-    r'^(?:www\.)?linux\.do(?::\d+)?/',
-    caseSensitive: false,
-  ).hasMatch(value)) {
+  final root = RegExp.escape(SiteContext.current.rootHost);
+  if (RegExp('^(?:www\\.)?$root(?::\\d+)?/', caseSensitive: false).hasMatch(value)) {
     return 'https://$value';
   }
   return value;

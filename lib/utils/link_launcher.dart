@@ -20,19 +20,22 @@ import '../widgets/layout/home_workspace_scope.dart';
 import 'discourse_url_parser.dart';
 import 'link_security.dart';
 import 'url_helper.dart';
+import '../services/site_context.dart';
 
 const _browserChannel = MethodChannel('com.github.lingyan000.fluxdo/browser');
 
+/// [host] 是否本站：主域去掉 `www.` 后的根域，或它的任意子域。
+///
+/// baseUrl 带 www 的站，帖子里贴的链接常常不带，两种都要算本站。
+bool isSiteHost(String host) {
+  final root = SiteContext.current.rootHost;
+  final h = host.toLowerCase();
+  return h == root || h.endsWith('.$root');
+}
+
 /// 检查 URL 是否属于站点内部链接（主域名或子域名）
 bool isInternalUrl(Uri uri) {
-  final baseUri = Uri.tryParse(AppConstants.baseUrl);
-  if (baseUri == null) return false;
-
-  final baseHost = baseUri.host; // 如 'linux.do'
-  final host = uri.host;
-
-  final hostMatches = host == baseHost || host.endsWith('.$baseHost');
-  if (!hostMatches) return false;
+  if (!isSiteHost(uri.host)) return false;
 
   return UrlHelper.samePrefix(uri.toString());
 }

@@ -14,6 +14,7 @@ import 'network/cookie/cookie_jar_service.dart';
 import 'network/cookie/webview_cookie_priming.dart';
 import 'webview_settings.dart';
 import 'windows_webview_environment_service.dart';
+import 'site_context.dart';
 
 /// cf_clearance 自动续期服务。
 ///
@@ -134,6 +135,9 @@ class CfClearanceRefreshService {
     // stopped"）、验证页卡死转圈——跟当初禁用它时描述的是同一类不稳定，
     // 复用 WebView 并没有根治，只是换了个故障形态。重新禁用。)
     if (io.Platform.isWindows) return;
+    // 常驻 WebView 在后台自动跑 Turnstile 属于程序自动访问；不允许后台访问的站，
+    // cf_clearance 只在用户操作触发的验证页里获取。
+    if (!SiteContext.current.allowBackgroundAccess) return;
 
     _shouldBeRunning = true;
     _pausedByLifecycle = false;

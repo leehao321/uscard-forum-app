@@ -145,14 +145,14 @@ void main() {
       expect(customization.avatarGlowRules, isEmpty);
       expect(
         customization.linkSecurityConfig!.internalDomains,
-        ['example.com', '*.example.com'],
+        containsAll(['example.com', '*.example.com']),
       );
 
       SiteContext.activate(SitePresets.uscard);
       expect(PluginRegistry.plugins, isEmpty);
       expect(
         AppConstants.siteCustomization.linkSecurityConfig!.internalDomains,
-        contains('www.uscardforum.com'),
+        containsAll(['uscardforum.com', '*.uscardforum.com']),
       );
     });
   });

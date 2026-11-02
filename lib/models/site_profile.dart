@@ -47,6 +47,12 @@ class SiteProfile {
 
   String get host => Uri.parse(baseUrl).host;
 
+  /// 去掉 `www.` 的根域。帖子里的站内链接和 Cloudflare cookie 常常用这一级。
+  String get rootHost {
+    final h = host;
+    return h.startsWith('www.') ? h.substring(4) : h;
+  }
+
   /// `https://host[:port]`，不含子路径。Origin 头、WebView origin 校验用它。
   String get origin => Uri.parse(baseUrl).origin;
 

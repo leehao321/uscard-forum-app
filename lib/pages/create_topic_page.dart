@@ -48,7 +48,7 @@ import 'package:fluxdo/widgets/topic/topic_editor_helpers.dart';
 import 'package:fluxdo/services/local_notification_service.dart'
     show navigatorKey;
 
-import '../constants.dart';
+import '../utils/link_launcher.dart' show isSiteHost;
 import '../l10n/s.dart';
 import '../utils/dialog_utils.dart';
 import '../utils/discourse_url_parser.dart';
@@ -571,11 +571,8 @@ class _CreateTopicPageState extends ConsumerState<CreateTopicPage> {
   ///
   /// 官方只把**外部**链接做成精选链接（`only feature links to external
   /// sites`），指向本站的 URL 直接不处理。
-  bool _isSameSiteUrl(TitleUrlInfo candidate) {
-    final siteHost = Uri.tryParse(AppConstants.baseUrl)?.host;
-    if (siteHost == null || siteHost.isEmpty) return false;
-    return candidate.uri.host.toLowerCase() == siteHost.toLowerCase();
-  }
+  bool _isSameSiteUrl(TitleUrlInfo candidate) =>
+      isSiteHost(candidate.uri.host);
 
   /// 标题输入的单一监听入口（草稿 / 计数器 / featured link 三合一）。
   void _onTitleInputChanged() {
