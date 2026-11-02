@@ -18,6 +18,7 @@ import '../models/ai_chat_message.dart';
 import '../utils/api_host_formatter.dart';
 import '../utils/model_capabilities.dart';
 import 'ai_package_logger.dart';
+import 'ai_tool_chat.dart';
 import '../models/ai_provider.dart';
 
 /// 流式响应中的事件类型（统一各 SDK 输出）
@@ -103,6 +104,9 @@ class AiChatService {
   /// 默认 false；需要 OpenAI 已验证 organization 的账号才能开启，
   /// 未验证账号开启会让服务端立即关流（onDone 时 buffer 空，报错）。
   final bool enablePartialImages;
+
+  /// 带工具调用的对话（function calling），共用这里的网络客户端。
+  AiToolChatService get toolChat => AiToolChatService(bridgedClient: bridgedClient);
 
   Stream<AiChatChunk> sendChatStream({
     required AiProvider provider,

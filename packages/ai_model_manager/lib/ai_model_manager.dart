@@ -9,6 +9,7 @@ export 'models/prompt_dimension.dart';
 export 'utils/model_capabilities.dart';
 export 'services/ai_provider_service.dart';
 export 'services/ai_chat_service.dart';
+export 'services/ai_tool_chat.dart';
 export 'services/ai_chat_storage_service.dart';
 export 'services/ai_package_logger.dart';
 export 'services/prompt_preset_storage.dart';

@@ -957,11 +957,17 @@ class TopicAiChatNotifier extends StateNotifier<TopicAiChatState> {
     }
   }
 
+  /// 取消流订阅。请求被打断时，流里可能晚到一个错误，它会落在 cancel 返回的
+  /// future 上，不接住就成了未处理异常。
+  void _cancelStream() {
+    _streamSubscription?.cancel().then<void>((_) {}, onError: (Object _) {});
+    _streamSubscription = null;
+  }
+
   /// 停止生成
   void stopGeneration() {
     _cancelled = true;
-    _streamSubscription?.cancel();
-    _streamSubscription = null;
+    _cancelStream();
     _requestClient?.close();
     _requestClient = null;
 
@@ -1364,7 +1370,7 @@ class TopicAiChatNotifier extends StateNotifier<TopicAiChatState> {
 
   @override
   void dispose() {
-    _streamSubscription?.cancel();
+    _cancelStream();
     _requestClient?.close();
     super.dispose();
   }
