@@ -17,6 +17,7 @@ import '../services/network/exceptions/api_exception.dart';
 import '../services/toast_service.dart';
 import '../utils/time_utils.dart';
 import '../l10n/s.dart';
+import '../services/site_context.dart';
 
 enum _InviteExpiryPreset { days1, days7, days30, days90, never }
 
@@ -176,7 +177,7 @@ class _InviteLinksPageState extends ConsumerState<InviteLinksPage> {
   }
 
   String _inviteCacheKey(String username) {
-    return '$_inviteCacheKeyPrefix$username';
+    return SiteContext.scopedKey('$_inviteCacheKeyPrefix$username');
   }
 
   InviteLinkResponse? _readCachedInvite(String username) {

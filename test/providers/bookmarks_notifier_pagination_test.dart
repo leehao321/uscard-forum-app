@@ -5,6 +5,7 @@ import 'package:fluxdo/providers/bookmarks_reconciler.dart';
 import 'package:fluxdo/providers/bookmarks_repository.dart';
 import 'package:fluxdo/providers/user_content_providers.dart';
 import 'package:fluxdo/storage/bookmark_cache_dao.dart';
+import 'package:fluxdo/services/site_context.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../storage/bookmark_hive_test_support.dart';
@@ -90,7 +91,7 @@ void main() {
     // incremental reconcile，stub loader 返回 empty 时会立即停止且不删除本地。
     // 否则 full reconcile 会把 remoteIds 视作空 → 误删全部本地缓存。
     SharedPreferences.setMockInitialValues({
-      'bookmark_last_full_sync_$username': DateTime.now()
+      SiteContext.scopedKey('bookmark_last_full_sync_$username'): DateTime.now()
           .toUtc()
           .toIso8601String(),
     });

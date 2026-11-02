@@ -1,4 +1,4 @@
-import 'storage/resilient_secure_storage.dart';
+import 'storage/site_scoped_secure_storage.dart';
 
 /// 登录凭证安全存储服务（单例）
 class CredentialStoreService {
@@ -9,7 +9,7 @@ class CredentialStoreService {
   static const _keyUsername = 'login_credential_username';
   static const _keyPassword = 'login_credential_password';
 
-  final _storage = ResilientSecureStorage();
+  final _storage = SiteScopedSecureStorage();
 
   /// 保存凭证
   Future<void> save(String username, String password) async {

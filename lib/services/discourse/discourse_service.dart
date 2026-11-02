@@ -57,6 +57,7 @@ import '../app_logger.dart';
 import '../log/log_writer.dart';
 import '../network/exceptions/api_exception.dart';
 import '../storage/resilient_secure_storage.dart';
+import '../storage/site_scoped_secure_storage.dart';
 import '../user_api_key_service.dart';
 import '../user_presence_service.dart';
 import '../../l10n/s.dart';
@@ -221,7 +222,7 @@ class DiscourseService extends _DiscourseServiceBase
           'X-Requested-With': 'XMLHttpRequest',
         },
       ),
-      _storage = ResilientSecureStorage() {
+      _storage = SiteScopedSecureStorage() {
     // CSRF 刷新走这条主链(完整拦截器 + CF 兜底),不再自建独立 Dio。
     // 独立 Dio 只装 3 个拦截器,在后台/会话失效窗口撞 CF 会静默失败。
     _cookieSync.attachDio(_dio);

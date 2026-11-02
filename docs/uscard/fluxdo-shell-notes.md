@@ -104,6 +104,76 @@ S0 已于 2026-11-01 审查通过。
 3. **S0 关卡里「默认仍连 linux.do」已被计划 §8 Q3 取代**：现在首次启动显示加站页，默认选中美卡。
 4. **`SiteProfile` 的 `logoUrl`、`faviconUrl` 只存不显示**，界面在阶段 9 才用上。
 
+阶段 1、2 已于 2026-11-02 审查通过。
+
+## S1 可填域名：阶段 3（存储隔离）与 1.0.0 数据迁移
+
+### 怎么隔离
+
+`SiteProfile.storageId` 是所有隔离的根，形如 `www_uscardforum_com_be583a3a`（可读部分加地址的 FNV-1a 哈希）。已落盘的数据靠它定位，算法不能改，单测钉死了具体值。
+
+| 存储 | 做法 |
+|---|---|
+| Cookie | `.cookies/<storageId>/`，每站一个 jar。主域收敛规则本来就读动态的 baseUrl，自动跟随当前站 |
+| 安全存储 | 新增 `SiteScopedSecureStorage`，加前缀 `site.<storageId>.`。用户名、CSRF、User API Key 全套、保存的账密都走它 |
+| Hive | 盒名改成 `<storageId>__<原名>`，在 `AppDatabase` 一处改，书签、导出历史、聊天缓存、本地草稿都覆盖 |
+| SharedPreferences | 同样的前缀，用 `SiteContext.scopedKey`；按站的 key 列在 `SiteScopedPrefKeys` |
+| 文件 | 表情快照移到 `ApplicationSupport/sites/<storageId>/` |
+| AI 会话 | `AiChatStorageService.keyScope`：会话按话题存，话题 ID 只在一个站内唯一 |
+
+**SharedPreferences 盘点结果**
+
+- **按站**：当前用户和摘要缓存、固定分类、稍后阅读、屏蔽用户、hCaptcha 端点、最近表情、邀请链接、聊天表情、书签同步时间、Notion 配置、嵌套阅读、关注（seeking）、后台通知状态、被动登出记录、社区准则缓存、AI 会话。
+- **全局**：外观、阅读和编辑偏好、网络（DoH、代理、rhttp）、窗口、更新、引导标记、迁移标记、贴纸市场、下载列表、网页收藏和历史、播放进度（按 URL）、AI 供应商和模型设置。
+- **没动**：`cdk_*`、`ldc_*` 只有 linux.do 会用，阶段 6 做入口门禁。
+- **数据备份**：排除规则先去掉站点前缀再判断。新备份导回原站；按站隔离之前的老备份，站点数据归到当前站。
+
+**盘点后不用改的**：下载文件（`reserveAvailableDownload` 用独占创建，不会覆盖同名文件）；图片缓存、动图和视频缓存（都按完整 URL 取键，不同站不会撞）；WebView cookie（系统按域名隔离）。
+
+### 1.0.0 迁移（`SiteDataMigration`）
+
+`main()` 在 Cookie、Hive 初始化之前调用，把旧数据归到美卡预置站。
+
+- **触发条件**：没选过站，且发现旧数据（`onboarding_completed`、按站偏好 key、`.cookies/cookies.v1.json`、旧用户名或 API Key 任一项）。用新包名并存时检测不到旧数据，所以什么也不做；切回原包名后自动生效，不需要改代码。
+- **搬什么**：安全存储 9 个 key、偏好（含 1.0.0 的 `topic_notes_v1/v2`、`reading_stats_v1`）、Cookie 文件、Hive 盒文件、表情快照、`saved_topics` 目录。全局设置和迁移标记不动。
+- **可重入**：状态存在 `site_registry_legacy_migration`（pending/done）。中途失败保持 pending，下次启动继续；当前站先定下来，不会弹选站页把旧数据晾在一边。
+- **冲突时**：凭证和偏好以新位置为准，再删旧的（说明已迁过或重新登录过）；文件两份都留，不覆盖不删除。
+
+**测试抓到一个真问题**：平时用的 `ResilientSecureStorage` 写失败时只存进内存、不报错。迁移如果走它，接着删旧 key，重启后凭证就没了；读失败也会被当成「没有凭证」跳过。所以迁移改用 `SecretFallbackPolicy.deny` 的严格模式，写完回读确认才删旧 key，读写失败都留在 pending。早期版本遗留的 `__secure_fallback__` 明文键也一起迁走清掉。
+
+### 关卡
+
+| 项 | 结果 |
+|---|---|
+| 新增单测 | 28 个全部通过：两站同名用户不串号、迁移各分支（全新、已选站、完整升级、只有 Cookie 或凭证、安全存储不可用、写入没落盘、读不出、删不掉、明文兜底、目标已有值、不重复）、备份规则，以及「只有白名单文件可以用全局安全存储」的约定测试 |
+| 全量 `flutter test` | 245 个失败，和 `bc5a04b0` **完全同一批**；通过数 1959 → 2037 |
+| `flutter analyze` | error、warning 与上游基线逐条相同，新增文件无 info。此后只改过测试文件，见提交前的单独检查 |
+| Windows 调试版编译 | 通过（之后只改了测试） |
+| 代码里残留的裸 key | 搜过，除迁移表和备份规则外没有 |
+| 私有词 | 同 S0 的词表扫 `bc5a04b0..HEAD`，无命中 |
+| **真实 1.0.0 数据覆盖安装** | **未做**：迁移只用构造的数据测过，关卡 S1 要求的这一项必须等切回原包名、真机覆盖安装 |
+
+### 改了 7 个已有测试的种子
+
+这些测试把旧 key 或旧路径写死了，只改种子，断言不变：`create_topic_discard`、`create_topic_draft_sync`（用户名）、`nested_reading_provider`、`ai_post_review_service`、`bookmarks_page`、`bookmark_edit_sheet_launcher`、`bookmarks_notifier_pagination`（同步时间）；`oauth_session_client` 改了 Cookie 路径。
+
+其中书签同步时间值得一提：种子失效后测试走进全量对账，空页把本地书签清空，一开始表现为测试失败。这说明 `bookmark_last_full_sync_` 确实已经按站生效。
+
+### 与清单、计划的偏差
+
+1. **前缀用 `site.<storageId>.`**，不是清单写的 `site_<host哈希>_`：带可读部分方便排查，点号让备份规则能可靠地去掉前缀。
+2. **Hive 没改 `accountId`，改的是盒名**：效果相同，只动一个文件。bookmark 同步时间等其他带用户名的 key 已经按站。
+3. **下载和图片缓存没有分子目录**：盘点后发现不会撞名，见上。
+4. **`keyScope` 是静态字段**：`ai_model_manager` 包不依赖 App 的 `SiteContext`，由 `main()` 写入。
+
+### 请审查时留意
+
+1. **S2 搬 1.0.0 功能时必须遵守**：笔记、阅读统计用 `SiteContext.scopedKey` 读 `topic_notes_v2`、`reading_stats_v1`；看过就存放在 `siteSupportDirectory()/saved_topics`。迁移已经把旧数据搬到这些位置，存到别处就读不到。
+2. **S3 的私有数据**：只在美卡站出现，可以继续用全局位置，不需要迁移。如果放到按站位置，要把迁移步骤加在私有分支里，公开代码里不能出现这些词。
+3. **SideStore 重签可能影响钥匙串**：覆盖安装要包名和签名团队都一致才读得到 1.0.0 的 Keychain。读不到时 API Key 拿不回来，但 Cookie 在，登录态通常还在。S4 真机验证时要看这一点。
+4. **换站入口仍未开放**：存储隔离已经就位，入口按计划在阶段 8 做。
+5. **登出和清除 Cookie 只影响当前站的 jar**：WebView 那边按当前站已知的域名清理，不会动别的站。
+
 ### 下一步
 
-审查通过并切模型后做阶段 3 和 1.0.0 数据迁移。
+审查通过后做清单阶段 4（三条登录链路）。

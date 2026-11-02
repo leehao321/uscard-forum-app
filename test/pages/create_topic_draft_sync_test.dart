@@ -20,6 +20,7 @@ import 'package:fluxdo/services/local_notification_service.dart'
 import 'package:fluxdo/services/preloaded_data_service.dart';
 import 'package:fluxdo/utils/platform_utils.dart';
 import 'package:fluxdo/widgets/markdown_editor/markdown_editor.dart';
+import 'package:fluxdo/services/site_context.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/memory_draft_store.dart';
@@ -29,7 +30,7 @@ void main() {
     PlatformUtils.debugDesktopOverride = false;
     addTearDown(() => PlatformUtils.debugDesktopOverride = null);
     SharedPreferences.setMockInitialValues({'pref_use_rich_composer': false});
-    FlutterSecureStorage.setMockInitialValues({'linux_do_username': 'tester'});
+    FlutterSecureStorage.setMockInitialValues({SiteContext.scopedKey('linux_do_username'): 'tester'});
     final prefs = await SharedPreferences.getInstance();
     final categories = Completer<List<Category>>();
     final store = MemoryDraftStore();

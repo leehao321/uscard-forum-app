@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// 站点专属功能包：决定哪些依赖站方自建服务或社区插件的功能可用。
 enum SiteFeaturePack { generic, linuxdo, uscard }
 
@@ -51,6 +53,20 @@ class SiteProfile {
   /// 子路径前缀（如 `/forum`），根部署时为空串。
   String get basePath => Uri.parse(baseUrl).path;
 
+  /// 存储隔离用的标识：目录名、Hive 盒名、key 前缀都由它组成。
+  ///
+  /// 可读部分加地址的哈希，避免 `a.b/c` 和 `a_b/c` 撞名。已经落盘的数据靠它定位，
+  /// 算法不能改。
+  String get storageId {
+    final readable = id.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+    return '${readable}_${_fnv1a32(id).toRadixString(16).padLeft(8, '0')}';
+  }
+
+  /// 安全存储和 SharedPreferences 的按站前缀。
+  String get scopePrefix => 'site.$storageId.';
+
+  String scopedKey(String key) => '$scopePrefix$key';
+
   /// 是否允许后台轮询、预取等非用户触发的访问。
   bool get allowBackgroundAccess => featurePack != SiteFeaturePack.uscard;
 
@@ -78,6 +94,14 @@ class SiteProfile {
       faviconUrl: faviconUrl is String ? faviconUrl : null,
     );
   }
+}
+
+int _fnv1a32(String text) {
+  var hash = 0x811c9dc5;
+  for (final byte in utf8.encode(text)) {
+    hash = ((hash ^ byte) * 0x01000193) & 0xffffffff;
+  }
+  return hash;
 }
 
 /// 内置的预置站点。

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fluxdo/models/nested_reading_position.dart';
 import 'package:fluxdo/providers/nested_reading_provider.dart';
+import 'package:fluxdo/services/site_context.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -63,7 +64,7 @@ void main() {
 
   test('损坏的落点不会阻止打开话题，排序按账号保存', () async {
     SharedPreferences.setMockInitialValues({
-      'nested_reading_v1_alice': '{broken',
+      SiteContext.scopedKey('nested_reading_v1_alice'): '{broken',
     });
     final prefs = await SharedPreferences.getInstance();
     final store = NestedReadingStore(prefs, 'alice');

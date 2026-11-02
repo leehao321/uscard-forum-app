@@ -7,12 +7,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/nested_reading_position.dart';
 import 'core_providers.dart';
 import 'theme_provider.dart';
+import '../services/site_context.dart';
 
 /// 按账号隔离；最多保存最近 200 个话题，滚动停止后合并写盘。
 class NestedReadingStore {
   NestedReadingStore(this._prefs, String account)
-    : _key = 'nested_reading_v1_$account',
-      sortKey = 'nested_sort_$account' {
+    : _key = SiteContext.scopedKey('nested_reading_v1_$account'),
+      sortKey = SiteContext.scopedKey('nested_sort_$account') {
     try {
       final raw = jsonDecode(_prefs.getString(_key) ?? '{}');
       if (raw is Map) {

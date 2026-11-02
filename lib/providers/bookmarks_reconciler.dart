@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/discourse/discourse_service.dart';
 import 'bookmarks_repository.dart';
 import 'core_providers.dart';
+import '../services/site_context.dart';
 
 /// 对账模式。
 enum ReconcileMode {
@@ -74,7 +75,8 @@ class BookmarksReconciler {
        _fetchPage = fetchPage,
        _preferences = preferences;
 
-  static const String _lastFullSyncKeyPrefix = 'bookmark_last_full_sync_';
+  static String get _lastFullSyncKeyPrefix =>
+      SiteContext.scopedKey('bookmark_last_full_sync_');
   static const int _bookmarksPageLimit = 20;
 
   /// 完整对账的最小间隔——超过这个时间再进页面会自动触发后台 full 对账。

@@ -14,6 +14,7 @@ import 'package:fluxdo/services/local_notification_service.dart';
 import 'package:fluxdo/storage/bookmark_cache_dao.dart';
 import 'package:fluxdo/widgets/bookmark/bookmark_edit_sheet.dart';
 import 'package:fluxdo/widgets/bookmark/bookmark_edit_sheet_launcher.dart';
+import 'package:fluxdo/services/site_context.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../storage/bookmark_hive_test_support.dart';
@@ -43,7 +44,7 @@ Future<ProviderContainer> _createContainer({
 }) async {
   final setup = await tester.runAsync(() async {
     SharedPreferences.setMockInitialValues({
-      'bookmark_last_full_sync_test_user': DateTime.now()
+      SiteContext.scopedKey('bookmark_last_full_sync_test_user'): DateTime.now()
           .toUtc()
           .toIso8601String(),
     });

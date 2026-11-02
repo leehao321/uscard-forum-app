@@ -17,10 +17,13 @@ import '../../models/notification.dart';
 const String kNotificationPollTask = 'com.fluxdo.notificationPoll';
 
 /// SharedPreferences 键名
-const String _kUserId = 'bg_notification_user_id';
-const String _kLastMessageId = 'bg_notification_last_message_id';
-const String _kLongPollingBaseUrl = 'bg_long_polling_base_url';
-const String _kSharedSessionKey = 'bg_shared_session_key';
+String get _kUserId => SiteContext.scopedKey('bg_notification_user_id');
+String get _kLastMessageId =>
+    SiteContext.scopedKey('bg_notification_last_message_id');
+String get _kLongPollingBaseUrl =>
+    SiteContext.scopedKey('bg_long_polling_base_url');
+String get _kSharedSessionKey =>
+    SiteContext.scopedKey('bg_shared_session_key');
 
 /// iOS 后台拉取回调（顶层函数，由 workmanager 在独立 Isolate 中调用）
 @pragma('vm:entry-point')

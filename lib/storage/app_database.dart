@@ -5,10 +5,14 @@ import 'package:hive_ce/hive.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import '../services/site_context.dart';
+
 /// 应用级 Hive 存储初始化与按账号 box 工厂。
 ///
+/// 所有 box 都按站隔离：盒名以 [SiteProfile.storageId] 开头，两站同名用户不会共用。
+///
 /// 书签缓存采用「每账号一个 box」的方式做隔离，box 名形如
-/// `bookmark_cache_<sanitized_account_id>`。box 中：
+/// `<storageId>__bookmark_cache_<sanitized_account_id>`。box 中：
 /// - key   = `bookmark_id` (int)
 /// - value = `Map`，含 `topic_id` / `name_normalized` / `updated_at` /
 ///   `cached_at` / `payload`（payload 为 normalize 后的 topic-like JSON 字符串）
@@ -82,8 +86,14 @@ class AppDatabase {
     String name, {
     CompactionStrategy? compactionStrategy,
   }) {
-    return _openNamedBox(name, compactionStrategy: compactionStrategy);
+    return _openNamedBox(
+      _siteBoxName(name),
+      compactionStrategy: compactionStrategy,
+    );
   }
+
+  static String _siteBoxName(String name) =>
+      '${SiteContext.current.storageId}__$name';
 
   static Future<Box<Map>> _openNamedBox(
     String name, {
@@ -148,11 +158,11 @@ class AppDatabase {
   }
 
   static String _bookmarkBoxName(String accountId) {
-    return '$_bookmarkBoxPrefix${_sanitize(accountId)}';
+    return _siteBoxName('$_bookmarkBoxPrefix${_sanitize(accountId)}');
   }
 
   static String _exportHistoryBoxName(String accountId) {
-    return '$_exportHistoryBoxPrefix${_sanitize(accountId)}';
+    return _siteBoxName('$_exportHistoryBoxPrefix${_sanitize(accountId)}');
   }
 
   static String _sanitize(String accountId) {

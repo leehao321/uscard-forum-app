@@ -12,6 +12,7 @@ import 'package:fluxdo/services/network/cookie/app_cookie_manager.dart';
 import 'package:fluxdo/services/network/cookie/cookie_jar_service.dart';
 import 'package:fluxdo/services/network/exceptions/oauth_exception.dart';
 import 'package:fluxdo/services/oauth_session_client.dart';
+import 'package:fluxdo/services/site_context.dart';
 
 import '../support/cf_test_platform.dart';
 
@@ -175,7 +176,9 @@ void main() {
           '$cookieName=rotated',
         );
         final persisted = EnhancedPersistCookieJar(
-          store: FileCookieStore('${directory.path}/.cookies'),
+          store: FileCookieStore(
+            '${directory.path}/.cookies/${SiteContext.current.storageId}',
+          ),
         );
         expect(
           (await persisted.loadCanonicalForRequest(uri))

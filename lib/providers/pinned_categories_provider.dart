@@ -2,10 +2,11 @@
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'theme_provider.dart';
+import '../services/site_context.dart';
 
 /// 已固定的分类 ID 列表（用于首页分类 Tab）
 class PinnedCategoriesNotifier extends StateNotifier<List<int>> {
-  static const _key = 'pinned_category_ids';
+  static String get _key => SiteContext.scopedKey('pinned_category_ids');
   final SharedPreferences _prefs;
 
   PinnedCategoriesNotifier(this._prefs) : super(_load(_prefs));

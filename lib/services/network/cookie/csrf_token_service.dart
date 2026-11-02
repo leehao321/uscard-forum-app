@@ -5,7 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../app_logger.dart';
-import '../../storage/resilient_secure_storage.dart';
+import '../../storage/site_scoped_secure_storage.dart';
 
 /// Cookie 同步服务
 /// 管理 CSRF token，支持自动刷新（对齐 Discourse 官方前端策略）
@@ -16,7 +16,7 @@ class CsrfTokenService {
 
   static const String _csrfTokenKey = 'linux_do_csrf_token';
 
-  final ResilientSecureStorage _storage = ResilientSecureStorage();
+  final SiteScopedSecureStorage _storage = SiteScopedSecureStorage();
 
   String? _csrfToken;
 

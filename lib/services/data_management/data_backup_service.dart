@@ -8,6 +8,8 @@ import '../../l10n/s.dart';
 import '../migration_service.dart';
 import '../storage/resilient_secure_storage.dart';
 import '../../utils/share_utils.dart';
+import '../site_context.dart';
+import '../site_data_migration.dart';
 
 /// 数据备份导出/导入服务
 ///
@@ -67,7 +69,9 @@ class DataBackupService {
   static const _includeExactKeys = ['sticker_market_base_url'];
 
   /// 判断 key 是否应该被备份(导出与导入同一套规则)。
-  static bool _shouldBackup(String key) {
+  static bool _shouldBackup(String rawKey) {
+    // 排除规则看原始 key，按站前缀不影响判断
+    final key = SiteContext.unscopedKey(rawKey);
     if (_includeExactKeys.contains(key)) return true;
     // 迁移完成标记:动态从 MigrationService 派生,不抄常量
     if (MigrationService.migrationKeys.contains(key)) return false;
@@ -182,7 +186,10 @@ class DataBackupService {
     if (data == null) throw FormatException(S.current.backup_missingDataField);
 
     for (final entry in data.entries) {
-      final key = entry.key;
+      // 按站隔离之前的老备份没有站点前缀，它的站点数据归到当前站
+      final key = SiteScopedPrefKeys.matches(entry.key)
+          ? SiteContext.scopedKey(entry.key)
+          : entry.key;
       if (!_shouldBackup(key)) continue;
       final item = entry.value as Map<String, dynamic>;
       final type = item['type'] as String;

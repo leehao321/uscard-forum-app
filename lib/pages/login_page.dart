@@ -20,6 +20,7 @@ import '../widgets/common/floating_logo.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 import 'qr_login_scan_page.dart';
 import 'webview_login_page.dart';
+import '../services/site_context.dart';
 
 /// linux.do 原生登录页。
 ///
@@ -192,7 +193,9 @@ class _LoginPageState extends State<LoginPage>
     // /hcaptcha/create.json)。读 prefs 直接走 SharedPreferences (不依赖
     // riverpod, LoginPage 是普通 StatefulWidget)。
     final prefs = await SharedPreferences.getInstance();
-    final hcaptchaEndpoint = prefs.getString('pref_hcaptcha_create_endpoint');
+    final hcaptchaEndpoint = prefs.getString(
+      SiteContext.scopedKey('pref_hcaptcha_create_endpoint'),
+    );
     if (!mounted) return false;
 
     // Step 1-3: WebView 内 JS 全流程登录 (csrf → hcaptcha/create → session)。

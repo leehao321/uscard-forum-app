@@ -106,6 +106,7 @@ import 'services/audio/just_audio_gst.dart';
 import 'widgets/preheat_gate.dart';
 import 'pages/first_run_site_picker.dart';
 import 'services/site_context.dart';
+import 'services/site_data_migration.dart';
 import 'services/site_registry_service.dart';
 import 'widgets/onboarding_gate.dart';
 import 'widgets/layout/adaptive_scaffold.dart';
@@ -265,10 +266,13 @@ Future<void> main() async {
   }
 
   // 确定本次运行连接的站点。后面的 Cookie、Dio、预加载都依赖它，必须最先做。
-  await SiteRegistryService.instance.init(await SharedPreferences.getInstance());
+  final sitePrefs = await SharedPreferences.getInstance();
+  await SiteRegistryService.instance.init(sitePrefs);
+  await SiteDataMigration.forDevice(sitePrefs).run();
   if (!SiteContext.isConfigured) {
     await runFirstRunSitePicker();
   }
+  AiChatStorageService.keyScope = SiteContext.current.scopePrefix;
 
   // 阶段 1：并行执行所有不相互依赖的初始化
   final futures = <Future<dynamic>>[

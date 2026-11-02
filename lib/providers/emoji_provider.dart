@@ -4,11 +4,11 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../models/emoji.dart';
 import '../services/discourse/discourse_service.dart';
 import 'core_providers.dart';
+import '../services/storage/site_directories.dart';
 
 /// 表情列表 Provider —— SWR(stale-while-revalidate)快照。
 ///
@@ -62,7 +62,7 @@ final emojiGroupsProvider =
 /// /emojis.json 的磁盘快照(ApplicationSupport 下单文件)。
 class _EmojiSnapshotStore {
   static Future<File> _file() async {
-    final dir = await getApplicationSupportDirectory();
+    final dir = await siteSupportDirectory();
     return File('${dir.path}/emoji_groups_snapshot.json');
   }
 

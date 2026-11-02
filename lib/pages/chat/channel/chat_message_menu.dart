@@ -18,6 +18,7 @@ import '../../../widgets/common/smart_avatar.dart';
 import '../../../widgets/common/app_bottom_sheet.dart';
 import '../../../widgets/markdown_editor/emoji_picker.dart';
 import 'package:common_ui/common_ui.dart';
+import '../../../services/site_context.dart';
 
 /// 菜单动作(对齐网页版 chat-message-interactor 的 secondaryActions)
 enum ChatMessageAction {
@@ -89,7 +90,8 @@ class ChatMessageCaps {
 
 // ============================ 快速 reaction ============================
 
-const String _kRecentReactionsKey = 'chat_recent_reactions';
+String get _kRecentReactionsKey =>
+    SiteContext.scopedKey('chat_recent_reactions');
 
 /// 站点默认快速 reaction(default_emoji_reactions 的通用值)
 const List<String> _kDefaultReactions = ['heart', '+1', 'laughing'];

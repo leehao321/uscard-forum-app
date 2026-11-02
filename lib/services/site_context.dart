@@ -20,6 +20,13 @@ class SiteContext {
   /// 是否已确定本次运行的站点。
   static bool get isConfigured => _current != null;
 
+  /// 当前站点专属的存储 key。安全存储和 SharedPreferences 共用这个前缀。
+  static String scopedKey(String key) => current.scopedKey(key);
+
+  /// 把 scopedKey 还原成原始 key；不是按站 key 时原样返回。
+  static String unscopedKey(String key) =>
+      key.replaceFirst(RegExp(r'^site\.[a-z0-9_]+\.'), '');
+
   static void activate(SiteProfile site) {
     _current = site;
   }

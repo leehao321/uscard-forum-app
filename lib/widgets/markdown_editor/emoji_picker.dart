@@ -12,9 +12,10 @@ import '../../utils/dialog_utils.dart';
 import '../common/app_bottom_sheet.dart';
 import 'package:m3e_ui/m3e_ui.dart';
 import '../../../../../l10n/s.dart';
+import '../../services/site_context.dart';
 
 /// 常用表情的 Key
-const String _recentEmojisKey = 'recent_emojis';
+String get _recentEmojisKey => SiteContext.scopedKey('recent_emojis');
 
 /// 最多保存的常用表情数量
 const int _maxRecentEmojis = 30;

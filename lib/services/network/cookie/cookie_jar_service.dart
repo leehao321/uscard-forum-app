@@ -12,6 +12,7 @@ import '../../windows_webview_environment_service.dart';
 import 'cookie_logger.dart';
 import 'cookie_value_codec.dart';
 import 'strategy/platform_cookie_strategy.dart';
+import '../../site_context.dart';
 
 export 'cookie_value_codec.dart';
 
@@ -85,7 +86,11 @@ class CookieJarService {
 
     try {
       final directory = await getApplicationDocumentsDirectory();
-      final cookiePath = path.join(directory.path, '.cookies');
+      final cookiePath = path.join(
+        directory.path,
+        '.cookies',
+        SiteContext.current.storageId,
+      );
 
       final cookieDir = io.Directory(cookiePath);
       if (!await cookieDir.exists()) {

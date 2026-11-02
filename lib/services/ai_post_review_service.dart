@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'site_context.dart';
 
 class AiPostReviewException implements Exception {
   AiPostReviewException(this.message, {this.details});
@@ -81,9 +82,10 @@ class AiPostReviewService {
        _guidelinesFetcher = guidelinesFetcher;
 
   static const guidelinesUrl = 'https://linux.do/guidelines';
-  static const _guidelinesCacheKey = 'ai_post_review_guidelines_cache';
-  static const _guidelinesCacheUpdatedAtKey =
-      'ai_post_review_guidelines_cache_updated_at';
+  static String get _guidelinesCacheKey =>
+      SiteContext.scopedKey('ai_post_review_guidelines_cache');
+  static String get _guidelinesCacheUpdatedAtKey =>
+      SiteContext.scopedKey('ai_post_review_guidelines_cache_updated_at');
   static const _maxGuidelinesChars = 12000;
   static const _guidelinesReceiveTimeout = Duration(seconds: 10);
   static const _guidelinesOverallTimeout = Duration(seconds: 12);

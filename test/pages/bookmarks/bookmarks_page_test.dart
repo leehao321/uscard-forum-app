@@ -21,6 +21,7 @@ import 'package:fluxdo/storage/bookmark_cache_dao.dart';
 import 'package:fluxdo/utils/platform_utils.dart';
 import 'package:fluxdo/widgets/bookmark/bookmarks_list_content.dart';
 import 'package:fluxdo/widgets/bookmark/bookmarks_workspace_tab_bar.dart';
+import 'package:fluxdo/services/site_context.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../storage/bookmark_hive_test_support.dart';
@@ -52,7 +53,7 @@ Future<ProviderContainer> _createContainer({
 }) async {
   SharedPreferences.setMockInitialValues({
     'pref_bookmarks_open_mode': 'tabbedWorkspace',
-    'bookmark_last_full_sync_test_user': DateTime.now()
+    SiteContext.scopedKey('bookmark_last_full_sync_test_user'): DateTime.now()
         .toUtc()
         .toIso8601String(),
   });

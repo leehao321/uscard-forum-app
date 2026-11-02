@@ -10,7 +10,7 @@ import 'package:uuid/uuid.dart';
 import '../constants.dart';
 import 'log/log_writer.dart';
 import 'network/cookie/cookie_jar_service.dart';
-import 'storage/resilient_secure_storage.dart';
+import 'storage/site_scoped_secure_storage.dart';
 
 /// User API Key 授权与会话自愈服务
 ///
@@ -70,7 +70,7 @@ class UserApiKeyService {
   /// 自愈冷却:失败后短期内不再重试,避免 key 已撤销时反复打服务端
   static const Duration _selfHealCooldown = Duration(minutes: 10);
 
-  final _storage = ResilientSecureStorage();
+  final _storage = SiteScopedSecureStorage();
   final _cookieJar = CookieJarService();
 
   DateTime? _lastSelfHealFailureAt;

@@ -19,6 +19,7 @@ import '../services/render_backend_service.dart';
 import '../utils/blocked_user_filter.dart';
 import '../widgets/topic/topic_card_layout.dart';
 import 'theme_provider.dart';
+import '../services/site_context.dart';
 
 /// 嵌套视图连接线样式
 enum NestedLineStyle {
@@ -550,7 +551,8 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
       'pref_clipboard_topic_link_detection';
   static const String _topicFilterKeywordsKey = 'pref_topic_filter_keywords';
   static const String _topicFilterWholeWordKey = 'pref_topic_filter_whole_word';
-  static const String _blockedUsernamesKey = 'pref_blocked_usernames';
+  static String get _blockedUsernamesKey =>
+      SiteContext.scopedKey('pref_blocked_usernames');
   static const String _showFilterHintKey = 'pref_show_filter_hint';
   static const String _crashlyticsKey = 'pref_crashlytics';
 
@@ -577,8 +579,8 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
   static const String _aiTranslationTargetLanguageKey =
       'pref_ai_translation_target_language';
   static const String _aiTranslationModelPrefKey = 'pref_ai_translation_model';
-  static const String _hcaptchaCreateEndpointKey =
-      'pref_hcaptcha_create_endpoint';
+  static String get _hcaptchaCreateEndpointKey =>
+      SiteContext.scopedKey('pref_hcaptcha_create_endpoint');
   static const String _dialogBlurKey = 'pref_dialog_blur';
   static const String _cryptoRememberPasswordKey =
       'pref_crypto_remember_password';

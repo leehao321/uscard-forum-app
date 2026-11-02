@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import '../site_context.dart';
 
 /// Notion 同步范围。
 enum NotionSyncScope {
@@ -91,7 +92,7 @@ class NotionConfigRepository {
 
   String _key(String accountId) {
     final sanitized = accountId.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
-    return '$_keyPrefix$sanitized';
+    return SiteContext.scopedKey('$_keyPrefix$sanitized');
   }
 
   NotionConfig read(String accountId) {

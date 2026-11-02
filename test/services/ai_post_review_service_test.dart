@@ -1,6 +1,7 @@
 import 'package:ai_model_manager/ai_model_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxdo/services/ai_post_review_service.dart';
+import 'package:fluxdo/services/site_context.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -69,7 +70,7 @@ void main() {
 
       expect(result.usedCachedGuidelines, isFalse);
       expect(
-        prefs.getString('ai_post_review_guidelines_cache'),
+        prefs.getString(SiteContext.scopedKey('ai_post_review_guidelines_cache')),
         contains('请保持友善'),
       );
       expect(capturedSystemPrompt, contains('不得提供完整改写内容'));
@@ -82,7 +83,7 @@ void main() {
 
     test('在线获取失败时使用上次缓存的社区准则', () async {
       await prefs.setString(
-        'ai_post_review_guidelines_cache',
+        SiteContext.scopedKey('ai_post_review_guidelines_cache'),
         '上次缓存的社区准则：请文明交流。',
       );
 
@@ -154,7 +155,7 @@ void main() {
         throwsA(isA<AiPostReviewException>()),
       );
 
-      expect(prefs.getString('ai_post_review_guidelines_cache'), isNull);
+      expect(prefs.getString(SiteContext.scopedKey('ai_post_review_guidelines_cache')), isNull);
     });
   });
 }
