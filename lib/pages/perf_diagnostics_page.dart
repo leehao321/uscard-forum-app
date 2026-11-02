@@ -60,7 +60,7 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
   Future<void> _export({required bool share}) async {
     try {
       final stamp = DateTime.now().millisecondsSinceEpoch;
-      final file = await ShareUtils.createOutboxFile('fluxdo_perf_$stamp.txt');
+      final file = await ShareUtils.createOutboxFile('pulseflow_perf_$stamp.txt');
       await file.writeAsString(FrameJankMonitor.exportText());
       await _deliver(XFile(file.path, mimeType: 'text/plain'), share: share);
     } catch (e) {
@@ -71,7 +71,7 @@ class _PerfDiagnosticsPageState extends State<PerfDiagnosticsPage> {
   /// 分享或保存同一份文件（分享在 Linux 上不可用，入口已按平台隐藏）。
   Future<void> _deliver(XFile file, {required bool share}) async {
     if (share) {
-      await ShareUtils.shareFile(file, subject: 'USCard Flux 性能诊断报告');
+      await ShareUtils.shareFile(file, subject: 'Pulse Flow 性能诊断报告');
       return;
     }
     final outcome = await ShareUtils.saveFile(file);

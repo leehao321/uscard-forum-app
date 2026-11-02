@@ -16,7 +16,7 @@ import 'user_api_key_service.dart';
 ///
 /// 协议 (v2):
 /// ```
-/// fluxdo://qr-login?v=2&k=<api_key>&o=<otp>&u=<username>&exp=<unix_ms|0>
+/// pulseflow://qr-login?v=2&k=<api_key>&o=<otp>&u=<username>&exp=<unix_ms|0>
 /// ```
 /// - `k`: User API Key(明文,等同临时分享登录能力,UI 需提示勿外泄)
 /// - `o`: 服务端随 create 下发的一次性 OTP(约 10 分钟有效,兑换即焚)
@@ -52,7 +52,7 @@ class QrLoginPayload {
 
 /// 扫码登录结果
 enum QrLoginError {
-  /// 不是 FluxDO 扫码登录二维码 / 解析失败
+  /// 不是 Pulse Flow 扫码登录二维码 / 解析失败
   invalid,
 
   /// 版本不支持
@@ -79,7 +79,7 @@ class QrLoginService {
   QrLoginService._();
   static final QrLoginService instance = QrLoginService._();
 
-  static const String scheme = 'fluxdo';
+  static const String scheme = 'pulseflow';
   static const String host = 'qr-login';
   static const int currentVersion = 2;
 
@@ -108,7 +108,7 @@ class QrLoginService {
     final uri = Uri.tryParse(trimmed);
     if (uri == null) return null;
     if (uri.scheme != scheme) return null;
-    // 兼容 fluxdo://qr-login?... (host) 与 fluxdo:///qr-login?... (path)
+    // 兼容 pulseflow://qr-login?... (host) 与 pulseflow:///qr-login?... (path)
     final hostOrPath = uri.host.isNotEmpty
         ? uri.host
         : (uri.pathSegments.isNotEmpty ? uri.pathSegments.first : '');

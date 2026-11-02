@@ -210,7 +210,7 @@ class _PreheatLoadingState extends State<_PreheatLoading> {
                 PreheatLogo(style: widget.iconStyle, size: 128),
                 const SizedBox(height: 24),
                 Text(
-                  'USCard Flux',
+                  'Pulse Flow',
                   style: theme.textTheme.headlineMedium?.copyWith(
                     color: colorScheme.onSurface,
                     fontWeight: FontWeight.w600,

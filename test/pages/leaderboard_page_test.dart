@@ -81,7 +81,7 @@ void main() {
       ]);
     });
 
-    test('只有美卡有榜单，徽章 id 进站点配置', () {
+    test('只有USCard有榜单，徽章 id 进站点配置', () {
       SiteContext.activate(SitePresets.uscard);
       expect(availableLeaderboards(), [
         LeaderboardKind.great,

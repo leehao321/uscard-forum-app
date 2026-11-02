@@ -1,7 +1,7 @@
-#define MyAppName "USCard Flux"
+#define MyAppName "Pulse Flow"
 #define MyAppExeName "fluxdo.exe"
-#define MyAppPublisher "USCard Flux"
-#define MyAppURL "https://github.com/lingyan000/fluxdo"
+#define MyAppPublisher "Pulse Flow"
+#define MyAppURL "https://github.com/leehao321/uscard-forum-app"
 
 [Setup]
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}

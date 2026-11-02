@@ -162,7 +162,7 @@ void main() {
       writeFile(p.join(support.path, 'saved_topics', '12.json'), 'topic');
     }
 
-    test('不弹选站页，当前站就是美卡', () async {
+    test('不弹选站页，当前站就是USCard', () async {
       await setUpWith(legacyPrefs, secureValues: legacySecure);
       writeLegacyFiles();
 
@@ -174,7 +174,7 @@ void main() {
       expect(prefs.getString(SiteDataMigration.stateKey), 'done');
     });
 
-    test('登录凭证归到美卡，全局 key 不再留明面上的凭证', () async {
+    test('登录凭证归到USCard，全局 key 不再留明面上的凭证', () async {
       await setUpWith(legacyPrefs, secureValues: legacySecure);
 
       await migration().run();
@@ -198,7 +198,7 @@ void main() {
       expect(secure.values['ai_apikey_openai'], 'global-key');
     });
 
-    test('站点数据归到美卡，全局设置和迁移标记不动', () async {
+    test('站点数据归到USCard，全局设置和迁移标记不动', () async {
       await setUpWith(legacyPrefs, secureValues: legacySecure);
 
       await migration().run();
@@ -235,7 +235,7 @@ void main() {
       expect(prefs.getBool('cookie_clean_slate_v3'), isTrue);
     });
 
-    test('文件搬到美卡的目录，内容不变', () async {
+    test('文件搬到USCard的目录，内容不变', () async {
       await setUpWith(legacyPrefs, secureValues: legacySecure);
       writeLegacyFiles();
 

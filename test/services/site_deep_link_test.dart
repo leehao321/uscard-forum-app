@@ -61,9 +61,10 @@ void main() {
       );
     });
 
-    test('两个 App scheme 和授权回调都接管', () {
-      expect(service.canHandleUri(Uri.parse('fluxdo://topic/1')), isTrue);
-      expect(service.canHandleUri(Uri.parse('uscardforum://topic/1')), isTrue);
+    test('App scheme 和授权回调都接管，旧 scheme 不再接管', () {
+      expect(service.canHandleUri(Uri.parse('pulseflow://topic/1')), isTrue);
+      expect(service.canHandleUri(Uri.parse('fluxdo://topic/1')), isFalse);
+      expect(service.canHandleUri(Uri.parse('uscardforum://topic/1')), isFalse);
       expect(
         service.canHandleUri(Uri.parse('discourse://auth_redirect?payload=x')),
         isTrue,

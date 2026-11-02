@@ -16,7 +16,7 @@ SiteCustomization get currentSiteCustomization {
     _resolvedFor = site.id;
     _resolved = switch (site.featurePack) {
       SiteFeaturePack.linuxdo => linuxdoCustomization,
-      // 榜单：徽章 #20「精彩的话题」、#115「难绷的话题」（美卡自定义徽章）
+      // 榜单：徽章 #20「精彩的话题」、#115「难绷的话题」（站点自定义徽章）
       SiteFeaturePack.uscard => genericCustomization(
         site.rootHost,
         greatTopicBadgeId: 20,

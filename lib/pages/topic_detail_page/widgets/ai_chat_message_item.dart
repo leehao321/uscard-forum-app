@@ -470,7 +470,7 @@ class AiChatMessageItem extends StatelessWidget {
     // 落点（移动端相册 / 桌面另存为）与成功失败提示由 ImageSaveUtils 统一处理
     await ImageSaveUtils.saveBytes(
       bytes,
-      fileName: 'fluxdo_ai_${DateTime.now().millisecondsSinceEpoch}.png',
+      fileName: 'pulseflow_ai_${DateTime.now().millisecondsSinceEpoch}.png',
     );
   }
 }

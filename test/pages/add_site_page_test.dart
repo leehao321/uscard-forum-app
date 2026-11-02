@@ -52,7 +52,7 @@ void main() {
     const SiteProbeFailure(SiteProbeFailureReason.unreachable),
   );
 
-  testWidgets('默认选中美卡，直接继续不发任何探测请求', (tester) async {
+  testWidgets('默认选中USCard，直接继续不发任何探测请求', (tester) async {
     final probe = _FakeProbe(
       const SiteProbeFailure(SiteProbeFailureReason.unreachable),
     );

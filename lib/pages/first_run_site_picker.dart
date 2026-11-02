@@ -20,7 +20,7 @@ Future<void> runFirstRunSitePicker() async {
       child: Builder(
         builder: (context) => MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'USCard Flux',
+          title: 'Pulse Flow',
           locale: TranslationProvider.of(context).flutterLocale,
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,

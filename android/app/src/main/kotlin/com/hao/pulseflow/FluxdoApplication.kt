@@ -1,4 +1,4 @@
-package com.hao.uscardforum.flux
+package com.hao.pulseflow
 
 import android.app.Application
 import android.util.Log

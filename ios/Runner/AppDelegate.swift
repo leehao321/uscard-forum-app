@@ -18,7 +18,7 @@ import workmanager_apple
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     // 注册 iOS 后台任务 handler（必须在 didFinishLaunchingWithOptions 返回前调用）
-    WorkmanagerPlugin.registerPeriodicTask(withIdentifier: "com.fluxdo.notificationPoll", frequency: nil)
+    WorkmanagerPlugin.registerPeriodicTask(withIdentifier: "com.hao.pulseflow.notificationPoll", frequency: nil)
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
@@ -78,7 +78,7 @@ import workmanager_apple
 
     // 注册浏览器 channel（应用链接解析与启动）
     let browserChannel = FlutterMethodChannel(
-      name: "com.github.lingyan000.fluxdo/browser",
+      name: "com.hao.pulseflow/browser",
       binaryMessenger: messenger
     )
     browserChannel.setMethodCallHandler { (call, result) in
@@ -104,7 +104,7 @@ import workmanager_apple
     }
 
     let appIconChannel = FlutterMethodChannel(
-      name: "com.github.lingyan000.fluxdo/app_icon",
+      name: "com.hao.pulseflow/app_icon",
       binaryMessenger: messenger
     )
     appIconChannel.setMethodCallHandler { (call, result) in

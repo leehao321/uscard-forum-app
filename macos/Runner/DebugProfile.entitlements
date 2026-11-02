@@ -16,7 +16,7 @@
 	<true/>
 	<key>com.apple.security.keychain-access-groups</key>
 	<array>
-		<string>$(AppIdentifierPrefix)com.hao.uscardforum.flux</string>
+		<string>$(AppIdentifierPrefix)com.hao.pulseflow</string>
 	</array>
 </dict>
 </plist>

@@ -25,7 +25,7 @@
   "crypto_encrypt": "加密",
   "crypto_encryptFailed": "加密失敗",
   "crypto_encryptTitle": "加密內容",
-  "crypto_formatFluxdo": "fluxdo 自描述（推薦）",
+  "crypto_formatFluxdo": "自描述（推薦）",
   "crypto_formatOpenSsl": "OpenSSL 相容",
   "crypto_hashOneWay": "雜湊為單向摘要，無法解密",
   "crypto_insertToEditor": "插入編輯器",

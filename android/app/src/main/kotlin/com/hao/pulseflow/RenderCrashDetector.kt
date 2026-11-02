@@ -1,4 +1,4 @@
-package com.hao.uscardforum.flux
+package com.hao.pulseflow
 
 import android.app.ActivityManager
 import android.app.ApplicationExitInfo

@@ -57,7 +57,7 @@ void main() {
   });
 
   group('按站点上传音视频', () {
-    test('美卡（不改名）：播放路径保留原扩展，linux.do 用 .xz', () {
+    test('USCard（不改名）：播放路径保留原扩展，linux.do 用 .xz', () {
       expect(
         mediaSrcPath('upload://abc.mp4', asXz: false),
         '/uploads/short-url/abc.mp4',
@@ -79,7 +79,7 @@ void main() {
       expect(mediaExtensionRejection('/tmp/a.webm', null), isNull);
     });
 
-    test('美卡上传不允许的扩展名时直接报错，不发请求', () async {
+    test('USCard上传不允许的扩展名时直接报错，不发请求', () async {
       await expectLater(
         uploadSiteMedia('/tmp/a.mov', asXz: false, allowedExtensions: ['jpg']),
         throwsA(

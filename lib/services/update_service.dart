@@ -83,7 +83,7 @@ class UpdateInfo {
 
 /// 应用更新检查服务
 class UpdateService {
-  static const String _repository = 'leehao321/uscard-forum-app';
+  static const String _repository = 'leehao321/pulse-flow-app';
   static const String _apiUrl =
       'https://api.github.com/repos/$_repository/releases/latest';
   static const String _autoCheckUpdateKey = 'auto_check_update';
@@ -238,7 +238,7 @@ class UpdateService {
         options: Options(
           responseType: ResponseType.json,
           headers: {
-            'User-Agent': 'USCardFlux-App',
+            'User-Agent': 'PulseFlow-App',
             'Accept': 'application/vnd.github.v3+json',
             if (storedEtag != null) 'If-None-Match': storedEtag,
           },

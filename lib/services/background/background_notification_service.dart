@@ -104,7 +104,7 @@ class BackgroundNotificationService {
 
     await FlutterForegroundTask.startService(
       serviceId: 200,
-      notificationTitle: 'USCard Flux',
+      notificationTitle: 'Pulse Flow',
       notificationText: S.current.notification_backgroundRunning,
       callback: startNotificationTaskHandler,
     );

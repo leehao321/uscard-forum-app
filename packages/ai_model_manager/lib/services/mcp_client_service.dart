@@ -217,7 +217,7 @@ class McpClientService {
       {
         'protocolVersion': protocolVersion,
         'capabilities': <String, Object?>{},
-        'clientInfo': {'name': 'fluxdo', 'version': '1.0'},
+        'clientInfo': {'name': 'pulse-flow', 'version': '1.0'},
       },
       timeout: initTimeout,
       abort: abort,

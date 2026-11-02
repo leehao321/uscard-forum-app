@@ -130,7 +130,7 @@ class _LoginPageState extends State<LoginPage>
   }
 
   /// 浏览器授权登录:拉起系统浏览器打开 /user-api-key/new,授权后
-  /// 深链 fluxdo://auth_redirect 回 App,由 UserApiKeyLoginFlow 完成
+  /// 深链 pulseflow://auth_redirect 回 App,由 UserApiKeyLoginFlow 完成
   /// OTP 兑换与登录收口,这里只负责发起和成功后 pop。
   Future<void> _loginWithBrowserAuth() async {
     if (_browserAuthLaunching) return;
@@ -172,7 +172,7 @@ class _LoginPageState extends State<LoginPage>
     }
   }
 
-  /// 确保 jar 里有 cf_clearance。没有 → 弹 fluxdo 现有的 CF 手动验证页让用户
+  /// 确保 jar 里有 cf_clearance。没有 → 弹现有的 CF 手动验证页让用户
   /// 人机交互拿 cookie, 然后**显式 sync** 从 WebView cookie store 到 dart jar
   /// (这步 [CfChallengeService.showManualVerify] 本身不做, sync 一般是
   /// [CfChallengeInterceptor._syncCookiesOnce] 触发, 我们直接调 showManualVerify

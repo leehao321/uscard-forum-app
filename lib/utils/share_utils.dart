@@ -108,7 +108,7 @@ class ShareUtils {
 
   /// 分享图片文件:复制为带可读文件名的临时文件再走系统分享/另存为。
   /// 命名回退链:[fileName](接口/cooked 提供的原始文件名)→ [urlHint]
-  /// 末段 → `fluxdo_<毫秒时间戳>`;扩展名始终以 [ext](实际下载 URL)
+  /// 末段 → `pulseflow_<毫秒时间戳>`;扩展名始终以 [ext](实际下载 URL)
   /// 为准,保证与字节格式一致。临时文件由 OS 按需清理。
   static Future<ShareOutcome> shareImageFile(
     File file, {
@@ -119,7 +119,7 @@ class ShareUtils {
   }) async {
     final base = safeFileBaseName(fileName) ??
         safeFileBaseName(_urlLastSegment(urlHint)) ??
-        'fluxdo_${DateTime.now().millisecondsSinceEpoch}';
+        'pulseflow_${DateTime.now().millisecondsSinceEpoch}';
     final shareFile = await createOutboxFile('$base.$ext');
     await file.copy(shareFile.path);
     return ShareUtils.shareFile(

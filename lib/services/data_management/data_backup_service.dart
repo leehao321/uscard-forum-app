@@ -172,7 +172,7 @@ class DataBackupService {
 
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final file = await ShareUtils.createOutboxFile(
-      'fluxdo_backup_$timestamp.json',
+      'pulseflow_backup_$timestamp.json',
     );
     await file.writeAsString(jsonStr);
 

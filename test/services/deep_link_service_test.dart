@@ -31,7 +31,7 @@ void main() {
       service.canHandleUri(Uri.parse('https://meta.linux.do/latest')),
       isTrue,
     );
-    expect(service.canHandleUri(Uri.parse('fluxdo://topic/123')), isTrue);
+    expect(service.canHandleUri(Uri.parse('pulseflow://topic/123')), isTrue);
     expect(
       service.canHandleUri(Uri.parse('discourse://auth_redirect?payload=x')),
       isTrue,
@@ -84,7 +84,7 @@ void main() {
     final context = capturedContext!;
     observer.pushedRoutes.clear();
     DeepLinkService.instance.updateContext(context);
-    DeepLinkService.instance.handleUri(Uri.parse('fluxdo://topic/123/5'));
+    DeepLinkService.instance.handleUri(Uri.parse('pulseflow://topic/123/5'));
 
     expect(observer.pushedRoutes, hasLength(1));
     expect(Navigator.of(context).canPop(), isTrue);
@@ -112,7 +112,7 @@ void main() {
     final context = capturedContext!;
     observer.pushedRoutes.clear();
     DeepLinkService.instance.updateContext(context);
-    DeepLinkService.instance.handleUri(Uri.parse('fluxdo://user/alice'));
+    DeepLinkService.instance.handleUri(Uri.parse('pulseflow://user/alice'));
 
     expect(observer.pushedRoutes, hasLength(1));
     expect(Navigator.of(context).canPop(), isTrue);
@@ -140,7 +140,7 @@ void main() {
     final context = capturedContext!;
     observer.pushedRoutes.clear();
     DeepLinkService.instance.updateContext(context);
-    DeepLinkService.instance.handleUri(Uri.parse('fluxdo://Topic/123'));
+    DeepLinkService.instance.handleUri(Uri.parse('pulseflow://Topic/123'));
 
     expect(observer.pushedRoutes, hasLength(1));
     expect(Navigator.of(context).canPop(), isTrue);

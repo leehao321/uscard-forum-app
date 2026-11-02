@@ -484,7 +484,7 @@ class ImageContextMenu {
       // 命名与分享同口径：原始文件名 → URL 末段 → 时间戳，逐级回退
       final base =
           ShareUtils.safeFileBaseName(fileName) ??
-          'fluxdo_${DateTime.now().millisecondsSinceEpoch}';
+          'pulseflow_${DateTime.now().millisecondsSinceEpoch}';
       final ext = BlobImageCache.httpUrlExtension(imageUrl);
       await ImageSaveUtils.saveBytes(bytes, fileName: '$base.$ext');
     } catch (e) {

@@ -25,7 +25,7 @@
   "crypto_encrypt": "Encrypt",
   "crypto_encryptFailed": "Encryption failed",
   "crypto_encryptTitle": "Encrypt content",
-  "crypto_formatFluxdo": "fluxdo self-describing (recommended)",
+  "crypto_formatFluxdo": "self-describing (recommended)",
   "crypto_formatOpenSsl": "OpenSSL compatible",
   "crypto_hashOneWay": "Hash is one-way and cannot be decrypted",
   "crypto_insertToEditor": "Insert into editor",

@@ -12,13 +12,13 @@ void main() {
   test('打开话题会新增标签并激活', () {
     final state = const BookmarksWorkspaceState().openTopicTab(
       topicId: 42,
-      title: 'FluxDO',
+      title: 'Pulse Flow',
       scrollToPostNumber: 7,
     );
 
     expect(state.topicTabs, hasLength(1));
     expect(state.activeTabId, BookmarksWorkspaceState.topicTabId(42));
-    expect(state.activeTopicTab?.title, 'FluxDO');
+    expect(state.activeTopicTab?.title, 'Pulse Flow');
     expect(state.activeTopicTab?.scrollToPostNumber, 7);
     expect(state.activeTopicTab?.instanceId, isNotEmpty);
   });
@@ -26,13 +26,13 @@ void main() {
   test('重复打开同一话题会复用标签并更新滚动目标', () {
     final opened = const BookmarksWorkspaceState().openTopicTab(
       topicId: 42,
-      title: 'FluxDO',
+      title: 'Pulse Flow',
       scrollToPostNumber: 7,
     );
 
     final reopened = opened.openTopicTab(
       topicId: 42,
-      title: 'FluxDO',
+      title: 'Pulse Flow',
       scrollToPostNumber: 18,
     );
 
@@ -153,7 +153,7 @@ void main() {
   test('打开书签话题时会保留并更新书签上下文', () {
     final opened = const BookmarksWorkspaceState().openTopicTab(
       topicId: 42,
-      title: 'FluxDO',
+      title: 'Pulse Flow',
       scrollToPostNumber: 7,
       bookmarkId: 101,
       bookmarkName: 'draft',
@@ -166,7 +166,7 @@ void main() {
 
     final reopened = opened.openTopicTab(
       topicId: 42,
-      title: 'FluxDO',
+      title: 'Pulse Flow',
       scrollToPostNumber: 8,
       bookmarkId: 202,
       bookmarkName: 'updated',

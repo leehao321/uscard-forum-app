@@ -57,7 +57,7 @@ class _TopicCardStyleSettingsPageState
           extras: '',
           user: TopicUser(
             id: 0,
-            username: 'fluxdo',
+            username: 'pulseflow',
             name: l10n.topicCardStyle_previewUserName,
             avatarTemplate: '', // 空串 → 灰底占位,预览零网络依赖
           ),

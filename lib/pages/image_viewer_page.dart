@@ -775,7 +775,7 @@ class _ImageViewerPageState extends ConsumerState<ImageViewerPage>
       final ext = BlobImageCache.httpUrlExtension(imageUrl);
       final name =
           ShareUtils.safeFileBaseName(_currentFilename) ??
-          'fluxdo_${DateTime.now().millisecondsSinceEpoch}';
+          'pulseflow_${DateTime.now().millisecondsSinceEpoch}';
       await ImageSaveUtils.saveBytes(imageBytes, fileName: '$name.$ext');
     } catch (e) {
       debugPrint('Save image error: $e');
@@ -796,7 +796,7 @@ class _ImageViewerPageState extends ConsumerState<ImageViewerPage>
     try {
       await ImageSaveUtils.saveBytes(
         widget.imageBytes!,
-        fileName: 'fluxdo_${DateTime.now().millisecondsSinceEpoch}.png',
+        fileName: 'pulseflow_${DateTime.now().millisecondsSinceEpoch}.png',
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);

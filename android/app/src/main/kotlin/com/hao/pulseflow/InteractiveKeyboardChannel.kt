@@ -1,4 +1,4 @@
-package com.hao.uscardforum.flux
+package com.hao.pulseflow
 
 import android.annotation.TargetApi
 import android.animation.Animator

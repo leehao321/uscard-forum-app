@@ -305,6 +305,36 @@ S1 已于 2026-11-02 审查通过；站点矩阵和真机项仍未实测，见�
 3. **AI 重试顺带变了**：`ai_chat_providers` 取的是最新版，「重试」现在也能用在已完成的回答上（等于重新生成），来自 `3b5ba07c`。这是逻辑增强，没有界面改动。
 4. **S1 的站点矩阵还没测**：这一阶段的功能要等出包后一起在真机上看。
 
+S2 已于 2026-11-02 审查通过，`local_auth` 获批。
+
+## 品牌更新：Pulse Flow（用户决定）
+
+- 显示名 Pulse Flow，包名 `com.hao.pulseflow`（替代计划 §1、§8 Q2 的 `com.hao.uscardforum.flux`）。
+- URL Scheme：`pulseflow` 和 `discourse`。`fluxdo`、`uscardforum` 不再注册，也不再接管。
+- 界面文案、关于页、窗口标题、通知、导出文件名、核心注释都已中性化；Web 和桌面清单同步。
+- Actions 产物改名 `pulse-flow-*`，**S4 下载 IPA 时要用新名字**。
+- App 内部通道 `com.github.lingyan000.fluxdo/*` 改成 `com.hao.pulseflow/*`，两端同步。
+
+### 对已有决定的影响
+
+**1.0.0 覆盖安装不再可能**：计划 §8 Q2 原本是「先并存，满意后切回原包名并迁移」。现在包名定为 `com.hao.pulseflow`，和 1.0.0 的 `com.hao.uscardforum` 不同，系统不会共享数据，`SiteDataMigration` 检测不到旧数据。代码保留，但笔记、阅读统计等 1.0.0 数据不会自动过来。关卡 S1 里「1.0.0 覆盖安装迁移」这一项也就测不了了。
+
+### 故意没动的
+
+| 项 | 原因 |
+|---|---|
+| `LICENSE`、README 的来源说明 | GPL-3.0 要求保留版权声明和修改说明，不能去掉 |
+| 站点预置名 USCard Forum 和它的域名 | 这是那个论坛自己的名字，用户选站要靠它认 |
+| Dart 包名 `fluxdo`（`package:fluxdo/...`）、`fluxdo_render`、`FluxdoEditor` 等类名 | 用户看不到，改了影响几千行 import，也会和上游完全对不上 |
+| 可执行文件 `fluxdo.exe`、Linux 二进制、macOS `PRODUCT_NAME` | 改了要同步打包脚本，macOS 和 Linux 这边无法验证；Windows 任务管理器显示的是资源里的 Pulse Flow |
+| `com.fluxdo/*` 原生通道、`__fluxdo*` JS 全局、`FLUXDO_*` 编译开关 | 内部标识，不可见 |
+| 安全存储的 `fluxdo:` 前缀、加密格式标识 | 已落盘数据靠它定位，改了读不到 |
+| `flatpak/`、`altstore/`、`release_telegram.py`、`.github/workflows/build.yaml`、`tool/release.dart`、`cliff.toml` | 上游的发布流程，本项目不用 |
+| `CHANGELOG.md`、`docs/` | 历史记录 |
+| 关于页和更新检查的仓库地址 `leehao321/uscard-forum-app` | 这是仓库的真实地址，仓库改名后要跟着改 |
+| `android/app/google-services.json` | 上游的 Firebase 配置，见 S0 |
+| 图标（罗盘） | 这次没有提供新图标 |
+
 ### 下一步
 
-审查通过后进入 S3，在这个分支上切 `fluxdo-shell-private`。
+切 `fluxdo-shell-private`，进入 S3。S3 的记录写在私有分支上。

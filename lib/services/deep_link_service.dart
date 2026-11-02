@@ -109,7 +109,7 @@ class DeepLinkService {
       return;
     }
 
-    // 自定义 scheme (fluxdo:// 或 uscardforum://)
+    // 自定义 scheme (pulseflow://)
     if (appSchemes.contains(uri.scheme)) {
       _handleCustomScheme(context, uri);
       return;
@@ -167,9 +167,9 @@ class DeepLinkService {
 
   /// 处理自定义 scheme
   /// 支持格式：
-  /// - fluxdo://topic/123
-  /// - fluxdo://topic/123/5 (指定楼层)
-  /// - fluxdo://user/username
+  /// - pulseflow://topic/123
+  /// - pulseflow://topic/123/5 (指定楼层)
+  /// - pulseflow://user/username
   void _handleCustomScheme(BuildContext context, Uri uri) {
     final pathSegments = [
       if (uri.host.isNotEmpty) uri.host,
@@ -263,9 +263,8 @@ class DeepLinkService {
     _lastHandledTime = null;
   }
 
-  /// App 自有的 URL scheme。iOS plist 目前只注册 fluxdo，uscardforum 要等切回原包名
-  /// 才加：和 1.0.0 并存时两个 App 都注册它，系统不保证打开哪一个。
-  static const appSchemes = {'fluxdo', 'uscardforum'};
+  /// App 自有的 URL scheme。
+  static const appSchemes = {'pulseflow'};
 
   static bool _canHandleUri(Uri uri) {
     if (appSchemes.contains(uri.scheme)) return true;

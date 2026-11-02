@@ -105,7 +105,7 @@ void main() {
   });
 
   group('SitePresets', () {
-    test('美卡排第一，后台访问关闭', () {
+    test('USCard排第一，后台访问关闭', () {
       expect(SitePresets.all.first, same(SitePresets.uscard));
       expect(SitePresets.uscard.allowBackgroundAccess, isFalse);
       expect(SitePresets.linuxdo.allowBackgroundAccess, isTrue);

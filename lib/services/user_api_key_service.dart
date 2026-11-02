@@ -53,7 +53,7 @@ class UserApiKeyService {
   static const _keyPendingNonce = 'user_api_key_pending_nonce';
 
   static const String authRedirect = 'discourse://auth_redirect';
-  static const String applicationName = 'USCard Flux';
+  static const String applicationName = 'Pulse Flow';
 
   /// 按站配置，见 [SiteCustomization.userApiKeyScopes]。
   static String get scopes => AppConstants.siteCustomization.userApiKeyScopes;

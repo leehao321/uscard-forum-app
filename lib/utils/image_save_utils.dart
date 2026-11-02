@@ -108,7 +108,7 @@ abstract final class ImageSaveUtils {
   static String _resolveFileName(String fileName, Uint8List bytes) {
     final base =
         ShareUtils.safeFileBaseName(fileName) ??
-        'fluxdo_${DateTime.now().millisecondsSinceEpoch}';
+        'pulseflow_${DateTime.now().millisecondsSinceEpoch}';
     final ext =
         _imageExtension(bytes) ??
         p.extension(fileName).replaceFirst('.', '').toLowerCase();

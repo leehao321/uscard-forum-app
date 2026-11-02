@@ -45,7 +45,7 @@ bool _bytesLookLikeAvif(Uint8List bytes) {
 
 /// 通用 sticker thumbnail provider — 单帧解码 + 缩放 + PNG cache。
 ///
-/// 这是 fluxdo sticker 面板的"地板": 30 张同屏的 grid 场景下,任何格式
+/// 这是 sticker 面板的"地板": 30 张同屏的 grid 场景下,任何格式
 /// (.avif / .gif / .webp / .apng) 都走同一个 thumbnail PNG cache 路径,
 /// 首次解码后写 PNG 到磁盘,后续直接 Flutter 内置 codec 读 PNG
 /// (毫秒级,完全跳过 AV1 / GIF disposal 这类慢路径)。

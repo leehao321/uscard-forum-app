@@ -135,7 +135,7 @@ class ScreenshotUtils {
   /// 保存图片（移动端进相册、桌面端另存为文件），提示由 [ImageSaveUtils] 统一给出
   static Future<bool> saveToGallery(Uint8List bytes, {String? filename}) {
     final name =
-        filename ?? 'fluxdo_share_${DateTime.now().millisecondsSinceEpoch}';
+        filename ?? 'pulseflow_share_${DateTime.now().millisecondsSinceEpoch}';
     return ImageSaveUtils.saveBytes(bytes, fileName: '$name.png');
   }
 
@@ -144,7 +144,7 @@ class ScreenshotUtils {
     try {
       // 创建临时文件
       final tempDir = await getTemporaryDirectory();
-      final name = filename ?? 'fluxdo_share_${DateTime.now().millisecondsSinceEpoch}';
+      final name = filename ?? 'pulseflow_share_${DateTime.now().millisecondsSinceEpoch}';
       final file = File('${tempDir.path}/$name.png');
       await file.writeAsBytes(bytes);
 

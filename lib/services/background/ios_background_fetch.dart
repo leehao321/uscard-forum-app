@@ -14,7 +14,7 @@ import '../network/discourse_dio.dart';
 import '../../models/notification.dart';
 
 /// iOS 后台任务标识符
-const String kNotificationPollTask = 'com.fluxdo.notificationPoll';
+const String kNotificationPollTask = 'com.hao.pulseflow.notificationPoll';
 
 /// SharedPreferences 键名
 String get _kUserId => SiteContext.scopedKey('bg_notification_user_id');

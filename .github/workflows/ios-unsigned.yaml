@@ -70,7 +70,7 @@ jobs:
             # 编译报错会把出错的源码行打印出来，公开仓库的 Actions 日志谁都能看：
             # 带私有补丁时输出只写文件，失败时加密后作为 artifact 上传（见下面两步）
             if ! dart tool/flutterw.dart build ios --release --no-codesign > build.log 2>&1; then
-              echo "构建失败；日志已加密上传为 uscard-forum-build-log-encrypted，"
+              echo "构建失败；日志已加密上传为 pulse-flow-build-log-encrypted，"
               echo "下载后用 tool/private_patch.sh decrypt-ipa build.log.enc 解密查看"
               exit 1
             fi
@@ -94,7 +94,7 @@ jobs:
         if: ${{ failure() && inputs.with_private }}
         uses: actions/upload-artifact@v4
         with:
-          name: uscard-forum-build-log-encrypted
+          name: pulse-flow-build-log-encrypted
           path: build.log.enc
           retention-days: 7
           if-no-files-found: ignore
@@ -105,8 +105,8 @@ jobs:
           cd build/ios/iphoneos
           rm -rf Payload && mkdir Payload
           cp -r Runner.app Payload/
-          zip -qr uscard-forum-unsigned.ipa Payload
-          mv uscard-forum-unsigned.ipa ../../../dist/
+          zip -qr pulse-flow-unsigned.ipa Payload
+          mv pulse-flow-unsigned.ipa ../../../dist/
           ls -lh ../../../dist/
 
       # 带私有补丁的包加密后再上传：公开仓库的 Actions 产物其他 GitHub 用户也能下载
@@ -116,16 +116,16 @@ jobs:
           PRIVATE_PATCH_KEY: ${{ secrets.PRIVATE_PATCH_KEY }}
         shell: bash
         run: |
-          "$OPENSSL" enc -aes-256-cbc -pbkdf2 -iter 200000 -md sha256 -salt             -in dist/uscard-forum-unsigned.ipa -out dist/uscard-forum-unsigned.ipa.enc             -pass env:PRIVATE_PATCH_KEY
-          rm dist/uscard-forum-unsigned.ipa
+          "$OPENSSL" enc -aes-256-cbc -pbkdf2 -iter 200000 -md sha256 -salt             -in dist/pulse-flow-unsigned.ipa -out dist/pulse-flow-unsigned.ipa.enc             -pass env:PRIVATE_PATCH_KEY
+          rm dist/pulse-flow-unsigned.ipa
           ls -lh dist/
 
       - name: Upload IPA
         if: ${{ !inputs.with_private }}
         uses: actions/upload-artifact@v4
         with:
-          name: uscard-forum-unsigned-ipa
-          path: dist/uscard-forum-unsigned.ipa
+          name: pulse-flow-unsigned-ipa
+          path: dist/pulse-flow-unsigned.ipa
           retention-days: 14
           if-no-files-found: error
 
@@ -133,7 +133,7 @@ jobs:
         if: ${{ inputs.with_private }}
         uses: actions/upload-artifact@v4
         with:
-          name: uscard-forum-unsigned-ipa-encrypted
-          path: dist/uscard-forum-unsigned.ipa.enc
+          name: pulse-flow-unsigned-ipa-encrypted
+          path: dist/pulse-flow-unsigned.ipa.enc
           retention-days: 14
           if-no-files-found: error

@@ -52,7 +52,7 @@ void main() {
       );
     });
 
-    test('美卡用根域，并下发给 Rust，读回来不混进自定义域名', () {
+    test('USCard用根域，并下发给 Rust，读回来不混进自定义域名', () {
       SiteContext.activate(SitePresets.uscard);
       expect(EchDnsPolicy.builtinDomains, ['uscardforum.com']);
       expect(
@@ -104,7 +104,7 @@ void main() {
       expect(isSiteHost('linux.do'), isFalse);
     });
 
-    test('当前站是 linux.do 时，美卡链接是外链', () {
+    test('当前站是 linux.do 时，USCard链接是外链', () {
       SiteContext.activate(SitePresets.linuxdo);
       expect(isSiteHost('linux.do'), isTrue);
       expect(isSiteHost('www.uscardforum.com'), isFalse);

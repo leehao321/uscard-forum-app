@@ -63,7 +63,7 @@ class _AppLockGateState extends State<AppLockGate> {
                   const CompassLogo(size: 96, spinning: false),
                   if (locked) ...[
                     const SizedBox(height: 20),
-                    Text('USCard Flux 已锁定', style: theme.textTheme.titleMedium),
+                    Text('Pulse Flow 已锁定', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 24),
                     FilledButton.icon(
                       onPressed: _service.authenticating ? null : _service.unlock,

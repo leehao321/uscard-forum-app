@@ -53,12 +53,12 @@ void main() {
   testWidgets('下载完成在原位变成带操作的成功提示', (tester) async {
     await _pumpHost(tester);
 
-    final handle = ToastService.showDownload('FluxDO.apk');
+    final handle = ToastService.showDownload('Pulse Flow.apk');
     await tester.pump();
     await tester.pump(_enter);
     handle.updateProgress(0.5);
     await tester.pump();
-    expect(find.text('FluxDO.apk'), findsOneWidget);
+    expect(find.text('Pulse Flow.apk'), findsOneWidget);
     expect(find.text('50%'), findsOneWidget);
 
     // 下载进行中：普通提示不再被丢弃，而是排在进度胶囊下方让位
@@ -67,7 +67,7 @@ void main() {
     await tester.pump(_enter);
     final progressTop = tester.getTopLeft(
       find.ancestor(
-        of: find.text('FluxDO.apk'),
+        of: find.text('Pulse Flow.apk'),
         matching: find.byType(GlassSurfaceFrame),
       ),
     ).dy;
@@ -85,7 +85,7 @@ void main() {
     expect(find.text('下载时也能看到'), findsNothing);
 
     final overlayChild = find.ancestor(
-      of: find.text('FluxDO.apk'),
+      of: find.text('Pulse Flow.apk'),
       matching: find.byType(GlassSurfaceFrame),
     );
     final frameBefore = tester.element(overlayChild);
@@ -100,7 +100,7 @@ void main() {
     await tester.pump();
     await tester.pump(_enter);
     expect(handle.isActive, isFalse);
-    expect(find.text('FluxDO.apk'), findsNothing);
+    expect(find.text('Pulse Flow.apk'), findsNothing);
     expect(find.text('50%'), findsNothing);
     expect(find.text('下载完成'), findsOneWidget);
     // 同一个外壳元素：原位变身而不是重新弹出

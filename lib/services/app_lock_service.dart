@@ -120,7 +120,7 @@ class AppLockService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<bool> unlock() async {
-    final ok = await _authenticate('解锁 USCard Flux');
+    final ok = await _authenticate('解锁 Pulse Flow');
     if (ok) {
       _locked = false;
       notifyListeners();

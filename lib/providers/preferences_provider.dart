@@ -625,7 +625,7 @@ class PreferencesNotifier extends StateNotifier<AppPreferences> {
   static const String _topicCardStyleKey = 'pref_topic_card_style';
 
   static const _crashlyticsChannel = MethodChannel(
-    'com.github.lingyan000.fluxdo/crashlytics',
+    'com.hao.pulseflow/crashlytics',
   );
 
   PreferencesNotifier(this._prefs)

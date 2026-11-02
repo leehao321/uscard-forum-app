@@ -35,8 +35,8 @@ class LocalNotificationService {
     );
     const linuxSettings = LinuxInitializationSettings(defaultActionName: 'Open');
     const windowsSettings = WindowsInitializationSettings(
-      appName: 'USCard Flux',
-      appUserModelId: 'Com.FluxDO.FluxDO',
+      appName: 'Pulse Flow',
+      appUserModelId: 'Com.PulseFlow.PulseFlow',
       guid: 'e965ef8c-b676-47c1-b6e7-297d63942974',
     );
 

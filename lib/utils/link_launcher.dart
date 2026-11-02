@@ -23,7 +23,7 @@ import 'url_helper.dart';
 import '../services/site_context.dart';
 import '../services/preloaded_data_service.dart';
 
-const _browserChannel = MethodChannel('com.github.lingyan000.fluxdo/browser');
+const _browserChannel = MethodChannel('com.hao.pulseflow/browser');
 
 /// [host] 是否本站：主域去掉 `www.` 后的根域，或它的任意子域。
 ///

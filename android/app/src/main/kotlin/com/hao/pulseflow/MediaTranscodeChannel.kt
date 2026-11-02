@@ -1,4 +1,4 @@
-package com.hao.uscardforum.flux
+package com.hao.pulseflow
 
 import android.content.Context
 import android.media.MediaExtractor

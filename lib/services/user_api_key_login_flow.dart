@@ -82,7 +82,7 @@ class UserApiKeyLoginFlow {
     }
     try {
       // Android 用 Custom Tabs(inAppBrowserView),不用 externalApplication:
-      // Chrome 对已建立 App Links 关联的域名(fluxdo 已 autoVerify linux.do)会把
+      // Chrome 对已建立 App Links 关联的域名(本 App 已 autoVerify linux.do)会把
       // externalApplication 打开的链接直接弹回本 app,表现为"浏览器一闪就跳回"
       // (仅 Chrome 有此行为,换其他浏览器正常)。Custom Tabs 在 app 上下文内打开,
       // 不触发该回弹,且共享 Chrome cookie 复用浏览器登录态(OAuth 标准做法)。

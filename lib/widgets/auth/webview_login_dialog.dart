@@ -145,7 +145,7 @@ class _WebViewLoginDialogState extends State<_WebViewLoginDialog> {
   /// `/captcha/hcaptcha/create.json` (linux.do 当前路径), 最后
   /// `/hcaptcha/create.json` (Discourse plugin 原生路径)。
   /// 按顺序尝试, 第一个非 404/network-error 的就用。站长改 mount 时只需要
-  /// 在 fluxdo 设置里填新 endpoint, 不用发版。
+  /// 在设置里填新 endpoint, 不用发版。
   List<String> get _hcaptchaCreateEndpoints {
     final configured = widget.hcaptchaCreateEndpoint?.trim();
     final list = <String>[

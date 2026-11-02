@@ -71,7 +71,7 @@ List<String> _extensionsToList(String raw) => raw
 /// 按站点规则上传一个音视频文件。
 ///
 /// - linux.do（[SiteCustomization.mediaUploadAsXz]）：改名 `.xz` 上传；
-/// - 其他站点（美卡）：不绕白名单。扩展名在 [attachmentAllowedExtensions]
+/// - 其他站点：不绕白名单。扩展名在 [attachmentAllowedExtensions]
 ///   里（或站点不设限）才按原文件名上传，否则直接抛出提示，不发请求。
 Future<UploadResult> uploadSiteMedia(
   String path, {
