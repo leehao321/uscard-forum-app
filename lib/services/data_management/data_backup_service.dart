@@ -10,6 +10,7 @@ import '../storage/resilient_secure_storage.dart';
 import '../../utils/share_utils.dart';
 import '../site_context.dart';
 import '../site_data_migration.dart';
+import '../../storage/topic_note_store.dart';
 
 /// 数据备份导出/导入服务
 ///
@@ -51,6 +52,8 @@ class DataBackupService {
     'one_time_password',
     // MCP 服务列表：地址和开关没有 Token / 请求头就用不了，凭据在安全存储里，不导出
     'mcp_servers_',
+    // 应用锁依赖本机的 Face ID / 设备密码：导入到没设密码的设备会把自己锁在外面
+    'app_lock_',
     // ── 设备绑定 / 运行态 ──
     'cronet_', // 降级状态
     'vpn_suppressed_',
@@ -181,6 +184,19 @@ class DataBackupService {
   /// 导入侧同样过 [_shouldBackup]:v1 旧备份(白名单时代)与手改文件
   /// 里可能混着会话态/缓存 key,一律过滤。
   static Future<void> importData(
+    SharedPreferences prefs,
+    Map<String, dynamic> backup,
+  ) async {
+    await _importEntries(prefs, backup);
+    // 老备份只带笔记 v1：本机已有 v2 时要并进去，否则会被忽略
+    final data = backup['data'] as Map<String, dynamic>;
+    if (data.containsKey('topic_notes_v1') &&
+        !data.containsKey('topic_notes_v2')) {
+      await TopicNoteStore.mergeLegacyFromPrefs(prefs);
+    }
+  }
+
+  static Future<void> _importEntries(
     SharedPreferences prefs,
     Map<String, dynamic> backup,
   ) async {

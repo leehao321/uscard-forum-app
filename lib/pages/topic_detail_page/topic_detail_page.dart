@@ -42,6 +42,11 @@ import '../../providers/message_bus_providers.dart';
 import '../../providers/pinned_categories_provider.dart';
 import '../../services/discourse/discourse_service.dart';
 import '../../services/preloaded_data_service.dart';
+import '../../services/ai_translation_service.dart';
+import '../../services/app_lock_service.dart';
+import '../../storage/saved_topic_store.dart';
+import '../../widgets/ai/ai_topic_summary_sheet.dart';
+import '../../widgets/notes/topic_note_sheet.dart';
 import '../../services/screen_track.dart';
 import '../../services/toast_service.dart';
 import '../../services/log/log_writer.dart';
@@ -240,6 +245,9 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
   bool _defaultNestedViewApplied = false; // 默认嵌套视图配置是否已应用（依赖 detail 加载后判定）
   int? _nestedTargetPostNumber; // 树形 context 定位的目标楼层（通知等带楼层进入）
   int _nestedRelocateToken = 0; // 同目标重跳令牌:递增触发 NestedPostList 重新滚动定位+高亮重播
+  /// 「看过就存」防抖定时器：楼层加载稳定 3 秒后才落盘
+  Timer? _saveViewedTimer;
+
   bool _nestedAutoEnabled = false; // 树形视图是否为默认配置自动开启（失败时静默回落平铺）
   late NestedReadingStore _nestedReadingStore;
   late NestedReadingSession _nestedReadingSession;
@@ -321,6 +329,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    AppLockService.instance.addListener(_onAppLockChanged);
     _isParentActive = widget.parentActive;
     _providerPostNumber = widget.scrollToPostNumber;
     _nestedReadingStore = ref.read(nestedReadingStoreProvider);
@@ -875,6 +884,8 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
       appRouteObserver.unsubscribe(this);
     }
     WidgetsBinding.instance.removeObserver(this);
+    AppLockService.instance.removeListener(_onAppLockChanged);
+    _saveViewedTimer?.cancel();
     _expandController.dispose();
     _showTitleNotifier.dispose();
     _isScrolledUnderNotifier.dispose();
@@ -899,11 +910,48 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    final hasFocus = state == AppLifecycleState.resumed;
+    // 被应用锁盖住时不算在读：本机阅读统计和上报论坛的阅读时间都暂停
+    final hasFocus =
+        state == AppLifecycleState.resumed && !AppLockService.instance.covering;
     _screenTrack.setHasFocus(hasFocus);
     if (!hasFocus) {
       unawaited(_nestedReadingStore.flush());
     }
+  }
+
+  void _onAppLockChanged() {
+    final resumed =
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+    _screenTrack.setHasFocus(resumed && !AppLockService.instance.covering);
+  }
+
+  /// 「看过就存」：用户打开的话题加载稳定后，把已加载的楼层存到本机。
+  /// 只写本地文件，不发任何网络请求；私信不保存。
+  void _scheduleSaveViewedTopic(TopicDetail detail) {
+    if (detail.isPrivateMessage) return;
+    _saveViewedTimer?.cancel();
+    _saveViewedTimer = Timer(const Duration(seconds: 3), () async {
+      if (!mounted) return;
+      if (!await SavedTopicStore.isEnabled()) return;
+      final posts = [
+        for (final post in detail.postStream.posts)
+          SavedPost(
+            postId: post.id,
+            postNumber: post.postNumber,
+            username: post.username,
+            name: post.name,
+            cooked: post.cooked,
+            createdAt: post.createdAt,
+          ),
+      ];
+      await SavedTopicStore.save(
+        topicId: widget.topicId,
+        title: detail.title,
+        slug: detail.slug,
+        posts: posts,
+        plainTextOf: AiTranslationService.extractPlainText,
+      );
+    });
   }
 
   @override
@@ -1814,6 +1862,29 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
           }
           return;
         }
+        if (value == 'ai_summary') {
+          // 同 assign：隔一个 tick 再开新弹层，避开菜单关闭动画的转场重叠
+          Future<void>.delayed(Duration.zero, () {
+            if (!mounted) return;
+            showAiTopicSummarySheet(
+              context,
+              title: detail.title,
+              posts: detail.postStream.posts,
+            );
+          });
+          return;
+        }
+        if (value == 'notes') {
+          Future<void>.delayed(Duration.zero, () {
+            if (!mounted) return;
+            showTopicNoteSheet(
+              context,
+              topicId: widget.topicId,
+              title: detail.title,
+            );
+          });
+          return;
+        }
         if (value == 'assign') {
           // 弹菜单本身的关闭动画(PopupMenuButton onSelected 触发时它还没
           // 收完)跟紧接着开的新 modal route 同一帧抢 GPU 合成——聊天那边
@@ -1963,6 +2034,36 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
               ),
               const SizedBox(width: 12),
               Text(context.l10n.topicDetail_openInBrowser),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'ai_summary',
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Symbols.auto_awesome_rounded,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              const SizedBox(width: 12),
+              const Text('AI 总结'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'notes',
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Symbols.edit_note_rounded,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              const SizedBox(width: 12),
+              const Text('笔记'),
             ],
           ),
         ),
@@ -2474,6 +2575,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
         ref
             .read(topicChannelProvider(widget.topicId).notifier)
             .attachTopicChannel(detail.messageBusLastId);
+        _scheduleSaveViewedTopic(detail);
       }
       // 记录话题标题到会话状态，供用户卡片「基于话题的私信」预填标题
       //

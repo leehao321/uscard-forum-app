@@ -53,6 +53,9 @@ import '../services/log/log_writer.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/layout/master_detail_layout.dart';
 import '../constants.dart';
+import 'notes_page.dart';
+import 'reading_stats_page.dart';
+import 'saved_topics_page.dart';
 import '../services/site_context.dart';
 
 /// 个人页面
@@ -852,6 +855,24 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           iconColor: Colors.amber[700]!,
           title: context.l10n.profile_myBadges,
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBadgesPage()))
+        ),
+        _buildOptionTile(
+          icon: Symbols.edit_note_rounded,
+          iconColor: Colors.orange,
+          title: '我的笔记',
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotesPage())),
+        ),
+        _buildOptionTile(
+          icon: Symbols.bar_chart_rounded,
+          iconColor: Colors.indigo,
+          title: '阅读统计',
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReadingStatsPage())),
+        ),
+        _buildOptionTile(
+          icon: Symbols.save_rounded,
+          iconColor: Colors.teal,
+          title: '已存帖子',
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SavedTopicsPage())),
         ),
         if (SiteContext.current.hasLinuxdoServices)
           _buildOptionTile(

@@ -108,6 +108,8 @@ import 'pages/first_run_site_picker.dart';
 import 'services/site_context.dart';
 import 'services/site_data_migration.dart';
 import 'services/site_registry_service.dart';
+import 'services/app_lock_service.dart';
+import 'widgets/app_lock_gate.dart';
 import 'widgets/onboarding_gate.dart';
 import 'widgets/layout/adaptive_scaffold.dart';
 import 'widgets/layout/adaptive_navigation.dart';
@@ -285,6 +287,8 @@ Future<void> main() async {
     if (Platform.isWindows) ensureWindowsProtocolsRegistered(),
     CookieJarService().initialize(),
     CsrfTokenService().init(),
+    // 应用锁要在第一帧前读好设置，避免先露出内容再上锁
+    AppLockService.instance.init(),
     BackgroundNotificationService().initialize(),
     TimeUtils.initialize(),
     // 把 compat polyfill asset 读到内存，让 WebView 同步 getter 直接拿。
@@ -878,6 +882,7 @@ class MainApp extends ConsumerWidget {
                         ),
                       child!,
                       const ReadLaterBubble(),
+                      const AppLockGate(),
                     ],
                   ),
                 );
