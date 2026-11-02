@@ -41,6 +41,10 @@ void main() {
       }
     });
 
+    test('MCP 服务列表不进备份（凭据在安全存储里，列表单独导出也用不了）', () {
+      expect(DataBackupService.debugShouldBackup('mcp_servers_v1'), isFalse);
+    });
+
     test('缓存/会话/设备态/一次性标记被排除', () {
       const keys = [
         // 缓存/派生

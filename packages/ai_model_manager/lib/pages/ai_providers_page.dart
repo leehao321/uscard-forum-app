@@ -5,11 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/ai_chat_providers.dart';
 import '../providers/ai_provider_providers.dart';
+import '../providers/mcp_server_providers.dart';
 import '../l10n/ai_l10n.dart';
 import 'ai_advanced_settings_page.dart';
 import 'ai_chat_history_page.dart';
 import 'ai_model_config_page.dart';
 import 'ai_provider_list_page.dart';
+import 'mcp_servers_page.dart';
 import 'prompt_presets_page.dart';
 
 class AiProvidersPage extends ConsumerWidget {
@@ -21,6 +23,7 @@ class AiProvidersPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final providerCount = ref.watch(aiProviderListProvider).length;
     final hasModels = ref.watch(hasAvailableAiModelProvider);
+    final mcpCount = ref.watch(mcpServerListProvider).length;
 
     return Scaffold(
       appBar: AppBar(title: Text(AiL10n.current.aiModelService)),
@@ -75,6 +78,16 @@ class AiProvidersPage extends ConsumerWidget {
                   context,
                   MaterialPageRoute(
                       builder: (_) => const PromptPresetsPage()),
+                ),
+              ),
+              // 外部工具（MCP）
+              _SettingsEntry(
+                icon: Symbols.hub_rounded,
+                title: 'MCP 服务',
+                subtitle: mcpCount > 0 ? '$mcpCount' : null,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const McpServersPage()),
                 ),
               ),
               // 高级设置

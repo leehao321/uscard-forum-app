@@ -182,7 +182,10 @@ class AiChatMessageItem extends StatelessWidget {
                   const SizedBox(height: 8),
               ],
               if (message.content.isNotEmpty)
-                MarkdownBody(data: '${message.content}${isStreaming ? ' ▊' : ''}'),
+                MarkdownBody(
+                  // 用过外部工具的回答：渲染时不自动加载外站图片、不出网址预览
+                  data: '${(message.toolNotes?.isNotEmpty ?? false) ? ExternalContent.defang(message.content) : message.content}${isStreaming ? ' ▊' : ''}',
+                ),
               // 纯文本流式开始时的小光标占位（图像生成走下面的 placeholder）
               if (message.content.isEmpty &&
                   isStreaming &&
@@ -216,6 +219,11 @@ class AiChatMessageItem extends StatelessWidget {
                 _buildErrorWidget(context),
               ],
             ],
+            // 调用过的外部工具（MCP）：每个一行小字
+            if (message.toolNotes != null && message.toolNotes!.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              _buildToolNotes(context, message.toolNotes!),
+            ],
             // Token 用量行
             if (isCompleted &&
                 (message.promptTokens != null ||
@@ -231,6 +239,31 @@ class AiChatMessageItem extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  /// 「调用过的工具」：回答下面的小字，一个工具一行
+  Widget _buildToolNotes(BuildContext context, List<String> notes) {
+    final style = Theme.of(context).textTheme.bodySmall?.copyWith(
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    );
+    return Column(
+      key: const ValueKey('ai-tool-notes'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final n in notes)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 2),
+            child: Text(
+              // 数字和单位、箭头和数字之间不换行
+              n.replaceAllMapped(
+                RegExp(r'(→|\d) (?=\d|字|token)'),
+                (m) => '${m[1]}\u00A0',
+              ),
+              style: style,
+            ),
+          ),
+      ],
     );
   }
 
@@ -353,8 +386,10 @@ class AiChatMessageItem extends StatelessWidget {
       );
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    // 大字号下一行放不下就换行，不溢出
+    return Wrap(
+      spacing: 12,
+      runSpacing: 4,
       children: [
         _ActionButton(
           icon: Symbols.image_rounded,
@@ -362,7 +397,6 @@ class AiChatMessageItem extends StatelessWidget {
           color: color,
           onTap: onShareAsImage,
         ),
-        const SizedBox(width: 12),
         _ActionButton(
           icon: Symbols.content_copy_rounded,
           label: context.l10n.ai_copyLabel,
