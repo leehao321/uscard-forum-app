@@ -174,6 +174,87 @@ S0 已于 2026-11-01 审查通过。
 4. **换站入口仍未开放**：存储隔离已经就位，入口按计划在阶段 8 做。
 5. **登出时 WebView Cookie 没有按站隔离（未修）**：`CookieJarService.clearAll` 只清当前站的 jar，但 `clearWebViewCookies` 调的是 `deleteAllCookies`，会清掉所有站的 WebView Cookie。不会串号，别的站的 jar 还在，登录态也还在；但那些站的 `cf_clearance` 可能要重新验证，WebView 里的登录态要等下次同步。这是平台实现（Android 上还有防 ANR 的逻辑），我没有动。现在没有换站入口，碰不到这种情况；建议在阶段 8 做换站时一起评估。
 
+阶段 3 已于 2026-11-02 审查通过。
+
+## S1 可填域名：阶段 4～9
+
+清单阶段全部做完。**关卡 S1 的站点矩阵还没有实测**，见下面「关卡 S1」。
+
+### 做了什么
+
+| 阶段 | 提交 | 内容 |
+|---|---|---|
+| 4 登录 | `d64e1085` | hCaptcha 从站点设置读 sitekey，linux.do 留写死的兜底，都没有就跳过；仅 SSO 或用其他人机验证的站隐藏密码表单；浏览器授权失败降级 WebView；找回密码和标题跟随当前站；没有 fingerprint 插件的站不跑会话 bootstrap；scopes 按站配置 |
+| 5 网络 | `169cdb3a` | ECH 内置域名按站；DNS 预解析的固定子域只给 linux.do；根域图片改写成主站（`2498d8a5` 通用化）；根域 cookie 算主域；站内链接判断改认根域 |
+| 6 能力 | `42a952c2` | LDC、CDK、connect、元宇宙、打赏只给 linux.do；聊天、Boost、树形回复、已解决、投票看站点设置；没装回应插件时点赞走自带接口；音视频 `.xz` 只给 linux.do；不允许后台访问的站（美卡）切后台停轮询，没有后台通知、关注和列表自动拉首帖 |
+| 7 深链 | `7e69fa67` | 深链认已注册站点，别的站的链接交给内置浏览器；路由解析去掉子路径前缀；剪贴板只认当前站；Android 声明美卡链接 |
+| 8 换站 | `77c475b3` | 设置里的论坛管理；切换持久化后退出 App；`SiteSwitchService.runNoRestartSteps` 写好无重启切换的顺序 |
+| 9 文案 | 见下 | App 名统一 USCard Flux；论坛名改成站点标题或中性说法；分享图和引导页读站点标题 |
+
+计划 §3 第 2 条的「当年删掉 → 按站开关」对应关系：
+
+| 当年做法 | 现在 |
+|---|---|
+| 去掉 hCaptcha | 站点设置决定（阶段 4） |
+| 删除聊天 | `chat_enabled`，关闭时不显示入口、不请求 `/chat` |
+| 隐藏 Boost | `discourse_boosts_enabled` |
+| 删除 LDC、CDK、connect、元宇宙 | `SiteProfile.hasLinuxdoServices` |
+| 停掉自动访问 | `SiteProfile.allowBackgroundAccess`，美卡为 false |
+| 根域图片改写 | 主站带 www 的站都生效 |
+
+站点设置名不是猜的：用 `meta.discourse.org` 首页的预载数据核对过（`chat_enabled`、`solved_enabled`、`topic_voting_enabled`、`discourse_reactions_enabled`、`discourse_boosts_enabled`、`nested_replies_enabled`、`enable_local_logins`、`hcaptcha_site_key`、`discourse_captcha_enabled`、`discourse_captcha_provider`）。**没有核对美卡和 linux.do**：美卡要守「只在用户操作时请求」，linux.do 对脚本返回 403。
+
+linux.do 站点设置没加载时，这些开关按开启处理，沿用上游行为。
+
+### 中途发现并修掉的
+
+- **子路径站的前缀重复**：服务端下发的翻页地址已带 `/forum`，Dio 再拼 baseUrl 会变成 `/forum/forum/...`。现在在 `RequestHeaderInterceptor` 统一去掉，用 Dio 真实拼地址测过。
+- **ECH 不能照清单做**：清单说内置域名用「当前站 host + CDN」，但查询名会换成 Cloudflare 的入口，不在 Cloudflare 后面的站会直接连不上。所以自加的站内置为空，需要时手动加到自定义域名。
+- **自加的站不预先弹 Cloudflare 验证页**：上游和 1.0.0 登录前都会弹，对不在 Cloudflare 后面的站没有意义；真被拦下时登录对话框会在 CSRF 403 时再验证。
+
+### 关卡 S1
+
+| 项 | 结果 |
+|---|---|
+| 单测 | 新增 131 个全部通过；全量 245 个失败，和 `bc5a04b0` **完全同一批**；通过数 1959 → 2090 |
+| `flutter analyze` | error、warning 与上游基线逐条相同 |
+| Windows 调试版编译 | 通过 |
+| 私有词 | 同 S0 的词表，无命中 |
+
+下面这些**都没有实测**，需要真机或启动 App：
+
+| 关卡项 | 现状 |
+|---|---|
+| linux.do 回归（专属功能全开） | 单测覆盖开关逻辑，没有真实登录 |
+| 美卡（对照 1.0.0 行为） | 同上 |
+| `meta.discourse.org` | 只核对过接口和设置名 |
+| 子路径站、仅 SSO 站、有 Cloudflare 的站 | 只有单测，没找到可登录的测试站 |
+| 两站同名用户不串号 | 存储层有单测，真实登录没测 |
+| User API Key 被关时降级 | 见下面第 2 条 |
+| 1.0.0 覆盖安装迁移 | 只用构造数据测过，要切回原包名上真机 |
+| 美卡站抓包确认无后台请求 | 没做 |
+| 首启选站后切到主界面 | 第二次 `runApp` 这一步只有启动 App 才能验证 |
+
+Android 改了清单和 Kotlin 包名，没有编译过；S0 的 `google-services.json` 问题还在。
+
+### 与清单、计划的偏差
+
+1. **scopes 不能探测**：`allow_user_api_key_scopes` 不下发给客户端，游客读不到，所以默认只申请 `one_time_password`，要 `write` 得在站点配置里写明。
+2. **`uscardforum` scheme 没进 iOS plist**：Dart 已经接受，等切回原包名时加一行，和 1.0.0 并存时系统不保证打开哪一个（S0 已提过）。
+3. **切换用 `exit(0)`**：iOS 不能自己重启，只能退出后由用户重新打开。上架版本不合适，侧载没问题。
+4. **没有区分「关停注册、仅邀请」**：清单阶段 2 提到，但这些设置要进站后才读得到，加站时只有 `login_required`。
+5. **树形回复不用站点配置字段**：核心已有 `nested_replies_enabled`，直接读。
+6. **没有单独的美卡配置文件**：1.0.0 的美卡配置和通用默认值一致，差别只在 `allowBackgroundAccess` 和 ECH。
+7. **站点 logo 仍未显示**：`logoUrl` 只存不用。分享图和引导页显示站点标题，图标保持 App 自己的。
+
+### 请审查时留意
+
+1. **这一版第一次能换站了，阶段 3 的第 5 条要重新看**：登出时清掉所有站的 WebView Cookie，影响的是别的站的 `cf_clearance`，不串号也不掉登录。我没有改。
+2. **User API Key 被关时只能部分自动降级**：授权页打不开或回调失败会自动转 WebView 登录。但 iOS 上站方关闭时，系统授权页里显示的是错误页，用户关掉就算取消，App 分不出来；这时登录页上的 WebView 按钮还在。
+3. **移除论坛不删数据**：登录状态和本机数据都留着，重新添加后还能用。如果想要「移除即清除」，需要另外做。
+4. **有两处行为对所有站都变了，包括 linux.do**：在线心跳和扫码轮询只在 App 处于前台时进行。这是 1.0.0 的修复，通用，不影响功能。
+5. **`seeking`（关注）对美卡隐藏**：它是定时拉取用户动态，按条款不能用。
+
 ### 下一步
 
-审查通过后做清单阶段 4（三条登录链路）。
+审查通过后进入 S2。
