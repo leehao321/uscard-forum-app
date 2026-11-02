@@ -238,6 +238,8 @@ flutter:
     - shaders/progressive_top_blur.frag
   assets:
     - assets/logo.svg
+    - assets/logo_base.svg
+    - assets/logo_needle.svg
     - assets/logo_modern.svg
     - assets/logo_modern_light.svg
     - assets/images/

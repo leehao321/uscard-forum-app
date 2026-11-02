@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jovial_svg/jovial_svg.dart';
+
+import 'compass_logo.dart';
 
 /// 浮动发光 logo。
 ///
@@ -72,16 +73,9 @@ class _FloatingLogoState extends State<FloatingLogo>
               ],
             ),
           ),
-          SizedBox(
-            width: widget.size,
-            height: widget.size,
-            child: ScalableImageWidget.fromSISource(
-              si: ScalableImageSource.fromSvg(
-                DefaultAssetBundle.of(context),
-                'assets/logo.svg',
-                warnF: (_) {},
-              ),
-            ),
+          CompassLogo(
+            size: widget.size,
+            period: const Duration(seconds: 6),
           ),
         ],
       ),
