@@ -28,6 +28,7 @@ import '../services/login_ready_coordinator.dart';
 import 'package:common_ui/common_ui.dart';
 import '../l10n/s.dart';
 import '../utils/dialog_utils.dart';
+import '../services/site_context.dart';
 
 /// WebView 登录页面（统一使用 flutter_inappwebview）
 class WebViewLoginPage extends ConsumerStatefulWidget {
@@ -98,7 +99,7 @@ class _WebViewLoginPageState extends ConsumerState<WebViewLoginPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.webviewLogin_title),
+        title: Text(context.l10n.webviewLogin_title(SiteContext.current.title)),
         actions: [
           IconButton(
             icon: const Icon(Symbols.content_paste_rounded),

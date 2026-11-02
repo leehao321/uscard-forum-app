@@ -12,6 +12,7 @@ import '../../utils/url_helper.dart';
 import '../../utils/time_utils.dart';
 import '../common/emoji_text.dart';
 import 'share_image_preview.dart';
+import '../../services/site_context.dart';
 
 /// AI 分享图片 Widget
 /// 用于生成可截图的 AI 消息分享图片，支持单条或多条消息
@@ -136,7 +137,7 @@ class AiShareImageWidget extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Text(
-          'LINUX DO',
+          SiteContext.current.title,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,

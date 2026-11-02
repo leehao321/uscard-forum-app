@@ -13,6 +13,7 @@ import '../common/smart_avatar.dart';
 import '../common/flair_badge.dart';
 import '../common/emoji_text.dart';
 import 'share_image_preview.dart';
+import '../../services/site_context.dart';
 
 /// 分享图片 Widget
 /// 用于生成可截图的分享图片
@@ -144,7 +145,7 @@ class ShareImageWidget extends ConsumerWidget {
         ),
         const SizedBox(width: 8),
         Text(
-          'LINUX DO',
+          SiteContext.current.title,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,

@@ -161,7 +161,7 @@ class AiPostReviewService {
         return _GuidelinesLoadResult(text: cached, usedCache: true);
       }
       throw AiPostReviewException(
-        '无法获取 Linux.do 社区准则，也没有可用缓存。',
+        '无法获取社区准则，也没有可用缓存。',
         details: '$error\n$stackTrace',
       );
     }

@@ -8,6 +8,7 @@ import '../widgets/common/ambient_background.dart';
 import '../widgets/common/floating_logo.dart';
 import 'login_page.dart';
 import 'network_settings_page/network_settings_page.dart';
+import '../services/site_context.dart';
 
 class OnboardingPage extends StatefulWidget {
   final VoidCallback onComplete;
@@ -141,7 +142,7 @@ class _OnboardingPageState extends State<OnboardingPage> with TickerProviderStat
               fadeAnimation: _fadeAnimations[1],
               slideAnimation: _slideAnimations[1],
               child: Text(
-                'FluxDO',
+                SiteContext.current.title,
                 style: theme.textTheme.displayMedium?.copyWith(
                   fontWeight: FontWeight.w900,
                   letterSpacing: -1.5,

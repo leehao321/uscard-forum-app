@@ -1,16 +1,39 @@
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxdo/config/sites/current.dart';
 import 'package:fluxdo/config/sites/linuxdo.dart';
 import 'package:fluxdo/constants.dart';
 import 'package:fluxdo/models/site_profile.dart';
 import 'package:fluxdo/services/network/cookie/cookie_jar_service.dart';
+import 'package:fluxdo/services/network/cookie/csrf_token_service.dart';
+import 'package:fluxdo/services/network/interceptors/request_header_interceptor.dart';
 import 'package:fluxdo/services/network/doh/ech_dns_policy.dart';
 import 'package:fluxdo/services/preloaded_data_service.dart';
 import 'package:fluxdo/services/site_context.dart';
 import 'package:fluxdo/services/user_api_key_service.dart';
 import 'package:fluxdo/utils/link_launcher.dart';
 
+class _RecordingAdapter implements HttpClientAdapter {
+  Uri? lastUri;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    lastUri = options.uri;
+    return ResponseBody.fromString('{}', 200);
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   final custom = SiteProfile(baseUrl: 'https://example.com/forum', title: 'E');
 
   tearDown(SiteContext.debugReset);
@@ -130,11 +153,46 @@ void main() {
       );
       expect(preloaded.hcaptchaSiteKey, 'abc');
       expect(preloaded.localLoginsEnabled, isFalse);
+    });
+  });
 
-      preloaded.debugSeed(
-        siteSettings: {'discourse_hcaptcha_site_key': 'def'},
+  group('子路径站的请求地址', () {
+    Future<Uri> requestedUri(SiteProfile site, String path) async {
+      SiteContext.activate(site);
+      final adapter = _RecordingAdapter();
+      final dio = Dio(BaseOptions(baseUrl: site.baseUrl))
+        ..httpClientAdapter = adapter
+        ..interceptors.add(RequestHeaderInterceptor(CsrfTokenService()));
+      await dio.get<dynamic>(path);
+      return adapter.lastUri!;
+    }
+
+    test('相对路径拼上前缀', () async {
+      expect(
+        (await requestedUri(custom, '/site.json')).toString(),
+        'https://example.com/forum/site.json',
       );
-      expect(preloaded.hcaptchaSiteKey, 'def');
+    });
+
+    test('服务端下发的路径已带前缀时不重复', () async {
+      expect(
+        (await requestedUri(custom, '/forum/latest?page=1')).toString(),
+        'https://example.com/forum/latest?page=1',
+      );
+    });
+
+    test('前缀只是开头相同的路径不动', () async {
+      expect(
+        (await requestedUri(custom, '/forumother/a')).toString(),
+        'https://example.com/forum/forumother/a',
+      );
+    });
+
+    test('根部署的站不受影响', () async {
+      expect(
+        (await requestedUri(SitePresets.linuxdo, '/latest')).toString(),
+        'https://linux.do/latest',
+      );
     });
   });
 

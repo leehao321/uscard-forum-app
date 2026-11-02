@@ -311,7 +311,7 @@ class _InviteLinksPageState extends ConsumerState<InviteLinksPage> {
     final inviteLink = _effectiveInviteLink;
     if (inviteLink == null || inviteLink.isEmpty) return;
     SharePlus.instance.share(
-      ShareParams(text: inviteLink, subject: S.current.invite_shareSubject),
+      ShareParams(text: inviteLink, subject: S.current.invite_shareSubject(SiteContext.current.title)),
     );
   }
 

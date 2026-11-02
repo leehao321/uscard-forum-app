@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../../constants.dart';
 import '../../log/log_writer.dart';
+import '../../site_context.dart';
 import '../../user_presence_service.dart';
 import '../cookie/csrf_token_service.dart';
 import '../flux_request_spec.dart';
@@ -20,6 +21,11 @@ class RequestHeaderInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
+    // 服务端下发的路径（翻页地址等）在子路径站上已经带前缀，dio 再拼 baseUrl 会重复
+    if (options.path.startsWith('/')) {
+      options.path = SiteContext.current.sitePath(options.path);
+    }
+
     // 1. 设置 User-Agent
     options.headers['User-Agent'] = await AppConstants.getUserAgent();
 

@@ -992,7 +992,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         child: FilledButton.icon(
           onPressed: _goToLogin,
           icon: const Icon(Symbols.login_rounded, size: 20),
-          label: Text(context.l10n.profile_loginLinuxDo, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+          label: Text(context.l10n.profile_loginLinuxDo(SiteContext.current.title), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
           style: FilledButton.styleFrom(
             minimumSize: const Size(double.infinity, 52),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
