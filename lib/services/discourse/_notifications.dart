@@ -14,7 +14,7 @@ mixin _NotificationsMixin on _DiscourseServiceBase {
   }
 
   /// 获取通知列表（默认模式，支持完整分页）
-  Future<NotificationListResponse> getNotifications({int? offset}) async {
+  Future<NotificationListResponse> getNotifications({int? offset, QuietRequest? quiet}) async {
     final queryParams = <String, dynamic>{
       'limit': 60,
     };
@@ -25,6 +25,8 @@ mixin _NotificationsMixin on _DiscourseServiceBase {
     final response = await _dio.get(
       '/notifications',
       queryParameters: queryParams,
+      options: quiet?.options(),
+      cancelToken: quiet?.cancelToken,
     );
     return NotificationListResponse.fromJson(response.data);
   }
