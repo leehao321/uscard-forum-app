@@ -371,6 +371,18 @@ class PreloadedDataService {
   List<String> get enabledReactionsSync =>
       _enabledReactions ?? const ['heart', '+1', 'laughing', 'open_mouth'];
 
+  /// 站点 hCaptcha 插件下发的 sitekey；没装插件或站点设置没加载时为 null。
+  String? get hcaptchaSiteKey {
+    for (final name in const ['hcaptcha_site_key', 'discourse_hcaptcha_site_key']) {
+      final value = _siteSettings?[name];
+      if (value is String && value.isNotEmpty) return value;
+    }
+    return null;
+  }
+
+  /// 是否允许本地账号密码登录。站点设置没加载时按允许处理。
+  bool get localLoginsEnabled => _siteSettings?['enable_local_logins'] != false;
+
   /// 获取 MessageBus 跨域认证 key（仅独立域名时有值）
   String? get sharedSessionKey => _sharedSessionKey;
 

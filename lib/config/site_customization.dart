@@ -102,11 +102,30 @@ class SiteCustomization {
   /// 由 [PluginRegistry] 在对应钩子处按顺序执行。
   final List<SitePlugin> plugins;
 
+  /// 写死的 hCaptcha sitekey，只给站点设置里读不到 sitekey 的预置站用。
+  /// 其他站从 `PreloadedDataService.hcaptchaSiteKey` 读，读不到就跳过人机验证。
+  final String? hcaptchaSiteKey;
+
+  /// 站点是否靠插件脚本在 WebView 里产生额外会话 cookie（linux.do 的
+  /// fingerprint 插件上报后才下发 `_rt`）。没有这类插件时不跑会话 bootstrap，
+  /// 否则每次都找不到插件，反复起无头 WebView 拉首页和插件 JS，登录也会被拖慢。
+  final bool hasSessionBootstrapPlugin;
+
+  /// 浏览器授权登录申请的 User API Key scopes。
+  ///
+  /// 站点的 `allow_user_api_key_scopes` 不下发给客户端，游客探测不到，所以默认只
+  /// 申请每个站都用得上的 `one_time_password`。申请站点不允许的 scope 会导致整个
+  /// 授权失败；确认站点放开 `write` 后才在这里配置，配了才会保留 key 做自愈。
+  final String userApiKeyScopes;
+
   const SiteCustomization({
     this.avatarGlowRules = const [],
     this.userTitleStyleRules = const [],
     this.linkSecurityConfig,
     this.plugins = const [],
+    this.hcaptchaSiteKey,
+    this.hasSessionBootstrapPlugin = false,
+    this.userApiKeyScopes = 'one_time_password',
   });
 
   /// 匹配头像光晕（返回光晕颜色，null 表示无光晕）

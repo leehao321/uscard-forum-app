@@ -31,6 +31,8 @@ final linuxdoCustomization = SiteCustomization(
     ),
   ],
   linkSecurityConfig: _linuxdoLinkSecurityConfig,
+  hcaptchaSiteKey: 'a776b4ac-8c4c-441e-986a-c6ee9ed8cf08',
+  hasSessionBootstrapPlugin: true,
   plugins: const [
     // 回复扣积分（抽奖类话题），对应社区插件 discourse-reply-cost
     ReplyCostPlugin(),

@@ -53,8 +53,10 @@ class UserApiKeyService {
   static const _keyPendingNonce = 'user_api_key_pending_nonce';
 
   static const String authRedirect = 'discourse://auth_redirect';
-  static const String applicationName = 'FluxDO';
-  static const String scopes = 'one_time_password';
+  static const String applicationName = 'USCard Flux';
+
+  /// 按站配置，见 [SiteCustomization.userApiKeyScopes]。
+  static String get scopes => AppConstants.siteCustomization.userApiKeyScopes;
 
   /// 跨设备扫码 key 的 application_name。展示端靠它在
   /// /u/:username.json 的 user_api_keys 列表里识别自己那枚分享 key
@@ -62,8 +64,7 @@ class UserApiKeyService {
   static const String qrApplicationName = '$applicationName QR Login';
 
   /// scopes 是否含 write(决定 key 是否值得留作 _t 自愈弹药)。
-  /// linux.do 现配置只允许 one_time_password → key 兑换后即为
-  /// 零 scope 永久凭据,纯负债,应当用完即焚。
+  /// 只有 one_time_password 时 key 兑换后即为零 scope 永久凭据,纯负债,应当用完即焚。
   static bool get keyWorthKeeping =>
       scopes.split(',').map((s) => s.trim()).contains('write');
 

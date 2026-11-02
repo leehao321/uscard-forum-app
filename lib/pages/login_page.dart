@@ -21,6 +21,9 @@ import 'package:m3e_ui/m3e_ui.dart';
 import 'qr_login_scan_page.dart';
 import 'webview_login_page.dart';
 import '../services/site_context.dart';
+import '../constants.dart';
+import '../models/site_profile.dart';
+import '../services/preloaded_data_service.dart';
 
 /// linux.do 原生登录页。
 ///
@@ -36,8 +39,7 @@ import '../services/site_context.dart';
 /// 失败 / 高级场景 (OAuth / 注册 / 找回密码 / 2FA 走 backup code 等) 兜底跳
 /// [WebViewLoginPage]。
 ///
-/// linux.do 的 hcaptcha sitekey 写死, 后续可从 PreloadedDataService 动态拿。
-const String _kLinuxDoHcaptchaSiteKey = 'a776b4ac-8c4c-441e-986a-c6ee9ed8cf08';
+/// hcaptcha sitekey 见 [_resolveHcaptchaSiteKey], 站点没有 hcaptcha 时跳过第 1、2 步。
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -51,6 +53,7 @@ class _LoginPageState extends State<LoginPage>
   String? _savedPassword;
   bool _credentialsLoaded = false;
   bool _browserAuthLaunching = false;
+  bool _localLoginsEnabled = true;
 
   late final AnimationController _entryController;
   final List<Animation<double>> _fade = [];
@@ -61,6 +64,31 @@ class _LoginPageState extends State<LoginPage>
     super.initState();
     _setupEntryAnimations();
     _loadSavedCredentials();
+    _loadLoginOptions();
+  }
+
+  /// 仅 SSO 的站点隐藏密码表单，只留 WebView 和浏览器授权登录。
+  Future<void> _loadLoginOptions() async {
+    try {
+      await PreloadedDataService().getSiteSettings();
+    } catch (e) {
+      debugPrint('[LoginPage] 读取站点设置失败: $e');
+    }
+    if (!mounted) return;
+    setState(() {
+      _localLoginsEnabled = PreloadedDataService().localLoginsEnabled;
+    });
+  }
+
+  /// 站点设置优先；预置站可以写死。都没有说明站点没开 hcaptcha，返回 null。
+  Future<String?> _resolveHcaptchaSiteKey() async {
+    try {
+      await PreloadedDataService().getSiteSettings();
+    } catch (e) {
+      debugPrint('[LoginPage] 读取站点设置失败: $e');
+    }
+    return PreloadedDataService().hcaptchaSiteKey ??
+        AppConstants.siteCustomization.hcaptchaSiteKey;
   }
 
   /// staggered 入场动画 (对齐 onboarding 的节奏)
@@ -113,6 +141,7 @@ class _LoginPageState extends State<LoginPage>
       final launched = await UserApiKeyLoginFlow.instance.start();
       if (!launched && mounted) {
         ToastService.showError('无法打开浏览器,请重试');
+        _loginWithWebView();
       }
     } finally {
       if (mounted) setState(() => _browserAuthLaunching = false);
@@ -120,9 +149,13 @@ class _LoginPageState extends State<LoginPage>
   }
 
   void _onBrowserAuthFinished(bool success) {
-    if (success && mounted) {
+    if (!mounted) return;
+    if (success) {
       Navigator.of(context).pop(true);
+      return;
     }
+    // 站方可能关掉了 User API Key：降级到 WebView 登录，那条路只依赖网页本身
+    _loginWithWebView();
   }
 
   Future<void> _loadSavedCredentials() async {
@@ -167,7 +200,10 @@ class _LoginPageState extends State<LoginPage>
       if (clearance != null && clearance.isNotEmpty) return true;
       await Future<void>.delayed(const Duration(milliseconds: 500));
     }
-    return false;
+    // 验证页已判通过但没拿到 cf_clearance：站点对这个用户/IP 没出挑战时本来就
+    // 不发这个 cookie。照样放行，真被 CF 拦下时登录对话框会在 CSRF 403 时再验一次，
+    // 不能因为缺 cookie 就永远登不上。
+    return true;
   }
 
   /// 表单提交回调。返 true 表示走完成功路径并已 pop, false 留在表单。
@@ -180,7 +216,10 @@ class _LoginPageState extends State<LoginPage>
 
     // Step 0: jar 必须有 cf_clearance, 否则 native dio 任何请求都被 CF 当 bot
     // 直接 403 (TLS 指纹不对). 没有就弹 CF 手动验证页让用户人机过一次。
-    if (!await _ensureCfClearance()) {
+    // 用户自加的站不一定在 Cloudflare 后面，不预先弹验证页；真被拦下时登录对话框
+    // 会在 CSRF 403 时再验一次。
+    if (SiteContext.current.featurePack != SiteFeaturePack.generic &&
+        !await _ensureCfClearance()) {
       if (mounted) {
         ToastService.showError('Cloudflare 验证未完成,请重试');
       }
@@ -202,9 +241,11 @@ class _LoginPageState extends State<LoginPage>
     // 三个请求都由 WebView 内核发出, TLS/JA3 指纹与 CF 签发 cf_clearance 时一致,
     // 避开 dio (IO/rhttp 适配器) 指纹不匹配导致的 403 (BAD CSRF)。
     // 2FA 通过 onNeedSecondFactor 回调弹 TOTP, 由 dialog 内同一 WebView 重试。
+    final siteKey = await _resolveHcaptchaSiteKey();
+    if (!mounted) return false;
     final result = await showWebViewLoginDialog(
       context,
-      siteKey: _kLinuxDoHcaptchaSiteKey,
+      siteKey: siteKey,
       identifier: identifier,
       password: password,
       hcaptchaCreateEndpoint: hcaptchaEndpoint,
@@ -346,7 +387,7 @@ class _LoginPageState extends State<LoginPage>
                           _entry(
                             1,
                             Text(
-                              'LINUX.DO',
+                              SiteContext.current.title,
                               textAlign: TextAlign.center,
                               style: theme.textTheme.headlineMedium?.copyWith(
                                 fontWeight: FontWeight.w700,
@@ -371,8 +412,10 @@ class _LoginPageState extends State<LoginPage>
                             ),
                           ),
                           const SizedBox(height: 32),
-                          _entry(3, _buildFormCard(theme, scheme)),
-                          const SizedBox(height: 24),
+                          if (_localLoginsEnabled) ...[
+                            _entry(3, _buildFormCard(theme, scheme)),
+                            const SizedBox(height: 24),
+                          ],
                           _entry(4, _buildAltLogin(context, scheme)),
                         ],
                       ),
@@ -431,7 +474,7 @@ class _LoginPageState extends State<LoginPage>
                 : LoginForm(
                     onSubmit: _handleSubmit,
                     onForgotPassword: () =>
-                        _loginWithWebView('https://linux.do/password-reset'),
+                        _loginWithWebView('${AppConstants.baseUrl}/password-reset'),
                     savedUsername: _savedUsername,
                     savedPassword: _savedPassword,
                   ),
