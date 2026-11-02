@@ -1,0 +1,139 @@
+name: iOS Unsigned IPA
+
+# 手动触发：在 macOS runner 上构建未签名的 iOS IPA，作为 Actions 产物下载。
+# IPA 未签名，需要用 AltStore / Sideloadly 等工具用自己的 Apple ID 重新签名后装到真机。
+on:
+  workflow_dispatch:
+    inputs:
+      with_private:
+        description: '带私有补丁（解密 private/extras.patch.enc 合入；IPA 加密后上传）'
+        type: boolean
+        default: false
+
+env:
+  FLUTTER_VERSION: '3.47.4'
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: core/doh_proxy
+          key: ios
+
+      - name: Setup iOS Rust targets
+        run: rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
+
+      - name: Configure Git for CocoaPods
+        run: git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+
+      # 私有代码不以明文进仓库：构建时用 Secret 解密补丁合入。
+      # 加解密参数与 tool/private_patch.sh 一致。
+      - name: Apply private patch
+        if: ${{ inputs.with_private }}
+        shell: bash
+        env:
+          PRIVATE_PATCH_KEY: ${{ secrets.PRIVATE_PATCH_KEY }}
+        run: |
+          test -n "$PRIVATE_PATCH_KEY" || { echo "缺少 Secret PRIVATE_PATCH_KEY"; exit 1; }
+          test -f private/extras.patch.enc || { echo "缺少 private/extras.patch.enc"; exit 1; }
+          OPENSSL="$(brew --prefix openssl@3)/bin/openssl"
+          test -x "$OPENSSL" || { brew install openssl@3 >/dev/null; OPENSSL="$(brew --prefix openssl@3)/bin/openssl"; }
+          "$OPENSSL" enc -d -aes-256-cbc -pbkdf2 -iter 200000 -md sha256             -in private/extras.patch.enc -pass env:PRIVATE_PATCH_KEY             | git apply --whitespace=nowarn
+          echo "OPENSSL=$OPENSSL" >> "$GITHUB_ENV"
+          echo "私有补丁已合入"
+
+      - name: Build iOS (no codesign)
+        shell: bash
+        env:
+          WITH_PRIVATE: ${{ inputs.with_private }}
+        run: |
+          if [ "$WITH_PRIVATE" = "true" ]; then
+            # 编译报错会把出错的源码行打印出来，公开仓库的 Actions 日志谁都能看：
+            # 带私有补丁时输出只写文件，失败时加密后作为 artifact 上传（见下面两步）
+            if ! dart tool/flutterw.dart build ios --release --no-codesign > build.log 2>&1; then
+              echo "构建失败；日志已加密上传为 uscard-forum-build-log-encrypted，"
+              echo "下载后用 tool/private_patch.sh decrypt-ipa build.log.enc 解密查看"
+              exit 1
+            fi
+            echo "构建完成（带私有补丁，编译输出未打印）"
+          else
+            dart tool/flutterw.dart build ios --release --no-codesign
+          fi
+          nm -gU build/ios/iphoneos/Runner.app/Runner | grep "_doh_proxy_start_with_config_json"
+
+      - name: Encrypt build log
+        if: ${{ failure() && inputs.with_private }}
+        shell: bash
+        env:
+          PRIVATE_PATCH_KEY: ${{ secrets.PRIVATE_PATCH_KEY }}
+        run: |
+          test -f build.log || exit 0
+          "$OPENSSL" enc -aes-256-cbc -pbkdf2 -iter 200000 -md sha256 -salt             -in build.log -out build.log.enc -pass env:PRIVATE_PATCH_KEY
+          rm build.log
+
+      - name: Upload encrypted build log
+        if: ${{ failure() && inputs.with_private }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: uscard-forum-build-log-encrypted
+          path: build.log.enc
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Package IPA
+        run: |
+          mkdir -p dist
+          cd build/ios/iphoneos
+          rm -rf Payload && mkdir Payload
+          cp -r Runner.app Payload/
+          zip -qr uscard-forum-unsigned.ipa Payload
+          mv uscard-forum-unsigned.ipa ../../../dist/
+          ls -lh ../../../dist/
+
+      # 带私有补丁的包加密后再上传：公开仓库的 Actions 产物其他 GitHub 用户也能下载
+      - name: Encrypt IPA
+        if: ${{ inputs.with_private }}
+        env:
+          PRIVATE_PATCH_KEY: ${{ secrets.PRIVATE_PATCH_KEY }}
+        shell: bash
+        run: |
+          "$OPENSSL" enc -aes-256-cbc -pbkdf2 -iter 200000 -md sha256 -salt             -in dist/uscard-forum-unsigned.ipa -out dist/uscard-forum-unsigned.ipa.enc             -pass env:PRIVATE_PATCH_KEY
+          rm dist/uscard-forum-unsigned.ipa
+          ls -lh dist/
+
+      - name: Upload IPA
+        if: ${{ !inputs.with_private }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: uscard-forum-unsigned-ipa
+          path: dist/uscard-forum-unsigned.ipa
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Upload encrypted IPA
+        if: ${{ inputs.with_private }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: uscard-forum-unsigned-ipa-encrypted
+          path: dist/uscard-forum-unsigned.ipa.enc
+          retention-days: 14
+          if-no-files-found: error
