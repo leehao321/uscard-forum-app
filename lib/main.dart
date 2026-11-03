@@ -109,6 +109,8 @@ import 'services/site_context.dart';
 import 'services/site_data_migration.dart';
 import 'services/site_registry_service.dart';
 import 'services/app_lock_service.dart';
+import 'services/app_ui_scale.dart';
+import 'services/custom_font_service.dart';
 import 'widgets/app_lock_gate.dart';
 import 'widgets/site/site_switch_host.dart';
 import 'widgets/onboarding_gate.dart';
@@ -304,6 +306,9 @@ Future<void> main() async {
   final results = await Future.wait(futures);
   final prefs = results[0] as SharedPreferences;
   await AuthIssueNoticeService.instance.initialize(prefs);
+  // 这两个主题和第一帧都要用
+  AppUiScale.load(prefs);
+  await CustomFontService(prefs: prefs).loadSaved();
 
   // release 下按设置开关启用性能监控(debug/profile 已在上方无条件启用)
   if (kReleaseMode && (prefs.getBool(FrameJankMonitor.prefKey) ?? false)) {
@@ -837,7 +842,9 @@ class MainApp extends ConsumerWidget {
                   transparent: resolvedTheme.transparent,
                 ),
               ),
-              builder: (context, child) {
+              builder: (context, child) => AppUiScaleScope(
+                child: Builder(
+                  builder: (context) {
                 final brightness = Theme.of(context).brightness;
                 final iconBrightness = brightness == Brightness.light
                     ? Brightness.dark
@@ -956,7 +963,9 @@ class MainApp extends ConsumerWidget {
                 }
 
                 return AppGlassSettings(child: result);
-              },
+                  },
+                ),
+              ),
               home: const OnboardingGate(child: PreheatGate(child: MainPage())),
             ),
           ),

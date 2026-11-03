@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -28,6 +29,8 @@ import '../../widgets/common/app_bottom_sheet.dart';
 import '../../utils/platform_utils.dart';
 import '../../utils/seed_color_scheme.dart';
 import '../settings_model.dart';
+import '../../services/app_ui_scale.dart';
+import '../../services/custom_font_service.dart';
 
 /// 外观设置数据声明
 List<SettingsGroup> buildAppearanceGroups(BuildContext context) {
@@ -281,6 +284,13 @@ List<SettingsGroup> buildAppearanceGroups(BuildContext context) {
             final options = <(String, AppFontFamily)>[
               (l10n.appearance_fontSystem, AppFontFamily.system),
               ('MiSans', AppFontFamily.miSans),
+              if (CustomFontService.current != null)
+                (
+                  l10n.appearance_fontCustomNamed(
+                    CustomFontService.current!.displayName,
+                  ),
+                  AppFontFamily.custom,
+                ),
             ];
 
             return RadioGroup<AppFontFamily>(
@@ -296,9 +306,15 @@ List<SettingsGroup> buildAppearanceGroups(BuildContext context) {
                     RadioListTile<AppFontFamily>(
                       title: Text(
                         label,
-                        style: ff == AppFontFamily.miSans
-                            ? const TextStyle(fontFamily: 'MiSans')
-                            : null,
+                        style: switch (ff) {
+                          AppFontFamily.miSans => const TextStyle(
+                            fontFamily: 'MiSans',
+                          ),
+                          AppFontFamily.custom => TextStyle(
+                            fontFamily: CustomFontService.current?.family,
+                          ),
+                          AppFontFamily.system => null,
+                        },
                       ),
                       value: ff,
                     ),
@@ -306,6 +322,26 @@ List<SettingsGroup> buildAppearanceGroups(BuildContext context) {
               ),
             );
           },
+        ),
+        ActionModel(
+          id: 'customFontImport',
+          title: l10n.appearance_fontImport,
+          subtitle: l10n.appearance_fontImportDesc,
+          icon: Symbols.upload_file_rounded,
+          onTap: _importCustomFont,
+        ),
+      ],
+    ),
+
+    // ── 界面缩放 ────────────────────────
+    SettingsGroup(
+      title: l10n.appearance_uiScale,
+      icon: Symbols.aspect_ratio_rounded,
+      items: [
+        CustomModel(
+          id: 'uiScale',
+          title: l10n.appearance_uiScale,
+          builder: (context, ref) => const _UiScaleSelector(),
         ),
       ],
     ),
@@ -2324,5 +2360,74 @@ class _TransparentTrackShape extends RoundedRectSliderTrackShape {
     double additionalActiveTrackHeight = 0,
   }) {
     // 不绘制，让背景渐变可见
+  }
+}
+
+Future<void> _importCustomFont(BuildContext context, WidgetRef ref) async {
+  final l10n = context.l10n;
+  final picked = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: const ['ttf', 'otf'],
+  );
+  final path = picked?.files.singleOrNull?.path;
+  if (path == null) return;
+  try {
+    final font = await CustomFontService(
+      prefs: ref.read(sharedPreferencesProvider),
+    ).importFile(path);
+    await ref.read(themeProvider.notifier).setFontFamily(AppFontFamily.custom);
+    ToastService.showSuccess(l10n.appearance_fontImported(font.displayName));
+  } on CustomFontException catch (e) {
+    ToastService.showError(switch (e.error) {
+      CustomFontError.notAFont => l10n.appearance_fontNotAFont,
+      CustomFontError.tooLarge => l10n.appearance_fontTooLarge,
+      CustomFontError.readFailed => l10n.appearance_fontReadFailed,
+    });
+  } catch (e) {
+    debugPrint('[Appearance] 导入字体失败: ${e.runtimeType}');
+    ToastService.showError(l10n.appearance_fontReadFailed);
+  }
+}
+
+/// 界面缩放档位。
+class _UiScaleSelector extends ConsumerWidget {
+  const _UiScaleSelector();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      child: ValueListenableBuilder<double>(
+        valueListenable: AppUiScale.factor,
+        builder: (context, scale, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SegmentedButton<double>(
+              showSelectedIcon: false,
+              segments: [
+                ButtonSegment(value: 0.9, label: Text(l10n.appearance_uiScaleCompact)),
+                ButtonSegment(value: 1.0, label: Text(l10n.appearance_uiScaleStandard)),
+                ButtonSegment(value: 1.1, label: Text(l10n.appearance_uiScaleComfortable)),
+                ButtonSegment(value: 1.2, label: Text(l10n.appearance_uiScaleLarge)),
+              ],
+              selected: {scale},
+              onSelectionChanged: (selected) => AppUiScale.set(
+                ref.read(sharedPreferencesProvider),
+                selected.first,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.appearance_uiScaleDesc,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

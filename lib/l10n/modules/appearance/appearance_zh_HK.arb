@@ -175,5 +175,18 @@
   "topicCardStyle_previewExcerpt": "這裡是話題摘要,展示話題的部分內容,幫助你預覽卡片效果。",
   "topicCardStyle_previewUserName": "預覽用戶",
   "topicCardStyle_previewCategory": "開發調優",
-  "topicCardStyle_previewTag": "精華帖"
+  "topicCardStyle_previewTag": "精華帖",
+  "appearance_fontCustomNamed": "自訂：{name}",
+  "appearance_fontImport": "匯入字體",
+  "appearance_fontImportDesc": "從手機或 iCloud 選擇 .ttf、.otf 檔案",
+  "appearance_fontImported": "已切換到 {name}",
+  "appearance_fontNotAFont": "這個檔案不是有效的字體",
+  "appearance_fontReadFailed": "讀取字體失敗，請重試",
+  "appearance_fontTooLarge": "字體檔案太大（上限 64 MB）",
+  "appearance_uiScale": "介面縮放",
+  "appearance_uiScaleComfortable": "舒適 110%",
+  "appearance_uiScaleCompact": "緊湊 90%",
+  "appearance_uiScaleDesc": "卡片、頭像、圖示和文字一起縮放。放大後螢幕能顯示的內容會變少。",
+  "appearance_uiScaleLarge": "放大 120%",
+  "appearance_uiScaleStandard": "標準"
 }

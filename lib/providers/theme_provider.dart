@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/accent_colors.dart';
 import '../theme/app_background.dart';
 import '../theme/app_palettes.dart';
+import '../services/custom_font_service.dart';
 
 /// 内置字体选项
 enum AppFontFamily {
@@ -15,6 +16,9 @@ enum AppFontFamily {
 
   /// 内置 MiSans 字体
   miSans,
+
+  /// 用户导入的字体，见 CustomFontService
+  custom,
 }
 
 /// 强调色来源。
@@ -107,6 +111,8 @@ class ThemeState {
         return 'MiSans';
       case AppFontFamily.system:
         return null;
+      case AppFontFamily.custom:
+        return CustomFontService.current?.family;
     }
   }
 
@@ -229,6 +235,9 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
     AppFontFamily fontFamily = AppFontFamily.system;
     if (savedFontFamily == 'miSans') {
       fontFamily = AppFontFamily.miSans;
+    } else if (savedFontFamily == 'custom' &&
+        CustomFontService.current != null) {
+      fontFamily = AppFontFamily.custom;
     }
 
     // ── 透明模式与背景配置 ──
@@ -378,6 +387,8 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
         await _prefs.setString(_fontFamilyKey, 'miSans');
       case AppFontFamily.system:
         await _prefs.setString(_fontFamilyKey, 'system');
+      case AppFontFamily.custom:
+        await _prefs.setString(_fontFamilyKey, 'custom');
     }
   }
 }

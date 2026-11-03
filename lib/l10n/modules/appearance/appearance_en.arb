@@ -175,5 +175,18 @@
   "topicCardStyle_previewExcerpt": "This is the topic excerpt, showing part of the content to help you preview the card.",
   "topicCardStyle_previewUserName": "Preview User",
   "topicCardStyle_previewCategory": "Dev Tuning",
-  "topicCardStyle_previewTag": "featured"
+  "topicCardStyle_previewTag": "featured",
+  "appearance_fontCustomNamed": "Custom: {name}",
+  "appearance_fontImport": "Import font",
+  "appearance_fontImportDesc": "Choose a .ttf or .otf file from your device or iCloud",
+  "appearance_fontImported": "Switched to {name}",
+  "appearance_fontNotAFont": "This file is not a valid font",
+  "appearance_fontReadFailed": "Could not read the font. Please try again",
+  "appearance_fontTooLarge": "Font file is too large (limit 64 MB)",
+  "appearance_uiScale": "Interface scale",
+  "appearance_uiScaleComfortable": "Comfy 110%",
+  "appearance_uiScaleCompact": "Compact 90%",
+  "appearance_uiScaleDesc": "Scales cards, avatars, icons and text together. Larger sizes fit less on screen.",
+  "appearance_uiScaleLarge": "Large 120%",
+  "appearance_uiScaleStandard": "Standard"
 }

@@ -175,5 +175,32 @@
   "topicCardStyle_previewExcerpt": "这里是话题摘要,展示话题的部分内容,帮助你预览卡片效果。",
   "topicCardStyle_previewUserName": "预览用户",
   "topicCardStyle_previewCategory": "开发调优",
-  "topicCardStyle_previewTag": "精华帖"
+  "topicCardStyle_previewTag": "精华帖",
+  "appearance_fontCustomNamed": "自定义：{name}",
+  "appearance_fontImport": "导入字体",
+  "appearance_fontImportDesc": "从手机或 iCloud 选择 .ttf、.otf 文件",
+  "appearance_fontImported": "已切换到 {name}",
+  "appearance_fontNotAFont": "这个文件不是有效的字体",
+  "appearance_fontReadFailed": "读取字体失败，请重试",
+  "appearance_fontTooLarge": "字体文件太大（上限 64 MB）",
+  "appearance_uiScale": "界面缩放",
+  "appearance_uiScaleComfortable": "舒适 110%",
+  "appearance_uiScaleCompact": "紧凑 90%",
+  "appearance_uiScaleDesc": "卡片、头像、图标和文字一起缩放。放大后屏幕能显示的内容会变少。",
+  "appearance_uiScaleLarge": "放大 120%",
+  "appearance_uiScaleStandard": "标准",
+  "@appearance_fontCustomNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@appearance_fontImported": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../services/app_ui_scale.dart';
 
 /// 手势只接管系统键盘的移动，不改变正文、选区或工具岛的展开状态。
 class ComposerKeyboardDismissController extends ChangeNotifier
@@ -86,11 +87,13 @@ class ComposerKeyboardDismissController extends ChangeNotifier
             _platform != TargetPlatform.android)) {
       return false;
     }
-    final height = view.viewInsets.bottom / view.devicePixelRatio;
+    // 不直接除 devicePixelRatio：界面缩放时逻辑像素比不是它
+    final ratio = AppUiScale.logicalRatioOf(view);
+    final height = view.viewInsets.bottom / ratio;
     if (height <= 0) return false;
     _initialHeight = height;
-    _safeBottom = view.viewPadding.bottom / view.devicePixelRatio;
-    _screenHeight = view.physicalSize.height / view.devicePixelRatio;
+    _safeBottom = view.viewPadding.bottom / ratio;
+    _screenHeight = view.physicalSize.height / ratio;
     _distance = 0;
     _lastDelta = 0;
     _ending = false;

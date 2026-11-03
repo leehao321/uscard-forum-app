@@ -2,12 +2,15 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:ui' as ui;
 
+import 'package:flutter/rendering.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:common_ui/common_ui.dart';
 
 import 'frame_jank_monitor.dart';
 import 'frame_scheduler_probe.dart';
 import 'perf_pipeline_probe.dart';
+import '../services/app_ui_scale.dart';
 
 /// 全局图片解码并发闸门:限制同一时刻在引擎里跑的图片解码任务数。
 ///
@@ -234,6 +237,21 @@ class FluxdoWidgetsBinding extends WidgetsFlutterBinding
 
   static FluxdoWidgetsBinding ensureInitialized() =>
       _instance ??= FluxdoWidgetsBinding();
+
+  // 界面缩放，见 AppUiScale。标准比例时走原来的路径。
+  @override
+  ViewConfiguration createViewConfigurationFor(RenderView renderView) {
+    final scale = AppUiScale.factor.value;
+    if (scale == 1.0) return super.createViewConfigurationFor(renderView);
+    return AppUiScale.configurationFor(renderView.flutterView, scale);
+  }
+
+  @override
+  void handlePointerEvent(PointerEvent event) {
+    super.handlePointerEvent(
+      AppUiScale.scalePointer(event, AppUiScale.factor.value),
+    );
+  }
 
   @override
   Future<ui.Codec> instantiateImageCodecWithSize(
