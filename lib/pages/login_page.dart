@@ -243,6 +243,9 @@ class _LoginPageState extends State<LoginPage>
     // 2FA 通过 onNeedSecondFactor 回调弹 TOTP, 由 dialog 内同一 WebView 重试。
     final siteKey = await _resolveHcaptchaSiteKey();
     if (!mounted) return false;
+    // 选了备用码时不能在回调里跳转：登录框随后还要带结果关闭自己，那时栈顶已经
+    // 是新页面，pop 会打到它身上，登录框就留在下面关不掉了。等登录框关完再跳。
+    var useWebViewLogin = false;
     final result = await showWebViewLoginDialog(
       context,
       siteKey: siteKey,
@@ -254,10 +257,14 @@ class _LoginPageState extends State<LoginPage>
         hint: need.totpEnabled
             ? '请输入身份验证器 App 显示的 6 位验证码'
             : '此账号需要二步验证',
-        onUseBackupCode: () => _loginWithWebView(),
+        onUseBackupCode: () => useWebViewLogin = true,
       ),
     );
     if (!mounted) return false;
+    if (useWebViewLogin) {
+      _loginWithWebView();
+      return false;
+    }
     if (result == null || result.status == WebViewLoginStatus.canceled) {
       return false;
     }

@@ -174,6 +174,17 @@ mixin _LoginMixin on _DiscourseServiceBase, _AuthMixin {
         message: map['error']?.toString(),
       );
     }
+    // 限流等失败用 errors 数组返回，没有 reason 和 error；非 2xx 也不能算成功，
+    // 否则会提示登录成功，还可能把输错的密码存下来。
+    final errors = map['errors'];
+    if (status < 200 || status >= 300 || (errors != null && map['user'] == null)) {
+      return LoginResult.error(
+        LoginErrorKind.unknown,
+        message: errors is List && errors.isNotEmpty
+            ? errors.join('\n')
+            : 'Discourse 返回 HTTP $status',
+      );
+    }
     return const LoginResult.success();
   }
 

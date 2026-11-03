@@ -5,6 +5,7 @@ import 'package:zxing2/qrcode.dart';
 
 import 'discourse/discourse_service.dart';
 import 'log/log_writer.dart';
+import 'site_context.dart';
 import 'user_api_key_service.dart';
 
 /// 扫码登录 payload。
@@ -14,10 +15,12 @@ import 'user_api_key_service.dart';
 /// (用完即焚,兼作展示端可轮询的成功信号),再走与密码/浏览器授权一致的
 /// [DiscourseService.finalizeNativeLoginSuccess] 收口。
 ///
-/// 协议 (v2):
+/// 协议 (v3):
 /// ```
-/// pulseflow://qr-login?v=2&k=<api_key>&o=<otp>&u=<username>&exp=<unix_ms|0>
+/// pulseflow://qr-login?v=3&s=<site_id>&k=<api_key>&o=<otp>&u=<username>&exp=<unix_ms|0>
 /// ```
+/// - `s`: 生成二维码的站点。OTP 只属于这个站，扫码端连着别的站时不能发出去，
+///   否则那个站的运营者能拿它登录这个站
 /// - `k`: User API Key(明文,等同临时分享登录能力,UI 需提示勿外泄)
 /// - `o`: 服务端随 create 下发的一次性 OTP(约 10 分钟有效,兑换即焚)
 /// - `exp`: 恒写 0。服务端不支持 API Key 过期(user_api_keys 表无
@@ -27,6 +30,7 @@ import 'user_api_key_service.dart';
 class QrLoginPayload {
   const QrLoginPayload({
     required this.version,
+    required this.site,
     required this.apiKey,
     required this.otp,
     required this.username,
@@ -34,6 +38,9 @@ class QrLoginPayload {
   });
 
   final int version;
+
+  /// 生成二维码的站点（[SiteProfile.id]）
+  final String site;
   final String apiKey;
   final String otp;
   final String username;
@@ -58,6 +65,9 @@ enum QrLoginError {
   /// 版本不支持
   unsupportedVersion,
 
+  /// 二维码来自别的论坛
+  siteMismatch,
+
   /// API Key 已过期
   expired,
 
@@ -81,7 +91,7 @@ class QrLoginService {
 
   static const String scheme = 'pulseflow';
   static const String host = 'qr-login';
-  static const int currentVersion = 2;
+  static const int currentVersion = 3;
 
   /// 把 [payload] 编码为二维码字符串(稳定、可单测)。
   String encodePayload(QrLoginPayload payload) {
@@ -90,6 +100,7 @@ class QrLoginService {
       host: host,
       queryParameters: {
         'v': '${payload.version}',
+        's': payload.site,
         'k': payload.apiKey,
         'o': payload.otp,
         'u': payload.username,
@@ -129,6 +140,7 @@ class QrLoginService {
     }
     return QrLoginPayload(
       version: version,
+      site: uri.queryParameters['s']?.trim() ?? '',
       apiKey: apiKey,
       otp: otp,
       username: username,
@@ -150,10 +162,25 @@ class QrLoginService {
         '二维码版本不受支持,请升级 App',
       );
     }
+    final current = SiteContext.current;
+    if (!_sameSite(payload.site, current.id)) {
+      throw QrLoginException(
+        QrLoginError.siteMismatch,
+        payload.site.isEmpty
+            ? '无效的登录二维码'
+            : '这个二维码来自 ${payload.site},当前连接的是 ${current.id},请先切换到对应的论坛',
+      );
+    }
     if (payload.isExpired) {
       throw const QrLoginException(QrLoginError.expired, '登录凭证已过期,请让对方重新生成');
     }
     return payload;
+  }
+
+  /// www 和裸域算同一个站。
+  static bool _sameSite(String a, String b) {
+    String bare(String id) => id.startsWith('www.') ? id.substring(4) : id;
+    return a.isNotEmpty && bare(a.toLowerCase()) == bare(b.toLowerCase());
   }
 
   /// 已登录设备:经用户批准后创建可分享的 User API Key,组装二维码字符串。
@@ -180,6 +207,7 @@ class QrLoginService {
 
     final payload = QrLoginPayload(
       version: currentVersion,
+      site: SiteContext.current.id,
       apiKey: created.apiKey,
       otp: created.otp,
       username: resolvedUsername,

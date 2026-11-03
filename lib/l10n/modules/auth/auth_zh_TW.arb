@@ -84,10 +84,14 @@
   "site_currentLabel": "目前論壇",
   "site_manageTitle": "論壇管理",
   "site_platformNote": "系統不支援為使用者新增的論壇註冊網頁連結：這些論壇的連結在 App 內開啟時正常，從外部 App 或瀏覽器點擊不會跳回這裡。",
-  "site_removeBody": "這個論壇的登入狀態和本機資料會保留，重新新增後還能繼續用。",
+  "site_removeBody": "這個論壇的登入狀態和儲存的帳號密碼會被清除，筆記等本機資料保留。",
   "site_removeConfirm": "移除",
   "site_removeTitle": "移除 {siteName}？",
   "site_switchBody": "App 會退出，重新開啟後連線到這個論壇。各論壇的登入狀態和資料互不影響。",
   "site_switchConfirm": "切換並退出",
-  "site_switchTitle": "切換到 {siteName}？"
+  "site_switchTitle": "切換到 {siteName}？",
+  "login_qrCheckFailed": "檢查失敗，請稍後重試",
+  "login_qrCheckScanned": "我已掃碼",
+  "login_qrNotScannedYet": "還沒有偵測到掃碼，請在對方裝置完成後再試",
+  "site_removeCleanupFailed": "論壇已移除，但有些登入資料未能清除"
 }

@@ -98,7 +98,7 @@
   "site_currentLabel": "当前论坛",
   "site_manageTitle": "论坛管理",
   "site_platformNote": "系统不支持为用户添加的论坛注册网页链接：这些论坛的链接在 App 内打开时正常，从外部 App 或浏览器点击不会跳回这里。",
-  "site_removeBody": "这个论坛的登录状态和本机数据会保留，重新添加后还能继续用。",
+  "site_removeBody": "这个论坛的登录状态和保存的账号密码会被清除，笔记等本机数据保留。",
   "site_removeConfirm": "移除",
   "site_removeTitle": "移除 {siteName}？",
   "site_switchBody": "App 会退出，重新打开后连接到这个论坛。各论坛的登录状态和数据互不影响。",
@@ -117,5 +117,9 @@
         "type": "String"
       }
     }
-  }
+  },
+  "login_qrCheckFailed": "检查失败，请稍后重试",
+  "login_qrCheckScanned": "我已扫码",
+  "login_qrNotScannedYet": "还没有检测到扫码，请在对方设备完成后再试",
+  "site_removeCleanupFailed": "论坛已移除，但有些登录数据没能清除"
 }

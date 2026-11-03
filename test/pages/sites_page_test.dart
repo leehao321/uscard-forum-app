@@ -5,12 +5,24 @@ import 'package:fluxdo/l10n/s.dart';
 import 'package:fluxdo/models/site_profile.dart';
 import 'package:fluxdo/pages/sites_page.dart';
 import 'package:fluxdo/services/site_context.dart';
+import 'package:fluxdo/services/site_data_cleaner.dart';
 import 'package:fluxdo/services/site_registry_service.dart';
 import 'package:fluxdo/services/site_switch_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+class _SpyCleaner implements SiteDataCleaner {
+  final cleared = <String>[];
+
+  @override
+  Future<bool> clearLogin(SiteProfile site) async {
+    cleared.add(site.id);
+    return true;
+  }
+}
+
 void main() {
   final custom = SiteProfile(baseUrl: 'https://example.com', title: 'Example');
+  late _SpyCleaner cleaner;
   late SiteRegistryService registry;
   late int exits;
 
@@ -24,7 +36,11 @@ void main() {
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: AppLocaleUtils.supportedLocales,
-        home: SitesPage(registry: registry, exitApp: () => exits++),
+        home: SitesPage(
+          registry: registry,
+          exitApp: () => exits++,
+          siteCleaner: cleaner,
+        ),
       ),
     );
   }
@@ -34,6 +50,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     SiteContext.debugReset();
     exits = 0;
+    cleaner = _SpyCleaner();
     registry = SiteRegistryService();
   });
 
@@ -103,6 +120,21 @@ void main() {
 
     expect(find.text('Example'), findsNothing);
     expect(registry.sites.map((s) => s.id), [SitePresets.uscard.id]);
+    expect(cleaner.cleared, [custom.id], reason: '移除时要清掉这个站的登录数据');
+    expect(find.textContaining('保存的账号密码'), findsNothing);
+  });
+
+  testWidgets('移除前的提示说清楚会清掉什么', (tester) async {
+    await seed(tester);
+    await tester.pumpWidget(app());
+
+    await tester.tap(find.byTooltip('移除'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('登录状态和保存的账号密码会被清除'), findsOneWidget);
+
+    await tester.tap(find.text('取消'));
+    await tester.pumpAndSettle();
+    expect(cleaner.cleared, isEmpty);
   });
 
   group('编排骨架', () {

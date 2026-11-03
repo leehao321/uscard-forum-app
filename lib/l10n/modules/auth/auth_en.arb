@@ -77,10 +77,14 @@
   "site_currentLabel": "Current forum",
   "site_manageTitle": "Forums",
   "site_platformNote": "The system cannot register web links for forums you add: links open fine inside the app, but tapping them in another app or browser will not bring you back here.",
-  "site_removeBody": "This forum's sign-in state and local data are kept, so you can add it again later.",
+  "site_removeBody": "This forum's sign-in state and saved password will be cleared. Notes and other local data are kept.",
   "site_removeConfirm": "Remove",
   "site_removeTitle": "Remove {siteName}?",
   "site_switchBody": "The app will quit and connect to this forum when you reopen it. Each forum keeps its own sign-in and data.",
   "site_switchConfirm": "Switch and quit",
-  "site_switchTitle": "Switch to {siteName}?"
+  "site_switchTitle": "Switch to {siteName}?",
+  "login_qrCheckFailed": "Check failed. Please try again later.",
+  "login_qrCheckScanned": "I've scanned it",
+  "login_qrNotScannedYet": "No scan detected yet. Finish on the other device and try again.",
+  "site_removeCleanupFailed": "Forum removed, but some sign-in data could not be cleared."
 }

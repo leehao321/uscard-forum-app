@@ -603,8 +603,13 @@ mixin _AuthMixin on _DiscourseServiceBase {
         'errorType': e.type.toString(),
         ..._sentTDiagnostics(e.response?.requestOptions ?? e.requestOptions),
       });
-      // 如果累积 strike 较多，升级为登出
-      if (strikeSnapshot >= 2) {
+      // 累积 strike 较多、而且服务端这次明确说没登录，才升级为登出。
+      // 网络失败、请求取消、CF 挡住都说明不了会话状态。
+      if (AuthProbeRules.shouldEscalateInconclusive(
+        strikes: strikeSnapshot,
+        status: status,
+        data: e.response?.data,
+      )) {
         LogWriter.instance.write({
           'timestamp': DateTime.now().toIso8601String(),
           'level': 'warning',
@@ -1525,6 +1530,12 @@ mixin _AuthMixin on _DiscourseServiceBase {
         _resetStrikes();
         return true;
       }
+      // 200 但不是 JSON（代理、门户返回的网页）：说明不了会话状态，保留本地状态
+      if (!AuthProbeRules.isRejectedOk(data)) {
+        _tToken = tToken;
+        _username = username;
+        return true;
+      }
       // 200 但无 current_user
       LogWriter.instance.write({
         'timestamp': DateTime.now().toIso8601String(),
@@ -1545,8 +1556,9 @@ mixin _AuthMixin on _DiscourseServiceBase {
       return false;
     } on DioException catch (e) {
       final status = e.response?.statusCode;
-      // 404 = 无用户 / 401/403 = 明确拒绝
-      if (status == 404 || status == 401 || status == 403) {
+      // 404 = 无用户 / 401、403 带 not_logged_in = 明确拒绝。
+      // 其他 403 多半是 Cloudflare，不能因此清掉用户的 Cookie。
+      if (AuthProbeRules.isRejectedError(status, e.response?.data)) {
         LogWriter.instance.write({
           'timestamp': DateTime.now().toIso8601String(),
           'level': 'warning',

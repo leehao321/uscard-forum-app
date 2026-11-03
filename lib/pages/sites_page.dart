@@ -6,18 +6,23 @@ import 'package:flutter/material.dart';
 import '../l10n/s.dart';
 import '../models/site_profile.dart';
 import '../services/site_context.dart';
+import '../services/site_data_cleaner.dart';
 import '../services/site_registry_service.dart';
 import '../services/site_switch_service.dart';
+import '../services/toast_service.dart';
 import 'add_site_page.dart';
 
 /// 论坛管理：列表、添加、移除、切换。切换要重启 App 才生效。
 class SitesPage extends StatefulWidget {
-  const SitesPage({super.key, this.registry, this.exitApp});
+  const SitesPage({super.key, this.registry, this.exitApp, this.siteCleaner});
 
   final SiteRegistryService? registry;
 
   /// 切换后退出 App，测试时替换。
   final void Function()? exitApp;
+
+  /// 移除论坛时清登录数据，测试时替换。
+  final SiteDataCleaner? siteCleaner;
 
   @override
   State<SitesPage> createState() => _SitesPageState();
@@ -86,7 +91,11 @@ class _SitesPageState extends State<SitesPage> {
     );
     if (confirmed != true) return;
     await _registry.remove(site.id);
-    if (mounted) setState(() {});
+    final cleaned = await (widget.siteCleaner ?? SiteDataCleaner.forDevice())
+        .clearLogin(site);
+    if (!mounted) return;
+    setState(() {});
+    if (!cleaned) ToastService.showError(l10n.site_removeCleanupFailed);
   }
 
   @override

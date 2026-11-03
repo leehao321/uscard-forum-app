@@ -13,6 +13,7 @@ import '../../services/toast_service.dart';
 import '../../utils/dialog_utils.dart';
 import '../../utils/responsive.dart';
 import 'package:m3e_ui/m3e_ui.dart';
+import '../../models/site_profile.dart';
 import '../../services/site_context.dart';
 
 /// OTP 一次性登录令牌的服务端 TTL(Redis setex 10 分钟,兑换即焚)。
@@ -23,6 +24,13 @@ import '../../services/site_context.dart';
 /// 定时任务或用户手动 revoke。因此 UI 不提供"有效期"选择——那只会是
 /// 客户端幻觉。
 const Duration _kOtpWindow = Duration(minutes: 10);
+
+/// 自动查扫码结果的间隔；null 表示不自动查，由用户点「我已扫码」。
+///
+/// 不允许后台访问的站只在用户操作时请求论坛，弹层开着也不轮询。
+@visibleForTesting
+Duration? qrAutoPollInterval(SiteProfile site) =>
+    site.allowBackgroundAccess ? const Duration(seconds: 3) : null;
 
 /// 防截屏通道(Android FLAG_SECURE;其余平台 no-op)。
 const MethodChannel _secureScreenChannel = MethodChannel(
@@ -224,35 +232,52 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
     });
   }
 
-  /// 每 3 秒查一次分享 key 是否仍存活;消失 = 扫码端已登录并自我吊销。
-  /// (Discourse 无扫码回执机制,轮询本人 /u/:username.json 的
+  /// 定期查分享 key 是否仍存活;消失 = 扫码端已登录并自我吊销。
+  /// (Discourse 无扫码回执机制,查本人 /u/:username.json 的
   /// user_api_keys 是唯一可用信号;仅本人可见,无隐私外泄)
   void _restartPolling() {
     _pollTimer?.cancel();
     final username = _payload?.username ?? '';
     if (username.isEmpty) return;
-    final interval = SiteContext.current.allowBackgroundAccess
-        ? const Duration(seconds: 3)
-        : const Duration(seconds: 5);
-    _pollTimer = Timer.periodic(interval, (_) async {
-      if (!mounted || _pollInFlight || _consumed || _qrExpired) return;
+    final interval = qrAutoPollInterval(SiteContext.current);
+    if (interval == null) return;
+    _pollTimer = Timer.periodic(interval, (_) {
       if (WidgetsBinding.instance.lifecycleState !=
           AppLifecycleState.resumed) {
         return;
       }
-      _pollInFlight = true;
-      try {
-        final alive = await QrLoginService.instance.isSharedKeyAlive(
-          username: username,
-        );
-        if (!mounted || alive != false) return;
-        _pollTimer?.cancel();
-        _ticker?.cancel();
-        setState(() => _consumed = true);
-      } finally {
-        _pollInFlight = false;
-      }
+      _checkScanned();
     });
+  }
+
+  /// 查一次分享 key 是否已被消费。查不了（正在查、已结束）时返回 null。
+  Future<bool?> _checkScanned() async {
+    final username = _payload?.username ?? '';
+    if (!mounted || _pollInFlight || _consumed || _qrExpired) return null;
+    _pollInFlight = true;
+    try {
+      final alive = await QrLoginService.instance.isSharedKeyAlive(
+        username: username,
+      );
+      if (!mounted || alive != false) return alive;
+      _pollTimer?.cancel();
+      _ticker?.cancel();
+      setState(() => _consumed = true);
+      return alive;
+    } finally {
+      _pollInFlight = false;
+    }
+  }
+
+  /// 用户点「我已扫码」：查一次，没查到就告诉用户。
+  Future<void> _checkScannedManually() async {
+    final alive = await _checkScanned();
+    if (!mounted || _consumed) return;
+    if (alive == true) {
+      ToastService.showInfo(S.current.login_qrNotScannedYet);
+    } else {
+      ToastService.showError(S.current.login_qrCheckFailed);
+    }
   }
 
   String _formatRemaining(Duration d) {
@@ -435,6 +460,17 @@ class _QrLoginPanelState extends State<_QrLoginPanel> {
             ),
           ],
           const SizedBox(height: 12),
+          if (!_consumed &&
+              !_qrExpired &&
+              qrAutoPollInterval(SiteContext.current) == null) ...[
+            Center(
+              child: FilledButton.tonal(
+                onPressed: _checkScannedManually,
+                child: Text(context.l10n.login_qrCheckScanned),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
           Center(
             child: _consumed
                 ? FilledButton(
