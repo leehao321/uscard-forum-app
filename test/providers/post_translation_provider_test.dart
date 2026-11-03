@@ -41,7 +41,7 @@ void main() {
     service = _FakeService();
     container = ProviderContainer(
       overrides: [
-        quickTranslationServiceProvider.overrideWithValue(service),
+        translationEngineProvider.overrideWithValue(service),
         aiTranslationTargetLanguageProvider.overrideWithValue('zh-CN'),
       ],
     );

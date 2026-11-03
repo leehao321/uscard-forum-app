@@ -97,6 +97,7 @@ import '../../models/shortcut_binding.dart';
 import '../../providers/shortcut_provider.dart';
 import '../../widgets/desktop_refresh_indicator.dart';
 import '../../widgets/topic/assign_sheet.dart';
+import '../../widgets/post/post_item/widgets/post_translation_block.dart';
 
 part 'actions/_scroll_actions.dart';
 part 'actions/_user_actions.dart';
@@ -1503,7 +1504,8 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
       onClose: widget.onEmbeddedClose!,
       title: _buildEmbeddedMobileWorkspaceTitle(theme, detail),
       actions: [
-        _buildSearchAction(),
+        ImmersiveTranslateButton(topicId: widget.topicId),
+      _buildSearchAction(),
         MobileWorkspaceCountButton(
           key: const ValueKey('bookmark-workspace-mobile-count-button'),
           count: widget.embeddedTabCount!,
@@ -1632,6 +1634,7 @@ class _TopicDetailPageState extends ConsumerState<TopicDetailPage>
           tooltip: context.l10n.topicDetail_aiAssistant,
           onPressed: () => _showAiAssistantSheet(detail),
         ),
+      ImmersiveTranslateButton(topicId: widget.topicId),
       _buildSearchAction(),
       _buildMoreMenuAction(
         detail: detail,

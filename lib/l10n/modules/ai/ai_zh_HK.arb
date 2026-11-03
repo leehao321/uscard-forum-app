@@ -257,5 +257,12 @@
   "post_translationLoading": "翻譯中…",
   "post_translationSameLanguage": "原文已是{language}，點這裡收起",
   "post_translationSource": "Google 翻譯",
-  "post_translationTruncated": "帖子太長，只翻譯了開頭"
+  "post_translationTruncated": "帖子太長，只翻譯了開頭",
+  "ai_translationSource": "翻譯來源",
+  "ai_translationSourceAi": "AI 模型（用你設定的服務商）",
+  "ai_translationSourceAiShort": "AI 翻譯",
+  "ai_translationSourceBilibili": "B 站 Index（預留，暫不可用）",
+  "ai_translationSourceGoogle": "網頁翻譯（Google，免 Key）",
+  "post_immersiveGoogleNotice": "譯文由 Google 提供，帖子內容會傳送給 Google",
+  "post_immersiveToggle": "沉浸式翻譯全文"
 }

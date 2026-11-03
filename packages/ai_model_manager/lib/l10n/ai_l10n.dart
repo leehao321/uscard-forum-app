@@ -39,6 +39,10 @@ class AiL10n {
 
   // ---- 通用 ----
   String get cancel => '取消';
+  String get openRouterLogin => '使用 OpenRouter 一键登录';
+  String get openRouterLoginSuccess => '已获取 API Key，保存后生效';
+  String get openRouterLoginFailed => '登录失败，可以重试或手动填写 API Key';
+  String get providerTemplates => '快捷配置';
   String get delete => '删除';
   String get save => '保存';
   String get add => '添加';

@@ -32,4 +32,11 @@ void main() {
     expect(clamped.truncated, isFalse);
     expect(clamped.text, '短内容');
   });
+
+  test('系统提示包含目标语言和只输出译文约束', () {
+    final prompt = AiTranslationService.buildSystemPrompt('日本語');
+
+    expect(prompt, contains('日本語'));
+    expect(prompt, contains('只输出译文本身'));
+  });
 }

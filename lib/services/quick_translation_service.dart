@@ -5,6 +5,7 @@ import 'package:html/parser.dart' as html_parser;
 
 import 'ai_translation_service.dart';
 import 'network/adapters/platform_adapter.dart';
+import 'translation_engine.dart';
 
 /// 一次翻译的结果。
 class QuickTranslation {
@@ -32,7 +33,7 @@ class QuickTranslation {
 ///
 /// 这个接口不是公开 API，随时可能限流或改格式，调用方要能处理失败。帖子原文会发给
 /// Google，所以只在用户点「翻译」时才调用，不预取。用独立的 Dio，不带论坛的 Cookie。
-class QuickTranslationService {
+class QuickTranslationService implements TranslationEngine {
   QuickTranslationService({Dio? dio}) : _dio = dio ?? _createDio();
 
   final Dio _dio;
@@ -54,6 +55,7 @@ class QuickTranslationService {
     return dio;
   }
 
+  @override
   Future<QuickTranslation> translatePost({
     required String cookedHtml,
     required String targetLanguage,

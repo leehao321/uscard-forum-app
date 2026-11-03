@@ -264,5 +264,12 @@
         "type": "String"
       }
     }
-  }
+  },
+  "ai_translationSource": "翻译来源",
+  "ai_translationSourceAi": "AI 模型（用你配置的服务商）",
+  "ai_translationSourceAiShort": "AI 翻译",
+  "ai_translationSourceBilibili": "B 站 Index（预留，暂不可用）",
+  "ai_translationSourceGoogle": "网页翻译（Google，免 Key）",
+  "post_immersiveGoogleNotice": "译文由 Google 提供，帖子内容会发给 Google",
+  "post_immersiveToggle": "沉浸式翻译全文"
 }

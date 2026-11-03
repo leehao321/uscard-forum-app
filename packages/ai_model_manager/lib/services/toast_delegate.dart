@@ -50,3 +50,11 @@ class AiToastDelegate {
     );
   }
 }
+
+/// 服务商一键登录。包里没有浏览器授权的依赖，由 App 注入；没注入就不显示按钮。
+class AiProviderAuthDelegate {
+  AiProviderAuthDelegate._();
+
+  /// 打开 OpenRouter 授权页，返回 API Key；用户取消时返回 null，失败抛异常。
+  static Future<String?> Function()? openRouterLogin;
+}

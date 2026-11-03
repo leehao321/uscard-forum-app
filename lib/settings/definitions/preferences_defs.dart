@@ -19,6 +19,8 @@ import '../../widgets/ai/ai_model_select_sheet.dart';
 import '../../providers/sticker_provider.dart';
 import '../../services/sticker_market_service.dart';
 import '../settings_model.dart';
+import '../../providers/post_translation_provider.dart';
+import '../../services/translation_engine.dart';
 
 /// 功能设置数据声明
 List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
@@ -255,6 +257,17 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
           onTap: (context, ref) => _showAiPostReviewModelSheet(context, ref),
         ),
         ActionModel(
+          id: 'translationSource',
+          title: l10n.ai_translationSource,
+          icon: Symbols.translate_rounded,
+          getDynamicSubtitle: (ref) =>
+              switch (ref.watch(translationSourceProvider)) {
+                TranslationSource.ai => l10n.ai_translationSourceAi,
+                _ => l10n.ai_translationSourceGoogle,
+              },
+          onTap: _showTranslationSourcePicker,
+        ),
+        ActionModel(
           id: 'aiTranslationTargetLanguage',
           title: l10n.ai_translationTargetLanguage,
           icon: Symbols.translate_rounded,
@@ -271,6 +284,20 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
           },
           onTap: (context, ref) =>
               _showAiTranslationLanguagePicker(context, ref),
+        ),
+        ActionModel(
+          id: 'aiTranslationModel',
+          title: l10n.ai_translationModel,
+          icon: Symbols.psychology_alt_rounded,
+          getDynamicSubtitle: (ref) {
+            final selected = ref.watch(aiTranslationSelectedModelProvider);
+            if (selected == null) {
+              return l10n.ai_translationModelNotSelected;
+            }
+            final modelName = selected.model.name ?? selected.model.id;
+            return '${selected.provider.name} / $modelName';
+          },
+          onTap: (context, ref) => _showAiTranslationModelSheet(context, ref),
         ),
       ],
     ),
@@ -471,6 +498,90 @@ void _showAiTranslationLanguagePicker(BuildContext context, WidgetRef ref) {
         .read(preferencesProvider.notifier)
         .setAiTranslationTargetLanguage(selected.isEmpty ? null : selected);
   });
+}
+
+void _showTranslationSourcePicker(BuildContext context, WidgetRef ref) {
+  final l10n = context.l10n;
+  final current = ref.read(translationSourceProvider);
+  final labels = {
+    TranslationSource.google: l10n.ai_translationSourceGoogle,
+    TranslationSource.ai: l10n.ai_translationSourceAi,
+    TranslationSource.bilibiliIndex: l10n.ai_translationSourceBilibili,
+  };
+  showAppDialog<TranslationSource>(
+    context: context,
+    builder: (dialogContext) => SimpleDialog(
+      title: Text(l10n.ai_translationSource),
+      children: [
+        for (final source in TranslationSource.values)
+          SimpleDialogOption(
+            onPressed: source.available
+                ? () => Navigator.pop(dialogContext, source)
+                : null,
+            child: Row(
+              children: [
+                Icon(
+                  source == current
+                      ? Symbols.radio_button_checked_rounded
+                      : Symbols.radio_button_unchecked_rounded,
+                  color: source == current
+                      ? Theme.of(dialogContext).colorScheme.primary
+                      : null,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    labels[source]!,
+                    style: source.available
+                        ? null
+                        : TextStyle(
+                            color: Theme.of(dialogContext).disabledColor,
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    ),
+  ).then((selected) {
+    if (selected != null) {
+      ref.read(translationSourceProvider.notifier).select(selected);
+    }
+  });
+}
+
+Future<void> _showAiTranslationModelSheet(
+  BuildContext context,
+  WidgetRef ref,
+) async {
+  final allModels = ref.read(aiPostReviewAvailableModelsProvider);
+  if (allModels.isEmpty) {
+    ToastService.showInfo(context.l10n.aiPostReview_noAvailableModel);
+    return;
+  }
+
+  final current =
+      ref.read(aiTranslationSelectedModelProvider) ?? allModels.first;
+  final selected = await showAiModelSelectSheet(
+    context: context,
+    allModels: allModels,
+    current: current,
+    mode: PromptType.text,
+  );
+  if (!context.mounted || selected == null) return;
+
+  if (!selected.model.output.contains(Modality.text)) {
+    ToastService.showInfo(context.l10n.aiPostReview_chooseTextModel);
+    return;
+  }
+
+  await ref
+      .read(preferencesProvider.notifier)
+      .setAiTranslationModelKey(
+        buildAiModelKey(selected.provider.id, selected.model.id),
+      );
 }
 
 typedef _TopicFilterDialogResult = ({List<String> keywords, bool wholeWord});

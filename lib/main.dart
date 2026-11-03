@@ -109,6 +109,7 @@ import 'services/site_context.dart';
 import 'services/site_data_migration.dart';
 import 'services/site_registry_service.dart';
 import 'services/app_lock_service.dart';
+import 'services/openrouter_oauth.dart';
 import 'services/app_ui_scale.dart';
 import 'services/custom_font_service.dart';
 import 'widgets/app_lock_gate.dart';
@@ -516,6 +517,11 @@ Future<void> main() async {
         ToastService.showInfo(message);
     }
   });
+
+  // OpenRouter 一键登录：ASWebAuthenticationSession 只在 Apple 平台有配套，其他平台还是手填
+  if (Platform.isIOS || Platform.isMacOS) {
+    AiProviderAuthDelegate.openRouterLogin = OpenRouterOAuth().login;
+  }
 
   // 注入自定义加载指示器
   AiToastDelegate.configureLoading(({color, size = 48}) {

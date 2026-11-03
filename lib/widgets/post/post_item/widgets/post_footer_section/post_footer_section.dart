@@ -330,7 +330,7 @@ class _PostFooterSectionState extends ConsumerState<PostFooterSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PostTranslationBlock(post: widget.post),
+          PostTranslationBlock(post: widget.post, topicId: widget.topicId),
           PostLinks(
             linkCounts: widget.post.linkCounts,
             // select:整 provider watch 会让任何偏好变化都重建所有在屏帖脚

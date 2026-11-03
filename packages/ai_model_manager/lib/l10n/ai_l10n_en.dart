@@ -6,6 +6,14 @@ class AiL10nEn extends AiL10n {
   @override
   String get cancel => 'Cancel';
   @override
+  String get openRouterLogin => 'Sign in with OpenRouter';
+  @override
+  String get openRouterLoginSuccess => 'API key received. Save to apply';
+  @override
+  String get openRouterLoginFailed => 'Sign-in failed. Retry or enter an API key manually';
+  @override
+  String get providerTemplates => 'Presets';
+  @override
   String get delete => 'Delete';
   @override
   String get save => 'Save';

@@ -236,5 +236,12 @@
   "post_translationLoading": "Translating…",
   "post_translationSameLanguage": "Already in {language}. Tap to hide",
   "post_translationSource": "Google Translate",
-  "post_translationTruncated": "Post too long, only the beginning was translated"
+  "post_translationTruncated": "Post too long, only the beginning was translated",
+  "ai_translationSource": "Translation source",
+  "ai_translationSourceAi": "AI model (your configured provider)",
+  "ai_translationSourceAiShort": "AI translation",
+  "ai_translationSourceBilibili": "Bilibili Index (reserved, unavailable)",
+  "ai_translationSourceGoogle": "Web translation (Google, no key)",
+  "post_immersiveGoogleNotice": "Translated by Google. Post content is sent to Google",
+  "post_immersiveToggle": "Translate entire topic"
 }

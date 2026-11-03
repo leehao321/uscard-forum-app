@@ -6,6 +6,14 @@ class AiL10nZhHK extends AiL10n {
   @override
   String get cancel => '取消';
   @override
+  String get openRouterLogin => '使用 OpenRouter 一鍵登入';
+  @override
+  String get openRouterLoginSuccess => '已取得 API Key，儲存後生效';
+  @override
+  String get openRouterLoginFailed => '登入失敗，可以重試或手動填寫 API Key';
+  @override
+  String get providerTemplates => '快捷設定';
+  @override
   String get delete => '刪除';
   @override
   String get save => '保存';

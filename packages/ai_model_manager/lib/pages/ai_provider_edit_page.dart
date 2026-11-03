@@ -44,6 +44,43 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
 
   bool get _isEditing => widget.provider != null;
 
+  bool _isLoggingIn = false;
+
+  /// 快捷配置：都是 OpenAI 兼容接口。One-API 是自己部署的，地址要改成自己的。
+  static const _templates = <({String name, String baseUrl})>[
+    (name: 'OpenRouter', baseUrl: 'https://openrouter.ai/api/v1'),
+    (name: 'Cline', baseUrl: 'https://api.cline.bot/api/v1'),
+    (name: 'One-API', baseUrl: 'http://localhost:3000/v1'),
+  ];
+
+  void _applyTemplate(({String name, String baseUrl}) template) {
+    setState(() {
+      _selectedType = AiProviderType.openai;
+      _baseUrlCtrl.text = template.baseUrl;
+      if (_nameCtrl.text.trim().isEmpty) _nameCtrl.text = template.name;
+    });
+  }
+
+  Future<void> _loginWithOpenRouter() async {
+    final login = AiProviderAuthDelegate.openRouterLogin;
+    if (login == null || _isLoggingIn) return;
+    setState(() => _isLoggingIn = true);
+    try {
+      final key = await login();
+      if (!mounted || key == null) return;
+      _applyTemplate(_templates.first);
+      _apiKeyCtrl.text = key;
+      AiToastDelegate.showSuccess(AiL10n.current.openRouterLoginSuccess);
+    } catch (e) {
+      debugPrint('[AiProviderEdit] OpenRouter 登录失败: \${e.runtimeType}');
+      if (mounted) {
+        AiToastDelegate.showError(AiL10n.current.openRouterLoginFailed);
+      }
+    } finally {
+      if (mounted) setState(() => _isLoggingIn = false);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -481,6 +518,35 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
+        if (AiProviderAuthDelegate.openRouterLogin != null) ...[
+          FilledButton.tonalIcon(
+            key: const ValueKey('openrouter-login'),
+            onPressed: _isLoggingIn ? null : _loginWithOpenRouter,
+            icon: const Icon(Symbols.bolt_rounded),
+            label: Text(AiL10n.current.openRouterLogin),
+          ),
+          const SizedBox(height: 10),
+        ],
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(
+              AiL10n.current.providerTemplates,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: cs.onSurfaceVariant,
+              ),
+            ),
+            for (final template in _templates)
+              ActionChip(
+                label: Text(template.name),
+                visualDensity: VisualDensity.compact,
+                onPressed: () => _applyTemplate(template),
+              ),
+          ],
+        ),
+        const SizedBox(height: 14),
         TextField(
           controller: _nameCtrl,
           decoration: inputDeco(AiL10n.current.name,
@@ -488,6 +554,8 @@ class _AiProviderEditPageState extends ConsumerState<AiProviderEditPage> {
         ),
         const SizedBox(height: 14),
         DropdownButtonFormField<AiProviderType>(
+          // initialValue 只认第一次，快捷配置改了类型要换 key 才刷新
+          key: ValueKey(_selectedType),
           initialValue: _selectedType,
           decoration: inputDeco(AiL10n.current.providerType),
           items: AiProviderType.values
