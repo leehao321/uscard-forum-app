@@ -9,7 +9,12 @@ import '../../services/emoji_handler.dart';
 import '../../utils/relative_time_clock.dart';
 import '../common/animated_avatar_overlay.dart';
 import '../common/smart_avatar.dart' show isSquareAvatarUrl;
-import 'topic_card.dart' show TopicCardInteractiveSurface;
+import 'topic_card.dart'
+    show
+        TopicCardInteractiveSurface,
+        kTopicCardRadius,
+        topicCardHairline,
+        topicCardShadowBox;
 import 'topic_card_layout.dart';
 
 /// 标题 emoji 短代码 → 图片 URL(自绘卡排版层注入;顶层函数,避免
@@ -70,7 +75,7 @@ class _PaintedTopicCardState extends State<PaintedTopicCard> {
   @override
   Widget build(BuildContext context) {
     final layout = widget.layout;
-    final cardRadius = BorderRadius.circular(10);
+    final cardRadius = BorderRadius.circular(kTopicCardRadius);
     final theme = Theme.of(context);
     final bgColor = widget.isSelected
         ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
@@ -99,7 +104,7 @@ class _PaintedTopicCardState extends State<PaintedTopicCard> {
             ? Border.all(
                 color: theme.colorScheme.primary.withValues(alpha: 0.5),
               )
-            : null,
+            : topicCardHairline(theme),
       ),
       child: TopicCardInteractiveSurface(
         borderRadius: cardRadius,
@@ -118,7 +123,13 @@ class _PaintedTopicCardState extends State<PaintedTopicCard> {
     if (layout.band != null) {
       card = ClipRRect(borderRadius: cardRadius, child: card);
     }
-    return Padding(padding: const EdgeInsets.only(bottom: 8), child: card);
+    // 阴影在裁剪层外面；左右留白由列表的 padding 给，这里只管卡片之间的间距
+    card = topicCardShadowBox(
+      theme: theme,
+      borderRadius: cardRadius,
+      child: card,
+    );
+    return Padding(padding: const EdgeInsets.only(bottom: 10), child: card);
   }
 }
 

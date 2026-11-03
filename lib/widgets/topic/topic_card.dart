@@ -31,6 +31,42 @@ Widget _withDesktopTertiaryTap(Widget child, VoidCallback? onMiddleClick) {
   return GestureDetector(onTertiaryTapUp: (_) => onMiddleClick(), child: child);
 }
 
+/// 话题卡的圆角（widget 卡、自绘卡、置顶卡、骨架屏共用）
+const kTopicCardRadius = 14.0;
+
+/// 非选中态的微透描边：浅色用 outlineVariant 透 35%，深色用白透 8%
+Border topicCardHairline(ThemeData theme) => Border.all(
+  color: theme.brightness == Brightness.dark
+      ? Colors.white.withValues(alpha: 0.08)
+      : theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+  width: 0.6,
+);
+
+/// 极轻的环境散射阴影，拉开卡片和底层的纵深。
+/// 阴影画在裁剪层外面（见 [topicCardShadowBox]），有色带的卡裁剪时不会把阴影一起裁掉
+List<BoxShadow> topicCardShadow(ThemeData theme) => [
+  BoxShadow(
+    color: Colors.black.withValues(
+      alpha: theme.brightness == Brightness.dark ? 0.22 : 0.035,
+    ),
+    blurRadius: 10,
+    offset: const Offset(0, 3),
+  ),
+];
+
+/// 只负责画阴影的外盒：没有底色，底色和描边在里面那层 DecoratedBox
+Widget topicCardShadowBox({
+  required ThemeData theme,
+  required BorderRadius borderRadius,
+  required Widget child,
+}) => DecoratedBox(
+  decoration: BoxDecoration(
+    borderRadius: borderRadius,
+    boxShadow: topicCardShadow(theme),
+  ),
+  child: child,
+);
+
 Widget _clipCardIfNeeded({
   required Widget child,
   required BorderRadius borderRadius,
@@ -304,7 +340,8 @@ class TopicCard extends ConsumerWidget {
     final titleStyle = theme.textTheme.bodyMedium?.copyWith(
       fontSize: style.titleFontSize,
       fontWeight: isFullyRead ? FontWeight.w500 : FontWeight.w600,
-      height: 1.3,
+      // 1.42：中文标题两行时不挤（自绘卡 topic_card_layout 同值）
+      height: 1.42,
       color: titleColor,
     );
 
@@ -313,62 +350,67 @@ class TopicCard extends ConsumerWidget {
     // (AnimationController/Ticker/PhysicalShape),对列表滚动物化是纯税
     // (生产 PROF 点名)。DecoratedBox 复刻色/圆角/选中描边,ClipRRect
     // 复刻 antiAlias 裁剪,Material(transparency) 只做 InkWell 的 ink 载体。
-    final cardRadius = BorderRadius.circular(10);
+    final cardRadius = BorderRadius.circular(kTopicCardRadius);
     // PerfSpanBox:整卡子树的 layout/paint 账单(lay:card#N / pnt:card#N),
     // 与 noteBuild 在场名单互补(监控关闭零开销,纯代理盒无视觉影响)
     return PerfSpanBox(
       label: 'card#${topic.id}',
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: _clipCardIfNeeded(
+        // 左右留白由列表的 padding 给（12），这里只管卡片之间的间距
+        padding: const EdgeInsets.only(bottom: 10),
+        child: topicCardShadowBox(
+          theme: theme,
           borderRadius: cardRadius,
-          shouldClip: topWidget != null,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
-                  : (highlightColor ?? theme.cardTheme.color),
-              borderRadius: cardRadius,
-              border: isSelected
-                  ? Border.all(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.5),
-                    )
-                  : null,
-            ),
-            child: TopicCardInteractiveSurface(
-              borderRadius: cardRadius,
-              onTap: onTap,
-              onLongPress: onLongPress,
-              onPreviewIntent: onPreviewIntent,
-              onMiddleClick: onMiddleClick,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 顶部附属区域（如书签元信息色带）
-                  if (topWidget != null) ...[topWidget!],
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-                    child: messageStyle
-                        ? _buildMessageBody(
-                            context,
-                            isUnread: isUnread,
-                            isFullyRead: isFullyRead,
-                            metaColor: metaColor,
-                            unreadIndicator: unreadIndicator,
-                          )
-                        : _buildNormalBody(
-                            context,
-                            style: style,
-                            titleStyle: titleStyle,
-                            titleColor: titleColor,
-                            metaColor: metaColor,
-                            isUnread: isUnread,
-                            isFullyRead: isFullyRead,
-                            unreadIndicator: unreadIndicator,
-                            category: category,
-                          ),
-                  ),
-                ],
+          child: _clipCardIfNeeded(
+            borderRadius: cardRadius,
+            shouldClip: topWidget != null,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
+                    : (highlightColor ?? theme.cardTheme.color),
+                borderRadius: cardRadius,
+                border: isSelected
+                    ? Border.all(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.5),
+                      )
+                    : topicCardHairline(theme),
+              ),
+              child: TopicCardInteractiveSurface(
+                borderRadius: cardRadius,
+                onTap: onTap,
+                onLongPress: onLongPress,
+                onPreviewIntent: onPreviewIntent,
+                onMiddleClick: onMiddleClick,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 顶部附属区域（如书签元信息色带）
+                    if (topWidget != null) ...[topWidget!],
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 13, 16, 13),
+                      child: messageStyle
+                          ? _buildMessageBody(
+                              context,
+                              isUnread: isUnread,
+                              isFullyRead: isFullyRead,
+                              metaColor: metaColor,
+                              unreadIndicator: unreadIndicator,
+                            )
+                          : _buildNormalBody(
+                              context,
+                              style: style,
+                              titleStyle: titleStyle,
+                              titleColor: titleColor,
+                              metaColor: metaColor,
+                              isUnread: isUnread,
+                              isFullyRead: isFullyRead,
+                              unreadIndicator: unreadIndicator,
+                              category: category,
+                            ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -1037,7 +1079,7 @@ class CompactTopicCard extends ConsumerWidget {
 
     // 同 TopicCard:Card 壳换轻装(elevation=0 主题下视觉逐项等价),
     // 砍每卡一套 AnimatedPhysicalModel 隐式动画基建。
-    final cardRadius = BorderRadius.circular(10);
+    final cardRadius = BorderRadius.circular(kTopicCardRadius);
     final compactTitleStyle = theme.textTheme.labelMedium?.copyWith(
       fontWeight: isUnread ? FontWeight.w500 : FontWeight.w400,
       color: isUnread
@@ -1051,9 +1093,9 @@ class CompactTopicCard extends ConsumerWidget {
         topic.title.contains(':');
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: _clipCardIfNeeded(
+      child: topicCardShadowBox(
+        theme: theme,
         borderRadius: cardRadius,
-        shouldClip: false,
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: isSelected
@@ -1067,7 +1109,7 @@ class CompactTopicCard extends ConsumerWidget {
                 ? Border.all(
                     color: theme.colorScheme.primary.withValues(alpha: 0.5),
                   )
-                : null,
+                : topicCardHairline(theme),
           ),
           child: TopicCardInteractiveSurface(
             borderRadius: cardRadius,

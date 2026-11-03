@@ -460,7 +460,7 @@ class TopicCardLayout {
     final scheme = theme.colorScheme;
     final baseText = theme.textTheme.bodyMedium ?? const TextStyle();
     final labelSmall = theme.textTheme.labelSmall ?? const TextStyle();
-    const hPad = 12.0;
+    const hPad = 16.0;
     final innerWidth = width - hPad * 2;
     layoutWidth = width;
 
@@ -603,7 +603,7 @@ class TopicCardLayout {
       _pStyle(
         fontSize: titleFontSize,
         weight: titleWeight,
-        height: 1.3,
+        height: 1.42,
         maxLines: 2,
       ),
     )..pushStyle(_tStyle(
@@ -611,7 +611,7 @@ class TopicCardLayout {
         color: effTitleColor,
         fontSize: titleFontSize,
         weight: titleWeight,
-        height: 1.3,
+        height: 1.42,
       ));
     final pendingTitleIcons = <ui.Paragraph>[];
     for (final (icon, color) in titleIconSpecs) {
@@ -627,7 +627,7 @@ class TopicCardLayout {
           color: scheme.onPrimaryContainer,
           fontSize: titleFontSize,
           weight: FontWeight.w500,
-          height: 1.3,
+          height: 1.42,
           background: scheme.primaryContainer,
         ));
         tb.addText(text);
@@ -768,7 +768,7 @@ class TopicCardLayout {
     }
 
     // ── 纵向装配 ─────────────────────────────────────────────
-    const vPad = 10.0;
+    const vPad = 13.0;
     var y = bandHeight + vPad;
 
     if (messageStyle) {

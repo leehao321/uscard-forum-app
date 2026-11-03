@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'topic_card.dart' show kTopicCardRadius;
 import '../common/skeleton.dart';
 
 /// 话题列表骨架屏
@@ -36,11 +38,13 @@ class _TopicCardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 10),
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(kTopicCardRadius),
+      ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        padding: const EdgeInsets.fromLTRB(16, 13, 16, 13),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -92,11 +96,13 @@ class _MessageCardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 10),
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(kTopicCardRadius),
+      ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        padding: const EdgeInsets.fromLTRB(16, 13, 16, 13),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

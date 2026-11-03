@@ -160,7 +160,7 @@ Widget buildTopicItem({
   // 类名 —— 各列表页均已传)
   final Widget child = MorphingDialogAnchor(
     enabled: enableLongPress,
-    bottomGap: topic.pinned ? 6 : 8,
+    bottomGap: topic.pinned ? 6 : 10,
     builder: (cardContext) {
       if (topic.pinned) {
         return CompactTopicCard(
