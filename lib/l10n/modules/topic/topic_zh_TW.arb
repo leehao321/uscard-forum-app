@@ -290,5 +290,7 @@
   "leaderboard_great": "精彩",
   "leaderboard_loginHint": "登入後可能才能查看榜單",
   "leaderboard_repliesCount": "{count} 回覆",
-  "topicDetail_hiddenRepliesShown": "已顯示隱藏的回覆"
+  "topicDetail_hiddenRepliesShown": "已顯示隱藏的回覆",
+  "topic_pinnedFoldCollapse": "📌 置頂公告：收起",
+  "topic_pinnedFoldExpand": "📌 置頂公告：展開其餘 {count} 則"
 }

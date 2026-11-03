@@ -1,5 +1,6 @@
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../l10n/s.dart';
 import '../../models/site_profile.dart';
@@ -31,6 +32,7 @@ Future<void> showSiteSwitcherSheet(
       sites: sites.sites,
       currentId: SiteContext.current.id,
       onSelect: (site) {
+        HapticFeedback.selectionClick();
         Navigator.of(sheetContext).pop();
         switcher.switchTo(site, placeholderColor: placeholder);
       },
@@ -86,6 +88,7 @@ class SiteSwitcherList extends StatelessWidget {
             children: [
               for (final site in sites)
                 ListTile(
+                  leading: SiteAvatar(site: site),
                   title: Text(
                     site.title,
                     maxLines: 1,
@@ -121,6 +124,48 @@ class SiteSwitcherList extends StatelessWidget {
           onTap: onAdd,
         ),
       ],
+    );
+  }
+}
+
+/// 论坛图标：有 favicon 用 favicon，加载不了就用站名首字。
+class SiteAvatar extends StatelessWidget {
+  const SiteAvatar({super.key, required this.site, this.size = 32});
+
+  final SiteProfile site;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final title = site.title.trim();
+    final letter = Center(
+      child: Text(
+        title.isEmpty ? '?' : title.characters.first.toUpperCase(),
+        style: TextStyle(
+          color: scheme.onSecondaryContainer,
+          fontWeight: FontWeight.w600,
+          fontSize: size * 0.45,
+        ),
+      ),
+    );
+    final url = site.faviconUrl ?? site.logoUrl;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(size * 0.25),
+      child: Container(
+        width: size,
+        height: size,
+        color: scheme.secondaryContainer,
+        child: url == null
+            ? letter
+            : Image.network(
+                url,
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => letter,
+              ),
+      ),
     );
   }
 }

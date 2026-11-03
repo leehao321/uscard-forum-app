@@ -109,6 +109,40 @@ void main() {
       expect(find.byType(AlertDialog), findsNothing);
     });
 
+    testWidgets('有图标位：没有 favicon 时显示站名首字', (tester) async {
+      await pumpChip(tester);
+      await tester.tap(find.byType(CurrentSiteChip));
+      await tester.pumpAndSettle();
+      expect(find.byType(SiteAvatar), findsNWidgets(2));
+      expect(find.text('F'), findsOneWidget, reason: 'Forum B 的首字');
+    });
+
+    testWidgets('点论坛时震动一下', (tester) async {
+      final haptics = <String?>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'HapticFeedback.vibrate') {
+            haptics.add(call.arguments as String?);
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      await pumpChip(tester);
+      await tester.tap(find.byType(CurrentSiteChip));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Forum B'));
+      await tester.pumpAndSettle();
+      expect(haptics, isNotEmpty);
+      expect(work.switched, [b.id]);
+    });
+
     testWidgets('点当前论坛：只关面板，不切', (tester) async {
       await pumpChip(tester);
       await tester.tap(find.byType(CurrentSiteChip));

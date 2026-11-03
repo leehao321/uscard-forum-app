@@ -305,5 +305,14 @@
         "type": "String"
       }
     }
+  },
+  "topic_pinnedFoldCollapse": "📌 置顶公告：收起",
+  "topic_pinnedFoldExpand": "📌 置顶公告：展开其余 {count} 条",
+  "@topic_pinnedFoldExpand": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
   }
 }

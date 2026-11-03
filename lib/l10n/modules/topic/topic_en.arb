@@ -181,5 +181,7 @@
   "leaderboard_great": "Great",
   "leaderboard_loginHint": "You may need to log in to see this list",
   "leaderboard_repliesCount": "{count} replies",
-  "topicDetail_hiddenRepliesShown": "Hidden replies shown"
+  "topicDetail_hiddenRepliesShown": "Hidden replies shown",
+  "topic_pinnedFoldCollapse": "📌 Pinned: collapse",
+  "topic_pinnedFoldExpand": "📌 Pinned: show {count} more"
 }

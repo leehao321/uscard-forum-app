@@ -165,3 +165,58 @@ List<Topic> prependTopicUpdates(List<Topic> current, List<Topic> updates) {
         .where((topic) => !updatesById.containsKey(topic.id)),
   ];
 }
+
+/// 置顶帖排到最前面，各自保持原来的先后。已经是这个顺序时返回原列表。
+List<Topic> pinnedFirst(List<Topic> topics) {
+  var sawNormal = false;
+  var ordered = true;
+  for (final topic in topics) {
+    if (!topic.pinned) {
+      sawNormal = true;
+    } else if (sawNormal) {
+      ordered = false;
+      break;
+    }
+  }
+  if (ordered) return topics;
+  return [
+    ...topics.where((t) => t.pinned),
+    ...topics.where((t) => !t.pinned),
+  ];
+}
+
+/// 这个列表要不要把置顶锁在最前面。
+///
+/// 默认和按最新回复排序时要。按浏览量这类排序是用户要看排名，置顶不该插队；
+/// 未读、新话题是待办清单，也不锁。
+bool shouldLockPinned(TopicListFilter filter, String? order) =>
+    filter == TopicListFilter.latest && (order == null || order == 'activity');
+
+/// 置顶超过 [threshold] 条时折叠：默认只露前 [threshold] 条，不占满首屏，也不会把
+/// 公告全藏起来。
+class PinnedFold {
+  const PinnedFold._(this.topics, this.toggleIndex, this.hiddenCount);
+
+  static const threshold = 2;
+
+  /// [topics] 要先经过 [pinnedFirst]。
+  factory PinnedFold.apply(List<Topic> topics, {required bool expanded}) {
+    final pinned = topics.takeWhile((t) => t.pinned).length;
+    if (pinned <= threshold) return PinnedFold._(topics, null, 0);
+    if (expanded) return PinnedFold._(topics, pinned - 1, 0);
+    return PinnedFold._(
+      [...topics.take(threshold), ...topics.skip(pinned)],
+      threshold - 1,
+      pinned - threshold,
+    );
+  }
+
+  /// 要显示的话题
+  final List<Topic> topics;
+
+  /// 折叠开关放在 [topics] 第几条下面；不需要折叠时为 null
+  final int? toggleIndex;
+
+  /// 收起了几条，0 表示当前是展开的
+  final int hiddenCount;
+}

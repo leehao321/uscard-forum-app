@@ -2447,6 +2447,48 @@ class _CategoryChip extends StatelessWidget {
 // ─── TopicList ───
 
 /// 话题列表（每个 tab 一个实例，根据 categoryId + topicFilterProvider 获取数据）
+/// 置顶超过两条时的折叠开关。
+class _PinnedFoldToggle extends StatelessWidget {
+  const _PinnedFoldToggle({required this.hiddenCount, required this.onTap});
+
+  final int hiddenCount;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.onSurfaceVariant;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Text(
+                hiddenCount > 0
+                    ? context.l10n.topic_pinnedFoldExpand('$hiddenCount')
+                    : context.l10n.topic_pinnedFoldCollapse,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelMedium?.copyWith(color: color),
+              ),
+            ),
+            Icon(
+              hiddenCount > 0
+                  ? Symbols.keyboard_arrow_down_rounded
+                  : Symbols.keyboard_arrow_up_rounded,
+              size: 16,
+              color: color,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _TopicList extends ConsumerStatefulWidget {
   final VoidCallback onLoginRequired;
   final int? categoryId;
@@ -2482,6 +2524,9 @@ class _TopicList extends ConsumerStatefulWidget {
 
 class _TopicListState extends ConsumerState<_TopicList>
     with AutomaticKeepAliveClientMixin, TopicListUpdatesMixin<_TopicList> {
+  /// 置顶公告折叠后是否展开，只在这次使用期间记住
+  bool _pinnedExpanded = false;
+
   final _refreshIndicatorKey = GlobalKey<M3eRefreshIndicatorState>();
 
   /// overlay 头部架构下无 NestedScrollView 注入的 PrimaryScrollController，
@@ -2872,6 +2917,22 @@ class _TopicListState extends ConsumerState<_TopicList>
       hiddenByBlocked = byBlocked;
       return visible;
     });
+    final lockPinned = shouldLockPinned(
+      ref.read(topicFilterProvider),
+      ref.read(topicSortOrderProvider).apiValue,
+    );
+    var pinnedToggleIndex = -1;
+    var pinnedHiddenCount = 0;
+    final displayTopicsAsync = visibleTopicsAsync.whenData((topics) {
+      if (!lockPinned) return topics;
+      final fold = PinnedFold.apply(
+        pinnedFirst(topics),
+        expanded: _pinnedExpanded,
+      );
+      pinnedToggleIndex = fold.toggleIndex ?? -1;
+      pinnedHiddenCount = fold.hiddenCount;
+      return fold.topics;
+    });
     final selectedTopicId = ref.watch(selectedTopicProvider).topicId;
     // 列表层读取一次；itemBuilder 冷挂载每张卡时直接复用结果。
     final enableLongPress = ref.watch(
@@ -2889,10 +2950,10 @@ class _TopicListState extends ConsumerState<_TopicList>
         if (!mounted) return;
         _listShortcutBinding.register(context, {
           ShortcutAction.nextItem: () =>
-              _moveKeyboardFocus(1, visibleTopicsAsync),
+              _moveKeyboardFocus(1, displayTopicsAsync),
           ShortcutAction.previousItem: () =>
-              _moveKeyboardFocus(-1, visibleTopicsAsync),
-          ShortcutAction.openItem: () => _openFocusedTopic(visibleTopicsAsync),
+              _moveKeyboardFocus(-1, displayTopicsAsync),
+          ShortcutAction.openItem: () => _openFocusedTopic(displayTopicsAsync),
         });
       });
     } else if (PlatformUtils.isDesktop) {
@@ -2915,7 +2976,7 @@ class _TopicListState extends ConsumerState<_TopicList>
         ? ref.read(topicListProvider(providerKey).notifier).knownTags
         : const []);
 
-    return visibleTopicsAsync.when(
+    return displayTopicsAsync.when(
       data: (topics) {
         final newTopicCount = topicUpdateSnapshot.length;
         final hasNewTopics = newTopicCount > 0 || isLoadingTopicUpdates;
@@ -3023,6 +3084,7 @@ class _TopicListState extends ConsumerState<_TopicList>
                             return null;
                           },
                           itemBuilder: (context, index) {
+                            Widget buildRow() {
                             if (hasNewTopics && index == 0) {
                               FrameJankMonitor.noteBuild('home:pill');
                               return KeyedSubtree(
@@ -3161,6 +3223,28 @@ class _TopicListState extends ConsumerState<_TopicList>
                               );
                             }
                             return KeyedSubtree(key: rowKey, child: item);
+                                                      }
+
+                            final row = buildRow();
+                            if (index - headerOffset != pinnedToggleIndex) {
+                              return row;
+                            }
+                            // 和那一行放在同一项里，不改变行号，不用动上面的 key 映射
+                            return KeyedSubtree(
+                              key: row.key,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  row,
+                                  _PinnedFoldToggle(
+                                    hiddenCount: pinnedHiddenCount,
+                                    onTap: () => setState(
+                                      () => _pinnedExpanded = !_pinnedExpanded,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
                           },
                         ),
                       ),
