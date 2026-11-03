@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import '../../auth_session.dart';
 
 /// 会话代守卫拦截器
-/// - onRequest: 将当前 generation 戳入请求 extra + 合并 CancelToken
+/// - onRequest: 将当前 generation 戳入请求 extra + 给请求一个自己的 CancelToken
 /// - onResponse: 检查 generation 是否仍有效，过期则丢弃
 /// - onError: 同上
 class SessionGuardInterceptor extends Interceptor {
@@ -12,16 +12,13 @@ class SessionGuardInterceptor extends Interceptor {
     final session = AuthSession();
     options.extra['_sessionGeneration'] = session.generation;
 
-    // 合并 CancelToken：如果请求自带 cancelToken，用 _MergedCancelToken
-    // 否则直接使用 session 的 cancelToken
-    final existing = options.cancelToken;
-    if (existing != null && !existing.isCancelled) {
-      final merged = _MergedCancelToken(existing, session.cancelToken);
-      merged.requestOptions = options;
-      options.cancelToken = merged;
-    } else {
-      options.cancelToken = session.cancelToken;
-    }
+    // 每个请求一个令牌，不共用：
+    // - 取消错误要带这个请求的 options，调度器才能释放它占的槽位；
+    // - dio 会在令牌上挂监听，共用的长寿命令牌会把每个响应都留到下次推进。
+    final token = _RequestCancelToken(options.cancelToken);
+    token.requestOptions = options;
+    options.cancelToken = token;
+    session.track(token);
 
     handler.next(options);
   }
@@ -63,15 +60,18 @@ class SessionGuardInterceptor extends Interceptor {
   }
 }
 
-/// 合并两个 CancelToken：任一取消则整体取消
-class _MergedCancelToken extends CancelToken {
-  _MergedCancelToken(CancelToken a, CancelToken b) {
-    void onCancel(CancelToken source) {
-      if (!isCancelled) {
-        cancel(source.cancelError?.error?.toString());
+/// 一个请求自己的令牌：调用方的令牌取消时跟着取消。
+///
+/// 监听里只抓弱引用：调用方可能长期持有同一个令牌，不能因此留住每个请求的响应。
+class _RequestCancelToken extends CancelToken {
+  _RequestCancelToken(CancelToken? caller) {
+    if (caller == null) return;
+    final self = WeakReference<CancelToken>(this);
+    caller.whenCancel.then((_) {
+      final token = self.target;
+      if (token != null && !token.isCancelled) {
+        token.cancel(caller.cancelError?.error?.toString());
       }
-    }
-    a.whenCancel.then((_) => onCancel(a));
-    b.whenCancel.then((_) => onCancel(b));
+    });
   }
 }

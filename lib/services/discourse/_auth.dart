@@ -1692,12 +1692,18 @@ mixin _AuthMixin on _DiscourseServiceBase {
       WebViewSessionCookieRefreshService.instance.resetSessionState();
 
       // ===== 第五步：清除 Cookie（保留 cf_clearance）=====
+      //
+      // 第一步之后到这里可能又发出了请求（登出 API 本身、页面刷新）。清 Cookie
+      // 前后各推进一次：前一次切断这段时间的请求，后一次切断清理期间发出的，
+      // 否则它们的响应晚于清理回来，会把 _t 和用户名写回（幽灵登录）。
+      AuthSession().advance();
       await _cookieSync.reset();
       final cfClearanceCookie = await _cookieJar.getCfClearanceCookie();
       await _cookieJar.clearAll();
       if (cfClearanceCookie != null) {
         await _cookieJar.restoreCfClearance(cfClearanceCookie);
       }
+      AuthSession().advance();
 
       // ===== 第六步：刷新预加载数据（确保新状态就绪后再广播）=====
       //
