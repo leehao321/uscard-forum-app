@@ -402,3 +402,44 @@ S3 的记录写在私有分支上，已于 2026-11-02 审查通过。
 ### 没动的
 
 审查清单里其余的 P1（未复核的）、P2（DoH、代理）、P3（其他平台）。
+
+## v1.1.1：真机反馈（2026-11-03）
+
+### 站内切换论坛
+
+不再 `exit(0)`。顺序见 `SiteSwitchStep`：切断请求 → 卸载界面树 → 收尾（保存统计、停 WebView）→ 打开新站 Cookie 存储并持久化 → 同步换站 → 重新预加载并挂新树。
+
+- **只换 ProviderScope 的 key 不够。** `navigatorKey` 是 GlobalKey，同一帧换 key 时框架会把旧 Navigator 连页面栈搬到新树上。所以 `SiteSwitchHost` 先显示占位、等一帧卸载完再挂新树。`test/services/site_switch_test.dart` 有一条测试记录这个框架行为。
+- **`logout()` 不能拿来切站。** 它会删当前站的用户名和 Cookie，切站要留着，切回来不用重新登录。
+- **凭证相关的放在一段同步代码里**（`DeviceSiteSwitchWork.commitSite`），中间没有 await。
+- Cookie 管理器跟着 `CookieJarService` 走，不用重建 Dio；`DiscourseService` 的 Dio 原地改 baseUrl，CSRF 刷新也用这个实例。
+- 中途失败不回退，也不挂界面，提示重新打开 App。
+- 要在切站时清内存状态的新模块：在 `SiteContext.addSwitchListener` 登记，或加到 `commitSite` 的清理表。
+
+**新增单例或静态缓存时要想一下切站。** 这是这次改动留下的长期成本：`exit(0)` 以前替所有状态做了清理，现在要靠清理表。
+
+已知的限制：
+
+- 切站前发出、已经过了 `await` 的异步续体，靠 `AuthSession` 取消和几处代际检查挡，不能穷举所有 `await`。重启才能绝对保证。
+- 编辑器预览的 JS 引擎切站时销毁重建，反复切站的内存没有实测。
+- `UserApiKeyLoginFlow` 正在处理回调时切站没有处理。
+- Windows 上开着 DoH 时切站可能改变代理状态，WebView2 环境不能重建，这条路径没有实测。
+- 真机没有验证：真实两站之间切换、登录保留、CF 验证、后台通知。
+
+### 置顶帖
+
+`prependTopicUpdates` 把新帖放到最前面，越过了置顶。现在只放到列表开头的置顶区后面。没有拆成两个队列字段：置顶区由列表开头连续的 `pinned` 决定，自定义排序下夹在中间的置顶帖不受影响。下拉刷新本来就用服务端的顺序，没有这个问题。
+
+### 楼层翻译
+
+楼层菜单「翻译」直接把译文放在正文下方，再点收起，收起后再展开不重新请求。
+
+- 接口是 `translate.googleapis.com` 的 `client=gtx`，**不是公开 API**，不需要 Key，随时可能限流或改格式。失败时显示重试。
+- **帖子原文会发给 Google**，只在用户点翻译时才发，不预取；用独立的 Dio，不带论坛 Cookie。
+- 代码块、链接预览、图片信息不送翻；超过 16000 字只翻开头。
+- 去掉了 AI 翻译的开关、模型设置和弹层。`aiTranslationEnabled`、`aiTranslationModelKey` 两个偏好字段还留着，没有地方读。
+- 从开发机调一次约 1 秒，不是毫秒级，手机上的速度没有实测。
+
+### 验证
+
+全量测试 2275 过、8 跳过、245 失败，失败集合和基线一致；analyze 的 error、warning 没有新增；Windows debug 构建通过。真机没有验证。
