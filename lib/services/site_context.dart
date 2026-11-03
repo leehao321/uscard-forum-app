@@ -32,8 +32,27 @@ class SiteContext {
     _current = site;
   }
 
+  static final List<VoidCallback> _switchListeners = [];
+
+  /// 切站时要清内存状态的模块在这里登记。重复登记同一个回调只算一次。
+  static void addSwitchListener(VoidCallback listener) {
+    if (!_switchListeners.contains(listener)) _switchListeners.add(listener);
+  }
+
+  /// 换站时调用。单个回调出错不影响其他回调。
+  static void notifySwitched() {
+    for (final listener in List.of(_switchListeners)) {
+      try {
+        listener();
+      } catch (e) {
+        debugPrint('[SiteContext] 切站回调失败: $e');
+      }
+    }
+  }
+
   @visibleForTesting
   static void debugReset() {
     _current = null;
+    _switchListeners.clear();
   }
 }

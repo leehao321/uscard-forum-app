@@ -102,6 +102,7 @@ class DeviceSiteSwitchWork implements SiteSwitchWork {
     AuthSession().advance();
 
     final resets = <String, VoidCallback>{
+      '其他模块': SiteContext.notifySwitched,
       '阅读统计': () => ReadingStatsStore.instance.resetForSiteSwitch(),
       '自定义表情': () => EmojiHandler().reset(),
       '表情别名': () => EmojiAliasService().resetForSiteSwitch(),

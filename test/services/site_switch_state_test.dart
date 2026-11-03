@@ -208,6 +208,10 @@ void main() {
       final oldJar = CookieJarService().cookieJar;
       final generation = AuthSession().generation;
 
+      var notified = 0;
+      void listener() => notified++;
+      SiteContext.addSwitchListener(listener);
+      SiteContext.addSwitchListener(listener);
       final work = DeviceSiteSwitchWork(registry: registry);
       final prepared = await work.prepareSite(b);
       expect(registry.current!.id, b.id, reason: '先持久化');
@@ -224,6 +228,7 @@ void main() {
       expect(CsrfTokenService().csrfToken, isNull);
       expect(AiChatStorageService.keyScope, b.scopePrefix);
       expect(AuthSession().generation, greaterThan(generation));
+      expect(notified, 1, reason: '登记过的模块收到一次通知');
     });
   });
 }
