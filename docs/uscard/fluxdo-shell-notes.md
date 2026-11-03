@@ -443,3 +443,37 @@ S3 的记录写在私有分支上，已于 2026-11-02 审查通过。
 ### 验证
 
 全量测试 2275 过、8 跳过、245 失败，失败集合和基线一致；analyze 的 error、warning 没有新增；Windows debug 构建通过。真机没有验证。
+
+## v1.1.2（2026-11-03）
+
+### 置顶和切站面板
+
+`PinnedFold`：置顶超过两条默认只露前两条，可以展开收起。`shouldLockPinned`：默认和按最新回复排序时置顶固定在最前，按浏览量这类排序和未读、新话题列表不锁。分流和折叠都在列表页显示层做，自动加载更多的计数不受影响。
+
+### 自定义字体
+
+`CustomFontService`。校验文件头：引擎收到坏数据不报错，只是静默不生效。引擎不能卸载字体，所以族名带内容哈希。只存文件名，iOS 升级后沙盒路径会变。
+
+### 界面缩放
+
+`AppUiScale`。在 `FluxdoWidgetsBinding` 里改 `ViewConfiguration` 的像素比，不用 Transform 或 FittedBox：有上百处用全局坐标定位弹层，包一层之后都会错位。
+
+**直接读 `FlutterView` 的代码要用 `AppUiScale.logicalRatioOf`，不能直接除 `devicePixelRatio`。**
+
+没有验证：测试环境用不了自定义 binding，只测了换算函数，真实的绘制、触摸、键盘、平台视图（WebView、视频）都要真机确认。引擎拿到的输入框位置没有缩放，系统输入法候选框的位置可能有偏差。放大后窄屏上写死宽度的布局可能溢出。
+
+### 全帖翻译
+
+`ImmersiveTranslationNotifier`。楼层真正建出来才进队列，后进先出，网页 3 并发、AI 2 并发，失败后退避。原文大概率是简体中文的不发出去（`likelyAlreadyInTarget`，只判断简体中文）。
+
+翻译来源：Google（默认）、AI。B 站 Index 只占位，没有找到可以验证的公开接口，设置里不可选。
+
+速度：开发机调一次 Google 接口约 1 秒，达不到 200ms，手机上没有实测。
+
+### OpenRouter 一键登录
+
+`OpenRouterOAuth`，流程按官方 PKCE 文档。回调用 `pulseflow://openrouter-auth`；文档示例写的是网站地址，自定义 scheme 没有真实走通过。只在 Apple 平台开放：Android 没有配 `flutter_web_auth_2` 的回调 Activity。模板里 One-API 的地址是占位，要改成自己部署的。
+
+### 验证
+
+全量测试 2351 过、8 跳过、245 失败，失败集合和基线一致；analyze 的 error、warning 没有新增；Windows debug 构建通过。真机没有验证。
