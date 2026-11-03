@@ -588,16 +588,17 @@ class DataBackupSection extends ConsumerWidget {
 
     try {
       final prefs = ref.read(sharedPreferencesProvider);
-      final filePath = await DataBackupService.exportToFile(prefs);
-      // 只保存、不走分享面板:备份里是明文 API Key / 代理密码 / Notion Token,
-      // 分享面板一手滑就发进聊天软件了。
-      final outcome = await ShareUtils.saveFile(
-        XFile(filePath, mimeType: 'application/json'),
-      );
-      if (outcome.shared) {
-        final name = outcome.displayName ?? p.basename(filePath);
-        ToastService.showSuccess(S.current.export_savedAs(name));
-      }
+      await DataBackupService.withExportFile(prefs, (filePath) async {
+        // 只保存、不走分享面板:备份里是明文 API Key / 代理密码 / Notion Token,
+        // 分享面板一手滑就发进聊天软件了。
+        final outcome = await ShareUtils.saveFile(
+          XFile(filePath, mimeType: 'application/json'),
+        );
+        if (outcome.shared) {
+          final name = outcome.displayName ?? p.basename(filePath);
+          ToastService.showSuccess(S.current.export_savedAs(name));
+        }
+      });
     } catch (e) {
       ToastService.showError(
           S.current.dataManagement_exportFailed(e.toString()));

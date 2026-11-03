@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -165,6 +166,26 @@ class DataBackupService {
     return apiKeys;
   }
 
+  /// 导出到临时文件，交给 [use] 保存，结束后删掉临时文件。
+  ///
+  /// 文件里有明文 API Key、代理密码和 Notion Token。临时目录只在下次分享时才清理，
+  /// 不删的话可能一直留着。
+  static Future<T> withExportFile<T>(
+    SharedPreferences prefs,
+    Future<T> Function(String path) use,
+  ) async {
+    final path = await exportToFile(prefs);
+    try {
+      return await use(path);
+    } finally {
+      try {
+        await File(path).delete();
+      } on FileSystemException catch (e) {
+        debugPrint('[DataBackup] 删除临时备份失败: ${e.osError?.errorCode}');
+      }
+    }
+  }
+
   /// 将导出数据写入临时文件，返回文件路径
   static Future<String> exportToFile(SharedPreferences prefs) async {
     final exportData = await DataBackupService.exportData(prefs);
@@ -203,42 +224,57 @@ class DataBackupService {
     final data = backup['data'] as Map<String, dynamic>?;
     if (data == null) throw FormatException(S.current.backup_missingDataField);
 
+    // 先把整个文件校验完，再动手写：中途才发现坏项的话，设置已经被改了一半。
+    FormatException invalid() => FormatException(S.current.backup_invalidFormat);
+    final writes = <Future<void> Function()>[];
     for (final entry in data.entries) {
       // 按站隔离之前的老备份没有站点前缀，它的站点数据归到当前站
       final key = SiteScopedPrefKeys.matches(entry.key)
           ? SiteContext.scopedKey(entry.key)
           : entry.key;
       if (!_shouldBackup(key)) continue;
-      final item = entry.value as Map<String, dynamic>;
-      final type = item['type'] as String;
+      final item = entry.value;
+      if (item is! Map) throw invalid();
+      final type = item['type'];
       final value = item['value'];
+      if (type is! String) throw invalid();
 
       switch (type) {
         case 'bool':
-          await prefs.setBool(key, value as bool);
+          if (value is! bool) throw invalid();
+          writes.add(() => prefs.setBool(key, value));
         case 'int':
-          await prefs.setInt(key, value as int);
+          if (value is! int) throw invalid();
+          writes.add(() => prefs.setInt(key, value));
         case 'double':
-          await prefs.setDouble(key, (value as num).toDouble());
+          if (value is! num) throw invalid();
+          writes.add(() => prefs.setDouble(key, value.toDouble()));
         case 'String':
-          await prefs.setString(key, value as String);
+          if (value is! String) throw invalid();
+          writes.add(() => prefs.setString(key, value));
         case 'StringList':
-          await prefs.setStringList(
-            key,
-            (value as List<dynamic>).cast<String>(),
-          );
+          if (value is! List || value.any((e) => e is! String)) throw invalid();
+          final list = value.cast<String>().toList(growable: false);
+          writes.add(() => prefs.setStringList(key, list));
       }
     }
 
     // 导入 API Key 到 SecureStorage
-    final apiKeys = backup['apiKeys'] as Map<String, dynamic>?;
+    final apiKeys = backup['apiKeys'];
     if (apiKeys != null) {
+      if (apiKeys is! Map) throw invalid();
       for (final entry in apiKeys.entries) {
-        await _secureStorage.write(
-          key: '$_apiKeyPrefix${entry.key}',
-          value: entry.value as String,
+        final id = entry.key;
+        final value = entry.value;
+        if (id is! String || value is! String) throw invalid();
+        writes.add(
+          () => _secureStorage.write(key: '$_apiKeyPrefix$id', value: value),
         );
       }
+    }
+
+    for (final write in writes) {
+      await write();
     }
   }
 

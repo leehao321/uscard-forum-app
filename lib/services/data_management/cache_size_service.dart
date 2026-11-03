@@ -4,6 +4,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../discourse_cache_manager.dart';
+import '../site_context.dart';
 
 /// 图片缓存分类(Telegram Storage Usage 式明细的口径)。
 ///
@@ -129,11 +130,14 @@ class CacheSizeService {
     }
   }
 
-  /// 计算 AI 聊天数据大小（SharedPreferences 中 ai_chat_ 开头的 key）
+  /// 计算当前站的 AI 聊天数据大小。
+  ///
+  /// 会话数据按站存放，清除按钮也只清当前站，所以只算当前站的前缀。
   static Future<int> getAiChatDataSize(SharedPreferences prefs) async {
     int totalSize = 0;
+    final prefix = SiteContext.scopedKey('ai_chat_');
     for (final key in prefs.getKeys()) {
-      if (key.startsWith('ai_chat_')) {
+      if (key.startsWith(prefix)) {
         final value = prefs.get(key);
         if (value is String) {
           totalSize += value.length * 2; // UTF-16 编码估算
