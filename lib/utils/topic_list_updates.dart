@@ -143,7 +143,25 @@ class TopicListUpdates {
   }
 }
 
+/// 把新消息对应的话题放到列表前面，但不越过置顶区。
+///
+/// 置顶区是列表开头连续的置顶帖，顺序由服务端定，新消息不改变它：其中的帖子有
+/// 新回复时原地更新，被取消置顶时才离开。自定义排序下夹在中间的置顶帖不算置顶区。
 List<Topic> prependTopicUpdates(List<Topic> current, List<Topic> updates) {
-  final ids = updates.map((topic) => topic.id).toSet();
-  return [...updates, ...current.where((topic) => !ids.contains(topic.id))];
+  final updatesById = {for (final topic in updates) topic.id: topic};
+  final lockedCount = current.takeWhile((topic) => topic.pinned).length;
+  final locked = <Topic>[
+    for (final topic in current.take(lockedCount))
+      if (updatesById[topic.id]?.pinned ?? true)
+        updatesById[topic.id] ?? topic,
+  ];
+  final lockedIds = locked.map((topic) => topic.id).toSet();
+  return [
+    ...locked,
+    ...updates.where((t) => t.pinned && !lockedIds.contains(t.id)),
+    ...updates.where((t) => !t.pinned),
+    ...current
+        .skip(lockedCount)
+        .where((topic) => !updatesById.containsKey(topic.id)),
+  ];
 }
