@@ -129,9 +129,25 @@ class EnhancedPersistCookieJar implements base.CookieJar {
     List<String> headers, {
     bool trusted = false,
   }) async {
-    final cookies =
-        headers.map((e) => SetCookieParser.parse(e, uri: uri)).toList();
+    final cookies = headers
+        .map((e) => SetCookieParser.parse(e, uri: uri))
+        .where((cookie) => _domainAttributeAllowed(uri.host, cookie))
+        .toList();
     await saveCanonicalCookies(uri, cookies, trusted: trusted);
+  }
+
+  /// RFC 6265 5.3 第 6 步：Domain 属性必须覆盖响应的 host，否则整条丢弃。
+  /// 不这样校验，任意站点都能写别的站点的 Cookie。
+  ///
+  /// 没有公共后缀表，只能挡住 `com` 这种不带点的；`co.uk` 这一级挡不住。
+  static bool _domainAttributeAllowed(String host, CanonicalCookie cookie) {
+    if (cookie.hostOnly) return true;
+    final domain = (cookie.normalizedDomain ?? '').toLowerCase();
+    final requestHost = host.toLowerCase();
+    if (domain == requestHost) return true;
+    if (!domain.contains('.')) return false;
+    if (io.InternetAddress.tryParse(requestHost) != null) return false;
+    return requestHost.endsWith('.$domain');
   }
 
   Future<void> saveFromCdpCookies(

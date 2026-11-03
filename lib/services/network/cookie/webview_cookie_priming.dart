@@ -168,6 +168,11 @@ class WebViewCookiePriming {
         if (initialCookie.name == 'cf_clearance') {
           continue;
         }
+        // 下面按名字从 jar 取的是主站的值：主站会话 Cookie 不能灌给第三方页面
+        if (CookieJarService.authCookieNames.contains(initialCookie.name) &&
+            !CookieJarService.isAppOriginHost(uri.host)) {
+          continue;
+        }
 
         // Race-safe check: Priming 整体 unawaited 跑, 期间外部 (如
         // cf_challenge_service.showVerifyForChallenge) 可能并发删/改 jar

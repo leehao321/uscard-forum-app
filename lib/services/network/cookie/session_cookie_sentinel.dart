@@ -92,9 +92,14 @@ class SessionCookieSentinel {
     SweepIntent intent = SweepIntent.ensureUnique,
     bool force = false,
   }) async {
-    if (!force &&
-        intent == SweepIntent.ensureUnique &&
-        wasRecentlySwept(name)) {
+    // 下面从 jar 取的是主站的值：对第三方 URL 同步会把主站令牌写进它的存储
+    final isThirdPartyAuth =
+        CookieJarService.authCookieNames.contains(name) &&
+        !CookieJarService.isAppOriginHost(Uri.tryParse(url)?.host ?? '');
+    if (isThirdPartyAuth ||
+        (!force &&
+            intent == SweepIntent.ensureUnique &&
+            wasRecentlySwept(name))) {
       return SweepResult(
         name: name,
         status: SweepStatus.noop,

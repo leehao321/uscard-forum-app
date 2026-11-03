@@ -550,6 +550,28 @@ class AppCookieManager extends Interceptor {
       final isSessionCookie =
           cookie.name == '_t' || cookie.name == '_forum_session';
       if (isSessionCookie) {
+        // 下面的删除、归一、推 WebView 都只按名字找主站的 Cookie，不看响应来自
+        // 哪个 host。第三方响应带同名 Cookie（媒体探测、下载都可能碰到）时不能
+        // 进这条路，否则它能登出用户，或者让主站令牌写进它的 WebView 存储。
+        final responseHost = response.requestOptions.uri
+            .resolveUri(response.realUri)
+            .host;
+        if (!CookieJarService.isAppOriginHost(responseHost)) {
+          debugPrint(
+            '[CookieManager] drop ${cookie.name} from third-party response: '
+            '$responseHost',
+          );
+          LogWriter.instance.write({
+            'timestamp': DateTime.now().toIso8601String(),
+            'level': 'warning',
+            'type': 'cookie_change',
+            'event': 'token_cookie_from_third_party_dropped',
+            'message': '已忽略第三方响应里的 ${cookie.name}',
+            'host': responseHost,
+          });
+          continue;
+        }
+
         final isExpired =
             cookie.expires != null && cookie.expires!.isBefore(DateTime.now());
         final isDeletion =

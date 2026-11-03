@@ -841,6 +841,17 @@ class CookieJarService {
   static String get appBaseHost =>
       Uri.parse(AppConstants.baseUrl).host.toLowerCase();
 
+  /// [host] 是不是主站本身（www 和裸域互为别名）。
+  ///
+  /// 子域和上级域都不算：会话 Cookie 只认主站，第三方响应带同名 Cookie 时要整条忽略。
+  static bool isAppOriginHost(String host) {
+    final h = host.toLowerCase();
+    if (h.isEmpty) return false;
+    final base = appBaseHost;
+    final bare = base.startsWith('www.') ? base.substring(4) : base;
+    return h == bare || h == 'www.$bare';
+  }
+
   /// 检查 domain 是否匹配应用主域
   ///
   /// 除主站及其子域外，主站的上级域也算（如主站 `www.example.com`、cookie 域

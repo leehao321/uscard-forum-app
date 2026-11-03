@@ -83,6 +83,57 @@ void main() {
     // storageKey 去重：同 (name, domain, path) 不同 hostOnly 不共存
     // =========================================================================
 
+    group('Domain 属性校验', () {
+      final uri = Uri.parse('https://evil.example.com/x');
+      Future<List<String>> names(String url) async => (await jar
+              .loadCanonicalForRequest(Uri.parse(url)))
+          .map((c) => c.name)
+          .toList();
+
+      test('Domain 不覆盖响应 host：整条丢弃', () async {
+        await jar.saveFromSetCookieHeaders(uri, ['a=1; Domain=forum.test']);
+        expect(await names('https://forum.test/'), isEmpty);
+      });
+
+      test('Domain 是后缀但不在点边界上：丢弃', () async {
+        await jar.saveFromSetCookieHeaders(
+          Uri.parse('https://notforum.test/'),
+          ['a=1; Domain=forum.test'],
+        );
+        expect(await names('https://forum.test/'), isEmpty);
+      });
+
+      test('不带点的公共后缀：丢弃', () async {
+        await jar.saveFromSetCookieHeaders(uri, ['a=1; Domain=com']);
+        expect(await names('https://other.com/'), isEmpty);
+      });
+
+      test('前导点、大小写、上级域和自身都接受', () async {
+        await jar.saveFromSetCookieHeaders(uri, [
+          'a=1; Domain=example.com',
+          'b=2; Domain=.EXAMPLE.com',
+          'c=3; Domain=evil.example.com',
+        ]);
+        expect(
+          await names('https://evil.example.com/'),
+          containsAll(['a', 'b', 'c']),
+        );
+      });
+
+      test('host 是 IP 时不能用上级域', () async {
+        await jar.saveFromSetCookieHeaders(
+          Uri.parse('https://1.2.3.4/'),
+          ['a=1; Domain=3.4'],
+        );
+        expect(await names('https://1.2.3.4/'), isEmpty);
+      });
+
+      test('host-only 不受影响', () async {
+        await jar.saveFromSetCookieHeaders(uri, ['a=1; Path=/']);
+        expect(await names('https://evil.example.com/'), ['a']);
+      });
+    });
+
     group('storageKey 去重', () {
       test('A1.1: hostOnly=false → hostOnly=true 替换，不共存', () async {
         // 先存 domain cookie (hostOnly=false)
