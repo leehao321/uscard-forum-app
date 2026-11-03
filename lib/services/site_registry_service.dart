@@ -8,7 +8,8 @@ import 'site_context.dart';
 
 /// 站点列表与当前站的持久化。
 ///
-/// 数据模型按多站建；运行时只连一个站，[setCurrent] 只改持久化，重启后生效。
+/// 数据模型按多站建；运行时只连一个站，[setCurrent] 只改持久化，切站走
+/// `SiteSwitchController`。
 class SiteRegistryService {
   SiteRegistryService();
 
@@ -36,7 +37,7 @@ class SiteRegistryService {
 
   List<SiteProfile> get sites => List.unmodifiable(_sites);
 
-  /// 持久化的当前站；[setCurrent] 之后到重启之前，可能和 [SiteContext.current] 不同。
+  /// 持久化的当前站。
   SiteProfile? get current {
     for (final site in _sites) {
       if (site.id == _currentId) return site;

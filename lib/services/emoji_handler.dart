@@ -18,6 +18,9 @@ class EmojiHandler {
   /// 自定义 emoji 名称 -> URL 映射（对应 Discourse 的 extendedEmojiMap）
   Map<String, String>? _customEmojiMap;
 
+  /// 切站：自定义表情是站点的，下次 [init] 读新站的。
+  void reset() => _customEmojiMap = null;
+
   /// 从预加载数据注册自定义 emoji
   ///
   /// 必须在 [PreloadedDataService().ensureLoaded()] 之后调用。

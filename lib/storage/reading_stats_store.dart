@@ -109,6 +109,17 @@ class ReadingStatsStore {
   }
 
   /// 立刻写入（统计页打开前调用，保证看到最新数据）
+  /// 切站：丢掉内存里的旧站数据，下次用时读新站的。调用前先 [flush]。
+  void resetForSiteSwitch() {
+    _saveTimer?.cancel();
+    _saveTimer = null;
+    _millis.clear();
+    _topics.clear();
+    _loaded = false;
+    _loading = null;
+    changes.value++;
+  }
+
   Future<void> flush() async {
     _saveTimer?.cancel();
     await _save();

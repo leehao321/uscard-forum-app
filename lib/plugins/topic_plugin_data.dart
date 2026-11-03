@@ -1,5 +1,3 @@
-import 'package:flutter/widgets.dart';
-
 /// 话题级插件扩展字段的进程内缓存
 ///
 /// 站点插件（如 linux.do 回复扣积分）关心的字段挂在**话题**上，而回复入口
@@ -31,6 +29,6 @@ class TopicPluginData {
   /// 话题页销毁时清理
   static void forget(int topicId) => _extras.remove(topicId);
 
-  @visibleForTesting
+  /// 切站：话题 ID 只在站内唯一。
   static void clear() => _extras.clear();
 }

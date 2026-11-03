@@ -150,6 +150,12 @@ class WebViewSessionCookieRefreshService {
 
   /// 登出复位:换账号 = 新浏览器会话,下一个登录会话需要重新 bootstrap。
   /// 同时清掉失败退避与 fresh 标记,新会话从干净状态开始。
+  /// 切站：在途的引导属于旧站，新站不能接着等它。
+  void resetForSiteSwitch() {
+    _activeRefresh = null;
+    resetSessionState(reason: 'site_switch');
+  }
+
   void resetSessionState({String reason = 'logout'}) {
     _lastSuccessAt = null;
     _lastSuccessToken = null;

@@ -89,6 +89,7 @@ class BrowserTrustCoordinator {
   final PreloadedDataService _preload = PreloadedDataService();
 
   Future<void>? _activePreload;
+  int _siteGeneration = 0;
   Future<bool>? _activeBrowserTrust;
   Future<bool>? _activeBrowserTrustGate;
   Timer? _backgroundPauseTimer;
@@ -116,6 +117,20 @@ class BrowserTrustCoordinator {
   BrowserTrustPreloadPath? _lastPreloadPath;
 
   BrowserTrustPreloadPath? get lastPreloadPath => _lastPreloadPath;
+
+  /// 切站：在途的预加载和信任流程属于旧站，新站不能接着等它们。
+  void resetForSiteSwitch() {
+    _siteGeneration++;
+    _activePreload = null;
+    _activeBrowserTrust = null;
+    _activeBrowserTrustGate = null;
+    _backgroundPauseTimer?.cancel();
+    _backgroundPauseTimer = null;
+    _pendingClearanceRefreshReason = null;
+    _navigatorContext = null;
+    _lastClearanceRejectedAt = null;
+    _lastPreloadPath = null;
+  }
 
   void setNavigatorContext(BuildContext context) {
     _navigatorContext = context;
@@ -513,6 +528,7 @@ class BrowserTrustCoordinator {
     required String reason,
     required BrowserTrustRunCancellation cancellation,
   }) async {
+    final generation = _siteGeneration;
     await _primeWebViewCookies(reason: '$reason:webview_preload');
     if (cancellation.isCancelled) return false;
     _log('startup WebView create reason=$reason');
@@ -595,6 +611,7 @@ class BrowserTrustCoordinator {
       final hydrated =
           html != null &&
           html.isNotEmpty &&
+          generation == _siteGeneration &&
           await _preload.hydrateFromHtml(html);
       if (cancellation.isCancelled) return false;
       _log(

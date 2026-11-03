@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:app_icons/app_icons.dart';
 import 'package:flutter/material.dart';
 
@@ -12,14 +10,14 @@ import '../services/site_switch_service.dart';
 import '../services/toast_service.dart';
 import 'add_site_page.dart';
 
-/// 论坛管理：列表、添加、移除、切换。切换要重启 App 才生效。
+/// 论坛管理：列表、添加、移除、切换。
 class SitesPage extends StatefulWidget {
-  const SitesPage({super.key, this.registry, this.exitApp, this.siteCleaner});
+  const SitesPage({super.key, this.registry, this.switcher, this.siteCleaner});
 
   final SiteRegistryService? registry;
 
-  /// 切换后退出 App，测试时替换。
-  final void Function()? exitApp;
+  /// 切站，测试时替换。
+  final SiteSwitchController? switcher;
 
   /// 移除论坛时清登录数据，测试时替换。
   final SiteDataCleaner? siteCleaner;
@@ -44,30 +42,6 @@ class _SitesPageState extends State<SitesPage> {
       ),
     );
     if (mounted) setState(() {});
-  }
-
-  Future<void> _confirmSwitch(SiteProfile site) async {
-    final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.site_switchTitle(site.title)),
-        content: Text(l10n.site_switchBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(l10n.common_cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.site_switchConfirm),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    await SiteSwitchService(registry: _registry).switchSite(site);
-    (widget.exitApp ?? () => exit(0))();
   }
 
   Future<void> _confirmRemove(SiteProfile site) async {
@@ -130,7 +104,13 @@ class _SitesPageState extends State<SitesPage> {
                       tooltip: l10n.site_removeConfirm,
                       onPressed: () => _confirmRemove(site),
                     ),
-              onTap: site.id == currentId ? null : () => _confirmSwitch(site),
+              onTap: site.id == currentId
+                  ? null
+                  : () => (widget.switcher ?? SiteSwitchController.instance)
+                        .switchTo(
+                          site,
+                          placeholderColor: theme.colorScheme.surface,
+                        ),
             ),
           Padding(
             padding: const EdgeInsets.all(16),

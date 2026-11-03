@@ -18,6 +18,9 @@ class TopicPreviewPreloader {
   static const _ttl = Duration(seconds: 30);
   static const _maxEntries = 8;
 
+  /// 切站：话题 ID 只在站内唯一。
+  static void clear() => _entries.clear();
+
   /// 长按意图出现时调用:为 [topicId] 预取主贴 cooked。
   /// 同 id 在途/就绪的请求直接复用,不重复发起。
   static void preload(DiscourseService service, int topicId) {

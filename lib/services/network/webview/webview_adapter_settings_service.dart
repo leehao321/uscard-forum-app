@@ -78,6 +78,14 @@ class WebViewAdapterSettingsService {
     _setSessionFallbackEnabled(false);
   }
 
+  /// 切站时加一：无头 WebView 停在旧站的页面上，从那里发请求会跨域失败。
+  final ValueNotifier<int> siteGeneration = ValueNotifier(0);
+
+  void resetForSiteSwitch() {
+    resetSessionFallback();
+    siteGeneration.value++;
+  }
+
   /// 判断请求是否应走 WebView 适配器
   bool shouldUseWebView(Uri uri) {
     if (!effectiveEnabled) return false;

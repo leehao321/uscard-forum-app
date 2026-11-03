@@ -7,6 +7,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
+import '../../../models/site_profile.dart';
 import '../../../constants.dart';
 import '../../windows_webview_environment_service.dart';
 import 'cookie_logger.dart';
@@ -84,12 +85,23 @@ class CookieJarService {
   Future<void> initialize() async {
     if (_initialized) return;
 
+    _cookieJar = await openJarFor(SiteContext.current);
+    _initialized = true;
+    _strategy = PlatformCookieStrategy.create();
+
+    await _migrateSessionCookiesToHostOnly();
+  }
+
+  /// 打开 [site] 的 Cookie 存储，不影响当前正在用的那个。
+  ///
+  /// 每个站一个目录。打不开时退回内存存储：这次运行没有登录态，但不会串站。
+  Future<CookieJar> openJarFor(SiteProfile site) async {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final cookiePath = path.join(
         directory.path,
         '.cookies',
-        SiteContext.current.storageId,
+        site.storageId,
       );
 
       final cookieDir = io.Directory(cookiePath);
@@ -97,25 +109,30 @@ class CookieJarService {
         await cookieDir.create(recursive: true);
       }
 
-      _cookieJar = EnhancedPersistCookieJar(
+      debugPrint('[CookieJar] Opened path: $cookiePath');
+      return EnhancedPersistCookieJar(
         ignoreExpires: false,
         store: FileCookieStore(cookiePath),
       );
-
-      _initialized = true;
-      _strategy = PlatformCookieStrategy.create();
-      debugPrint('[CookieJar] Initialized with path: $cookiePath');
     } catch (e) {
       debugPrint(
         '[CookieJar] Failed to create persistent storage, using memory: $e',
       );
-      _cookieJar = CookieJar();
+      return CookieJar();
+    }
+  }
+
+  /// 切站：换成新站的存储。各 Dio 的 [AppCookieManager] 都跟着这里走，不用重建。
+  void useJar(CookieJar jar) {
+    _cookieJar = jar;
+    if (!_initialized) {
       _initialized = true;
       _strategy = PlatformCookieStrategy.create();
     }
-
-    await _migrateSessionCookiesToHostOnly();
   }
+
+  /// 切站后对新站的存储跑一次启动时的迁移。
+  Future<void> migrateCurrentJar() => _migrateSessionCookiesToHostOnly();
 
   /// 历史脏数据迁移: 把 authCookieNames 收敛成主域 host-only 单副本。
   ///

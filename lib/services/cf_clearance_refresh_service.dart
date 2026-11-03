@@ -87,6 +87,9 @@ class CfClearanceRefreshService {
   /// 获取当前缓存的 sitekey。
   String? get sitekey => _sitekey;
 
+  /// 切站：[updateSitekey] 忽略空值，新站没有 sitekey 时旧的会留下来。先 [stop]。
+  void clearSitekey() => _sitekey = null;
+
   void setForeground(bool foreground) {
     _isForeground = foreground;
   }

@@ -242,6 +242,12 @@ class SessionCookieSentinel {
   ///
   /// 设置全局 cancelled flag。短暂等待让 in-flight sweep 在 CHECK 点退出，
   /// 然后清除 flag（不影响后续 sweep）。
+  /// 切站：节流按 Cookie 名记的，不分站，旧站的记录不能压住新站。
+  void resetForSiteSwitch() {
+    _lastSweptAt.clear();
+    _consecutiveLockTimeouts.clear();
+  }
+
   Future<void> cancelAllSweeps() async {
     _globalCancelled = true;
     await Future<void>.delayed(const Duration(milliseconds: 50));

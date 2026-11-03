@@ -4,7 +4,8 @@ import '../models/site_profile.dart';
 
 /// 本次运行连接的站点。
 ///
-/// 进程内只设置一次（见 `SiteRegistryService.init`），换站要重启生效。
+/// 启动时由 `SiteRegistryService.init` 设置；切站时由 `SiteSwitchController` 换掉，
+/// 换之前旧站的状态都已清理。
 /// 未设置时回落到 linux.do，只有首启选站之前和测试会走到这里。
 ///
 /// 注意：静态状态不跨 isolate。独立 isolate 的入口（如 iOS 后台任务）如果要访问

@@ -77,6 +77,12 @@ class UserApiKeyService {
   DateTime? _lastSelfHealFailureAt;
   Future<Map<String, dynamic>?>? _activeSelfHeal;
 
+  /// 切站：只清内存。旧站的冷却不能让新站跳过自愈，保存的 key 不动。
+  void resetForSiteSwitch() {
+    _lastSelfHealFailureAt = null;
+    _activeSelfHeal = null;
+  }
+
   // ---------- 存储 ----------
 
   Future<bool> hasKey() async {

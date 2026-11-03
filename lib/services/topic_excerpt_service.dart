@@ -284,6 +284,12 @@ class TopicExcerptService {
     _cache[topicId] = data;
   }
 
+  /// 切站：话题 ID 只在站内唯一，排队中的也不能再跑。
+  void resetForSiteSwitch() {
+    _pendingQueue.clear();
+    clear();
+  }
+
   /// 清除缓存
   void clear() {
     _cache.clear();

@@ -158,6 +158,13 @@ class DiscourseImageUtils {
   /// 进行中的解析请求（同一短链共享同一个 Future，避免并发解析互相覆盖结果）
   static final Map<String, Future<String?>> _inflightResolves = {};
 
+  /// 切站：短链只在站内有意义，旧站判缺失的短链在新站可能存在。
+  static void clearUploadCaches() {
+    _uploadUrlCache.clear();
+    _missingUploads.clear();
+    _inflightResolves.clear();
+  }
+
   /// `/uploads/short-url/<base62>(.ext)` 短链路径段
   /// （与 Discourse Upload.sha1_from_short_path 同口径）
   static final RegExp _shortUrlPathRe =

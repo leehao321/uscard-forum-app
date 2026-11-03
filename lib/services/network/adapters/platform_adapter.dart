@@ -310,6 +310,9 @@ class _GatewayAdapterWrapper implements HttpClientAdapter {
     WebViewAdapterSettingsService.instance.effectiveNotifier.addListener(
       _handleWebViewSettingChanged,
     );
+    WebViewAdapterSettingsService.instance.siteGeneration.addListener(
+      _handleSiteSwitched,
+    );
   }
 
   final HttpClientAdapter _inner;
@@ -385,9 +388,17 @@ class _GatewayAdapterWrapper implements HttpClientAdapter {
     WebViewAdapterSettingsService.instance.effectiveNotifier.removeListener(
       _handleWebViewSettingChanged,
     );
+    WebViewAdapterSettingsService.instance.siteGeneration.removeListener(
+      _handleSiteSwitched,
+    );
     _webViewAdapter?.close(force: force);
     _webViewAdapter = null;
     _inner.close(force: force);
+  }
+
+  void _handleSiteSwitched() {
+    _webViewAdapter?.close(force: true);
+    _webViewAdapter = null;
   }
 
   void _handleWebViewSettingChanged() {

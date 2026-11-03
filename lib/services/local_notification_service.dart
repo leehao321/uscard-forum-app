@@ -19,6 +19,9 @@ class LocalNotificationService {
   factory LocalNotificationService() => _instance;
   LocalNotificationService._internal();
 
+  /// 切站时清掉已展示的通知：payload 只有话题 ID，不带站点。
+  Future<void> cancelAll() => _plugin.cancelAll();
+
   final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
   bool _initialized = false;
   bool _permissionGranted = false;

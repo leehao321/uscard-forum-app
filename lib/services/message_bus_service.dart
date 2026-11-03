@@ -758,6 +758,17 @@ class MessageBusService {
     _subscriptions.clear();
   }
 
+  /// 切站：轮询 Dio 创建时固定了旧站地址，要重建。不要用 [dispose]，它会关掉消息流。
+  void resetForSiteSwitch() {
+    stopAll();
+    _restartPollTimer?.cancel();
+    _deferredDrainTimer?.cancel();
+    _deferredMessages.clear();
+    _baseUrl = null;
+    _sharedSessionKey = null;
+    _dio = _createPollingDio();
+  }
+
   /// 释放资源
   void dispose() {
     _stopPolling();

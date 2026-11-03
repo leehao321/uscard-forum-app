@@ -49,6 +49,7 @@ class PreloadedDataService {
   bool _hasDiscourseSetup = false; // 是否提取到 data-discourse-setup 标签
   bool _loaded = false;
   bool _loading = false;
+  int _siteGeneration = 0;
 
   PreloadedDataService._internal()
     : _dio = DiscourseDio.create(
@@ -602,6 +603,13 @@ class PreloadedDataService {
     _siteSettings = siteSettings;
   }
 
+  /// 切站：丢弃在途加载，晚到的旧站首页不能写进来。
+  void resetForSiteSwitch() {
+    _siteGeneration++;
+    _loading = false;
+    reset();
+  }
+
   void reset() {
     _clearCachedData();
     _baseUri = '';
@@ -630,6 +638,7 @@ class PreloadedDataService {
   Future<void> _loadPreloadedData() async {
     if (_loading) return;
     _loading = true;
+    final generation = _siteGeneration;
 
     try {
       // 发起 HTTP 请求获取数据
@@ -646,8 +655,10 @@ class PreloadedDataService {
         ),
       );
 
+      if (generation != _siteGeneration) return;
       final html = response.data as String;
       final parsed = await _parsePreloadedDataFromHtml(html);
+      if (generation != _siteGeneration) return;
       if (!parsed) {
         // 解析失败不可标记成功:置 _loaded 会让所有消费方拿到空数据并
         // 静默降级到接口兜底(站点改版时曾无声潜伏)。抛错让调用方走
@@ -662,7 +673,7 @@ class PreloadedDataService {
       debugPrint('[PreloadedData] 加载失败: $e');
       rethrow;
     } finally {
-      _loading = false;
+      if (generation == _siteGeneration) _loading = false;
     }
   }
 
@@ -841,12 +852,14 @@ class PreloadedDataService {
     String dataString, {
     required bool htmlEntityEncoded,
   }) async {
+    final generation = _siteGeneration;
     try {
       // 在 Isolate 中完成（可选的）HTML entity 解码 + 外层/内层 JSON 解码
       final preloaded = await compute(_decodePreloadedJsonInIsolate, [
         dataString,
         if (htmlEntityEncoded) 'entity',
       ]);
+      if (generation != _siteGeneration) return false;
       if (preloaded == null) {
         debugPrint('[PreloadedData] 预加载 JSON 解析为空');
         return false;

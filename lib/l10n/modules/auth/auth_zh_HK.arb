@@ -87,11 +87,11 @@
   "site_removeBody": "這個論壇的登錄狀態和保存的賬號密碼會被清除，筆記等本機數據保留。",
   "site_removeConfirm": "移除",
   "site_removeTitle": "移除 {siteName}？",
-  "site_switchBody": "App 會退出，重新打開後連接到這個論壇。各論壇的登錄狀態和數據互不影響。",
-  "site_switchConfirm": "切換並退出",
-  "site_switchTitle": "切換到 {siteName}？",
   "login_qrCheckFailed": "檢查失敗，請稍後重試",
   "login_qrCheckScanned": "我已掃碼",
   "login_qrNotScannedYet": "還沒有檢測到掃碼，請在對方設備完成後再試",
-  "site_removeCleanupFailed": "論壇已移除，但有些登錄數據沒能清除"
+  "site_removeCleanupFailed": "論壇已移除，但有些登錄數據沒能清除",
+  "site_switchFailed": "切換論壇失敗，請重新打開 App",
+  "site_switcherAdd": "新增論壇",
+  "site_switcherTitle": "切換論壇"
 }

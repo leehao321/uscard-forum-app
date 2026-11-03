@@ -15,10 +15,21 @@ import 'session_cookie_sentinel.dart';
 /// App-specific CookieManager.
 /// Avoids saving Set-Cookie into redirect target domains by default.
 class AppCookieManager extends Interceptor {
-  AppCookieManager(this.cookieJar, {this.saveRedirectedCookies = false});
+  AppCookieManager(CookieJar cookieJar, {this.saveRedirectedCookies = false})
+    : _jar = cookieJar,
+      _followsService =
+          CookieJarService().isInitialized &&
+          identical(cookieJar, CookieJarService().cookieJar);
 
   /// The cookie jar used to load and save cookies.
-  final CookieJar cookieJar;
+  final CookieJar _jar;
+
+  /// 用的是全局存储时跟着 [CookieJarService] 走：切站后写进新站的目录，
+  /// 否则 B 站的 `_t` 会写进 A 站的目录。
+  final bool _followsService;
+
+  CookieJar get cookieJar =>
+      _followsService ? CookieJarService().cookieJar : _jar;
 
   static const String skipCookieManagerExtraKey = 'skipCookieManager';
 

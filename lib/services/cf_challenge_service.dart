@@ -386,6 +386,13 @@ class CfChallengeService {
     }
   }
 
+  /// 切站：旧站的验证冷却不能压住新站。context 已随旧界面树卸载。
+  void resetForSiteSwitch() {
+    resetCooldown();
+    resetSessionCompatibilityDecision();
+    _context = null;
+  }
+
   void resetSessionCompatibilityDecision() {
     _sessionCompatDeclinedAt = null;
   }

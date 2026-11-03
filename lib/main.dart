@@ -110,6 +110,7 @@ import 'services/site_data_migration.dart';
 import 'services/site_registry_service.dart';
 import 'services/app_lock_service.dart';
 import 'widgets/app_lock_gate.dart';
+import 'widgets/site/site_switch_host.dart';
 import 'widgets/onboarding_gate.dart';
 import 'widgets/layout/adaptive_scaffold.dart';
 import 'widgets/layout/adaptive_navigation.dart';
@@ -573,27 +574,31 @@ Future<void> main() async {
 
   Catcher2(
     navigatorKey: navigatorKey,
-    rootWidget: ProviderScope(
-      // 禁用 Riverpod 3 默认的自动重试机制
-      // 默认会对所有失败的异步 provider 指数退避重试 10 次，
-      // 在网络不通时会造成大量无意义的重复请求
-      retry: (_, _) => null,
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        aiSharedPreferencesProvider.overrideWithValue(prefs),
-        aiDioAdapterFactoryProvider.overrideWithValue(
-          createExternalHttpAdapter,
-        ),
-        // 内置 PromptPreset 列表：在 override 函数内 watch localeProvider，
-        // locale 切换时整个 builtInPresetsProvider 重建 → 下游
-        // promptPresetListProvider 的 StateNotifier 重新构造 → preset i18n
-        // 文本随之刷新。
-        builtInPresetsProvider.overrideWith((ref) {
-          ref.watch(localeProvider);
-          return BuiltInPresetsFactory.create();
-        }),
-      ],
-      child: const MainApp(),
+    // 切站时整棵树先卸载再重建，Riverpod 状态和页面栈都不跨站。
+    rootWidget: SiteSwitchHost(
+      builder: (_) => ProviderScope(
+        key: ValueKey(SiteContext.current.id),
+        // 禁用 Riverpod 3 默认的自动重试机制
+        // 默认会对所有失败的异步 provider 指数退避重试 10 次，
+        // 在网络不通时会造成大量无意义的重复请求
+        retry: (_, _) => null,
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          aiSharedPreferencesProvider.overrideWithValue(prefs),
+          aiDioAdapterFactoryProvider.overrideWithValue(
+            createExternalHttpAdapter,
+          ),
+          // 内置 PromptPreset 列表：在 override 函数内 watch localeProvider，
+          // locale 切换时整个 builtInPresetsProvider 重建 → 下游
+          // promptPresetListProvider 的 StateNotifier 重新构造 → preset i18n
+          // 文本随之刷新。
+          builtInPresetsProvider.overrideWith((ref) {
+            ref.watch(localeProvider);
+            return BuiltInPresetsFactory.create();
+          }),
+        ],
+        child: const MainApp(),
+      ),
     ),
     debugConfig: debugConfig,
     releaseConfig: releaseConfig,
@@ -1185,7 +1190,12 @@ class _MainPageState extends ConsumerState<MainPage>
     await UpdateCheckerHelper.checkUpdateOnStartup(context, updateService);
   }
 
+  /// 这些提示每次启动一次。切站时 MainPage 会重建，不用再弹一遍。
+  static bool _startupUiTasksDone = false;
+
   Future<void> _runStartupUiTasks() async {
+    if (_startupUiTasksDone) return;
+    _startupUiTasksDone = true;
     // 启动弹窗先于剪贴板提示，避免 SnackBar 被弹窗遮挡后仍被记为已提示。
     await _autoCheckUpdate();
     if (!mounted) return;

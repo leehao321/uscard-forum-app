@@ -39,6 +39,13 @@ class AuthIssueNoticeService {
   List<String> _pendingCookieRepairNames = const [];
   PassiveLogoutAdvice? _latestPassiveLogoutAdvice;
 
+  /// 切站：旧站的提示不能弹在新站。
+  void resetForSiteSwitch() {
+    _pendingCookieRepairHint = false;
+    _pendingCookieRepairNames = const [];
+    _latestPassiveLogoutAdvice = null;
+  }
+
   Future<void> initialize(SharedPreferences prefs) async {
     if (_prefs != null) return;
     _prefs = prefs;

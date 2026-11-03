@@ -28,6 +28,15 @@ class DiscourseCookService {
   Future<bool>? _initFuture;
   bool _unavailable = false;
 
+  /// 切站：引擎里注入了旧站的地址、设置和自定义表情，下次用时重建。
+  void resetForSiteSwitch() {
+    _engine?.dispose();
+    _engine = null;
+    _initFuture = null;
+    _oneboxAttempted.clear();
+    _inlineOneboxAttempted.clear();
+  }
+
   /// 预热：编辑器打开时 fire-and-forget 调用，把「读 551K bundle + eval +
   /// init 站点数据」的开销挪到用户切预览之前。
   void warmUp() {

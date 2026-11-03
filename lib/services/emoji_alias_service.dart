@@ -82,6 +82,13 @@ class EmojiAliasService {
   /// 丢弃缓存,结束本次输入会话。
   void invalidate() => _aliases = null;
 
+  /// 切站：合法表情名也是站点的，和 [invalidate] 不同，要一起清。
+  void resetForSiteSwitch() {
+    _aliases = null;
+    _knownNames = null;
+    _inflight = null;
+  }
+
   /// 仅供测试:直接注入索引,跳过网络。
   @visibleForTesting
   void debugSetAliases(Map<String, List<String>> aliases) {

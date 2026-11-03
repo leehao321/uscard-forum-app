@@ -10,6 +10,28 @@ import 'package:fluxdo/services/site_registry_service.dart';
 import 'package:fluxdo/services/site_switch_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+class _Work implements SiteSwitchWork {
+  final switched = <String>[];
+
+  @override
+  void stopWork() {}
+
+  @override
+  Future<void> waitForUnmount() async {}
+
+  @override
+  Future<void> drainWork() async {}
+
+  @override
+  Future<Object?> prepareSite(SiteProfile site) async => null;
+
+  @override
+  void commitSite(SiteProfile site, Object? prepared) => switched.add(site.id);
+
+  @override
+  Future<void> restartWork() async {}
+}
+
 class _SpyCleaner implements SiteDataCleaner {
   final cleared = <String>[];
 
@@ -24,7 +46,7 @@ void main() {
   final custom = SiteProfile(baseUrl: 'https://example.com', title: 'Example');
   late _SpyCleaner cleaner;
   late SiteRegistryService registry;
-  late int exits;
+  late _Work work;
 
   Widget app() {
     return TranslationProvider(
@@ -38,7 +60,7 @@ void main() {
         supportedLocales: AppLocaleUtils.supportedLocales,
         home: SitesPage(
           registry: registry,
-          exitApp: () => exits++,
+          switcher: SiteSwitchController(work: work),
           siteCleaner: cleaner,
         ),
       ),
@@ -49,7 +71,7 @@ void main() {
     LocaleSettings.setLocaleSync(AppLocale.zh);
     SharedPreferences.setMockInitialValues({});
     SiteContext.debugReset();
-    exits = 0;
+    work = _Work();
     cleaner = _SpyCleaner();
     registry = SiteRegistryService();
   });
@@ -75,36 +97,18 @@ void main() {
     await tester.tap(find.text('USCard Forum'));
     await tester.pump();
     expect(find.byType(AlertDialog), findsNothing);
-    expect(exits, 0);
+    expect(work.switched, isEmpty);
   });
 
-  testWidgets('切换：确认后持久化新站并退出，本次运行不变', (tester) async {
+  testWidgets('点别的站直接切，不弹确认框', (tester) async {
     await seed(tester);
     await tester.pumpWidget(app());
 
     await tester.tap(find.text('Example'));
     await tester.pumpAndSettle();
-    expect(find.text('切换到 Example？'), findsOneWidget);
 
-    await tester.tap(find.text('切换并退出'));
-    await tester.pumpAndSettle();
-
-    expect(registry.current!.id, custom.id);
-    expect(SiteContext.current.id, SitePresets.uscard.id);
-    expect(exits, 1);
-  });
-
-  testWidgets('切换时取消，什么都不变', (tester) async {
-    await seed(tester);
-    await tester.pumpWidget(app());
-
-    await tester.tap(find.text('Example'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('取消'));
-    await tester.pumpAndSettle();
-
-    expect(registry.current!.id, SitePresets.uscard.id);
-    expect(exits, 0);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(work.switched, [custom.id]);
   });
 
   testWidgets('移除：确认后从列表消失', (tester) async {
@@ -135,35 +139,5 @@ void main() {
     await tester.tap(find.text('取消'));
     await tester.pumpAndSettle();
     expect(cleaner.cleared, isEmpty);
-  });
-
-  group('编排骨架', () {
-    test('按固定顺序执行', () async {
-      final ran = <SiteSwitchStep>[];
-      await SiteSwitchService.runNoRestartSteps({
-        for (final step in SiteSwitchStep.values)
-          step: () async => ran.add(step),
-      });
-      expect(ran, [
-        SiteSwitchStep.stopMessageBus,
-        SiteSwitchStep.clearCurrentUser,
-        SiteSwitchStep.switchCookieJar,
-        SiteSwitchStep.rebuildMainDio,
-        SiteSwitchStep.resetPreloadedData,
-        SiteSwitchStep.invalidateProviders,
-        SiteSwitchStep.resetNavigation,
-      ]);
-    });
-
-    test('缺步骤时拒绝运行，一步都不执行', () async {
-      var ran = 0;
-      await expectLater(
-        SiteSwitchService.runNoRestartSteps({
-          SiteSwitchStep.stopMessageBus: () async => ran++,
-        }),
-        throwsArgumentError,
-      );
-      expect(ran, 0);
-    });
   });
 }

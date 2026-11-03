@@ -7,6 +7,7 @@ import '../models/user.dart';
 import '../providers/discourse_providers.dart';
 import '../providers/selected_topic_provider.dart';
 import '../providers/shortcut_provider.dart';
+import '../widgets/site/site_switcher_sheet.dart';
 import '../widgets/desktop_refresh_indicator.dart';
 import '../services/discourse_cache_manager.dart';
 import 'webview_page.dart';
@@ -518,7 +519,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         ),
         children: [
           const _ProfileHeader(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: CurrentSiteChip(),
+          ),
+          const SizedBox(height: 16),
 
           if (isLoadingInitial)
             const Center(child: Padding(

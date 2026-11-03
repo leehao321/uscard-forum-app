@@ -231,6 +231,30 @@ class DiscourseService extends _DiscourseServiceBase
     _initInterceptors();
   }
 
+  /// 切站：清掉旧站的登录态和缓存，只清内存，旧站保存的用户名和 Cookie 不动。
+  ///
+  /// `_dio` 创建时固定了 baseUrl，CSRF 刷新也捏着这个实例，所以原地改。
+  /// 上一枚 `_t` 必须一起清，否则 B 站判登录失效时会拿它去试 B 站的接口。
+  void resetForSiteSwitch() {
+    _clearPreviousTTokenFallback();
+    _resetStrikes();
+    _lastRejectedSessionCandidateHash = null;
+    _lastRejectedSessionCandidateAt = null;
+    _activeProbe = null;
+    _tToken = null;
+    _username = null;
+    _credentialsLoaded = false;
+    _isLoggingOut = false;
+    _cachedUserSummary = null;
+    _cachedUserSummaryUsername = null;
+    _userSummaryCacheTime = null;
+    _activeUserRequests.clear();
+    _activeUserSummaryRequests.clear();
+    _urlCache.clear();
+    currentUserNotifier.value = null;
+    _dio.options.baseUrl = AppConstants.baseUrl;
+  }
+
   // ========== 共享工具方法 ==========
 
   /// 处理 Dio 错误

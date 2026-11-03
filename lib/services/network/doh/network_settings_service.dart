@@ -493,6 +493,17 @@ class NetworkSettingsService {
     _touch();
   }
 
+  /// 切站：内置走 ECH 的域名按站算，重新下发，不落盘。
+  Future<void> reapplyEchForCurrentSite() async {
+    final policy = EchDnsPolicy.fromJson(current.echDnsPolicy.toJson());
+    if (!policy.enabled) return;
+    notifier.value = current.copyWith(echDnsPolicy: policy);
+    _resolver.echDnsPolicy = policy;
+    _rustProxyService.configureEchDnsPolicy(policy);
+    _clearResolvedHostCache();
+    _scheduleApplyProxyState();
+  }
+
   Future<void> setEchDnsPolicy(EchDnsPolicy policy) async {
     final prefs = _prefs;
     if (prefs == null) return;

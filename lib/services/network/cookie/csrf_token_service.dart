@@ -39,6 +39,7 @@ class CsrfTokenService {
 
   /// 正在进行的 CSRF 刷新请求（防止并发重复请求，与 Discourse 前端的 activeCsrfRequest 对齐）
   Future<void>? _activeCsrfRequest;
+  int _siteGeneration = 0;
 
   /// 上次刷新失败的时刻。冷却窗口内不再重复打 /session/csrf:
   /// 被 CF 速率限制盯上时(429 挑战页),每次用户重试都再撞一次盾只会
@@ -101,13 +102,15 @@ class CsrfTokenService {
         DateTime.now().difference(lastFailureAt) < _failureCooldown) {
       return Future.value();
     }
+    final generation = _siteGeneration;
     _activeCsrfRequest ??= _fetchCsrfToken().whenComplete(() {
-      _activeCsrfRequest = null;
+      if (generation == _siteGeneration) _activeCsrfRequest = null;
     });
     return _activeCsrfRequest!;
   }
 
   Future<void> _fetchCsrfToken() async {
+    final generation = _siteGeneration;
     final dio = _dio;
     if (dio == null) {
       debugPrint('[CsrfTokenService] 主 dio 未注册,跳过 CSRF 刷新');
@@ -128,6 +131,8 @@ class CsrfTokenService {
           },
         ),
       );
+      // 切站前发出的请求：这个 token 属于旧站，不能存到新站的 key 下
+      if (generation != _siteGeneration) return;
       final csrf = _extractCsrf(response.data);
       if (csrf != null && csrf.isNotEmpty) {
         _lastFailureAt = null;
@@ -145,7 +150,7 @@ class CsrfTokenService {
         );
       }
     } on DioException catch (e) {
-      _lastFailureAt = DateTime.now();
+      if (generation == _siteGeneration) _lastFailureAt = DateTime.now();
       final statusCode = e.response?.statusCode;
       final uri = e.requestOptions.uri.toString();
       final responseText = e.response?.data?.toString();
@@ -181,7 +186,7 @@ class CsrfTokenService {
         },
       );
     } catch (e, stackTrace) {
-      _lastFailureAt = DateTime.now();
+      if (generation == _siteGeneration) _lastFailureAt = DateTime.now();
       debugPrint('[CsrfTokenService] CSRF token 刷新失败: $e');
       AppLogger.error(
         'CSRF token 刷新异常',
@@ -204,6 +209,16 @@ class CsrfTokenService {
       } catch (_) {}
     }
     return null;
+  }
+
+  /// 切站：只清内存。旧站保存的 token 还要留着，切回来继续用。
+  ///
+  /// 之后调 [init] 读新站保存的 token。
+  void resetForSiteSwitch() {
+    _siteGeneration++;
+    _csrfToken = null;
+    _lastFailureAt = null;
+    _activeCsrfRequest = null;
   }
 
   /// 重置（登出时调用）

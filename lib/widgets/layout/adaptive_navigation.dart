@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:common_ui/common_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:m3e_ui/m3e_ui.dart';
@@ -12,6 +13,7 @@ import 'package:window_manager/window_manager.dart';
 import '../../navigation/nav_action_bus.dart';
 import '../../providers/preferences_provider.dart';
 import '../../utils/platform_utils.dart';
+import '../site/site_switcher_sheet.dart';
 
 /// 导航目标项配置
 class AdaptiveDestination {
@@ -290,6 +292,12 @@ class _AdaptiveBottomNavigationState
     super.dispose();
   }
 
+  /// 长按「我的」：震动并呼出切站面板。
+  void _openSiteSwitcher() {
+    HapticFeedback.mediumImpact();
+    showSiteSwitcherSheet(context);
+  }
+
   void _cancelPendingSingleTap() {
     _pendingSingleTap?.cancel();
     _pendingSingleTap = null;
@@ -387,6 +395,7 @@ class _AdaptiveBottomNavigationState
           destinations: widget.destinations,
           labelless: labelless,
           itemHeight: itemHeight,
+          onProfileLongPress: _openSiteSwitcher,
         ),
       );
     }
@@ -401,13 +410,21 @@ class _AdaptiveBottomNavigationState
           ? NavigationDestinationLabelBehavior.alwaysHide
           : null,
       destinations: widget.destinations.map((d) {
-        return NavigationDestination(
+        final destination = NavigationDestination(
           icon: d.icon,
           selectedIcon: _ActiveDestinationIcon(
             dest: d,
             defaultIcon: d.selectedIcon,
           ),
           label: d.label,
+          // 长按切站，不能再被长按提示抢走
+          tooltip: d.id == NavEntryIds.profile ? '' : null,
+        );
+        if (d.id != NavEntryIds.profile) return destination;
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onLongPress: _openSiteSwitcher,
+          child: destination,
         );
       }).toList(),
     );
@@ -687,6 +704,7 @@ class _CapsuleNavBar extends StatefulWidget {
     required this.destinations,
     required this.labelless,
     required this.itemHeight,
+    required this.onProfileLongPress,
   });
 
   final int selectedIndex;
@@ -694,6 +712,7 @@ class _CapsuleNavBar extends StatefulWidget {
   final List<AdaptiveDestination> destinations;
   final bool labelless;
   final double itemHeight;
+  final VoidCallback onProfileLongPress;
 
   @override
   State<_CapsuleNavBar> createState() => _CapsuleNavBarState();
@@ -813,6 +832,10 @@ class _CapsuleNavBarState extends State<_CapsuleNavBar>
                             selected: i == widget.selectedIndex,
                             labelless: widget.labelless,
                             onTap: () => widget.onDestinationSelected(i),
+                            onLongPress:
+                                widget.destinations[i].id == NavEntryIds.profile
+                                ? widget.onProfileLongPress
+                                : null,
                           ),
                         ),
                     ],
@@ -838,12 +861,14 @@ class _CapsuleNavItem extends StatelessWidget {
     required this.selected,
     required this.labelless,
     required this.onTap,
+    this.onLongPress,
   });
 
   final AdaptiveDestination dest;
   final bool selected;
   final bool labelless;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -865,11 +890,13 @@ class _CapsuleNavItem extends StatelessWidget {
       role: ui.SemanticsRole.tab,
       selected: selected,
       child: Tooltip(
-        message: dest.label,
+        // 有长按动作时不显示提示，否则长按被提示抢走
+        message: onLongPress == null ? dest.label : '',
         child: InkWell(
           // 墨水跟随 pill 的 stadium 造型（pill 铺满整个条目）
           customBorder: const StadiumBorder(),
           onTap: onTap,
+          onLongPress: onLongPress,
           child: labelless
               // 无字态：图标在条目内居中
               ? Center(child: icon)

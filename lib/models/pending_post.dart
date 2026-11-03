@@ -67,6 +67,9 @@ class PendingReplyTargetRegistry {
   /// value 为 null = 送审时就是直接回复话题(与「未记录」语义不同)
   static final Map<int, int?> _targets = {};
 
+  /// 切站：待审项 ID 只在站内唯一。
+  static void clear() => _targets.clear();
+
   /// 送审当下记录回复目标(null 也要记,表示"确认是直接回复话题")
   static void record(int reviewableId, int? replyToPostNumber) {
     _targets[reviewableId] = replyToPostNumber;

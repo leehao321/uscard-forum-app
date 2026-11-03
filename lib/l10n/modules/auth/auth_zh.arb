@@ -101,17 +101,7 @@
   "site_removeBody": "这个论坛的登录状态和保存的账号密码会被清除，笔记等本机数据保留。",
   "site_removeConfirm": "移除",
   "site_removeTitle": "移除 {siteName}？",
-  "site_switchBody": "App 会退出，重新打开后连接到这个论坛。各论坛的登录状态和数据互不影响。",
-  "site_switchConfirm": "切换并退出",
-  "site_switchTitle": "切换到 {siteName}？",
   "@site_removeTitle": {
-    "placeholders": {
-      "siteName": {
-        "type": "String"
-      }
-    }
-  },
-  "@site_switchTitle": {
     "placeholders": {
       "siteName": {
         "type": "String"
@@ -121,5 +111,8 @@
   "login_qrCheckFailed": "检查失败，请稍后重试",
   "login_qrCheckScanned": "我已扫码",
   "login_qrNotScannedYet": "还没有检测到扫码，请在对方设备完成后再试",
-  "site_removeCleanupFailed": "论坛已移除，但有些登录数据没能清除"
+  "site_removeCleanupFailed": "论坛已移除，但有些登录数据没能清除",
+  "site_switchFailed": "切换论坛失败，请重新打开 App",
+  "site_switcherAdd": "添加新论坛",
+  "site_switcherTitle": "切换论坛"
 }

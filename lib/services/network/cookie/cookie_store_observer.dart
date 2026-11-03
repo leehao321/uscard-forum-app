@@ -69,6 +69,9 @@ class CookieStoreObserver {
   }
 
   /// 仅测试用。
+  /// 切站：观察过的 URL 属于旧站。
+  void clearKnownUrls() => _knownUrls.clear();
+
   @visibleForTesting
   void resetForTest() {
     _debounce?.cancel();
