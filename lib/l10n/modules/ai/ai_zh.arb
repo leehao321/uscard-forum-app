@@ -251,5 +251,18 @@
         "type": "int"
       }
     }
+  },
+  "post_translationCollapse": "收起翻译",
+  "post_translationFailed": "翻译失败，点这里重试",
+  "post_translationLoading": "翻译中…",
+  "post_translationSameLanguage": "原文已是{language}，点这里收起",
+  "post_translationSource": "Google 翻译",
+  "post_translationTruncated": "帖子太长，只翻译了开头",
+  "@post_translationSameLanguage": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
   }
 }

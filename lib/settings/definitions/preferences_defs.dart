@@ -254,26 +254,6 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
           },
           onTap: (context, ref) => _showAiPostReviewModelSheet(context, ref),
         ),
-        SwitchModel(
-          id: 'aiTranslation',
-          title: l10n.ai_translationEnabled,
-          subtitle: l10n.ai_translationEnabledDesc,
-          icon: Symbols.translate_rounded,
-          getValue: (ref) =>
-              ref.watch(preferencesProvider).aiTranslationEnabled,
-          onChanged: (ref, v) async {
-            final notifier = ref.read(preferencesProvider.notifier);
-            await notifier.setAiTranslationEnabled(v);
-            if (!v) return;
-            final prefs = ref.read(preferencesProvider);
-            if (prefs.aiTranslationModelKey != null) return;
-            final selected = ref.read(aiTranslationSelectedModelProvider);
-            if (selected == null) return;
-            await notifier.setAiTranslationModelKey(
-              buildAiModelKey(selected.provider.id, selected.model.id),
-            );
-          },
-        ),
         ActionModel(
           id: 'aiTranslationTargetLanguage',
           title: l10n.ai_translationTargetLanguage,
@@ -291,20 +271,6 @@ List<SettingsGroup> buildPreferencesGroups(BuildContext context) {
           },
           onTap: (context, ref) =>
               _showAiTranslationLanguagePicker(context, ref),
-        ),
-        ActionModel(
-          id: 'aiTranslationModel',
-          title: l10n.ai_translationModel,
-          icon: Symbols.psychology_alt_rounded,
-          getDynamicSubtitle: (ref) {
-            final selected = ref.watch(aiTranslationSelectedModelProvider);
-            if (selected == null) {
-              return l10n.ai_translationModelNotSelected;
-            }
-            final modelName = selected.model.name ?? selected.model.id;
-            return '${selected.provider.name} / $modelName';
-          },
-          onTap: (context, ref) => _showAiTranslationModelSheet(context, ref),
         ),
       ],
     ),
@@ -505,38 +471,6 @@ void _showAiTranslationLanguagePicker(BuildContext context, WidgetRef ref) {
         .read(preferencesProvider.notifier)
         .setAiTranslationTargetLanguage(selected.isEmpty ? null : selected);
   });
-}
-
-Future<void> _showAiTranslationModelSheet(
-  BuildContext context,
-  WidgetRef ref,
-) async {
-  final allModels = ref.read(aiPostReviewAvailableModelsProvider);
-  if (allModels.isEmpty) {
-    ToastService.showInfo(context.l10n.aiPostReview_noAvailableModel);
-    return;
-  }
-
-  final current =
-      ref.read(aiTranslationSelectedModelProvider) ?? allModels.first;
-  final selected = await showAiModelSelectSheet(
-    context: context,
-    allModels: allModels,
-    current: current,
-    mode: PromptType.text,
-  );
-  if (!context.mounted || selected == null) return;
-
-  if (!selected.model.output.contains(Modality.text)) {
-    ToastService.showInfo(context.l10n.aiPostReview_chooseTextModel);
-    return;
-  }
-
-  await ref
-      .read(preferencesProvider.notifier)
-      .setAiTranslationModelKey(
-        buildAiModelKey(selected.provider.id, selected.model.id),
-      );
 }
 
 typedef _TopicFilterDialogResult = ({List<String> keywords, bool wholeWord});

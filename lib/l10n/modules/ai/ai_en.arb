@@ -230,5 +230,11 @@
         "type": "int"
       }
     }
-  }
+  },
+  "post_translationCollapse": "Hide translation",
+  "post_translationFailed": "Translation failed. Tap to retry",
+  "post_translationLoading": "Translating…",
+  "post_translationSameLanguage": "Already in {language}. Tap to hide",
+  "post_translationSource": "Google Translate",
+  "post_translationTruncated": "Post too long, only the beginning was translated"
 }

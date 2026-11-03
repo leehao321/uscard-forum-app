@@ -251,5 +251,11 @@
         "type": "int"
       }
     }
-  }
+  },
+  "post_translationCollapse": "收起翻譯",
+  "post_translationFailed": "翻譯失敗，點這裡重試",
+  "post_translationLoading": "翻譯中…",
+  "post_translationSameLanguage": "原文已是{language}，點這裡收起",
+  "post_translationSource": "Google 翻譯",
+  "post_translationTruncated": "貼文太長，只翻譯了開頭"
 }

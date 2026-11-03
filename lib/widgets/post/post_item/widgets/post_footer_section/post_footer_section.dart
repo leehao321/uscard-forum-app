@@ -9,7 +9,7 @@ import '../../../../../l10n/s.dart';
 import '../../../../../models/topic.dart';
 import '../../../../../modules/ldc_reward/ldc_reward.dart';
 import '../../../../../providers/discourse_providers.dart';
-import '../../../../../providers/ai_translation_provider.dart';
+import '../../../../../providers/post_translation_provider.dart';
 import '../../../../../providers/preferences_provider.dart';
 import '../../../../../utils/blocked_user_filter.dart';
 import '../../../../../utils/share_utils.dart';
@@ -36,7 +36,7 @@ import '../post_solution_banner.dart';
 import '../../../../post/post_replies_sheet.dart';
 import '../../../../../utils/dialog_utils.dart';
 import '../../../../common/app_bottom_sheet.dart';
-import '../../../../ai/ai_translation_sheet.dart';
+import '../post_translation_block.dart';
 import '../../../../../services/site_context.dart';
 
 part 'actions/bookmark_actions.dart';
@@ -330,6 +330,7 @@ class _PostFooterSectionState extends ConsumerState<PostFooterSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          PostTranslationBlock(post: widget.post),
           PostLinks(
             linkCounts: widget.post.linkCounts,
             // select:整 provider watch 会让任何偏好变化都重建所有在屏帖脚

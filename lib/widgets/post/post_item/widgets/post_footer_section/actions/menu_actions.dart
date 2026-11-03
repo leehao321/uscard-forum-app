@@ -112,23 +112,24 @@ extension _PostFooterMenuActions on _PostFooterSectionState {
                     widget.onEdit!();
                   },
                 ),
-              // 菜单点击后才构建，用 read 避免给楼层常驻树增加监听。
-              if (ref.read(preferencesProvider).aiTranslationEnabled &&
-                  ref.read(aiTranslationSelectedModelProvider) != null)
-                ListTile(
-                  leading: Icon(
-                    Symbols.translate_rounded,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                  title: Text(context.l10n.ai_translationMenuLabel),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    showAiTranslationSheet(
-                      context,
-                      cookedHtml: widget.post.cooked,
-                    );
-                  },
+              ListTile(
+                leading: Icon(
+                  Symbols.translate_rounded,
+                  color: theme.colorScheme.onSurface,
                 ),
+                // 菜单点击后才构建，用 read 避免给楼层常驻树增加监听。
+                title: Text(
+                  ref.read(postTranslationProvider(widget.post.id)).isVisible
+                      ? context.l10n.post_translationCollapse
+                      : context.l10n.ai_translationMenuLabel,
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  ref
+                      .read(postTranslationProvider(widget.post.id).notifier)
+                      .toggle(widget.post.cooked);
+                },
+              ),
               ListTile(
                 leading: Icon(
                   Symbols.share_rounded,
