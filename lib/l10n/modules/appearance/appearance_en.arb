@@ -186,7 +186,7 @@
   "appearance_uiScale": "Interface scale",
   "appearance_uiScaleComfortable": "Comfy 110%",
   "appearance_uiScaleCompact": "Compact 90%",
-  "appearance_uiScaleDesc": "Scales cards, avatars, icons and text together. Larger sizes fit less on screen.",
+  "appearance_uiScaleDesc": "Adjusts text, icons and cards together. Larger sizes show less content.",
   "appearance_uiScaleLarge": "Large 120%",
-  "appearance_uiScaleStandard": "Standard"
+  "appearance_uiScaleStandard": "Standard 100%"
 }

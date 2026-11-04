@@ -186,9 +186,9 @@
   "appearance_uiScale": "界面缩放",
   "appearance_uiScaleComfortable": "舒适 110%",
   "appearance_uiScaleCompact": "紧凑 90%",
-  "appearance_uiScaleDesc": "卡片、头像、图标和文字一起缩放。放大后屏幕能显示的内容会变少。",
+  "appearance_uiScaleDesc": "同步调整文字、图标与卡片大小；放大后可显示的内容更少。",
   "appearance_uiScaleLarge": "放大 120%",
-  "appearance_uiScaleStandard": "标准",
+  "appearance_uiScaleStandard": "标准 100%",
   "@appearance_fontCustomNamed": {
     "placeholders": {
       "name": {

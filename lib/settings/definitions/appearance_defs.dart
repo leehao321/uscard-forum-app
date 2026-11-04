@@ -26,6 +26,8 @@ import '../../theme/app_palettes.dart';
 import '../../theme/theme_resolver.dart';
 import '../../utils/dialog_utils.dart';
 import '../../widgets/common/app_bottom_sheet.dart';
+import '../../widgets/settings/font_choice_card.dart';
+import '../../widgets/settings/ui_scale_segmented.dart';
 import '../../utils/platform_utils.dart';
 import '../../utils/seed_color_scheme.dart';
 import '../settings_model.dart';
@@ -269,66 +271,49 @@ List<SettingsGroup> buildAppearanceGroups(BuildContext context) {
     ),
 
     // ── 字体 ──────────────────────────────────────────────────────
+    // 选项和「导入字体」在同一张卡片里，所以不用分段卡片，由 FontChoiceCard 自己画。
+    // 搜索靠标题和副标题匹配：副标题放「导入字体」，搜它也能定位到这里。
     SettingsGroup(
       title: l10n.appearance_font,
       icon: Symbols.font_download_rounded,
+      wrapInCard: false,
       items: [
         CustomModel(
           id: 'font',
           title: l10n.appearance_font,
+          subtitle: l10n.appearance_fontImport,
           builder: (context, ref) {
             final fontFamily = ref.watch(
               themeProvider.select((s) => s.fontFamily),
             );
             final l10n = context.l10n;
-            final options = <(String, AppFontFamily)>[
-              (l10n.appearance_fontSystem, AppFontFamily.system),
-              ('MiSans', AppFontFamily.miSans),
-              if (CustomFontService.current != null)
-                (
-                  l10n.appearance_fontCustomNamed(
-                    CustomFontService.current!.displayName,
-                  ),
-                  AppFontFamily.custom,
+            final custom = CustomFontService.current;
+            return FontChoiceCard<AppFontFamily>(
+              selected: fontFamily,
+              choices: [
+                FontChoice(
+                  value: AppFontFamily.system,
+                  label: l10n.appearance_fontSystem,
                 ),
-            ];
-
-            return RadioGroup<AppFontFamily>(
-              groupValue: fontFamily,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(themeProvider.notifier).setFontFamily(value);
-                }
-              },
-              child: Column(
-                children: [
-                  for (final (label, ff) in options)
-                    RadioListTile<AppFontFamily>(
-                      title: Text(
-                        label,
-                        style: switch (ff) {
-                          AppFontFamily.miSans => const TextStyle(
-                            fontFamily: 'MiSans',
-                          ),
-                          AppFontFamily.custom => TextStyle(
-                            fontFamily: CustomFontService.current?.family,
-                          ),
-                          AppFontFamily.system => null,
-                        },
-                      ),
-                      value: ff,
-                    ),
-                ],
-              ),
+                const FontChoice(
+                  value: AppFontFamily.miSans,
+                  label: 'MiSans',
+                  fontFamily: 'MiSans',
+                ),
+                if (custom != null)
+                  FontChoice(
+                    value: AppFontFamily.custom,
+                    label: l10n.appearance_fontCustomNamed(custom.displayName),
+                    fontFamily: custom.family,
+                  ),
+              ],
+              onSelected: (value) =>
+                  ref.read(themeProvider.notifier).setFontFamily(value),
+              importTitle: l10n.appearance_fontImport,
+              importSubtitle: l10n.appearance_fontImportDesc,
+              onImport: () => _importCustomFont(context, ref),
             );
           },
-        ),
-        ActionModel(
-          id: 'customFontImport',
-          title: l10n.appearance_fontImport,
-          subtitle: l10n.appearance_fontImportDesc,
-          icon: Symbols.upload_file_rounded,
-          onTap: _importCustomFont,
         ),
       ],
     ),
@@ -2398,29 +2383,28 @@ class _UiScaleSelector extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       child: ValueListenableBuilder<double>(
         valueListenable: AppUiScale.factor,
         builder: (context, scale, _) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SegmentedButton<double>(
-              showSelectedIcon: false,
-              segments: [
-                ButtonSegment(value: 0.9, label: Text(l10n.appearance_uiScaleCompact)),
-                ButtonSegment(value: 1.0, label: Text(l10n.appearance_uiScaleStandard)),
-                ButtonSegment(value: 1.1, label: Text(l10n.appearance_uiScaleComfortable)),
-                ButtonSegment(value: 1.2, label: Text(l10n.appearance_uiScaleLarge)),
+            UiScaleSegmentedControl(
+              value: scale,
+              options: [
+                (value: 0.9, label: l10n.appearance_uiScaleCompact),
+                (value: 1.0, label: l10n.appearance_uiScaleStandard),
+                (value: 1.1, label: l10n.appearance_uiScaleComfortable),
+                (value: 1.2, label: l10n.appearance_uiScaleLarge),
               ],
-              selected: {scale},
-              onSelectionChanged: (selected) => AppUiScale.set(
-                ref.read(sharedPreferencesProvider),
-                selected.first,
-              ),
+              onChanged: (value) =>
+                  AppUiScale.set(ref.read(sharedPreferencesProvider), value),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(
-              l10n.appearance_uiScaleDesc,
+              // 说明在手机宽度上会折行，不处理的话末尾会剩一个「少。」。在分号处断开，
+              // 两行长度接近；没有分号的语言不受影响。
+              l10n.appearance_uiScaleDesc.replaceFirst('；', '；\n'),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

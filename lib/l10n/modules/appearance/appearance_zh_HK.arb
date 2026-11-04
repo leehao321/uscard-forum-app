@@ -186,7 +186,7 @@
   "appearance_uiScale": "介面縮放",
   "appearance_uiScaleComfortable": "舒適 110%",
   "appearance_uiScaleCompact": "緊湊 90%",
-  "appearance_uiScaleDesc": "卡片、頭像、圖示和文字一起縮放。放大後螢幕能顯示的內容會變少。",
+  "appearance_uiScaleDesc": "同步調整文字、圖示與卡片大小；放大後可顯示的內容更少。",
   "appearance_uiScaleLarge": "放大 120%",
-  "appearance_uiScaleStandard": "標準"
+  "appearance_uiScaleStandard": "標準 100%"
 }
