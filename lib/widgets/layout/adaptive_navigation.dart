@@ -475,8 +475,10 @@ abstract final class _CapsuleMetrics {
   /// 带字态 item 基准高
   static const double itemHeightLabeled = 48;
 
-  /// 无字态 item 高（图标 24 + 上下各 8，收成接近正圆的选中 pill）
-  static const double itemHeightLabelless = 40;
+  /// 无字态 item 高（图标 24 + 上下各 10，收成接近正圆的选中 pill）。
+  ///
+  /// 条目本身就是点击区，高度不能低于 44（槽宽下限 [minSlotWidth] 已 ≥ 44）。
+  static const double itemHeightLabelless = 44;
 
   /// 图标尺寸（与既有 Rail / NavigationBar 同轴）
   static const double iconSize = 24;

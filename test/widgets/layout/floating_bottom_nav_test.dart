@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// 悬浮胶囊底栏的几何与选中态回归。
 ///
-/// 几何：item 高 48（无字 40）+ 内边距 4×2，距屏底 8、距左右 12。
+/// 几何：item 高 48（无字 44）+ 内边距 4×2，距屏底 8、距左右 12。
 /// 比 Telegram 的 56 紧凑 —— 参考设计实测 pill 高 ≈36dp，
 /// 悬浮形态的关键是「压实」。
 void main() {
@@ -122,10 +122,32 @@ void main() {
     );
   });
 
-  testWidgets('无字态胶囊收到 48 高', (tester) async {
+  testWidgets('无字态胶囊收到 52 高', (tester) async {
     await pumpBar(tester, labelless: true);
-    expect(capsuleOf(tester).size.height, 48, reason: 'item 40 + inset 4×2');
+    expect(capsuleOf(tester).size.height, 52, reason: 'item 44 + inset 4×2');
   });
+
+  for (final labelless in [false, true]) {
+    for (final scale in [1.0, 2.0]) {
+      testWidgets(
+        '每个条目的点击区不小于 44×44（${labelless ? '无字' : '带字'}态，字号 $scale 倍）',
+        (tester) async {
+          await pumpBar(tester, labelless: labelless, textScale: scale);
+          final items = find.descendant(
+            of: find.byType(AdaptiveBottomNavigation),
+            matching: find.byType(InkWell),
+          );
+          expect(items, findsNWidgets(5));
+          for (var i = 0; i < 5; i++) {
+            final size = tester.getSize(items.at(i));
+            expect(size.height, greaterThanOrEqualTo(44), reason: '第 $i 项高度');
+            expect(size.width, greaterThanOrEqualTo(44), reason: '第 $i 项宽度');
+          }
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
 
   testWidgets('大字号下带字态高度上浮，不裁标签', (tester) async {
     await pumpBar(tester, labelless: false, textScale: 2.0);
@@ -139,7 +161,7 @@ void main() {
 
   testWidgets('无字态高度不随字号变化', (tester) async {
     await pumpBar(tester, labelless: true, textScale: 2.0);
-    expect(capsuleOf(tester).size.height, 48);
+    expect(capsuleOf(tester).size.height, 52);
   });
 
   testWidgets('宽屏不铺满：胶囊宽度受上限约束并居中', (tester) async {
