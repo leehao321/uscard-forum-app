@@ -298,7 +298,11 @@ void main() {
         stage == '创建目录' ? 'createDirectory' : 'reserveFile',
       );
       expect(failure['osErrorCode'], stage == '创建目录' ? isNotNull : 1);
-      expect(failure['directory'], endsWith('Documents/Downloads'));
+      // Windows 上路径分隔符是反斜杠：统一成 / 再比较，断言不变
+      expect(
+        (failure['directory'] as String).replaceAll(r'\', '/'),
+        endsWith('Documents/Downloads'),
+      );
       expect(failure['stackTrace'], isNotEmpty);
       await tester.pump(const Duration(seconds: 4));
       await tester.pumpAndSettle();

@@ -81,11 +81,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('生成测试音频(debug)'), findsOneWidget);
-    // runAsync:合成写文件是真实 IO
+    // runAsync:合成写文件是真实 IO。Windows/Linux 还会先经
+    // FfmpegProcessTranscoder 探测(where/which)并在有 ffmpeg 时真实转码,
+    // 耗时随机器而定 → 轮询到进入 recorded 态为止,超时交给下方断言报错
     await tester.runAsync(() async {
       await tester.tap(find.text('生成测试音频(debug)'));
       await tester.pump();
-      await Future<void>.delayed(const Duration(milliseconds: 300));
+      final deadline = DateTime.now().add(const Duration(seconds: 30));
+      while (find.text('发送').evaluate().isEmpty &&
+          DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await tester.pump();
+      }
     });
     await tester.pumpAndSettle();
 

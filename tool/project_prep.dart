@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import '_workspace_cli.dart';
@@ -7,6 +8,7 @@ const _certDerPath = 'core/doh_proxy/certs/ca.der';
 const _assetCertPath = 'assets/certs/proxy_ca.pem';
 const _androidCertPath = 'android/app/src/main/res/raw/proxy_ca.der';
 const _androidKeyPropertiesPath = 'android/key.properties';
+const _quickJsTestLibraryName = 'quickjs_c_bridge.dll';
 
 Future<void> main(List<String> args) async {
   enterWorkspaceRoot();
@@ -20,6 +22,7 @@ Future<void> main(List<String> args) async {
       return;
     case 'test':
       await _prepareApp(includeCerts: false);
+      _ensureQuickJsTestLibrary();
       return;
     case 'certs':
       await _ensureProxyCertResources();
@@ -96,6 +99,59 @@ Future<void> _ensureProxyCertResources() async {
   for (final path in syncedPaths) {
     stdout.writeln('   - $path');
   }
+}
+
+/// Windows 宿主机测试（FLUTTER_TEST=true）下 flutter_js 按裸文件名
+/// `DynamicLibrary.open('quickjs_c_bridge.dll')` 加载 QuickJS，没有
+/// `flutter build windows` 的产物目录可找；flutter_tester 的工作目录是仓库根，
+/// 而 LoadLibrary 会搜索当前目录，所以把包里自带的 DLL 同步到仓库根。
+void _ensureQuickJsTestLibrary() {
+  if (!Platform.isWindows) {
+    return;
+  }
+
+  final packageRoot = _resolvePackageRoot('flutter_js');
+  if (packageRoot == null) {
+    stderr.writeln('!! package_config 中没有 flutter_js，跳过 QuickJS 测试库同步。');
+    return;
+  }
+
+  final source = File(
+    '${packageRoot.path}/windows/shared/$_quickJsTestLibraryName',
+  );
+  if (!source.existsSync()) {
+    stderr.writeln('!! flutter_js 包内缺少 ${source.path}，跳过 QuickJS 测试库同步。');
+    return;
+  }
+
+  if (_syncIfNeeded(source, File(_quickJsTestLibraryName))) {
+    stdout.writeln('==> 已同步 QuickJS 测试库: $_quickJsTestLibraryName');
+  }
+}
+
+Directory? _resolvePackageRoot(String packageName) {
+  final configFile = File('.dart_tool/package_config.json');
+  if (!configFile.existsSync()) {
+    return null;
+  }
+
+  final config = jsonDecode(configFile.readAsStringSync());
+  if (config is! Map || config['packages'] is! List) {
+    return null;
+  }
+
+  for (final package in config['packages'] as List) {
+    if (package is! Map || package['name'] != packageName) {
+      continue;
+    }
+    final rootUri = package['rootUri'];
+    if (rootUri is! String) {
+      return null;
+    }
+    // rootUri 可能是绝对 file URI，也可能相对于 package_config.json 所在目录
+    return Directory.fromUri(configFile.absolute.uri.resolve(rootUri));
+  }
+  return null;
 }
 
 bool _syncIfNeeded(File source, File target) {

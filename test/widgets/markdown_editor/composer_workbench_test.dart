@@ -17,6 +17,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxdo/l10n/s.dart';
 import 'package:fluxdo/models/category.dart';
 import 'package:fluxdo/models/emoji.dart';
+import 'package:fluxdo/models/user.dart';
+import 'package:fluxdo/providers/core_providers.dart';
 import 'package:fluxdo/providers/emoji_provider.dart';
 import 'package:fluxdo/providers/theme_provider.dart';
 import 'package:fluxdo/providers/preferences_provider.dart';
@@ -106,6 +108,7 @@ Future<void> _pump(
         emojiGroupsProvider.overrideWith(
           (ref) => Stream.value(<String, List<Emoji>>{}),
         ),
+        currentUserProvider.overrideWith(_PreloadedCurrentUser.new),
       ],
       child: TranslationProvider(
         child: MaterialApp(
@@ -145,6 +148,16 @@ Future<void> _pump(
     ),
   );
   await tester.pump();
+}
+
+/// 与真实 provider 的首值相同（预加载用户），但不在后台刷新 /u/tester.json。
+/// 那条请求在测试里只会拿到 HttpOverrides 的 400，却要经过按真实时间限速的
+/// RequestSchedulerInterceptor（3 秒 6 次）：用例跑得快时超额排队，重调度
+/// Timer 在假时间里一路续到用例结束，恰好在跑的用例就报 Timer 未清理；
+/// 全量测试时机器负载决定轮到哪一个（曾在上传卡片的视频/音频两项间轮换）。
+class _PreloadedCurrentUser extends CurrentUserNotifier {
+  @override
+  User? build() => User.fromJson(PreloadedDataService().currentUserSync!);
 }
 
 class _TableFixtureCodec extends SemanticComposerCodec {

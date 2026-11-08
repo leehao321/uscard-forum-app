@@ -283,7 +283,8 @@ void main() {
       (entry) => entry['tag'] == 'LogExport',
     );
     expect(failure['stage'], 'writeExportFile');
-    expect(failure['sourcePath'], blocked.path);
+    // 实现用 `/` 拼接文件名，Windows 上与 p.join 的 `\` 只差分隔符
+    expect(p.normalize(failure['sourcePath'] as String), blocked.path);
     expect(failure['osErrorCode'], isNotNull);
     expect(failure['stackTrace'], isNotEmpty);
     expect(nativeCalls, isEmpty);

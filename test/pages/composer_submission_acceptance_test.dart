@@ -210,7 +210,17 @@ void main() {
           ),
         ),
       );
-      addTearDown(() => directory.delete(recursive: true));
+      addTearDown(() async {
+        try {
+          await directory.delete(recursive: true);
+        } on FileSystemException catch (error) {
+          // 上传弹框的 Image.file 经引擎 ImmutableBuffer.fromFilePath 内存映射
+          // 图片，缓冲要等 GC 才释放；Windows 不允许删除仍被映射的文件
+          // （ERROR_SHARING_VIOLATION=32），macOS/Linux 可以。只是临时目录
+          // 清理失败，留给系统回收，不影响上面的断言。
+          if (!Platform.isWindows || error.osError?.errorCode != 32) rethrow;
+        }
+      });
       const picker = MethodChannel('plugins.flutter.io/image_picker');
       var picked = 0;
       tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(picker, (

@@ -27,7 +27,8 @@ void main() {
 
     for (final entity in Directory('lib').listSync(recursive: true)) {
       if (entity is! File || !entity.path.endsWith('.dart')) continue;
-      final path = entity.path;
+      // 豁免清单按仓库相对的 `/` 路径书写，Windows 扫出的是 `\`
+      final path = entity.path.replaceAll(Platform.pathSeparator, '/');
       if (exempt.containsKey(path)) continue;
 
       final src = entity.readAsStringSync();

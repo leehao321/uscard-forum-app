@@ -56,6 +56,9 @@ app.*.map.json
 # PDB debug files
 *.pdb
 
+# Windows 宿主机测试加载的 QuickJS 动态库（由 tool/project_prep.dart test 从 flutter_js 包同步）
+/quickjs_c_bridge.dll
+
 # Android JNI libraries (generated from Rust)
 android/app/src/main/jniLibs/
 
