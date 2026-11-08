@@ -93,15 +93,29 @@ class WebViewSettings {
   static Future<ServerTrustAuthResponse?> handleServerTrustAuthRequest(
     URLAuthenticationChallenge challenge,
   ) async {
-    // Android/macOS: gateway MITM 模式下放行代理 CA 证书。
-    // iOS: 使用隧道模式（非 MITM），不会触发代理 CA 信任问题。
-    if (NetworkSettingsService.instance.isGatewayMode) {
+    if (proceedsUntrustedServerCertificate(
+      gatewayMode: NetworkSettingsService.instance.isGatewayMode,
+      isIOS: Platform.isIOS,
+    )) {
       return ServerTrustAuthResponse(
         action: ServerTrustAuthResponseAction.PROCEED,
       );
     }
     return null;
   }
+
+  /// 系统验证没通过的服务器证书，要不要放行。
+  ///
+  /// 放行时不看证书是谁签的，所以放行等于不验证：开着 DoH 时，假冒网站的证书也会被接受。
+  /// - iOS：一律不放行，交给系统按正常规则处理。iOS 用隧道模式（非 MITM），网页看到的是
+  ///   网站自己的证书；代理自己签发的证书已经由原生层（DohProxyCertHandler，把本机生成的
+  ///   CA 加进信任锚点再评估）放行，走到这里的都是系统和本机 CA 都不认的证书。
+  /// - Android / macOS / Windows：gateway MITM 模式下照旧放行（上游原有行为，这里不改）。
+  @visibleForTesting
+  static bool proceedsUntrustedServerCertificate({
+    required bool gatewayMode,
+    required bool isIOS,
+  }) => gatewayMode && !isIOS;
 
   /// Headless WebView 配置（后台同步用，轻量）
   /// 用于 CsrfTokenService、WebViewHttpAdapter、会话 bootstrap 等
