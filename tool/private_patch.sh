@@ -107,7 +107,9 @@ tree_without_private() {
   local rev="$1" idx tree
   idx="${TMPDIR:-/tmp}/pp-idx.$$.$RANDOM"
   GIT_INDEX_FILE="$idx" git read-tree "$rev"
-  GIT_INDEX_FILE="$idx" git rm -r -q --cached --ignore-unmatch private >/dev/null
+  # -f：这是临时索引，只去掉索引里的条目。不加的话，git 会拿它和当前工作区、HEAD 比，
+  # 推送前 HEAD 已经是新补丁、私有分支里还是上一份补丁，git 会拒绝去掉，private/ 就混进比较
+  GIT_INDEX_FILE="$idx" git rm -r -q -f --cached --ignore-unmatch private >/dev/null
   tree="$(GIT_INDEX_FILE="$idx" git write-tree)"
   rm -f "$idx"
   echo "$tree"
@@ -186,7 +188,7 @@ cmd_check() {
   git -c core.autocrlf=false worktree add --detach -q "$wt" "$BASE_BRANCH"
   ( cd "$wt" && do_apply "$src" )
   git -c core.autocrlf=false -C "$wt" add -A
-  git -C "$wt" rm -r -q --cached --ignore-unmatch private >/dev/null
+  git -c core.autocrlf=false -C "$wt" rm -r -q -f --cached --ignore-unmatch private >/dev/null
   local got want
   got="$(git -C "$wt" write-tree)"
   want="$(tree_without_private "$PRIVATE_BRANCH")"
