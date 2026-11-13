@@ -7,6 +7,9 @@
   python tool/private_release.py prepare [--version 1.4.4] [--dry-run]   本地准备，不推送
   python tool/private_release.py push [--check-only]                    推送并触发构建（--check-only 只验补丁，不构建）
   python tool/private_release.py fetch [RUN_ID] [--expect 词1,词2]       等构建结束，下载、解密、验包
+  python tool/private_release.py push --walk [--only shell]            推送并只跑模拟器走查（不打包）
+  python tool/private_release.py walk [--only shell]                   不推送，用远端现在的补丁再跑一次模拟器走查
+  python tool/private_release.py fetch-walk [RUN_ID]                   等走查结束，下载、解密、解开截图和报告
   python tool/private_release.py self-test                              自测里面的小函数
 
 前提：
@@ -47,6 +50,8 @@ PRIVATE = os.environ.get('PRIVATE_BRANCH', 'fluxdo-shell-private')
 WORKFLOW = 'ios-unsigned.yaml'
 ARTIFACT = 'pulse-flow-unsigned-ipa-encrypted'
 LOG_ARTIFACT = 'pulse-flow-build-log-encrypted'
+WALK_WORKFLOW = 'ios-walk.yaml'
+WALK_ARTIFACT = 'pulse-flow-walk-encrypted'
 APP_NAME = 'Pulse Flow'
 BUNDLE_ID = 'com.hao.pulseflow'
 OLD_BUNDLE_ID = b'com.hao.uscard'
@@ -419,30 +424,124 @@ def cmd_push(a):
     run(['git', 'push', 'origin', BASE], stream=True)
     head = git('rev-parse', 'HEAD')
 
+    if a.walk:
+        return start_walk(slug, head, a.only)
+
     step('触发构建')
+    fields = ['with_private=true'] + (['check_only=true'] if a.check_only else [])
+    run_id = trigger(slug, WORKFLOW, head, fields)
+    state_path().write_text(str(run_id), encoding='utf-8')
+    ok('运行 %s（%s）' % (run_id, '只验补丁' if a.check_only else '完整构建'))
+    print('\n下一步：python tool/private_release.py fetch %s' % run_id)
+    return 0
+
+
+def trigger(slug, workflow, head, fields):
+    """触发 workflow_dispatch，找到这次的运行编号"""
     t0 = time.time()
-    args = ['workflow', 'run', WORKFLOW, '--repo', slug, '--ref', BASE, '-f', 'with_private=true']
-    if a.check_only:
-        args += ['-f', 'check_only=true']
+    args = ['workflow', 'run', workflow, '--repo', slug, '--ref', BASE]
+    for f in fields:
+        args += ['-f', f]
     gh(*args)
-    run_id = None
     for _ in range(30):
         time.sleep(3)
-        rows = json.loads(gh('run', 'list', '--repo', slug, '--workflow', WORKFLOW, '--branch', BASE,
+        rows = json.loads(gh('run', 'list', '--repo', slug, '--workflow', workflow, '--branch', BASE,
                              '--event', 'workflow_dispatch', '--limit', '5',
                              '--json', 'databaseId,headSha,createdAt'))
         for r in rows:
             created = time.mktime(time.strptime(r['createdAt'], '%Y-%m-%dT%H:%M:%SZ')) - time.timezone
             if r['headSha'] == head and created >= t0 - 60:
-                run_id = r['databaseId']
-                break
-        if run_id:
-            break
+                return r['databaseId']
+    die('触发了，但没找到对应的运行。到 Actions 页面看一下')
+
+
+# ---------- 模拟器走查 ----------
+
+def walk_state_path():
+    return SECRET_DIR / 'last_walk_run.txt'
+
+
+def start_walk(slug, head, only):
+    step('触发模拟器走查')
+    run_id = trigger(slug, WALK_WORKFLOW, head, ['only=%s' % (only or '')])
+    walk_state_path().write_text(str(run_id), encoding='utf-8')
+    ok('走查运行 %s%s' % (run_id, '（只走 %s）' % only if only else ''))
+    print('\n下一步：python tool/private_release.py fetch-walk %s' % run_id)
+    return 0
+
+
+def cmd_walk(a):
+    """不推送：远端分支上的补丁就是本地这一份时，再跑一次走查"""
+    os.chdir(top())
+    check_env()
+    slug = repo_slug()
+    git('fetch', 'origin', BASE)
+    head = git('rev-parse', 'HEAD')
+    if git('rev-parse', 'origin/%s' % BASE) != head:
+        die('本地 %s 和 origin 不一样：先 push --walk，或者把本地对齐了再跑' % BASE)
+    return start_walk(slug, head, a.only)
+
+
+def wait_run(slug, run_id, minutes):
+    step('等运行 %s 结束' % run_id)
+    deadline = time.time() + minutes * 60
+    last = None
+    while True:
+        info = json.loads(gh('run', 'view', str(run_id), '--repo', slug, '--json', 'status,conclusion,jobs'))
+        line = '%s/%s' % (info['status'], info.get('conclusion') or '-')
+        if line != last:
+            print('  ' + time.strftime('%H:%M:%S') + ' ' + line, flush=True)
+            last = line
+        if info['status'] == 'completed':
+            return info
+        if time.time() > deadline:
+            die('等了 %d 分钟还没结束，先停。稍后再运行一次同样的命令' % minutes)
+        time.sleep(40)
+
+
+def cmd_fetch_walk(a):
+    import tarfile
+    os.chdir(top())
+    slug = repo_slug()
+    rx = load_words()
+    run_id = a.run_id
     if not run_id:
-        die('触发了，但没找到对应的运行。到 Actions 页面看一下')
-    state_path().write_text(str(run_id), encoding='utf-8')
-    ok('运行 %s（%s）' % (run_id, '只验补丁' if a.check_only else '完整构建'))
-    print('\n下一步：python tool/private_release.py fetch %s' % run_id)
+        if not walk_state_path().exists():
+            die('没给运行编号，也没有上次走查留下的记录')
+        run_id = walk_state_path().read_text(encoding='utf-8').strip()
+    info = wait_run(slug, run_id, 100)
+    for j in info['jobs']:
+        for s in j['steps']:
+            if s['conclusion'] == 'failure':
+                print('  ✗ 失败的步骤：%s / %s' % (j['name'], s['name']))
+
+    dl = Path.home() / 'Downloads' / ('pulse-flow-walk-%s' % run_id)
+    if dl.exists() and any(dl.iterdir()):
+        die('%s 已经有内容。下载的结果要放进新的空目录，先处理掉再重来' % dl)
+    dl.mkdir(parents=True, exist_ok=True)
+    step('下载并解密')
+    gh('run', 'download', str(run_id), '--repo', slug, '-n', WALK_ARTIFACT, '-D', str(dl))
+    enc = dl / 'walk-out.tgz.enc'
+    if not enc.exists():
+        die('下载的产物里没有 walk-out.tgz.enc（补丁可能没合入）：' + str(dl))
+    run([find_bash(), 'tool/private_patch.sh', 'decrypt-ipa', str(enc)], stream=False)
+    tgz = dl / 'walk-out.tgz'
+    with tarfile.open(tgz) as t:
+        t.extractall(dl, filter='data')
+    out = dl / 'walk-out'
+    report = out / 'report.md'
+    ok('解开在 %s%s' % (out, '' if report.exists() else '（没有走查报告，看 walk.log）'))
+
+    step('公开日志扫私有词')
+    log = gh('run', 'view', str(run_id), '--repo', slug, '--log', check=False)
+    hits = scan_text(rx, '公开日志', log)
+    if hits:
+        report_hits(hits)
+    (ok if not hits else note)('公开日志命中 %d 处' % len(hits))
+    summary = re.findall(r'WALK-SUMMARY steps=\d+ failed=\d+ shots=\d+', log)
+    print('  ' + (summary[-1] if summary else '公开日志里没有走查汇总行'))
+    if hits:
+        die('公开日志里有私有词，先处理')
     return 0
 
 
@@ -620,7 +719,15 @@ def main():
     p.set_defaults(fn=cmd_prepare)
     p = sub.add_parser('push', help='推送并触发构建')
     p.add_argument('--check-only', action='store_true', help='只验补丁，不构建')
+    p.add_argument('--walk', action='store_true', help='推送后只跑模拟器走查，不打包')
+    p.add_argument('--only', default='', help='走查只走一段：shell / m170 / r169')
     p.set_defaults(fn=cmd_push)
+    p = sub.add_parser('walk', help='不推送，用远端现在的补丁再跑一次模拟器走查')
+    p.add_argument('--only', default='', help='只走一段：shell / m170 / r169')
+    p.set_defaults(fn=cmd_walk)
+    p = sub.add_parser('fetch-walk', help='等走查结束，下载、解密、解开截图和报告')
+    p.add_argument('run_id', nargs='?')
+    p.set_defaults(fn=cmd_fetch_walk)
     p = sub.add_parser('fetch', help='等构建结束，下载、解密、验包')
     p.add_argument('run_id', nargs='?')
     p.add_argument('--expect', default='', help='包里必须出现的字符串，逗号分隔')

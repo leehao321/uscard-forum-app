@@ -1,0 +1,129 @@
+name: iOS Simulator Walk
+
+# 手动触发：带私有补丁，在 iPhone 模拟器里把 App 自动点一遍、每一步截图（integration_test/，在补丁里）。
+# App 用到的服务都是测试里假的，一个请求都不发出去；这台机器上还把论坛域名指向 0.0.0.0，
+# 就算有漏网的请求（比如内嵌网页）也连不上。日志、截图、报告加密后上传，公开日志里只有一行数字。
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: '只走一段（shell / m170 / r169），空着就全走'
+        type: string
+        default: ''
+
+env:
+  FLUTTER_VERSION: '3.47.4'
+
+jobs:
+  walk:
+    runs-on: macos-latest
+    timeout-minutes: 100
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: core/doh_proxy
+          key: ios-sim
+
+      - name: Setup iOS simulator Rust targets
+        run: rustup target add aarch64-apple-ios-sim x86_64-apple-ios
+
+      - name: Configure Git for CocoaPods
+        run: git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+
+      # 第二道保险：这台机器上论坛域名解析到 0.0.0.0（模拟器用的是这台机器的网络）
+      - name: Block forum hosts
+        shell: bash
+        run: |
+          for h in www.uscardforum.com uscardforum.com linux.do www.linux.do; do
+            printf '0.0.0.0 %s\n:: %s\n' "$h" "$h" | sudo tee -a /etc/hosts >/dev/null
+          done
+          sudo dscacheutil -flushcache
+          sudo killall -HUP mDNSResponder || true
+          if curl -s --max-time 5 -o /dev/null https://www.uscardforum.com/; then
+            echo "论坛域名没屏蔽住，不跑"; exit 1
+          fi
+          echo "论坛域名已屏蔽"
+
+      - name: Apply private patch
+        shell: bash
+        env:
+          PRIVATE_PATCH_KEY: ${{ secrets.PRIVATE_PATCH_KEY }}
+        run: |
+          test -n "$PRIVATE_PATCH_KEY" || { echo "缺少 Secret PRIVATE_PATCH_KEY"; exit 1; }
+          OPENSSL="$(brew --prefix openssl@3)/bin/openssl"
+          test -x "$OPENSSL" || { brew install openssl@3 >/dev/null; OPENSSL="$(brew --prefix openssl@3)/bin/openssl"; }
+          export OPENSSL
+          bash tool/private_patch.sh apply
+          echo "OPENSSL=$OPENSSL" >> "$GITHUB_ENV"
+
+      - name: Boot iPhone simulator
+        shell: bash
+        run: |
+          udid=$(xcrun simctl list devices available | grep -E '^ +iPhone ' | grep -oE '[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}' | tail -1)
+          test -n "$udid" || { echo "没有可用的 iPhone 模拟器"; exit 1; }
+          xcrun simctl boot "$udid"
+          xcrun simctl bootstatus "$udid" -b >/dev/null
+          echo "SIM=$udid" >> "$GITHUB_ENV"
+          echo "模拟器已启动"
+
+      # 测试输出（编译错误会带出源码行）只写文件，加密后再上传；公开日志里只打印一行数字
+      - name: Run walk
+        shell: bash
+        env:
+          ONLY: ${{ inputs.only }}
+        run: |
+          mkdir -p walk-out
+          set +e
+          dart tool/flutterw.dart test integration_test/walk_test.dart -d "$SIM" \
+            --dart-define=WALK_OUT="$PWD/walk-out" ${ONLY:+--dart-define=WALK_ONLY=$ONLY} \
+            -r expanded > walk.log 2>&1
+          code=$?
+          set -e
+          if [ ! -f walk-out/report.json ]; then
+            f=$(find ~/Library/Developer/CoreSimulator/Devices/"$SIM" -path '*Documents/walk/report.json' 2>/dev/null | head -1)
+            if [ -n "$f" ]; then cp -R "$(dirname "$f")/." walk-out/; fi
+          fi
+          grep -E '^WALK-SUMMARY steps=[0-9]+ failed=[0-9]+ shots=[0-9]+$' walk.log | tail -1 || true
+          echo "测试进程退出码 $code"
+          mv walk.log walk-out/walk.log
+          test -f walk-out/report.json || { echo "没有生成走查报告"; touch walk-out/NO_REPORT; }
+
+      - name: Encrypt results
+        if: ${{ always() }}
+        shell: bash
+        env:
+          PRIVATE_PATCH_KEY: ${{ secrets.PRIVATE_PATCH_KEY }}
+        run: |
+          test -d walk-out || exit 0
+          test -n "${OPENSSL:-}" || { echo "补丁没合入，没有要上传的结果"; rm -rf walk-out; exit 0; }
+          tar -czf walk-out.tgz walk-out
+          "$OPENSSL" enc -aes-256-cbc -pbkdf2 -iter 200000 -md sha256 -salt \
+            -in walk-out.tgz -out walk-out.tgz.enc -pass env:PRIVATE_PATCH_KEY
+          rm -rf walk-out walk-out.tgz
+          ls -lh walk-out.tgz.enc
+
+      - name: Upload encrypted results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pulse-flow-walk-encrypted
+          path: walk-out.tgz.enc
+          retention-days: 7
+          if-no-files-found: ignore
