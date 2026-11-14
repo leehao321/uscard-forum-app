@@ -282,7 +282,7 @@ def cmd_prepare(a):
         elif walk_requested():
             ok('待推送的提交里已经有走查请求，不再写')
         else:
-            request_walk(a.only, a.trailer)
+            request_walk(a.only, a.trailer, verbose=a.walk_verbose)
 
     step('版本号')
     cur = read_version(Path('pubspec.yaml').read_text(encoding='utf-8'))
@@ -484,14 +484,14 @@ WALK_REQUEST = Path('.github') / 'walk-request.txt'
 NL = chr(10)
 
 
-def request_walk(only, trailer):
+def request_walk(only, trailer, verbose=False):
     """走查任务不在默认分支上，手动触发找不到它：改 walk-request.txt 并提交，推送时它自己跑"""
-    if only and only not in ('shell', 'm170', 'r169', 'ai'):
-        die('--only 只能是 shell / m170 / r169 / ai')
+    if only and only not in ('smoke', 'shell', 'm170', 'r169', 'ai'):
+        die('--only 只能是 smoke / shell / m170 / r169 / ai')
     step('写走查请求')
     lines = [l for l in WALK_REQUEST.read_text(encoding='utf-8').splitlines() if l.startswith('#')]
     stamp = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
-    lines += ['requested=%s' % stamp, 'only=%s' % (only or '')]
+    lines += ['requested=%s' % stamp, 'only=%s' % (only or ''), 'verbose=%d' % (1 if verbose else 0)]
     WALK_REQUEST.write_text(NL.join(lines) + NL, encoding='utf-8')
     git('add', str(WALK_REQUEST))
     msg = 'ci: 请求一次模拟器走查（%s%s）' % (stamp, '，只走 %s' % only if only else '')
@@ -577,11 +577,18 @@ def cmd_fetch_walk(a):
     if hits:
         report_hits(hits)
     (ok if not hits else note)('公开日志命中 %d 处' % len(hits))
-    summary = re.findall(r'WALK-SUMMARY steps=\d+ failed=\d+ shots=\d+', log)
+    summary = re.findall(r'WALK-SUMMARY steps=\d+ failed=\d+(?: errors=\d+)? shots=\d+', log)
     print('  ' + (summary[-1] if summary else '公开日志里没有走查汇总行'))
     if hits:
         die('公开日志里有私有词，先处理')
-    return 0
+
+    step('结论')
+    # 本地用解开的结果再判一次（和 CI 的 Verdict 一步同一个脚本）
+    code_file = out / 'exit_code'
+    exit_code = int(code_file.read_text().strip()) if code_file.exists() else 1
+    run(['python', '-I', 'tool/walk_verdict.py', str(out), str(exit_code)], check=False, stream=True)
+    print('  运行结论：%s' % ('通过（绿）' if info['conclusion'] == 'success' else '不通过（%s）' % info['conclusion']))
+    return 0 if info['conclusion'] == 'success' else 1
 
 
 # ---------- fetch / 验包 ----------
@@ -756,7 +763,8 @@ def main():
     p.add_argument('--allow-same-version', action='store_true', help='允许重做和上一次补丁相同的版本')
     p.add_argument('--trailer', default='', help='追加到提交信息末尾的一行（如 Co-Authored-By）')
     p.add_argument('--walk', action='store_true', help='先提交一次模拟器走查请求（推送时用 push --walk）')
-    p.add_argument('--only', default='', help='走查只走一段：shell / m170 / r169 / ai')
+    p.add_argument('--only', default='', help='走查只走一段：smoke / shell / m170 / r169 / ai')
+    p.add_argument('--walk-verbose', action='store_true', help='走查日志带上编译的详细输出（查编译问题用）')
     p.set_defaults(fn=cmd_prepare)
     p = sub.add_parser('push', help='推送并触发构建')
     p.add_argument('--check-only', action='store_true', help='只验补丁，不构建')

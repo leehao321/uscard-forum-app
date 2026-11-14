@@ -118,9 +118,12 @@ jobs:
           if [ -z "$ONLY" ] && [ -f .github/walk-request.txt ]; then
             ONLY=$(sed -n 's/^only=\([a-z0-9]*\)$/\1/p' .github/walk-request.txt | head -1)
           fi
-          echo "走查范围：${ONLY:-全部}"
+          # verbose=1：编译的详细输出（Xcode 每一步）也进日志，查编译问题用；日志照样加密
+          VERBOSE=""
+          if [ -f .github/walk-request.txt ] && grep -q '^verbose=1$' .github/walk-request.txt; then VERBOSE="-v"; fi
+          echo "走查范围：${ONLY:-全部}${VERBOSE:+（详细日志）}"
           set +e
-          dart tool/flutterw.dart test integration_test/walk_test.dart -d "$SIM" \
+          dart tool/flutterw.dart test integration_test/walk_test.dart -d "$SIM" $VERBOSE \
             --dart-define=WALK_OUT="$PWD/walk-out" ${ONLY:+--dart-define=WALK_ONLY=$ONLY} \
             -r expanded > walk.log 2>&1
           code=$?
@@ -129,10 +132,17 @@ jobs:
             f=$(find ~/Library/Developer/CoreSimulator/Devices/"$SIM" -path '*Documents/walk/report.json' 2>/dev/null | head -1)
             if [ -n "$f" ]; then cp -R "$(dirname "$f")/." walk-out/; fi
           fi
-          grep -E '^WALK-SUMMARY steps=[0-9]+ failed=[0-9]+ shots=[0-9]+$' walk.log | tail -1 || true
+          grep -E '^WALK-SUMMARY steps=[0-9]+ failed=[0-9]+ errors=[0-9]+ shots=[0-9]+$' walk.log | tail -1 || true
           echo "测试进程退出码 $code"
           mv walk.log walk-out/walk.log
           test -f walk-out/report.json || { echo "没有生成走查报告"; touch walk-out/NO_REPORT; }
+          # 结论在加密之前算（之后报告就加密了），这一步先不失败，等结果上传完再在最后一步报红
+          echo "$code" > walk-out/exit_code
+          if python3 tool/walk_verdict.py walk-out "$code" | tee walk-verdict.txt; then
+            echo "WALK_OK=1" >> "$GITHUB_ENV"
+          else
+            echo "WALK_OK=0" >> "$GITHUB_ENV"
+          fi
 
       - name: Encrypt results
         if: ${{ always() }}
@@ -156,3 +166,15 @@ jobs:
           path: walk-out.tgz.enc
           retention-days: 7
           if-no-files-found: ignore
+
+      # 结果已经加密上传了，这里按结论报红：测试失败、没有报告、有失败步骤、App 报错，任何一条都红。
+      # 前面的步骤（编译、准备原生依赖、合补丁）失败时这次运行本来就是红的，走不到这一步
+      - name: Verdict
+        shell: bash
+        run: |
+          test -f walk-verdict.txt && cat walk-verdict.txt
+          if [ "${WALK_OK:-0}" != "1" ]; then
+            echo "走查不通过（原因见上一行；详细的看加密结果里的 report.md 和 walk.log）"
+            exit 1
+          fi
+          echo "走查通过"
