@@ -6,7 +6,8 @@ name: iOS Simulator Walk
 #
 # 怎么触发：这个文件只在 fluxdo-shell 上（默认分支没有它，手动触发找不到它），所以推送里改了
 # .github/walk-request.txt（发版工具 push --walk 会改它）或者改了这个文件本身时跑一次；平时发版的推送不跑。
-# 只走一段：walk-request.txt 里写 only=shell / m170 / r169。
+# 只走一段：walk-request.txt 里写 only=smoke（三步的最小流程）/ shell / m170 / r169 / ai；verbose=1 带上编译的详细输出。
+# 结论由 tool/walk_verdict.py 判（测试失败、没有报告、有失败步骤、App 报错都算不通过），结果先加密上传，最后一步再报红。
 on:
   push:
     branches: [fluxdo-shell]
@@ -122,6 +123,11 @@ jobs:
           VERBOSE=""
           if [ -f .github/walk-request.txt ] && grep -q '^verbose=1$' .github/walk-request.txt; then VERBOSE="-v"; fi
           echo "走查范围：${ONLY:-全部}${VERBOSE:+（详细日志）}"
+          # 模拟器只编 arm64：Pods 的 Debug 不是只编当前架构，会连 x86_64 一起编，而 native_animated_image 的
+          # xcframework 和 native:prepare 编的模拟器 DOH 库都只有 arm64，x86_64 那份找不到就链接失败。
+          # 用 Xcode 的覆盖配置只在这一步生效，不改仓库里的工程文件，也不影响打包（真机）那条路。
+          printf 'EXCLUDED_ARCHS[sdk=iphonesimulator*] = i386 x86_64\n' > "$RUNNER_TEMP/walk-sim.xcconfig"
+          export XCODE_XCCONFIG_FILE="$RUNNER_TEMP/walk-sim.xcconfig"
           set +e
           dart tool/flutterw.dart test integration_test/walk_test.dart -d "$SIM" $VERBOSE \
             --dart-define=WALK_OUT="$PWD/walk-out" ${ONLY:+--dart-define=WALK_ONLY=$ONLY} \
