@@ -8,7 +8,7 @@
   python tool/private_release.py push [--check-only]                    推送并触发构建（--check-only 只验补丁，不构建）
   python tool/private_release.py fetch [RUN_ID] [--expect 词1,词2]       等构建结束，下载、解密、验包
   python tool/private_release.py push --walk [--only shell]            推送并只跑模拟器走查（不打包）
-  python tool/private_release.py walk [--only shell]                   不推送，用远端现在的补丁再跑一次模拟器走查
+  python tool/private_release.py walk                                   （走查只能随推送触发，用 push --walk）
   python tool/private_release.py fetch-walk [RUN_ID]                   等走查结束，下载、解密、解开截图和报告
   python tool/private_release.py self-test                              自测里面的小函数
 
@@ -405,6 +405,9 @@ def cmd_push(a):
     rx, _ = check_env()
     slug = repo_slug()
 
+    if a.walk:
+        request_walk(a.only, a.trailer)
+
     step('推送前最后核对')
     ahead = int(git('rev-list', '--count', 'origin/%s..%s' % (BASE, BASE)))
     if ahead == 0:
@@ -421,11 +424,12 @@ def cmd_push(a):
     ok('%d 个提交待推送，补丁与私有分支一致，扫描干净' % ahead)
 
     step('推送 %s' % BASE)
+    t0 = time.time()
     run(['git', 'push', 'origin', BASE], stream=True)
     head = git('rev-parse', 'HEAD')
 
     if a.walk:
-        return start_walk(slug, head, a.only)
+        return start_walk(slug, head, a.only, t0)
 
     step('触发构建')
     fields = ['with_private=true'] + (['check_only=true'] if a.check_only else [])
@@ -443,10 +447,15 @@ def trigger(slug, workflow, head, fields):
     for f in fields:
         args += ['-f', f]
     gh(*args)
-    for _ in range(30):
-        time.sleep(3)
+    return find_run(slug, workflow, head, 'workflow_dispatch', t0)
+
+
+def find_run(slug, workflow, head, event, t0, tries=30):
+    """找这次触发的运行编号（推送触发的要等 GitHub 登记一会儿）"""
+    for _ in range(tries):
+        time.sleep(4)
         rows = json.loads(gh('run', 'list', '--repo', slug, '--workflow', workflow, '--branch', BASE,
-                             '--event', 'workflow_dispatch', '--limit', '5',
+                             '--event', event, '--limit', '5',
                              '--json', 'databaseId,headSha,createdAt'))
         for r in rows:
             created = time.mktime(time.strptime(r['createdAt'], '%Y-%m-%dT%H:%M:%SZ')) - time.timezone
@@ -461,25 +470,40 @@ def walk_state_path():
     return SECRET_DIR / 'last_walk_run.txt'
 
 
-def start_walk(slug, head, only):
-    step('触发模拟器走查')
-    run_id = trigger(slug, WALK_WORKFLOW, head, ['only=%s' % (only or '')])
+WALK_REQUEST = Path('.github') / 'walk-request.txt'
+NL = chr(10)
+
+
+def request_walk(only, trailer):
+    """走查任务不在默认分支上，手动触发找不到它：改 walk-request.txt 并提交，推送时它自己跑"""
+    if only and only not in ('shell', 'm170', 'r169', 'ai'):
+        die('--only 只能是 shell / m170 / r169 / ai')
+    step('写走查请求')
+    lines = [l for l in WALK_REQUEST.read_text(encoding='utf-8').splitlines() if l.startswith('#')]
+    stamp = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+    lines += ['requested=%s' % stamp, 'only=%s' % (only or '')]
+    WALK_REQUEST.write_text(NL.join(lines) + NL, encoding='utf-8')
+    git('add', str(WALK_REQUEST))
+    msg = 'ci: 请求一次模拟器走查（%s%s）' % (stamp, '，只走 %s' % only if only else '')
+    if trailer:
+        msg += NL + NL + trailer
+    git('commit', '-q', '-m', msg)
+    ok('已提交走查请求 %s' % stamp)
+
+
+def start_walk(slug, head, only, t0):
+    step('找推送触发的模拟器走查')
+    run_id = find_run(slug, WALK_WORKFLOW, head, 'push', t0, tries=45)
     walk_state_path().write_text(str(run_id), encoding='utf-8')
     ok('走查运行 %s%s' % (run_id, '（只走 %s）' % only if only else ''))
     print('\n下一步：python tool/private_release.py fetch-walk %s' % run_id)
     return 0
 
 
-def cmd_walk(a):
-    """不推送：远端分支上的补丁就是本地这一份时，再跑一次走查"""
-    os.chdir(top())
-    check_env()
-    slug = repo_slug()
-    git('fetch', 'origin', BASE)
-    head = git('rev-parse', 'HEAD')
-    if git('rev-parse', 'origin/%s' % BASE) != head:
-        die('本地 %s 和 origin 不一样：先 push --walk，或者把本地对齐了再跑' % BASE)
-    return start_walk(slug, head, a.only)
+def cmd_walk(_):
+    """走查任务不在默认分支上，不推送就触发不了"""
+    die('走查只能随推送触发：python tool/private_release.py push --walk [--only shell] --trailer ...'
+        '（补丁没变时也行，会多一个只改 .github/walk-request.txt 的提交）')
 
 
 def wait_run(slug, run_id, minutes):
@@ -719,8 +743,9 @@ def main():
     p.set_defaults(fn=cmd_prepare)
     p = sub.add_parser('push', help='推送并触发构建')
     p.add_argument('--check-only', action='store_true', help='只验补丁，不构建')
-    p.add_argument('--walk', action='store_true', help='推送后只跑模拟器走查，不打包')
-    p.add_argument('--only', default='', help='走查只走一段：shell / m170 / r169')
+    p.add_argument('--walk', action='store_true', help='推送后只跑模拟器走查，不打包（先提交一次走查请求）')
+    p.add_argument('--only', default='', help='走查只走一段：shell / m170 / r169 / ai')
+    p.add_argument('--trailer', default='', help='走查请求提交信息末尾的一行（如 Co-Authored-By）')
     p.set_defaults(fn=cmd_push)
     p = sub.add_parser('walk', help='不推送，用远端现在的补丁再跑一次模拟器走查')
     p.add_argument('--only', default='', help='只走一段：shell / m170 / r169')

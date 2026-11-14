@@ -1,0 +1,4 @@
+# 请求一次 iPhone 模拟器走查：推送里改了这个文件，.github/workflows/ios-walk.yaml 就跑一次。
+# 由 tool/private_release.py push --walk 改写；only= 空着就全走，或者写 shell / m170 / r169。
+requested=2026-11-13T00:00:00Z
+only=

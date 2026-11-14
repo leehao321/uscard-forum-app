@@ -1,9 +1,18 @@
 name: iOS Simulator Walk
 
-# 手动触发：带私有补丁，在 iPhone 模拟器里把 App 自动点一遍、每一步截图（integration_test/，在补丁里）。
+# 带私有补丁，在 iPhone 模拟器里把 App 自动点一遍、每一步截图（integration_test/，在补丁里）。
 # App 用到的服务都是测试里假的，一个请求都不发出去；这台机器上还把论坛域名指向 0.0.0.0，
 # 就算有漏网的请求（比如内嵌网页）也连不上。日志、截图、报告加密后上传，公开日志里只有一行数字。
+#
+# 怎么触发：这个文件只在 fluxdo-shell 上（默认分支没有它，手动触发找不到它），所以推送里改了
+# .github/walk-request.txt（发版工具 push --walk 会改它）或者改了这个文件本身时跑一次；平时发版的推送不跑。
+# 只走一段：walk-request.txt 里写 only=shell / m170 / r169。
 on:
+  push:
+    branches: [fluxdo-shell]
+    paths:
+      - '.github/walk-request.txt'
+      - '.github/workflows/ios-walk.yaml'
   workflow_dispatch:
     inputs:
       only:
@@ -56,9 +65,11 @@ jobs:
           done
           sudo dscacheutil -flushcache
           sudo killall -HUP mDNSResponder || true
-          if curl -s --max-time 5 -o /dev/null https://www.uscardforum.com/; then
-            echo "论坛域名没屏蔽住，不跑"; exit 1
-          fi
+          # 只查解析结果，不去连（屏蔽没生效时也不会碰到论坛）
+          for h in www.uscardforum.com uscardforum.com; do
+            ip=$(python3 -c "import socket,sys; print(socket.gethostbyname(sys.argv[1]))" "$h" 2>/dev/null || echo none)
+            if [ "$ip" != "0.0.0.0" ]; then echo "论坛域名没屏蔽住（$h 解析成 $ip），不跑"; exit 1; fi
+          done
           echo "论坛域名已屏蔽"
 
       - name: Apply private patch
@@ -90,6 +101,10 @@ jobs:
           ONLY: ${{ inputs.only }}
         run: |
           mkdir -p walk-out
+          if [ -z "$ONLY" ] && [ -f .github/walk-request.txt ]; then
+            ONLY=$(sed -n 's/^only=\([a-z0-9]*\)$/\1/p' .github/walk-request.txt | head -1)
+          fi
+          echo "走查范围：${ONLY:-全部}"
           set +e
           dart tool/flutterw.dart test integration_test/walk_test.dart -d "$SIM" \
             --dart-define=WALK_OUT="$PWD/walk-out" ${ONLY:+--dart-define=WALK_ONLY=$ONLY} \
