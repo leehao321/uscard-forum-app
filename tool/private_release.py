@@ -7,7 +7,8 @@
   python tool/private_release.py prepare [--version 1.4.4] [--dry-run]   本地准备，不推送
   python tool/private_release.py push [--check-only]                    推送并触发构建（--check-only 只验补丁，不构建）
   python tool/private_release.py fetch [RUN_ID] [--expect 词1,词2]       等构建结束，下载、解密、验包
-  python tool/private_release.py push --walk [--only shell]            推送并只跑模拟器走查（不打包）
+  python tool/private_release.py prepare --walk [--only shell] ...      先提交走查请求，再照常准备补丁
+  python tool/private_release.py push --walk                           推送并只跑模拟器走查（不打包）
   python tool/private_release.py walk                                   （走查只能随推送触发，用 push --walk）
   python tool/private_release.py fetch-walk [RUN_ID]                   等走查结束，下载、解密、解开截图和报告
   python tool/private_release.py self-test                              自测里面的小函数
@@ -274,6 +275,15 @@ def cmd_prepare(a):
     os.chdir(top())
     rx, privwt = check_env()
 
+    # 走查请求要在变基之前提交：私有分支变基到它上面，导出的补丁合入后才和私有分支一致
+    if a.walk:
+        if dry:
+            note('dry-run：不写走查请求')
+        elif walk_requested():
+            ok('待推送的提交里已经有走查请求，不再写')
+        else:
+            request_walk(a.only, a.trailer)
+
     step('版本号')
     cur = read_version(Path('pubspec.yaml').read_text(encoding='utf-8'))
     target = cur
@@ -405,8 +415,8 @@ def cmd_push(a):
     rx, _ = check_env()
     slug = repo_slug()
 
-    if a.walk:
-        request_walk(a.only, a.trailer)
+    if a.walk and not walk_requested():
+        die('待推送的提交里没有走查请求：先 prepare --walk（请求要在导出补丁之前提交）')
 
     step('推送前最后核对')
     ahead = int(git('rev-list', '--count', 'origin/%s..%s' % (BASE, BASE)))
@@ -491,6 +501,11 @@ def request_walk(only, trailer):
     ok('已提交走查请求 %s' % stamp)
 
 
+def walk_requested():
+    changed = git('diff', '--name-only', 'origin/%s..%s' % (BASE, BASE)).split()
+    return WALK_REQUEST.as_posix() in changed
+
+
 def start_walk(slug, head, only, t0):
     step('找推送触发的模拟器走查')
     run_id = find_run(slug, WALK_WORKFLOW, head, 'push', t0, tries=45)
@@ -502,7 +517,7 @@ def start_walk(slug, head, only, t0):
 
 def cmd_walk(_):
     """走查任务不在默认分支上，不推送就触发不了"""
-    die('走查只能随推送触发：python tool/private_release.py push --walk [--only shell] --trailer ...'
+    die('走查只能随推送触发：先 prepare --walk [--only shell] --allow-same-version --trailer ...，再 push --walk'
         '（补丁没变时也行，会多一个只改 .github/walk-request.txt 的提交）')
 
 
@@ -740,12 +755,13 @@ def main():
     p.add_argument('--dry-run', action='store_true', help='只检查，不改分支、不写 private/')
     p.add_argument('--allow-same-version', action='store_true', help='允许重做和上一次补丁相同的版本')
     p.add_argument('--trailer', default='', help='追加到提交信息末尾的一行（如 Co-Authored-By）')
+    p.add_argument('--walk', action='store_true', help='先提交一次模拟器走查请求（推送时用 push --walk）')
+    p.add_argument('--only', default='', help='走查只走一段：shell / m170 / r169 / ai')
     p.set_defaults(fn=cmd_prepare)
     p = sub.add_parser('push', help='推送并触发构建')
     p.add_argument('--check-only', action='store_true', help='只验补丁，不构建')
-    p.add_argument('--walk', action='store_true', help='推送后只跑模拟器走查，不打包（先提交一次走查请求）')
-    p.add_argument('--only', default='', help='走查只走一段：shell / m170 / r169 / ai')
-    p.add_argument('--trailer', default='', help='走查请求提交信息末尾的一行（如 Co-Authored-By）')
+    p.add_argument('--walk', action='store_true', help='推送后只跑模拟器走查，不打包（请求要先用 prepare --walk 提交）')
+    p.add_argument('--only', default='', help='（显示用）走查只走一段')
     p.set_defaults(fn=cmd_push)
     p = sub.add_parser('walk', help='不推送，用远端现在的补丁再跑一次模拟器走查')
     p.add_argument('--only', default='', help='只走一段：shell / m170 / r169')
