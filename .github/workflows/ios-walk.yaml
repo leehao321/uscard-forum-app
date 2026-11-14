@@ -50,8 +50,8 @@ jobs:
           workspaces: core/doh_proxy
           key: ios-sim
 
-      - name: Setup iOS simulator Rust targets
-        run: rustup target add aarch64-apple-ios-sim x86_64-apple-ios
+      - name: Setup iOS Rust targets
+        run: rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
 
       - name: Configure Git for CocoaPods
         run: git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
@@ -83,6 +83,20 @@ jobs:
           export OPENSSL
           bash tool/private_patch.sh apply
           echo "OPENSSL=$OPENSSL" >> "$GITHUB_ENV"
+
+      # flutter test 不会像 build / run 那样自动准备原生依赖：先准备代理证书资源，
+      # 再编 DOH 代理的 Rust 静态库（真机和模拟器两份，Xcode 工程两份都要）。日志跟着结果一起加密
+      - name: Prepare native libraries
+        shell: bash
+        run: |
+          mkdir -p walk-out
+          if dart tool/project_tasks.dart native:prepare certs > walk-out/native.log 2>&1 \
+            && dart tool/project_tasks.dart native:prepare ios --debug >> walk-out/native.log 2>&1 \
+            && test -f ios/rust_libs/simulator/libdoh_proxy.a; then
+            echo "原生依赖已准备好"
+          else
+            echo "原生依赖准备失败（日志在加密的结果里）"; touch walk-out/NO_REPORT; exit 1
+          fi
 
       - name: Boot iPhone simulator
         shell: bash
